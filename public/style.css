@@ -1,0 +1,192 @@
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+    color: #333;
+    padding: 0;
+    width: 60%;
+    height: 100%;
+    margin: 0 auto;
+}
+
+h1,
+h2,
+h3,
+p {
+    margin: 0;
+    padding: 0;
+}
+
+section {
+    width: 96%;
+    height: auto;
+    padding: 2%;
+    background-color: #fff;
+    margin: 20px 0;
+}
+
+.modal {
+    position: fixed;
+    z-index: 2;
+}
+
+.prompt.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #fff;
+    margin: 20px 0;
+}
+
+textarea,
+input {
+    flex: 1;
+    margin: 0;
+    padding: 10px;
+    resize: vertical;
+    max-height: 100vh;
+}
+
+textarea,
+input,
+ul {
+    margin: 20px 0 !important;
+    box-shadow: none;
+    border: none;
+    box-shadow: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 5px;
+}
+
+textarea,
+input {
+    outline: 1px solid #000;
+    
+}
+
+section {
+    margin: 20px 0;
+    border-top: 2px solid lightgray;
+}
+
+input#term {
+    width: 360px;
+}
+
+#term {
+    padding: 10px;
+    margin-right: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    color: black;
+    margin-left: 5px;
+    width: 150px;
+    height: 40px;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+ul li {
+    padding: 10px 20px;
+    margin: 2px;
+    outline: 1px solid lightgray;
+    border-radius: 5px;
+}
+
+ul.prompt-output li {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+ul.word-types li {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 225px;
+}
+
+ul.matches {
+    background: whitesmoke;
+    max-width: 430px;
+}
+
+ul.matches li {
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.matches li:hover {
+    background-color: rgb(29, 239, 53) !important;
+}
+
+.hidden {
+    display: none;
+}
+
+.row {
+    display: flex;
+}
+
+.align-right {
+    text-align: right;
+    justify-content: flex-end;
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
+}
+
+.col-4 {
+    width: 40%;
+}
+
+.col-5 {
+    width: 50%;
+}
+
+.col-6 {
+    width: 60%;
+}
+
+.col-3 {
+    width: 30;
+}
+
+.col-1 {
+    width: 10%;
+}
+
+@keyframes flash {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.25;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.loading .message {
+    font-size: 14px;
+    padding: 20px 0;
+    animation: flash 4s infinite linear;
+}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Harvesting</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="modal hidden">
+        <ul id="matches" class="matches"></ul>
+    </div>
+
+    <section class="prompt">
+        <div class="row">
+            <div class="col col-4">
+                <h3>Prompt Builder:</h3>
+                <textarea id="prompt-textarea" rows="10"></textarea>
+                <div class="row align-right">
+                    <button class="submit">start</button>
+                </div>
+                <input type="text" id="multiplier" placeholder="multiplier text" />
+            </div>
+            <div class="col col-1"></div>
+            <div class="col col-5">
+                <h3>Prompts:</h3>
+                <div class="output">
+                    <ul class="prompt-output"></ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="term-results">
+        <h3>Search Types:</h3>
+        <div class="">
+            <input type="text" id="term" placeholder="find term">
+            <button class="find">find</button>
+            <button class="clear">clear</button>
+        </div>
+        <div class="loading hidden">
+            <div class="message">Working on it...</div>
+        </div>
+    </section>
+
+    <section class="word-types">
+        <h3>All Types:</h3>
+        <input type="text" id="filterTypes" placeholder="filter results" />
+        <ul class="word-types"></ul>
+    </section>
+
+    <script src="setupWordTypeSection.js"></script>
+    <script src="setupModal.js"></script>
+    <script src="setupTextArea.js"></script>
+    <script src="setupSearchTerm.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
