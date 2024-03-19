@@ -4,42 +4,14 @@ async function getMatches(word) {
 
 function setupTextArea() {
     const textArea = document.getElementById('prompt-textarea');
-    const submitBtn = document.querySelector('button.submit');
+    const convertBtn = document.querySelector('.btn-convert');
+    const startGeneratingBtn = document.querySelector('.btn-generate');
     const matchesEl = document.getElementById('matches');
-
-    let activeIndex = 0;
 
     const updateMatchesDisplay = matches => {
         matchesEl.innerHTML = matches.map(word => `<li>${word}</li>`).join('');
-        updateModal(matches.length);
+        updateModal(textArea, matches.length);
     };
-
-    const updateModal = (visible) => {
-        const modal = document.querySelector('.modal');
-        if (!visible) {
-            modal.style.display = 'none';
-            return;
-        }
-        modal.style.display = 'block';
-        const textAreaRect = textArea.getBoundingClientRect();
-
-
-        let lineHeight = parseFloat(getComputedStyle(textArea).lineHeight);
-        if (isNaN(lineHeight)) {
-            let fontSize = parseFloat(getComputedStyle(textArea).fontSize);
-            lineHeight = fontSize * 1.2;
-        }
-
-        let lines = textArea.value.substr(0, textArea.selectionEnd).split("\n");
-        let currentLine = lines.length;
-
-        let targetTop = textAreaRect.top + lineHeight * currentLine + 5;
-
-
-        const targetLeft = textAreaRect.left + (textArea.selectionEnd * 7);
-        modal.style.top = targetTop + 'px';
-        modal.style.left = targetLeft + 'px';
-    }
 
     let lastMatchedWord = '';
 
@@ -91,52 +63,144 @@ function setupTextArea() {
         }
     };
 
+    setupMaxNumInput();
     textArea.addEventListener('input', handleInput);
     matchesEl.addEventListener('click', handleMatchListItemClick);
-    submitBtn.addEventListener('click', handleSubmitClick);
+    convertBtn.addEventListener('click', handleConvertClick);
+    startGeneratingBtn.addEventListener('click', handleGenerateClick);
 }
 
-async function handleSubmitClick() {
+let maxRequests = 3;
+let requestCount = 0;
+
+function buildUrl() {
     const textArea = document.getElementById('prompt-textarea');
-    if (textArea) {
-        const prompt = encodeURIComponent(textArea.value.trim());
-        const url = `/chat/build?prompt=${prompt}`;
-        console.log('url', url);
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const results = await response.json();
-            console.log(results);
+    const prompt = encodeURIComponent(textArea.value.trim());
+    if(!prompt){
+        return;
+    }
+    const multiplier = document.querySelector("#multiplier");
+    const multiplierPair = multiplier.value.length ? `&multiplier=${encodeURIComponent(multiplier.value)}` : '';
+    const mixup = document.querySelector('input[name="auto-generate"]:checked');
+    const mixupPair = mixup ? `&mixup=true` : '';
+
+    const maxNum = document.querySelector('input[name="maxNum"]');
+    const maxNumPair = maxNum ? `&maxNum=${maxNum}` : '';
+
+    return `/chat/build?prompt=${prompt}${multiplierPair}${mixupPair}${maxNumPair}`;
+}
+
+async function fetchData(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.text();
+}
+
+async function handleGenerateClick(e){
+    const url = buildUrl();
+    if(!url){
+        alert('Invalid Prompt');
+    }
+    const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
+    if(!checkedProviders.length){
+        alert('Please select at least one provider');
+        return;
+    }
+    try {
+        const results = await fetchData(url);
+        await addPromptToOutput(results); 
+        await generateImage(results);
+        const isAuto = document.querySelector('input[name="auto-generate"]:checked');
+        const maxNum = document.querySelector('input[name="maxNum"]');
+
+        if(isAuto && requestCount < (maxNum.value || maxRequests)) {
+            requestCount++;
+            handleGenerateClick(e);
+        } else {
+            requestCount = 0;
+        }
+
+    } catch (error) {
+        console.error('An error occurred while fetching the data.', error);
+    }
+}
+
+function setupMaxNumInput(){
+    const maxNum = document.querySelector("input[name='maxNum']");
+    const isAuto = document.querySelector("input[name='auto-generate']");
+    maxNum.disabled = !isAuto.checked;
+    isAuto.addEventListener('change', () => {
+        maxNum.disabled = !isAuto.checked;
+    });
+}
+
+async function handleConvertClick() {
+    const url = buildUrl();
+    if(!url){
+        alert('Invalid Prompt');
+    }
+    try {
+        const results = await fetchData(url);
+        addPromptToOutput(results);
+
+    } catch (error) {
+        console.error('An error occurred while fetching the data.', error);
+    }
+}
+
+function addPromptToOutput(value) {
             const target = document.querySelector('.prompt-output');
             const button = document.createElement('button');
             button.addEventListener('click', handleNewPromptClick);
             button.textContent = 'make';
-            const span = document.createElement('span');
-            span.textContent = results.join(' ');
+            const span = document.createElement('div');
+            span.textContent = value;
             const li = document.createElement('li');
             li.appendChild(span);
             li.appendChild(button);
             target.prepend(li);
-        } catch (error) {
-            console.error('An error occurred while fetching the data.', error);
-        }
-    }
 }
 
-async function handleNewPromptClick(e){
+async function handleNewPromptClick(e) {
+    e.preventDefault();
     const text = e.target.previousElementSibling.textContent;
-    const results = await fetch(`/chat/generate?prompt=${encodeURIComponent(text)}`).then(res => res.json());
-    console.log(results);
-    const img = document.createElement('img');
-    img.src = `data:image/jpeg;base64,${results}`;
-    img.style.width = '100%';
-    img.style.height = 'auto';
-    const target = document.querySelector('.output');
-    target.prepend(img);
-    const a = document.createElement('a');
-    a.href = `data:image/jpeg;base64,${results}`;
-    a.download = 'image.jpeg';
-    a.click();
+    await generateImage(text, e.target.closest('li'));
+}
+
+async function generateImage(text, e=null){
+    toggleProcessingStyle(e);
+    const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
+    const url = `/chat/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}`;
+    const results = await fetch(url).then(res => res.json());
+    addImageUrlToOutput(results, true);
+    toggleProcessingStyle(e);
+}
+
+function toggleProcessingStyle(e=null){
+    const generateBtn = document.querySelector('.btn-generate');
+    const currentPrompt = e || document.querySelector('.prompt-output li:first-child');
+    generateBtn.classList.toggle('processing');
+    currentPrompt.classList.toggle('processing');
+    generateBtn.innerText = generateBtn.innerText === 'loading...' ? "Let's Go" : 'loading...';
+    generateBtn.disabled = !generateBtn.disabled;
+    currentPrompt.disabled = !currentPrompt.disabled;
+}
+
+function makeFileNameSafeForWindows(name) {
+    const illegalChars = /[\u0000-\u001F<>:"\/\\|?*.,;(){}[\]!@#$%^&+=`~]/g;
+    const maxLength = 100;
+    let safeName = name.replace(illegalChars, '')
+        .replace(/\.{2,}/g, '.')
+        .replace(/ /g, '-')  // Replace spaces with dashes
+        .trim()
+        .replace(/(^[. ]+|[. ]+$)/g, '');
+
+    const reservedNames = ["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"];
+
+    if (reservedNames.includes(safeName.toUpperCase())) {
+        safeName = 'file';
+    }
+    return safeName.slice(0, maxLength);
 }

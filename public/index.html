@@ -9,6 +9,7 @@
 </head>
 
 <body>
+    <section style="" id="authentication"></section>
     <div class="modal hidden">
         <ul id="matches" class="matches"></ul>
     </div>
@@ -17,22 +18,50 @@
         <div class="row">
             <div class="col col-4">
                 <h3>Prompt Builder:</h3>
-                <textarea id="prompt-textarea" rows="10"></textarea>
-                <div class="row align-right">
-                    <button class="submit">start</button>
+
+                <div class="row align-right align-center">
+                    <button class="btn-convert">convert</button>
+                    <input type="number" name="maxNum" style="width: 55px;" placeholder="max" />
+                    <label>
+                        <input type="checkbox" name="auto-generate" />auto
+                    </label>
+                    <label>
+                        <input type="checkbox" name="mixup" />mixup
+                    </label>
                 </div>
-                <input type="text" id="multiplier" placeholder="multiplier text" />
+
+                <textarea id="prompt-textarea" rows="10"></textarea>
+                <div>
+                    <input type="text" id="multiplier" style="width:93%;" placeholder="multiplier text" />
+                </div>
+                <div class="row align-right">
+                    <form id="provider-options" class="row">
+                        
+                        <label for="dalle">
+                            <input type="checkbox" value="dalle" id="dalle" name="providers" />Dalle3</label>
+                        <label for="juggernaut">
+                            <input type="checkbox" value="juggernaut" id="juggernaut" name="providers" />Juggernaut</label>
+                        <label for="absolute">
+                            <input type="checkbox" value="absolute" id="absolute" name="providers" />Absolute Reality</label>
+                    </form>
+                </div>
+                <div class="row">
+                    <button class="btn-generate">Let's Go!</button>
+                </div>
             </div>
             <div class="col col-1"></div>
             <div class="col col-5">
                 <h3>Prompts:</h3>
-                <div class="output">
+                <div class="prompts">
                     <ul class="prompt-output"></ul>
                 </div>
             </div>
         </div>
     </section>
-
+    <section class="images">
+        <h3>Images:</h3>
+        <ul class="image-output"></ul>
+    </section>
     <section class="term-results">
         <h3>Search Types:</h3>
         <div class="">
@@ -51,10 +80,14 @@
         <ul class="word-types"></ul>
     </section>
 
+
+    <script src="user.js"></script>
+    <script src="updateModal.js"></script>
     <script src="setupWordTypeSection.js"></script>
     <script src="setupModal.js"></script>
     <script src="setupTextArea.js"></script>
     <script src="setupSearchTerm.js"></script>
+    <script src="setupFeed.js"></script>
     <script src="script.js"></script>
 </body>
 

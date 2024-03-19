@@ -11,6 +11,9 @@ body {
 h1,
 h2,
 h3,
+h4,
+h5,
+h6,
 p {
     margin: 0;
     padding: 0;
@@ -22,6 +25,29 @@ section {
     padding: 2%;
     background-color: #fff;
     margin: 20px 0;
+    border-bottom: 2px solid lightgray;
+}
+
+.user{
+    font-size: 15px;
+  font-weight: 100;
+  background: aqua;
+  padding: 0 15px;
+  text-align: center;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+section#authentication {
+    display: flex; 
+    justify-content: space-between;
+}
+
+section#authentication input {
+    margin: 0;
 }
 
 .modal {
@@ -38,10 +64,14 @@ section {
     margin: 20px 0;
 }
 
+label {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
 textarea,
 input {
-    flex: 1;
-    margin: 0;
     padding: 10px;
     resize: vertical;
     max-height: 100vh;
@@ -50,13 +80,10 @@ input {
 textarea,
 input,
 ul {
-    margin: 20px 0 !important;
+    margin: 10px;
     box-shadow: none;
     border: none;
     box-shadow: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
     border-radius: 5px;
 }
 
@@ -68,7 +95,6 @@ input {
 
 section {
     margin: 20px 0;
-    border-top: 2px solid lightgray;
 }
 
 input#term {
@@ -89,6 +115,22 @@ button {
     margin-left: 5px;
     width: 150px;
     height: 40px;
+}
+
+button.btn-generate {
+    width: 100%;
+    background: lime;
+    margin-top: 20px;
+}
+
+button.btn-generate:hover {
+    background: green;
+    color: white;
+}
+
+button.btn-generate:active {
+    background: darkgreen;
+    color: white;
 }
 
 ul {
@@ -112,11 +154,55 @@ ul.prompt-output li {
     justify-content: space-between;
 }
 
+ul.prompt-output div {
+    width: 90%;
+}
+
+ul.prompt-output button {
+    width: 90px;
+}
+
 ul.word-types li {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 225px;
+}
+
+section.images{
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+ul.image-output {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    align-items: flex-start;
+}
+
+.image-wrapper {
+    padding: 0 20px 20px 0;
+    width: 11%;
+}
+
+.image-wrapper img {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+}
+
+.image-wrapper img:hover {
+    outline: 10px solid aquamarine;
+}
+
+.image-wrapper:first-child {
+    padding-left: 0;
+}
+
+.prompts, .output {
+    max-height: 50vh;
+    overflow-y: auto;
 }
 
 ul.matches {
@@ -144,6 +230,10 @@ ul.matches li {
 .align-right {
     text-align: right;
     justify-content: flex-end;
+}
+
+.align-center {
+    align-items: center;
 }
 
 .col {
@@ -189,4 +279,33 @@ ul.matches li {
     font-size: 14px;
     padding: 20px 0;
     animation: flash 4s infinite linear;
+}
+
+.processing {
+    border: 2px dashed lime;
+    background-color: whitesmoke !important;
+    color: black !important;
+    position: relative;
+    animation: processing 1.23s linear infinite;
+}
+
+.processing:hover, .processing:active {
+    border: 2px dashed lime;
+    background-color: whitesmoke !important;
+    color: black !important;
+}
+
+@keyframes processing {
+    0% {
+        border-color: green;
+        border-style: dotted;
+    }
+    50% {
+        border-color: transparent;
+        border: 2px dashed #000;
+    }
+    100% {
+        border-color: green;
+        border-style: dotted;
+    }
 }
