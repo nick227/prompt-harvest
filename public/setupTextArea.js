@@ -73,21 +73,22 @@ function setupTextArea() {
 let maxRequests = 3;
 let requestCount = 0;
 
-function buildUrl() {
+async function buildUrl() {
+    if(!await checkUser()){
+        alert('Please login');
+        return false;
+    }
     const textArea = document.getElementById('prompt-textarea');
     const prompt = encodeURIComponent(textArea.value.trim());
     if(!prompt){
-        return;
+        return false;
     }
     const multiplier = document.querySelector("#multiplier");
     const multiplierPair = multiplier.value.length ? `&multiplier=${encodeURIComponent(multiplier.value)}` : '';
-    const mixup = document.querySelector('input[name="auto-generate"]:checked');
+    const mixup = document.querySelector('input[name="mixup"]:checked');
     const mixupPair = mixup ? `&mixup=true` : '';
 
-    const maxNum = document.querySelector('input[name="maxNum"]');
-    const maxNumPair = maxNum ? `&maxNum=${maxNum}` : '';
-
-    return `/chat/build?prompt=${prompt}${multiplierPair}${mixupPair}${maxNumPair}`;
+    return `/chat/build?prompt=${prompt}${multiplierPair}${mixupPair}`;
 }
 
 async function fetchData(url) {
@@ -99,9 +100,10 @@ async function fetchData(url) {
 }
 
 async function handleGenerateClick(e){
-    const url = buildUrl();
+    const url = await buildUrl();
     if(!url){
         alert('Invalid Prompt');
+        return;
     }
     const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
     if(!checkedProviders.length){
@@ -137,9 +139,10 @@ function setupMaxNumInput(){
 }
 
 async function handleConvertClick() {
-    const url = buildUrl();
+    const url = await buildUrl();
     if(!url){
         alert('Invalid Prompt');
+        return;
     }
     try {
         const results = await fetchData(url);

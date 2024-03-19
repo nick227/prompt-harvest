@@ -44,7 +44,7 @@ export default class DB {
     }
 
     async _find(query) {
-        let sort = { timestamp: 1 };
+        let sort = { timestamp: -1 };
         let limit = null;
         let projection = {};
 
@@ -180,7 +180,7 @@ export default class DB {
 
     async _findOne(query, options = {}) {
         try {
-            options.sort = { timestamp: 1 };
+            options.sort = { timestamp: -1 };
             const row = await this.db.findOneAsync(query, options);
             return row;
         } catch (err) {

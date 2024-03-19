@@ -32,7 +32,7 @@ function setup(app) {
         const params = {
             userId: userId || 'undefined',
             type: 'image',
-            limit: 16
+            limit: 24
         };
         const response = await db.find(params);
         res.send(response.map(doc => doc.data));
@@ -44,7 +44,7 @@ function setup(app) {
         const params = {
             userId: userId || 'undefined',
             type: 'prompt',
-            limit: 16
+            limit: 24
         };
         const response = await db.find(params);
         res.send(response.map(doc => doc.data.processed));

@@ -56,19 +56,23 @@ export default class User {
         this.app.delete('/user', this.deleteUser.bind(this));
     }
 
-async register(req, res, next) {
-    let { username, password } = req.body;
-    if (!password) {
-        return res.status(400).send({ error: 'Password is required' });
-    }
-    let hashedPassword = bcrypt.hashSync(password, 10);
-    let user = await db.insert({ username, password: hashedPassword });
+    async register(req, res, next) {
+        let { username, password } = req.body;
+        let existingUser = await db.findOne({ username });
+        if (existingUser) {
+            return res.status(400).send({ error: 'Username is already in use' });
+        }
+        if (!password) {
+            return res.status(400).send({ error: 'Password is required' });
+        }
+        let hashedPassword = bcrypt.hashSync(password, 10);
+        let user = await db.insert({ username, password: hashedPassword });
 
-    req.login(user, function(err) {
-        if (err) { return next(err); }
-        return res.send(user);
-    });
-}
+        req.login(user, function(err) {
+            if (err) { return next(err); }
+            return res.send(user);
+        });
+    }
 
     login(req, res) {
         res.send(req.user);

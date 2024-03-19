@@ -14,7 +14,10 @@ async function setupFeedPrompts(){
         throw new Error(`HTTP error! status: ${response.status}`);
     }
     const results = await response.json();
-    results.forEach(addPromptToOutput);
+    //results.forEach(addPromptToOutput);
+    for(let i=results.length-1; i > -1; i--){
+        addPromptToOutput(results[i]);
+    }
 }
 
 async function setupFeedImages(){
@@ -24,7 +27,10 @@ async function setupFeedImages(){
         throw new Error(`HTTP error! status: ${response.status}`);
     }
     const results = await response.json();
-    results.forEach(addImageUrlToOutput);
+    //results.forEach(addImageUrlToOutput);
+    for(let i=results.length-1; i > -1; i--){
+        addImageUrlToOutput(results[i]);
+    }
 }
 
 function addImageUrlToOutput(results, download=false) {

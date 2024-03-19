@@ -39,8 +39,11 @@ async function buildPrompt(prompt, multiplier, mixup, req) {
     if(multiplier === true){
         prompt = prompt.split(', ').join(`, ${multiplier}, `);
     }
+    console.log('mixup...', mixup, typeof mixup)
     if(mixup === true){
+        console.log('mkay')
         prompt = prompt.split(', ').shuffle().join(`, `);
+        console.log('mixup...', prompt)
     }
     const regex = /(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
     const textArray = prompt.match(regex);
