@@ -34,16 +34,15 @@ section {
   background: aquamarine;
   padding: 0 15px;
   text-align: center;
-  border-radius: 15px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding: 9px;
 }
 
 #authentication {
     display: flex; 
-    flex-direction: column;
     justify-content: flex-end;
     align-items: flex-end;
     margin: 0;
@@ -273,10 +272,8 @@ ul.matches li {
 }
 
 #image-count {
-    border-radius: 50%;
-  background: aquamarine;
   padding: 5px;
-  margin-left: 10px;
+  margin: 0 10px;
 
 }
 

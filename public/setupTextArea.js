@@ -173,7 +173,7 @@ async function generateImage(text, e=null){
     const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
     const url = `/chat/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}`;
     const results = await fetch(url).then(res => res.json());
-    addImageUrlToOutput(results, true);
+    addImageB64ToOutput(results, true);
     toggleProcessingStyle(e);
 }
 

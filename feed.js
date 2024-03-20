@@ -38,7 +38,6 @@ Array.prototype.shuffle = function() {
 async function buildPrompt(prompt, multiplier, mixup, req) {
     if(mixup){
         prompt = prompt.split(', ').shuffle().join(`, `);
-        console.log('mixup...', prompt)
     }
     if(multiplier){
         prompt = prompt.split(', ').join(`, ${multiplier}, `);
@@ -78,13 +77,13 @@ async function generateImageInternal(prompt, providers, req) {
     const providerName = providers[Math.floor(Math.random() * providers.length)];
     const dynamicFunction = providerList[providerName];
     const b64_json = await dynamicFunction(prompt);
-    const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
+    //const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
     saveFeedEvent('image', {
         prompt,
-        imageName,
+        b64_json,
         providerName
     }, req);
-    return { imageName, prompt, providerName: providerName };
+    return { b64_json, prompt, providerName: providerName };
 }
 
 async function saveB64Image(b64_json, providerName, prompt, req) {

@@ -27,7 +27,38 @@ async function setupFeedImages(){
     }
     const results = await response.json();
     for(let i=results.length-1; i > -1; i--){
-        addImageUrlToOutput(results[i]);
+        addImageB64ToOutput(results[i]);
+    }
+}
+
+function addImageB64ToOutput(results, download=false) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'image-wrapper';
+
+    const title = document.createElement('h3');
+    const note = document.createElement('h6');
+    title.textContent = truncatePrompt(results.prompt);
+    note.textContent = results.providerName;
+
+    const img = document.createElement('img');
+    img.src = `data:image/jpeg;base64,${results.b64_json}`;
+    img.addEventListener("click", downloadThisImage);
+    img.title = "Click to download: " + results.prompt;
+
+    img.onload = () => {
+        wrapper.appendChild(img);
+        wrapper.appendChild(title);
+        wrapper.appendChild(note);
+    }
+
+    const target = document.querySelector('.image-output');
+    target.prepend(wrapper);
+
+    if(download === true){
+        const a = document.createElement('a');
+        a.href = img.src;
+        a.download = `${makeFileNameSafeForWindows(results.providerName +'-'+ results.prompt)}.jpg`;
+        a.click();
     }
 }
 
