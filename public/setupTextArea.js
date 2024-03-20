@@ -7,6 +7,7 @@ function setupTextArea() {
     const convertBtn = document.querySelector('.btn-convert');
     const startGeneratingBtn = document.querySelector('.btn-generate');
     const matchesEl = document.getElementById('matches');
+    const toggleProviders = document.querySelector('.all-providers');
 
     const updateMatchesDisplay = matches => {
         matchesEl.innerHTML = matches.map(word => `<li>${word}</li>`).join('');
@@ -73,6 +74,12 @@ const handleMatchListItemClick = e => {
     matchesEl.addEventListener('click', handleMatchListItemClick);
     convertBtn.addEventListener('click', handleConvertClick);
     startGeneratingBtn.addEventListener('click', handleGenerateClick);
+    toggleProviders.addEventListener('click', toggleAllProviders);
+}
+
+function toggleAllProviders(e){
+    const checkboxes = Array.from(document.querySelectorAll('input[name="providers"]'));
+    checkboxes.forEach(checkbox => checkbox.checked = e.target.checked);
 }
 
 let maxRequests = 3;

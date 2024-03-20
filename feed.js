@@ -82,11 +82,12 @@ async function processQueue(req) {
 async function generateImageInternal(prompt, providers, req) {
     const providerName = providers[Math.floor(Math.random() * providers.length)];
     const dynamicFunction = providerList[providerName];
-    const b64_json = await dynamicFunction(prompt);
+    const b64_json = await dynamicFunction(prompt, req.user?._id || 'undefined');
     //const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
     saveFeedEvent('image', {
         prompt,
-        providerName
+        providerName,
+        b64_json
     }, req);
     return { b64_json, prompt, providerName: providerName };
 }
@@ -123,47 +124,55 @@ async function getWordReplacement(element) {
     return results[0].types[Math.floor(Math.random() * results[0].types.length)];
 }
 
-async function generateDalleImage(prompt){
+async function generateDalleImage(prompt, userId=null){
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const response = await openai.images.generate({
-        prompt, n: 1, size: "1024x1024", response_format: "b64_json", model: "dall-e-3", style: 'vivid', user: 'user-1234'
-    });
-    if (!response.data || !response.data[0] || !response.data[0].b64_json) {
-        console.error('Invalid response', response);
-        return;
+    try {
+        const response = await openai.images.generate({
+            prompt, n: 1, size: "1024x1024", response_format: "b64_json", model: "dall-e-3", style: 'vivid', user: userId
+        });
+        if (!response.data || !response.data[0] || !response.data[0].b64_json) {
+            console.error('Invalid response', response);
+            return { error: 'Invalid response', details: response };
+        }
+        return response.data[0].b64_json;
+    } catch (error) {
+        console.error('Error generating image:', error);
+        if (error.status === 400 && error.code === 'content_policy_violation') {
+            console.error('Your request was rejected due to a content policy violation. The prompt may contain text that is not allowed by the safety system.');
+        }
+        return { error: 'Error generating image', details: error };
     }
-    return response.data[0].b64_json;
 }
 
-async function generateInkImage(prompt){
+async function generateInkImage(prompt, userId=null){
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'inkpunk_diffusion');
 }
 
-async function generateSynthImage(prompt){
+async function generateSynthImage(prompt, userId=null){
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'synthwavepunk_v2');
 }
 
-async function generateDiscoImage(prompt){
+async function generateDiscoImage(prompt, userId=null){
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'disco_diffusion_style');
 }
 
-async function generateCyberImage(prompt){
+async function generateCyberImage(prompt, userId=null){
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'cyberrealistic_3_1');
 }
 
-async function generateLowPolyImage(prompt){
+async function generateLowPolyImage(prompt, userId=null){
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'lowpoly_world');
 }
 
-async function generateAbsoluteImage(prompt){
+async function generateAbsoluteImage(prompt, userId=null){
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'absolute_reality_1_8_1');
 }
 
-async function generateJuggernautImage(prompt) {
+async function generateJuggernautImage(prompt, userId=null) {
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image_sdxl', 'juggernautxl_1024px');
 }
 
-async function generateTshirtImage(prompt){
+async function generateTshirtImage(prompt, userId=null){
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image_sdxl', 'tshirtdesignredmond_1024px');
 
 }

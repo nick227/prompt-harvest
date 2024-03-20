@@ -29,6 +29,10 @@ async function setupFeedImages(){
 }
 
 function addImageB64ToOutput(results, download=false) {
+    if(typeof results.b64_json === 'object' && typeof results.b64_json.error === 'string'){
+        alert(`${results.b64_json.details?.error?.message}`);
+        return;
+    }
     const img = document.createElement('img');
     img.src = `data:image/jpeg;base64,${results.b64_json}`;
     if(download === true){

@@ -60,6 +60,10 @@ async function registerUser(e) {
     });
 
     const data = await response.json();
+    if(data.error){
+        alert(data.error);
+        return;
+    }
     if (data.username) renderUserUI(data.username);
 }
 
@@ -75,6 +79,10 @@ async function loginUser(e) {
 
     try {
         const data = await response.json();
+        if(data.error){
+            alert(data.error);
+            return;
+        }
         checkUser().then(user => {
             if (user) {
                 renderUserUI(user.username);
@@ -91,16 +99,14 @@ async function loginUser(e) {
 
 function renderUserUI(username) {
     authSection.innerHTML = `
-        <h3 class="user">Logged in as: ${username}</h3>
-        <div>
-        <button id="logout-button">Logout</button>
-        <button id="reset-button">Reset Password</button>
-        <button id="delete-button">Delete User</button>
+        <div class="row align-right">
+            <h3 class="user">Logged in as: ${username}</h3>
+            <button id="logout-button">Logout</button>
         </div>
     `;
     document.getElementById('logout-button').addEventListener('click', logoutUser);
-    document.getElementById('reset-button').addEventListener('click', resetPassword);
-    document.getElementById('delete-button').addEventListener('click', deleteUser);
+    //document.getElementById('reset-button').addEventListener('click', resetPassword);
+    //document.getElementById('delete-button').addEventListener('click', deleteUser);
     setupFeed();
 }
 
