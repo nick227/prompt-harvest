@@ -17,15 +17,15 @@ async function checkUser() {
 
 function renderRegistrationForm() {
     authSection.innerHTML = `
+    <a id="toggle-login" class="row align-right" href="javascript:void">Login</a>
         <form id="registration-form">
         <h2>Register</h2>
             <input type="text" id="register-username" placeholder="Username">
             <input type="password" id="register-password" placeholder="Password">
+            <div>
             <button type="submit">Submit</button>
+            </div>
         </form>
-        <div style="margin-top:5px;">
-            <a id="toggle-login" href="javascript:void">go to login >></a>
-        </div>
     `;
     document.getElementById('registration-form').addEventListener('submit', registerUser);
     document.getElementById('toggle-login').addEventListener('click', renderLoginForm);
@@ -33,15 +33,15 @@ function renderRegistrationForm() {
 
 function renderLoginForm() {
     authSection.innerHTML = `
+    <a id="registration-form" class="row align-right" href="javascript:void">Register</a>
         <form id="login-form">
         <h2>Login</h2>
             <input type="text" id="login-username" placeholder="Username">
             <input type="password" id="login-password" placeholder="Password">
+            <div>
             <button type="submit">Submit</button>
+            </div>
         </form>
-        <div style="margin-top:5px;">
-            <a id="registration-form" href="javascript:void">go to registration >></a>
-        </div>
     `;
     document.getElementById('login-form').addEventListener('submit', loginUser);
     document.getElementById('registration-form').addEventListener('click', renderRegistrationForm);
@@ -90,8 +90,6 @@ async function loginUser(e) {
 }
 
 function renderUserUI(username) {
-    const main = document.querySelector('.main');
-    main.classList.remove('hidden');
     authSection.innerHTML = `
         <h3 class="user">Logged in as: ${username}</h3>
         <div>

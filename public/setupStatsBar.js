@@ -1,5 +1,4 @@
-async function setupStatsBar(){
-    console.log('setupStatsBar');
+async function setupStatsBar() {
     const response = await fetch('/feed/count');
     const results = await response.json();
     const count = results.count;

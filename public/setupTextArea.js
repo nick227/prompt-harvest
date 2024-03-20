@@ -169,8 +169,16 @@ async function handleNewPromptClick(e) {
 }
 
 async function generateImage(text, e=null){
-    toggleProcessingStyle(e);
     const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
+    if(!checkedProviders.length){
+        alert("Please select at least one provider");
+        return;
+    }
+    if(!text.length){
+        alert("Invalid Prompt");
+        return;
+    }
+    toggleProcessingStyle(e);
     const url = `/chat/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}`;
     const results = await fetch(url).then(res => res.json());
     addImageB64ToOutput(results, true);

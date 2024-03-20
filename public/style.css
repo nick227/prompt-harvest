@@ -2,10 +2,17 @@ body {
     font-family: Arial, sans-serif;
     line-height: 1.5;
     color: #333;
-    padding: 0;
-    width: 60%;
+    padding: 0 2%;
+    width: 96%;
     height: 100%;
     margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    body {
+        width: 50%;
+    }
+    
 }
 
 h1,
@@ -20,9 +27,9 @@ p {
 }
 
 section {
-    width: 96%;
+    width: 100%;
     height: auto;
-    padding: 2%;
+    padding: 20px 0;
     background-color: #fff;
     margin: 20px 0;
     border-bottom: 2px solid lightgray;
@@ -45,17 +52,25 @@ section {
     display: flex; 
     justify-content: flex-end;
     align-items: flex-end;
+    flex-direction: column;
     margin: 0;
     flex-grow: 1;
 }
 
-#authentication input {
-    margin: 0;
+#authentication input:first-child {
+    margin: 0 0 5px 0;
 }
 
 .modal {
     position: fixed;
     z-index: 2;
+}
+
+.title {
+    text-align: center;
+    margin: 5px 0;
+    font-size: 1.25em;
+    font-family: Courier;
 }
 
 .prompt.row {
@@ -118,12 +133,6 @@ button {
     margin-left: 5px;
     width: 150px;
     height: 40px;
-}
-
-button.btn-generate {
-    width: 100%;
-    background: lime;
-    margin-top: 20px;
 }
 
 button.btn-generate:hover {
@@ -222,17 +231,46 @@ ul.matches li {
     background-color: rgb(29, 239, 53) !important;
 }
 
+#multiplier, textarea {
+    width:96%;
+    padding: 2%;
+}
+
+button.btn-generate {
+    width: 100%;
+    background: lime;
+    margin-top: 20px;
+}
+
 .hidden {
     display: none;
 }
 
 .row {
     display: flex;
+    width: 100%;
+}
+
+#login-form button {
+    margin-top: 15px;
 }
 
 .align-right {
     text-align: right;
     justify-content: flex-end;
+}
+
+.align-center {
+    align-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.masthead {
+  padding: 15px;
+  border-radius: 5px;
 }
 
 .v-align-center {
@@ -244,6 +282,7 @@ ul.matches li {
 .col {
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .col-4 {

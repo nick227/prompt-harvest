@@ -1,10 +1,10 @@
 async function setupFeed(){
     const target = document.querySelector('.prompt-output');
     target.innerHTML = '';
-    const target2 = document.querySelector('.image-output');
-    target2.innerHTML = '';
     setupFeedPrompts();
-    setupFeedImages();
+    //const target2 = document.querySelector('.image-output');
+    //target2.innerHTML = '';
+    //setupFeedImages();
 }
 
 async function setupFeedPrompts(){
@@ -32,6 +32,7 @@ async function setupFeedImages(){
 }
 
 function addImageB64ToOutput(results, download=false) {
+    /*
     const wrapper = document.createElement('div');
     wrapper.className = 'image-wrapper';
 
@@ -53,7 +54,7 @@ function addImageB64ToOutput(results, download=false) {
 
     const target = document.querySelector('.image-output');
     target.prepend(wrapper);
-
+*/
     if(download === true){
         const a = document.createElement('a');
         a.href = img.src;
