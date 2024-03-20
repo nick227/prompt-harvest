@@ -177,7 +177,7 @@ ul.word-types li {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 225px;
+    width: 20%;
 }
 
 @media screen and (max-width: 768px) {
@@ -255,6 +255,7 @@ button.btn-generate {
 .row {
     display: flex;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 #login-form button, #registration-form button {

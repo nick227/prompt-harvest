@@ -17,7 +17,13 @@ let isProcessing = false;
 const providerList = {
     dalle: generateDalleImage,
     juggernaut: generateJuggernautImage,
-    absolute: generateAbsoluteImage
+    absolute: generateAbsoluteImage,
+    tshirt: generateTshirtImage,
+    lowpoly: generateLowPolyImage,
+    cyber: generateCyberImage,
+    disco: generateDiscoImage,
+    synthwave: generateSynthImage,
+    ink: generateInkImage
 }
 
 const feed = {
@@ -80,7 +86,6 @@ async function generateImageInternal(prompt, providers, req) {
     //const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
     saveFeedEvent('image', {
         prompt,
-        b64_json,
         providerName
     }, req);
     return { b64_json, prompt, providerName: providerName };
@@ -130,12 +135,37 @@ async function generateDalleImage(prompt){
     return response.data[0].b64_json;
 }
 
+async function generateInkImage(prompt){
+    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'inkpunk_diffusion');
+}
+
+async function generateSynthImage(prompt){
+    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'synthwavepunk_v2');
+}
+
+async function generateDiscoImage(prompt){
+    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'disco_diffusion_style');
+}
+
+async function generateCyberImage(prompt){
+    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'cyberrealistic_3_1');
+}
+
+async function generateLowPolyImage(prompt){
+    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'lowpoly_world');
+}
+
 async function generateAbsoluteImage(prompt){
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'absolute_reality_1_8_1');
 }
 
 async function generateJuggernautImage(prompt) {
     return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image_sdxl', 'juggernautxl_1024px');
+}
+
+async function generateTshirtImage(prompt){
+    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image_sdxl', 'tshirtdesignredmond_1024px');
+
 }
 
 async function generateDezgoImage(prompt, url, model){

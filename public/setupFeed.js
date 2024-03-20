@@ -2,9 +2,6 @@ async function setupFeed(){
     const target = document.querySelector('.prompt-output');
     target.innerHTML = '';
     setupFeedPrompts();
-    //const target2 = document.querySelector('.image-output');
-    //target2.innerHTML = '';
-    //setupFeedImages();
 }
 
 async function setupFeedPrompts(){
@@ -32,7 +29,19 @@ async function setupFeedImages(){
 }
 
 function addImageB64ToOutput(results, download=false) {
-    /*
+    const img = document.createElement('img');
+    img.src = `data:image/jpeg;base64,${results.b64_json}`;
+    if(download === true){
+        const a = document.createElement('a');
+        a.href = img.src;
+        a.download = `${makeFileNameSafeForWindows(results.providerName +'-'+ results.prompt)}.jpg`;
+        a.click();
+        setupStatsBar();
+    }
+}
+
+function displayImage(img){
+    
     const wrapper = document.createElement('div');
     wrapper.className = 'image-wrapper';
 
@@ -41,8 +50,6 @@ function addImageB64ToOutput(results, download=false) {
     title.textContent = truncatePrompt(results.prompt);
     note.textContent = results.providerName;
 
-    const img = document.createElement('img');
-    img.src = `data:image/jpeg;base64,${results.b64_json}`;
     img.addEventListener("click", downloadThisImage);
     img.title = "Click to download: " + results.prompt;
 
@@ -54,13 +61,7 @@ function addImageB64ToOutput(results, download=false) {
 
     const target = document.querySelector('.image-output');
     target.prepend(wrapper);
-*/
-    if(download === true){
-        const a = document.createElement('a');
-        a.href = img.src;
-        a.download = `${makeFileNameSafeForWindows(results.providerName +'-'+ results.prompt)}.jpg`;
-        a.click();
-    }
+
 }
 
 function addImageUrlToOutput(results, download=false) {
