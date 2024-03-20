@@ -36,14 +36,12 @@ Array.prototype.shuffle = function() {
 }
 
 async function buildPrompt(prompt, multiplier, mixup, req) {
-    if(multiplier === true){
-        prompt = prompt.split(', ').join(`, ${multiplier}, `);
-    }
-    console.log('mixup...', mixup, typeof mixup)
-    if(mixup === true){
-        console.log('mkay')
+    if(mixup){
         prompt = prompt.split(', ').shuffle().join(`, `);
         console.log('mixup...', prompt)
+    }
+    if(multiplier){
+        prompt = prompt.split(', ').join(`, ${multiplier}, `);
     }
     const regex = /(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
     const textArray = prompt.match(regex);

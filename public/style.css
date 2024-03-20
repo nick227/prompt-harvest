@@ -31,7 +31,7 @@ section {
 .user{
     font-size: 15px;
   font-weight: 100;
-  background: aqua;
+  background: aquamarine;
   padding: 0 15px;
   text-align: center;
   border-radius: 15px;
@@ -41,12 +41,16 @@ section {
   align-items: center;
 }
 
-section#authentication {
+#authentication {
     display: flex; 
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    margin: 0;
+    flex-grow: 1;
 }
 
-section#authentication input {
+#authentication input {
     margin: 0;
 }
 
@@ -232,7 +236,9 @@ ul.matches li {
     justify-content: flex-end;
 }
 
-.align-center {
+.v-align-center {
+    align-items: center;
+    display: flex;
     align-items: center;
 }
 
@@ -259,6 +265,24 @@ ul.matches li {
 
 .col-1 {
     width: 10%;
+}
+
+.stats {
+    align-items: center;
+    margin-top: 10px;
+}
+
+#image-count {
+    border-radius: 50%;
+  background: aquamarine;
+  padding: 5px;
+  margin-left: 10px;
+
+}
+
+.logo {
+    width: 100px;
+    height: 89px;
 }
 
 @keyframes flash {

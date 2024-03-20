@@ -74,10 +74,6 @@ let maxRequests = 3;
 let requestCount = 0;
 
 async function buildUrl() {
-    if(!await checkUser()){
-        alert('Please login');
-        return false;
-    }
     const textArea = document.getElementById('prompt-textarea');
     const prompt = encodeURIComponent(textArea.value.trim());
     if(!prompt){

@@ -49,11 +49,22 @@ function setup(app) {
         const response = await db.find(params);
         res.send(response.map(doc => doc.data.processed));
     });
+
+    app.get('/feed/count', async (req, res) => {
+        const userId = req.user?._id;
+        const db = new DB('feeds.db');
+        const params = {
+            userId: userId || 'undefined',
+            type: 'image'
+        };
+        const response = await db.count(params);
+        res.send({ count: response });
+    });
     
     app.get('/chat/build', async (req, res) => {
         const prompt = decodeURIComponent(req.query.prompt);
-        const multiplier = decodeURIComponent(req.query.multiplier);
-        const mixup = decodeURIComponent(req.query.mixup);
+        const multiplier = req.query.multiplier ? decodeURIComponent(req.query.multiplier) : false;
+        const mixup = req.query.mixup ? decodeURIComponent(req.query.mixup) : false;
         const response = await feed.prompt.build(prompt, multiplier, mixup, req);
         res.send(response);
     });

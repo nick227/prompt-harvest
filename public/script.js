@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-    
+
     setupModal();
 
     setupTextArea();
@@ -10,4 +10,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupFeed();
 
+    setupStatsBar();
+
+
+    checkUser().then(user => {
+        if (user) {
+            renderUserUI(user.username);
+
+        } else {
+            renderLoginForm();
+        }
+    });
 });

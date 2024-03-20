@@ -214,4 +214,10 @@ export default class DB {
             });
         });
     }
+
+    async count(query) {
+        const countAsync = util.promisify(this.db.count.bind(this.db));
+        const count = await countAsync(query);
+        return count;
+    }
 }

@@ -4,22 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt Harvesting</title>
+    <title>Power Prompt - Image and Prompt Harvesting</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <section style="" id="authentication"></section>
+    <section class="row">
+        <div class="align-center">
+            <img class="logo" src="logo.png" />
+        </div>
+        <div id="authentication"></div>
+    </section>
     <div class="modal hidden">
         <ul id="matches" class="matches"></ul>
     </div>
-
+    <div class="stats row align-right hidden">image count: <span id="image-count"></span></div>
+<div class="main ">
     <section class="prompt">
         <div class="row">
             <div class="col col-4">
                 <h3>Prompt Builder:</h3>
 
-                <div class="row align-right align-center">
+                <div class="row align-right v-align-center">
                     <button class="btn-convert">convert</button>
                     <input type="number" name="maxNum" style="width: 55px;" placeholder="max" />
                     <label>
@@ -79,11 +85,14 @@
         <input type="text" id="filterTypes" placeholder="filter results" />
         <ul class="word-types"></ul>
     </section>
+</div>
+
 
 
     <script src="user.js"></script>
     <script src="updateModal.js"></script>
     <script src="setupWordTypeSection.js"></script>
+    <script src="setupStatsBar.js"></script>
     <script src="setupModal.js"></script>
     <script src="setupTextArea.js"></script>
     <script src="setupSearchTerm.js"></script>

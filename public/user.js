@@ -63,11 +63,6 @@ async function registerUser(e) {
     if (data.username) renderUserUI(data.username);
 }
 
-checkUser().then(user => {
-    if (user) renderUserUI(user.username);
-    else renderLoginForm();
-});
-
 async function loginUser(e) {
     e.preventDefault();
     const username = document.getElementById('login-username').value;
@@ -95,6 +90,8 @@ async function loginUser(e) {
 }
 
 function renderUserUI(username) {
+    const main = document.querySelector('.main');
+    main.classList.remove('hidden');
     authSection.innerHTML = `
         <h3 class="user">Logged in as: ${username}</h3>
         <div>
