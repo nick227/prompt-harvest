@@ -19,7 +19,7 @@
         let lines = textArea.value.substr(0, textArea.selectionEnd).split("\n");
         let currentLine = lines.length;
 
-        let targetTop = (textAreaRect.top + lineHeight * currentLine) + 20;
+        let targetTop = ((textAreaRect.top) + lineHeight * currentLine) + 30;
 
 
         const targetLeft = textAreaRect.left + (textArea.selectionEnd + 7);

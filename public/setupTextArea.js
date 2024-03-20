@@ -48,20 +48,25 @@ function setupTextArea() {
         updateMatchesDisplay(matches);
     };
 
-    const handleMatchListItemClick = e => {
-        if (e.target.tagName === 'LI') {
-            const replacement = '${' + e.target.innerText + '}';
-            const numWordsToReplace = (lastMatchedWord.match(/\s/g) || []).length + 1;
+const handleMatchListItemClick = e => {
+    if (e.target.tagName === 'LI') {
+        const replacement = '${' + e.target.innerText + '}';
+        const numWordsToReplace = (lastMatchedWord.match(/\s/g) || []).length + 1;
 
-            const cursorPosition = textArea.selectionStart;
-            const textBeforeCursor = textArea.value.slice(0, cursorPosition).trim();
-            const textAfterCursor = textArea.value.slice(cursorPosition);
+        const cursorPosition = textArea.selectionStart;
+        const textBeforeCursor = textArea.value.slice(0, cursorPosition).trim();
+        const textAfterCursor = textArea.value.slice(cursorPosition);
 
-            const textArray = textBeforeCursor.split(/\s+/);
-            textArray.splice(-numWordsToReplace, numWordsToReplace, replacement);
-            textArea.value = textArray.join(' ') + textAfterCursor;
-        }
-    };
+        const textArray = textBeforeCursor.split(/\s+/);
+        textArray.splice(-numWordsToReplace, numWordsToReplace, replacement);
+        const newTextBeforeCursor = textArray.join(' ');
+        textArea.value = newTextBeforeCursor + textAfterCursor;
+
+        textArea.focus();
+        textArea.selectionStart = newTextBeforeCursor.length;
+        textArea.selectionEnd = newTextBeforeCursor.length;
+    }
+};
 
     setupMaxNumInput();
     textArea.addEventListener('input', handleInput);

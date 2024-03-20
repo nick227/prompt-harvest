@@ -180,6 +180,13 @@ ul.word-types li {
     width: 225px;
 }
 
+@media screen and (max-width: 768px) {
+    ul.word-types li {
+        width: 100%;
+    }
+    
+}
+
 section.images{
     max-height: 50vh;
     overflow-y: auto;
@@ -250,8 +257,8 @@ button.btn-generate {
     width: 100%;
 }
 
-#login-form button {
-    margin-top: 15px;
+#login-form button, #registration-form button {
+    width: 96%;
 }
 
 .align-right {
