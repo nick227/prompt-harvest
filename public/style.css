@@ -2,8 +2,7 @@ body {
     font-family: Arial, sans-serif;
     line-height: 1.5;
     color: #333;
-    padding: 0 2%;
-    width: 96%;
+    width: 92%;
     height: 100%;
     margin: 0 auto;
 }
@@ -232,7 +231,7 @@ ul.matches li {
 }
 
 #multiplier, textarea {
-    width:96%;
+    width:95.5%;
     padding: 2%;
 }
 
