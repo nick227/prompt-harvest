@@ -25,15 +25,6 @@ p {
     padding: 0;
 }
 
-section {
-    width: 100%;
-    height: auto;
-    padding: 20px 0;
-    background-color: #fff;
-    margin: 20px 0;
-    border-bottom: 2px solid lightgray;
-}
-
 .user{
     font-size: 15px;
   font-weight: 100;
@@ -107,11 +98,16 @@ ul {
 textarea,
 input {
     outline: 1px solid #000;
-    
+    line-height: 2;
 }
 
 section {
+    width: 100%;
+    height: auto;
+    padding: 20px 0 40px 0;
+    background-color: #fff;
     margin: 20px 0;
+    border-bottom: 2px solid lightgray;
 }
 
 input#term {
@@ -121,6 +117,23 @@ input#term {
 #term {
     padding: 10px;
     margin-right: 20px;
+}
+
+.swal2-title{
+    text-align: left !important;
+}
+
+.swal2-icon {
+    display: none !important;
+}
+
+.link{
+    color: dodgerblue;
+    cursor: pointer;
+}
+
+.link:hover{
+    color: purple;
 }
 
 button {

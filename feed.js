@@ -41,6 +41,8 @@ Array.prototype.shuffle = function() {
     return this.sort(() => Math.random() - 0.5);
 }
 
+let replacementDict = {};
+
 async function buildPrompt(prompt, multiplier, mixup, req) {
     if(mixup){
         prompt = prompt.split(', ').shuffle().join(`, `);
@@ -54,6 +56,33 @@ async function buildPrompt(prompt, multiplier, mixup, req) {
     const processedString = processedArray.join('');
     saveFeedEvent('prompt', { original: prompt, processed: processedString }, req);
     return processedString;
+}
+
+async function getWordReplacement(element) {
+    if (!element.startsWith('${') && !element.endsWith('}')) return element;
+    const word = element.slice(element.startsWith('$$') ? 3 : 2, -1);
+    if (word.startsWith('[') && word.endsWith(']')) {
+        try {
+            const words = JSON.parse(word.replace(/'/g, '"'));
+            return words[Math.floor(Math.random() * words.length)];
+        } catch (error) {
+            return word;
+        }
+    }
+    const db = new DB('word-types.db');
+    const results = await db.find({ word });
+    if (results.length === 0) return word;
+    if (element.startsWith('$$')) {
+        if (replacementDict[word]) {
+            return replacementDict[word];
+        } else {
+            const replacement = results[0].types[Math.floor(Math.random() * results[0].types.length)];
+            replacementDict[word] = replacement;
+            return replacement;
+        }
+    } else {
+        return results[0].types[Math.floor(Math.random() * results[0].types.length)];
+    }
 }
 
 async function generateImage(prompt, providers, req) {
@@ -105,23 +134,6 @@ async function saveFeedEvent(type, data, req){
     const db = new DB('feeds.db');
     const payload = { type, data, userId: req.user?._id || 'undefined' };
     await db.insert(payload);
-}
-
-async function getWordReplacement(element) {
-    if (!element.startsWith('${') || !element.endsWith('}')) return element;
-    const word = element.slice(2, -1);
-    if (word.startsWith('[') && word.endsWith(']')) {
-        try {
-            const words = JSON.parse(word.replace(/'/g, '"'));
-            return words[Math.floor(Math.random() * words.length)];
-        } catch (error) {
-            return word;
-        }
-    }
-    const db = new DB('word-types.db');
-    const results = await db.find({ word });
-    if (results.length === 0) return word;
-    return results[0].types[Math.floor(Math.random() * results[0].types.length)];
 }
 
 async function generateDalleImage(prompt, userId=null){

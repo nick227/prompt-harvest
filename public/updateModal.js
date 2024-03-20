@@ -13,16 +13,15 @@
         let lineHeight = parseFloat(getComputedStyle(textArea).lineHeight);
         if (isNaN(lineHeight)) {
             let fontSize = parseFloat(getComputedStyle(textArea).fontSize);
-            lineHeight = fontSize * 1.2;
+            lineHeight = fontSize * 2;
         }
 
-        let lines = textArea.value.substr(0, textArea.selectionEnd).split("\n");
-        let currentLine = lines.length;
+        const lines = textArea.value.substr(0, textArea.selectionEnd).split("\n");
+        const currentLine = lines.length;
 
-        let targetTop = ((textAreaRect.top) + lineHeight * currentLine) + 30;
-
-
+        const targetTop = textAreaRect.top + (lineHeight * currentLine) + 50;
         const targetLeft = textAreaRect.left + (textArea.selectionEnd + 7);
+
         modal.style.top = targetTop + 'px';
         modal.style.left = targetLeft + 'px';
     }

@@ -6,4 +6,8 @@ async function setupStatsBar() {
     const target = document.querySelector('#image-count');
     container.classList.remove('hidden');
     target.textContent = count;
+    //if count is multiple of 10 alert the user how many images they created
+    if(count % 10 === 0 && count > 9){
+        alert(`You have created ${count} images! These images are not not free. Please consider chipping in a few bucks. Thank You!`);
+    }
 }

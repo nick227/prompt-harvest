@@ -9,6 +9,8 @@ function setupTextArea() {
     const matchesEl = document.getElementById('matches');
     const toggleProviders = document.querySelector('.all-providers');
 
+    const helpLink = document.querySelector('.help');
+
     const updateMatchesDisplay = matches => {
         matchesEl.innerHTML = matches.map(word => `<li>${word}</li>`).join('');
         updateModal(textArea, matches.length);
@@ -75,6 +77,45 @@ const handleMatchListItemClick = e => {
     convertBtn.addEventListener('click', handleConvertClick);
     startGeneratingBtn.addEventListener('click', handleGenerateClick);
     toggleProviders.addEventListener('click', toggleAllProviders);
+    helpLink.addEventListener('click', handleHelpLinkClick);
+}
+
+function handleHelpLinkClick(){
+    const helpText = `<div style="text-align:left;">
+    Use \${} to wrap variables, which will be dynamically replaced with values from our database. 
+<BR />
+<BR />
+Wrap an array of words with \${[]}, and a random word will be selected. For example, \${["red", "blue", "green"]}.
+<BR />
+<BR />
+Use $\${} for a variable that needs consistent replacement. For instance, $\${animals} will always be replaced with the same animal.
+<BR />
+<BR />
+Commas in your prompt have special functions. 
+<BR />
+<BR />
+Select "mixup" to shuffle the order of comma-separated clauses. 
+<BR />
+<BR />
+Include a "multiplier" text to insert that text between each comma-separated clause.
+<BR />
+<BR />
+By choosing "auto" the system will auto generate dynamic prompts and images.
+<BR />
+<BR />
+Dalle3 has strict content policies. Be careful when using it. The other models are open-source and are not as strict. Regardless please be considerate and responsible with this tool. Also remember these images are not free so please chip in a few bucks if you can. 
+    </div>`;
+
+    Swal.fire({
+        title: 'Power Prompt!',
+        html: helpText,
+        icon: 'info',
+        confirmButtonText: 'Cool',
+        theme: 'Dark',
+        width: '50vw',
+        padding: "2vw",
+        position: "top-start"
+      })
 }
 
 function toggleAllProviders(e){
