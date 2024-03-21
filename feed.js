@@ -50,7 +50,8 @@ async function buildPrompt(prompt, multiplier, mixup, req) {
     if(multiplier){
         prompt = prompt.split(', ').join(`, ${multiplier}, `);
     }
-    const regex = /(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
+    replacementDict = {};
+    const regex = /(\$\$\{[^}]+\})|(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
     const textArray = prompt.match(regex);
     const processedArray = await Promise.all(textArray.map(getWordReplacement));
     const processedString = processedArray.join('');
@@ -140,7 +141,7 @@ async function generateDalleImage(prompt, userId=null){
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     try {
         const response = await openai.images.generate({
-            prompt, n: 1, size: "1024x1024", response_format: "b64_json", model: "dall-e-3", style: 'vivid', user: userId
+            prompt, n: 1, size: "1024x1024", response_format: "b64_json", model: "dall-e-3", user: userId
         });
         if (!response.data || !response.data[0] || !response.data[0].b64_json) {
             console.error('Invalid response', response);

@@ -5,8 +5,10 @@ import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import feed from './feed.js';
 
-const maxTokens = 15555;
-const openAiModel = 'gpt-3.5-turbo-16k';
+//const maxTokens = 15555;
+//const openAiModel = 'gpt-3.5-turbo-16k';
+const maxTokens = 3750;
+const openAiModel = 'gpt-4';
 
 dotenv.config();
 
@@ -190,7 +192,7 @@ function createAddWordAIOptions(word) {
     return {
         model: openAiModel,
         messages: [
-            { "role": "user", "content": `Attempt to generate at least 90 unique types of "${word}". Be creative and thorough.` },
+            { "role": "user", "content": `Attempt to generate at least 75 unique types of "${word}". Be creative and thorough.` },
         ],
         max_tokens: maxTokens,
         tool_choice: { "type": "function", "function": { "name": "get_word_types" } },
@@ -204,10 +206,10 @@ function createAddWordAIOptions(word) {
                     "properties": {
                         "types": {
                             "type": "array",
-                            "description": "Examples or types of the user prompt, attempt 90 unique examples.",
+                            "description": "Examples or types of the user prompt, attempt 75 unique examples.",
                             "items": {
                                 "type": "string",
-                                "description": "A type of a ${word}."
+                                "description": "A type of ${word}."
                             }
                         }
                     },

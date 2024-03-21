@@ -1,9 +1,12 @@
 let isProcessingAddRequest = false;
 
 function setupSearchTerm() {
+    const searchTerm = document.querySelector('#term');
     const button = document.querySelector('.find');
-    button.addEventListener('click', handleFindClick);
 
+    searchTerm.addEventListener('keyup', handleSearchTermKeyUp);
+    searchTerm.addEventListener('focusout', clearTermDropDown);
+    button.addEventListener('click', handleFindClick);
     const clearBtn = document.querySelector('.clear');
     clearBtn.addEventListener('click', handleClearBtnClick);
 
@@ -15,18 +18,75 @@ function handleClearBtnClick() {
     resetTextArea();
 }
 
+function handleSearchTermKeyUp(e) {
+    if (e.key === 'Enter') {
+        handleFindClick();
+    } else {
+        addAutoDropDown(e);
+    }
+}
+
+function clearTermDropDown(){
+    const dropdown = document.querySelector('.dropdown');
+    if (dropdown) {
+        dropdown.remove();
+    }
+}
+
+function addAutoDropDown(e) {
+
+    clearTermDropDown();
+    const searchTerm = document.querySelector('#term').value.toLowerCase();
+    if(searchTerm.length < 2){
+        return;
+    }
+    const matches = Array.from(document.querySelectorAll('.word-types li'))
+        .reduce((acc, li) => {
+            const text = li.textContent;
+            if (text.toLowerCase().startsWith(searchTerm)) {
+                acc.push(text);
+            }
+            return acc;
+        }, []);
+
+    if (matches.length) {
+        const dropdownHtml = generateDropDownHtml(matches);
+        document.querySelector(".term-container").appendChild(dropdownHtml);
+    }
+}
+
+function generateDropDownHtml(matches){
+    const ul = document.createElement('ul');
+    ul.classList.add('dropdown');
+    matches.forEach(match => {
+        let li = document.createElement('li');
+        li.textContent = match;
+        li.addEventListener('click', handleTermMatchItemClick);
+        ul.appendChild(li);
+    });
+    return ul;
+}
+
+function handleTermMatchItemClick(e){
+    const term = e.target.textContent;
+    document.querySelector('#term').value = term;
+}
+
 async function handleFindClick() {
     if (isProcessingAddRequest) {
         alert('Please wait for the current request to finish.');
         return;
     }
+
     const searchTerm = document.querySelector('#term').value;
     if (searchTerm.trim() === '') {
         alert('Please enter a search term');
         return;
     }
+
+    clearTermDropDown();
     resetTextArea();
-    await getTermTypes(searchTerm);
+    await checkTermTypes(searchTerm);
 }
 
 function toggleLoading() {
@@ -55,13 +115,18 @@ function clearTypeSearchInput() {
     document.querySelector('#term').value = '';
 }
 
-async function getTermTypes(searchTerm) {
+async function requestWordTypes(searchTerm){
     const safeSearchTerm = makeUrlSafe(searchTerm);
-    const results = await fetch(`/word/types/${safeSearchTerm}`).then(res => res.json());
+    return await fetch(`/word/types/${safeSearchTerm}`).then(res => res.json());
+
+}
+
+async function checkTermTypes(searchTerm) {
+    const results = await requestWordTypes(searchTerm);
     if (results.length === 0) {
-        await showAddTermButton(searchTerm);
+        await showAddTermConfirmation(searchTerm);
     } else {
-        renderTermResults(searchTerm, results);
+        renderTermResults(results, searchTerm);
     }
 }
 
@@ -69,7 +134,7 @@ function makeUrlSafe(term) {
     return encodeURIComponent(term).toLowerCase();
 }
 
-async function showAddTermButton(searchTerm) {
+async function showAddTermConfirmation(searchTerm) {
     const confirm = window.confirm(`No results found for ${searchTerm}. Would you like to add it?`);
     if (confirm) {
         toggleLoading();
@@ -77,7 +142,7 @@ async function showAddTermButton(searchTerm) {
         try {
             const safeSearchTerm = makeUrlSafe(searchTerm);
             await fetch(`ai/word/add/${safeSearchTerm}`).then(res => res.json());
-            getTermTypes(searchTerm);
+            checkTermTypes(searchTerm);
             setupWordTypeSection();
         } catch (error) {
             console.error('Error adding term:', error);
@@ -96,17 +161,17 @@ function resetTextArea() {
     }
 }
 
-function renderTermResults(searchTerm, list) {
+function renderTermResults(list, searchTerm) {
     const target = document.querySelector('.term-results');
 
     const resultsEl = document.createElement('ul');
     resultsEl.classList.add('word-type-results');
     resultsEl.innerHTML = list.map(word => `<li>${word}</li>`).join('');
-
+    
     const h4 = document.createElement('h4');
     h4.classList.add('word-type-results-title');
-    h4.textContent = `${searchTerm}:`;
-    
+    h4.textContent = `${searchTerm}`;
     target.appendChild(h4);
+
     target.appendChild(resultsEl);
 }
