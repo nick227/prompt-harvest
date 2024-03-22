@@ -81,44 +81,43 @@ const handleMatchListItemClick = e => {
 }
 
 function handleHelpLinkClick(){
-    const helpText = `<div style="text-align:left;">
-    Use \${} to wrap variables, which will be dynamically replaced with values from our database. 
-<BR />
-<BR />
-Or wrap an array of words with \${[]}, and a random word will be selected. For example, \${["red", "blue", "green"]}.
-<BR />
-<BR />
-Or use $\${} for a variable that needs consistent replacement. For instance, $\${animals} will always be replaced with the same animal.
-<BR />
-<BR />
-Commas in your prompt have special functions. 
-<BR />
-<BR />
-Select "mixup" to shuffle the order of comma-separated clauses. 
-<BR />
-<BR />
-Include "multiplier" text to insert that text between each comma-separated clause.
-<BR />
-<BR />
-By choosing "auto" the system will auto generate dynamic prompts and images.
-<BR />
-<BR />
-Dalle3 has strict content policies. Be careful when using it. The other models are open-source and are not as strict. 
-<BR />
-<BR />
-Regardless please be considerate and responsible with this tool.
-<BR />
-<BR />
-Also remember these images are not free so please chip in a few bucks if you can. 
-    </div>`;
+    const helpText = `
+    <div style=" text-align: left; line-height: 1.6;">
+   
+1.) Use template literals like \${term} to load in a dynamic value.
+<BR>
+
+2.) You can make your own arrays too i.e. \${["one", "two"]}.
+<BR>
+
+3.) Use double-dollar signs like $\${term} for the same value every time.
+<BR>
+
+4.) Mixup shuffles your prompt's comma-separated clauses. 
+<BR>
+
+5.) Multiplier text is inserted between the clauses.
+
+<BR>
+
+6.) Hit convert to build the prompt first.
+
+<BR>
+
+7.) The guidance value sets the amount of AI imagination.
+
+<BR>
+
+8.) Be respectful of the Dalle3 content policies. 
+<BR>
+
+</div>`;
 
     Swal.fire({
-        title: 'Power Prompt!',
         html: helpText,
         confirmButtonText: 'Cool',
-        width: '75vw',
-        padding: "2vw",
-        position: "top-start"
+        width: '640',
+        title: "Power Prompt Tips"
       })
 }
 
@@ -130,7 +129,7 @@ function toggleAllProviders(e){
 let maxRequests = 3;
 let requestCount = 0;
 
-async function buildUrl() {
+async function makeFeedBuildUrl() {
     const textArea = document.getElementById('prompt-textarea');
     const prompt = encodeURIComponent(textArea.value.trim());
     if(!prompt){
@@ -141,19 +140,16 @@ async function buildUrl() {
     const mixup = document.querySelector('input[name="mixup"]:checked');
     const mixupPair = mixup ? `&mixup=true` : '';
 
-    return `/chat/build?prompt=${prompt}${multiplierPair}${mixupPair}`;
+    return `/prompt/build?prompt=${prompt}${multiplierPair}${mixupPair}`;
 }
 
 async function fetchData(url) {
     const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.text();
+    return await response.json();
 }
 
 async function handleGenerateClick(e){
-    const url = await buildUrl();
+    const url = await makeFeedBuildUrl();
     if(!url){
         alert('Invalid Prompt');
         return;
@@ -166,7 +162,7 @@ async function handleGenerateClick(e){
     try {
         const results = await fetchData(url);
         await addPromptToOutput(results); 
-        await generateImage(results);
+        await generateImage(results.processed);
         const isAuto = document.querySelector('input[name="auto-generate"]:checked');
         const maxNum = document.querySelector('input[name="maxNum"]');
 
@@ -192,7 +188,7 @@ function setupMaxNumInput(){
 }
 
 async function handleConvertClick() {
-    const url = await buildUrl();
+    const url = await makeFeedBuildUrl();
     if(!url){
         alert('Invalid Prompt');
         return;
@@ -206,17 +202,35 @@ async function handleConvertClick() {
     }
 }
 
-function addPromptToOutput(value) {
-            const target = document.querySelector('.prompt-output');
-            const button = document.createElement('button');
-            button.addEventListener('click', handleNewPromptClick);
-            button.textContent = 'make';
-            const span = document.createElement('div');
-            span.textContent = value;
-            const li = document.createElement('li');
-            li.appendChild(span);
-            li.appendChild(button);
-            target.prepend(li);
+function addPromptToOutput(obj) {
+    const value = obj.processed;
+    const target = document.querySelector('.prompt-output');
+    const h6 = document.createElement('h6');
+    const row = document.createElement('div');
+    const li = document.createElement('li');
+
+    row.className = 'row';
+    h6.textContent = 'original';
+    h6.setAttribute('title', obj.original);
+    h6.addEventListener('click', function(){
+        navigator.clipboard.writeText(obj.original);
+    });
+    h6.style.width = '100%';
+    h6.style.cursor = 'pointer';
+    
+    const button = document.createElement('button');
+    button.addEventListener('click', handleNewPromptClick);
+    button.textContent = 'make';
+
+    const div = document.createElement('div');
+    div.textContent = value;
+
+    row.appendChild(div);
+    row.appendChild(button);
+    li.appendChild(h6);
+    li.appendChild(row);
+
+    target.prepend(li);
 }
 
 async function handleNewPromptClick(e) {
@@ -236,7 +250,10 @@ async function generateImage(text, e=null){
         return;
     }
     toggleProcessingStyle(e);
-    const url = `/chat/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}`;
+    const guidanceElm = document.querySelector('select[name="guidance"]');
+    const guidanceVal = guidanceElm.value;
+    console.log(guidanceVal)
+    const url = `/image/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}&guidance=${parseInt(guidanceVal)}`;
     const results = await fetch(url).then(res => res.json());
     addImageB64ToOutput(results, true);
     toggleProcessingStyle(e);

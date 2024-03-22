@@ -1,5 +1,5 @@
 async function setupStatsBar() {
-    const response = await fetch('/feed/count');
+    const response = await fetch('/images/count');
     const results = await response.json();
     const count = results.count;
     const container = document.querySelector('.stats');

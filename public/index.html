@@ -14,7 +14,7 @@
     <section class="row">
         <div class="align-center masthead">
             <h6 class="title">Power Prompt</h6>
-            <img class="logo" src="logo.png" />
+            <img class="logo" src="favicon.png" />
         </div>
         <div id="authentication"></div>
     </section>
@@ -49,10 +49,35 @@
                     <button class="btn-convert">convert</button>
                     <input type="number" name="maxNum" style="width: 55px;" placeholder="max" />
                     <label>
-                        <input type="checkbox" name="auto-generate" />auto
+                        <input type="checkbox" name="auto-generate" /> auto
                     </label>
                     <label>
-                        <input type="checkbox" name="mixup" />mixup
+                        <input type="checkbox" name="mixup" /> mixup
+                    </label>
+                    <label>
+                        <select name="guidance">
+                            <option>guidance</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                        </select> 
                     </label>
                     </div>
 
@@ -60,21 +85,19 @@
                 <input type="text" id="multiplier" placeholder="multiplier text" />
                 <button class="btn-generate">Let's Go!</button>
             </div>
+            <div class="col">
+                    <div class="prompts">
+                        <ul class="prompt-output"></ul>
+                    </div>
+
+            </div>
         </div>
     </section>
-    
-    <section class="">
-        <h3>Prompts:</h3>
-        <div class="prompts">
-            <ul class="prompt-output"></ul>
-        </div>
-    </section>
-<!--
+
     <section class="images">
-        <h3>Images:</h3>
         <ul class="image-output"></ul>
     </section>
--->
+
     <section class="term-results">
         <h3>Search Types:</h3>
         <div class="">
@@ -94,10 +117,8 @@
         <input type="text" id="filterTypes" placeholder="filter" />
         <ul class="word-types"></ul>
     </section>
-
-
-
     <script src="user.js"></script>
+    <script src="images.js"></script>
     <script src="updateModal.js"></script>
     <script src="setupWordTypeSection.js"></script>
     <script src="setupStatsBar.js"></script>

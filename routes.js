@@ -5,10 +5,10 @@ import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import feed from './feed.js';
 
-//const maxTokens = 15555;
-//const openAiModel = 'gpt-3.5-turbo-16k';
-const maxTokens = 3750;
-const openAiModel = 'gpt-4';
+const maxTokens = 15555;
+const openAiModel = 'gpt-3.5-turbo-16k';
+const maxTokens4 = 3600;
+const openAiModel4 = 'gpt-4';
 
 dotenv.config();
 
@@ -28,33 +28,35 @@ function setup(app) {
         res.send(response);
     });
 
-    app.get('/feed/images', async (req, res) => {
+    app.get('/images', async (req, res) => {
         const userId = req.user?._id;
-        const db = new DB('feeds.db');
+        const db = new DB('images.db');
+        const limit = req.query.limit || 8;
         const params = {
             userId: userId || 'undefined',
             type: 'image',
-            limit: 24
+            limit: limit
         };
         const response = await db.find(params);
         res.send(response.map(doc => doc.data));
     });
 
-    app.get('/feed/prompts', async (req, res) => {
+    app.get('/prompts', async (req, res) => {
         const userId = req.user?._id;
-        const db = new DB('feeds.db');
+        const limit = req.query.limit || 8;
+        const db = new DB('prompts.db');
         const params = {
             userId: userId || 'undefined',
             type: 'prompt',
-            limit: 24
+            limit: limit
         };
         const response = await db.find(params);
-        res.send(response.map(doc => doc.data.processed));
+        res.send(response.map(doc => doc.data));
     });
 
-    app.get('/feed/count', async (req, res) => {
+    app.get('/images/count', async (req, res) => {
         const userId = req.user?._id;
-        const db = new DB('feeds.db');
+        const db = new DB('images.db');
         const params = {
             userId: userId || 'undefined',
             type: 'image'
@@ -63,7 +65,7 @@ function setup(app) {
         res.send({ count: response });
     });
     
-    app.get('/chat/build', async (req, res) => {
+    app.get('/prompt/build', async (req, res) => {
         const prompt = decodeURIComponent(req.query.prompt);
         const multiplier = req.query.multiplier ? decodeURIComponent(req.query.multiplier) : false;
         const mixup = req.query.mixup ? decodeURIComponent(req.query.mixup) : false;
@@ -71,10 +73,11 @@ function setup(app) {
         res.send(response);
     });
     
-    app.get('/chat/generate', async (req, res) => {
+    app.get('/image/generate', async (req, res) => {
         const prompt = decodeURIComponent(req.query.prompt);
         const providers = decodeURIComponent(req.query.providers).split(',');
-        const response = await feed.image.generate(prompt,providers, req);
+        const guidance = isNaN(req.query.guidance) ? false : parseInt(req.query.guidance);
+        const response = await feed.image.generate(prompt,providers, guidance, req);
         res.send(response);
     });
     
@@ -85,8 +88,9 @@ function setup(app) {
     });
 
     app.get('/word/types/:word', async (req, res) => {
+        const limit = req.query.limit || 8;
         const word = decodeURIComponent(req.params.word).toLowerCase();
-        const response = await getWordTypesList(word);
+        const response = await getWordTypesList(word, parseInt(limit));
         res.send(response);
     });
 
@@ -103,6 +107,19 @@ function setup(app) {
         const response = await addAiWordType(word);
         res.send(response);
     });
+}
+
+async function getWordTypesList(word, limit=8) {
+    const db = new DB('word-types.db');
+    const docs = await db.find({
+        limit: limit,
+        $or: [
+            { word: word }
+        ]
+    });
+    let types = docs[0]?.types || [];
+    types.sort();
+    return types;
 }
 
 function escapeRegExp(string) {
@@ -125,19 +142,6 @@ async function getWordType(word) {
     const docs = [...wordDocs, ...typeDocs];
     const results = [...new Set(docs.map(doc => doc.word))];
     return results;
-}
-
-
-async function getWordTypesList(word) {
-    const db = new DB('word-types.db');
-    const docs = await db.find({
-        $or: [
-            { word: word }
-        ]
-    });
-    let types = docs[0]?.types || [];
-    types.sort();
-    return types;
 }
 
 async function addAiWordType(word) {
@@ -190,11 +194,11 @@ function safeJsonParse(str) {
 
 function createAddWordAIOptions(word) {
     return {
-        model: openAiModel,
+        model: openAiModel4,
         messages: [
-            { "role": "user", "content": `Attempt to generate at least 75 unique types of "${word}". Be creative and thorough.` },
+            { "role": "user", "content": `Attempt to generate at least 75 unique examples of "${word}". Be creative and thorough.` },
         ],
-        max_tokens: maxTokens,
+        max_tokens: maxTokens4,
         tool_choice: { "type": "function", "function": { "name": "get_word_types" } },
         tools: [{
             "type": "function",

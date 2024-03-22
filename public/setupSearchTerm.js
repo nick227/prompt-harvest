@@ -5,7 +5,11 @@ function setupSearchTerm() {
     const button = document.querySelector('.find');
 
     searchTerm.addEventListener('keyup', handleSearchTermKeyUp);
-    searchTerm.addEventListener('focusout', clearTermDropDown);
+    searchTerm.addEventListener('focusout', function(){
+        setTimeout(function(){
+            clearTermDropDown();
+        }, 200);
+    });
     button.addEventListener('click', handleFindClick);
     const clearBtn = document.querySelector('.clear');
     clearBtn.addEventListener('click', handleClearBtnClick);
@@ -27,19 +31,15 @@ function handleSearchTermKeyUp(e) {
 }
 
 function clearTermDropDown(){
-    const dropdown = document.querySelector('.dropdown');
-    if (dropdown) {
-        dropdown.remove();
-    }
+        const dropdown = document.querySelector('.dropdown');
+        if (dropdown) {
+            dropdown.remove();
+        }
 }
 
 function addAutoDropDown(e) {
-
     clearTermDropDown();
     const searchTerm = document.querySelector('#term').value.toLowerCase();
-    if(searchTerm.length < 2){
-        return;
-    }
     const matches = Array.from(document.querySelectorAll('.word-types li'))
         .reduce((acc, li) => {
             const text = li.textContent;
@@ -117,7 +117,7 @@ function clearTypeSearchInput() {
 
 async function requestWordTypes(searchTerm){
     const safeSearchTerm = makeUrlSafe(searchTerm);
-    return await fetch(`/word/types/${safeSearchTerm}`).then(res => res.json());
+    return await fetch(`/word/types/${safeSearchTerm}?limit=6`).then(res => res.json());
 
 }
 

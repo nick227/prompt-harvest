@@ -14,18 +14,6 @@ const baseDir = path.join(__dirname, '/public/images/');
 let queue = [];
 let isProcessing = false;
 
-const providerList = {
-    dalle: generateDalleImage,
-    juggernaut: generateJuggernautImage,
-    absolute: generateAbsoluteImage,
-    tshirt: generateTshirtImage,
-    lowpoly: generateLowPolyImage,
-    cyber: generateCyberImage,
-    disco: generateDiscoImage,
-    synthwave: generateSynthImage,
-    ink: generateInkImage
-}
-
 const feed = {
     prompt: {
         build: buildPrompt
@@ -41,55 +29,149 @@ Array.prototype.shuffle = function() {
     return this.sort(() => Math.random() - 0.5);
 }
 
+
+/***********
+ * START BUILD
+ * 
+ */
+
 let replacementDict = {};
 
 async function buildPrompt(prompt, multiplier, mixup, req) {
+    
+    if (typeof prompt !== 'string') {
+        throw new Error('Prompt must be a string');
+    }
+    if (!prompt) {
+        return;
+    }
     if(mixup){
-        prompt = prompt.split(', ').shuffle().join(`, `);
+        prompt = shufflePrompt(prompt);
     }
     if(multiplier){
-        prompt = prompt.split(', ').join(`, ${multiplier}, `);
+        prompt = await multiplyPrompt(prompt, multiplier);
     }
     replacementDict = {};
     const regex = /(\$\$\{[^}]+\})|(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
     const textArray = prompt.match(regex);
     const processedArray = await Promise.all(textArray.map(getWordReplacement));
     const processedString = processedArray.join('');
-    saveFeedEvent('prompt', { original: prompt, processed: processedString }, req);
-    return processedString;
+    const result = { original: prompt, processed: processedString };
+    saveFeedEvent('prompt', result, req);
+    return result;
+}
+
+function shufflePrompt(prompt) {
+    return prompt.split(', ').shuffle().join(', ');
+}
+
+async function multiplyPrompt(prompt, multiplier) {
+    if (multiplier.startsWith('${') && multiplier.endsWith('}')) {
+        multiplier = await getWordReplacement(multiplier);
+    }
+    return prompt.split(', ').join(`, ${multiplier}, `);
 }
 
 async function getWordReplacement(element) {
     if (!element.startsWith('${') && !element.endsWith('}')) return element;
-    const word = element.slice(element.startsWith('$$') ? 3 : 2, -1);
-    if (word.startsWith('[') && word.endsWith(']')) {
-        try {
-            const words = JSON.parse(word.replace(/'/g, '"'));
-            return words[Math.floor(Math.random() * words.length)];
-        } catch (error) {
-            return word;
-        }
-    }
-    const db = new DB('word-types.db');
-    const results = await db.find({ word });
-    if (results.length === 0) return word;
+    const word = getWordFromElement(element);
     if (element.startsWith('$$')) {
         if (replacementDict[word]) {
             return replacementDict[word];
         } else {
-            const replacement = results[0].types[Math.floor(Math.random() * results[0].types.length)];
+            let replacement;
+            if (isJsonArray(word)) {
+                replacement = getRandomElementFromJsonArray(word);
+            } else {
+                const db = new DB('word-types.db');
+                const results = await db.find({ word });
+                if (results.length === 0) {
+                    replacement = word;
+                } else {
+                    replacement = getReplacementWord(element, results);
+                }
+            }
             replacementDict[word] = replacement;
             return replacement;
         }
-    } else {
-        return results[0].types[Math.floor(Math.random() * results[0].types.length)];
+    }
+    if (isJsonArray(word)) {
+        return getRandomElementFromJsonArray(word);
+    }
+    const db = new DB('word-types.db');
+    const results = await db.find({ word });
+    if (results.length === 0) return word;
+    return getReplacementWord(element, results);
+}
+
+function getWordFromElement(element) {
+    return element.slice(element.startsWith('$$') ? 3 : 2, -1);
+}
+
+function isJsonArray(word) {
+    return word.startsWith('[') && word.endsWith(']');
+}
+
+function getRandomElementFromJsonArray(word) {
+    try {
+        const words = JSON.parse(word.replace(/'/g, '"'));
+        if (!Array.isArray(words)) {
+            return word;
+        }
+        return words[Math.floor(Math.random() * words.length)];
+    } catch (error) {
+        return word;
     }
 }
 
-async function generateImage(prompt, providers, req) {
+function getReplacementWord(element, results) {
+    const word = getWordFromElement(element);
+    if (element.startsWith('$$')) {
+        return getReplacementWordForDoubleDollar(element, results, word);
+    } else {
+        return getRandomType(results, word);
+    }
+}
+
+function getReplacementWordForDoubleDollar(element, results, originalWord) {
+    const word = getWordFromElement(element);
+    if (replacementDict[word]) {
+        return replacementDict[word];
+    } else {
+        const replacement = getRandomType(results, originalWord);
+        replacementDict[word] = replacement;
+        return replacement;
+    }
+}
+
+function getRandomType(results, originalWord) {
+    if (!results.length || !results[0].types) {
+        return originalWord;
+    }
+    return results[0].types[Math.floor(Math.random() * results[0].types.length)];
+}
+
+/***********
+ * START GENERATE
+ * 
+ */
+
+const providerList = {
+    dalle: generateDalleImage,
+    juggernaut: generateJuggernautImage,
+    absolute: generateAbsoluteImage,
+    tshirt: generateTshirtImage,
+    lowpoly: generateLowPolyImage,
+    cyber: generateCyberImage,
+    disco: generateDiscoImage,
+    synthwave: generateSynthImage,
+    ink: generateInkImage
+}
+
+async function generateImage(prompt, providers, guidance, req) {
     return new Promise((resolve, reject) => {
         const wasEmpty = queue.length === 0;
-        queue.push({ prompt, providers, resolve, reject });
+        queue.push({ prompt, providers, guidance, resolve, reject });
         if (wasEmpty) processQueue(req);
     });
 }
@@ -98,9 +180,9 @@ async function processQueue(req) {
     if (isProcessing) return;
     isProcessing = true;
     while (queue.length > 0) {
-        const { prompt, providers, resolve, reject } = queue.shift();
+        const { prompt, providers, guidance, resolve, reject } = queue.shift();
         try {
-            const response = await generateImageInternal(prompt, providers, req);
+            const response = await generateImageInternal(prompt, providers, guidance, req);
             resolve(response);
         } catch (error) {
             reject(error);
@@ -109,10 +191,10 @@ async function processQueue(req) {
     isProcessing = false;
 }
 
-async function generateImageInternal(prompt, providers, req) {
+async function generateImageInternal(prompt, providers, guidance, req) {
     const providerName = providers[Math.floor(Math.random() * providers.length)];
     const dynamicFunction = providerList[providerName];
-    const b64_json = await dynamicFunction(prompt, req.user?._id || 'undefined');
+    const b64_json = await dynamicFunction(prompt, guidance, req.user?._id || 'undefined');
     //const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
     saveFeedEvent('image', {
         prompt,
@@ -132,12 +214,12 @@ async function saveB64Image(b64_json, providerName, prompt, req) {
 }
 
 async function saveFeedEvent(type, data, req){
-    const db = new DB('feeds.db');
+    const db = type === 'image' ? new DB('images.db') : new DB('prompts.db');
     const payload = { type, data, userId: req.user?._id || 'undefined' };
     await db.insert(payload);
 }
 
-async function generateDalleImage(prompt, userId=null){
+async function generateDalleImage(prompt, guidance, userId=null){
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     try {
         const response = await openai.images.generate({
@@ -157,41 +239,41 @@ async function generateDalleImage(prompt, userId=null){
     }
 }
 
-async function generateInkImage(prompt, userId=null){
-    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'inkpunk_diffusion');
+async function generateInkImage(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'inkpunk_diffusion');
 }
 
-async function generateSynthImage(prompt, userId=null){
-    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'synthwavepunk_v2');
+async function generateSynthImage(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'synthwavepunk_v2');
 }
 
-async function generateDiscoImage(prompt, userId=null){
-    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'disco_diffusion_style');
+async function generateDiscoImage(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'disco_diffusion_style');
 }
 
-async function generateCyberImage(prompt, userId=null){
-    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'cyberrealistic_3_1');
+async function generateCyberImage(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'cyberrealistic_3_1');
 }
 
-async function generateLowPolyImage(prompt, userId=null){
-    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'lowpoly_world');
+async function generateLowPolyImage(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'lowpoly_world');
 }
 
-async function generateAbsoluteImage(prompt, userId=null){
-    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image', 'absolute_reality_1_8_1');
+async function generateAbsoluteImage(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'absolute_reality_1_8_1');
 }
 
-async function generateJuggernautImage(prompt, userId=null) {
-    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image_sdxl', 'juggernautxl_1024px');
+async function generateJuggernautImage(prompt, guidance, userId=null) {
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'juggernautxl_1024px');
 }
 
-async function generateTshirtImage(prompt, userId=null){
-    return generateDezgoImage(prompt, 'https://api.dezgo.com/text2image_sdxl', 'tshirtdesignredmond_1024px');
+async function generateTshirtImage(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'tshirtdesignredmond_1024px');
 
 }
 
-async function generateDezgoImage(prompt, url, model){
-    const params = { prompt, negative_prompt: "", guidance: 8, seed: generateRandomNineCharNumber(), model };
+async function generateDezgoImage(prompt, guidance, url, model){
+    const params = { prompt, negative_prompt: "", guidance: guidance || 10, seed: generateRandomNineCharNumber(), model };
     const options = {
         method: 'POST', url, headers: { 'content-type': 'application/x-www-form-urlencoded', 'X-Dezgo-Key': process.env.DEZGO_API_KEY },
         data: new URLSearchParams(params).toString(), responseType: 'arraybuffer'

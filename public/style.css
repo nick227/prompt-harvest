@@ -1,17 +1,35 @@
+:root {
+    --font-family: Arial, sans-serif;
+    --font-size: 15px;
+    --line-height: 1.5;
+    --color-light: #fff;
+    --color-dark: #36393f;
+    --color-darker: #2f3136;
+    --color-text: #dcddde;
+    --color-text-muted: #72767d;
+    --color-accent: cyan;
+    --color-hover: #b3b3b3;
+    --color-border: #4f545c;
+    --color-input: #40444b;
+    --color-button: #202225;
+    --color-button-hover: #3e4147;
+    --color-green: lime;
+    --color-button-active: #292b2f;
+    --color-link: #00b0f4;
+    --color-link-hover: #0087c1;
+    --spacing: 10px;
+    --spacing-lg: 20px;
+    --border-radius: 5px;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    line-height: 1.5;
-    color: #333;
+    font-family: var(--font-family);
+    line-height: var(--line-height);
+    color: var(--color-text);
+    background-color: var(--color-dark);
     width: 92%;
     height: 100%;
     margin: 0 auto;
-}
-
-@media (min-width: 768px) {
-    body {
-        width: 50%;
-    }
-    
 }
 
 h1,
@@ -21,21 +39,21 @@ h4,
 h5,
 h6,
 p {
-    margin: 0;
+    margin: 10px 0;
     padding: 0;
 }
 
 .user{
-    font-size: 15px;
-  font-weight: 100;
-  background: aquamarine;
-  padding: 0 15px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 9px;
+    font-size: var(--font-size);
+    font-weight: 100;
+    background: var(--color-darker);
+    padding: 0 var(--spacing);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing);
 }
 
 #authentication {
@@ -52,7 +70,7 @@ p {
 }
 
 .modal {
-    position: fixed;
+    position: absolute;
     z-index: 2;
 }
 
@@ -68,7 +86,7 @@ p {
     justify-content: space-between;
     align-items: center;
     padding: 20px;
-    background-color: #fff;
+    background-color: var(--color-dark);
     margin: 20px 0;
 }
 
@@ -87,7 +105,8 @@ input {
 
 textarea,
 input,
-ul {
+ul,
+select {
     margin: 10px;
     box-shadow: none;
     border: none;
@@ -105,7 +124,7 @@ section {
     width: 100%;
     height: auto;
     padding: 20px 0 40px 0;
-    background-color: #fff;
+    background-color: var(--color-dark);
     margin: 20px 0;
     border-bottom: 2px solid lightgray;
 }
@@ -114,6 +133,12 @@ section {
     position: relative;
     overflow: visible;
     display: inline;
+}
+
+.fullscreen-controls {
+    right: 40px;
+  bottom: 40px;
+  position: absolute;
 }
 
 input#term {
@@ -125,7 +150,9 @@ input#term {
     display: block;
     min-width: 382px;
     left: 9px;
+    color: var(--color-dark);
     box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.23);
+    background-color: var(--color-darker);
 }
 .dropdown li {
     border-bottom: 1px solid lightgray;
@@ -152,33 +179,53 @@ input#term {
 }
 
 .link{
-    color: dodgerblue;
+    color: var(--color-link);
     cursor: pointer;
 }
 
 .link:hover{
-    color: purple;
+    color: var(--color-link-hover);
 }
 
 button {
-    padding: 10px 20px;
-    color: #fff;
+    padding: var(--spacing) var(--spacing-lg);
+    color: var(--color-light);
     border: none;
     cursor: pointer;
-    color: black;
-    margin-left: 5px;
+    background-color: var(--color-button);
+    margin-left: var(--spacing);
     width: 150px;
     height: 40px;
 }
 
+button:active {
+    background-color: var(--color-darker);
+}
+
+button.btn-generate {
+    background: var(--color-green);
+    color: var(--color-darker);
+    width: 100%;
+    margin-top: 20px;
+}
+
 button.btn-generate:hover {
-    background: green;
-    color: white;
+    background: var(--color-accent);
+    color: var(--color-dark);
 }
 
 button.btn-generate:active {
-    background: darkgreen;
-    color: white;
+    background: var(--color-button-active);
+    color: var(--color-text);
+}
+
+.prompt .col {
+    width: 50%;
+}
+
+.prompt .col:first-child {
+    width: 48%;
+    padding-right: 2%;
 }
 
 ul {
@@ -192,7 +239,6 @@ ul {
 ul li {
     padding: 10px 20px;
     margin: 2px;
-    outline: 1px solid lightgray;
     border-radius: 5px;
 }
 
@@ -200,7 +246,21 @@ ul.prompt-output li {
     width: 98%;
     margin-right: 1%;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+}
+ul.prompt-output li .row {
+    flex-wrap: nowrap;  
+    border-bottom: 1px solid var(--color-light);
+    padding-bottom: 15px;
+}
+
+.image-wrapper h3 {
+    cursor: pointer;
+}
+
+ul.prompt-output li h6:active, .image-wrapper h3:active {
+    color: dodgerblue;
+    
 }
 
 ul.prompt-output div {
@@ -218,22 +278,14 @@ ul.word-types li {
     width: 20%;
 }
 
-@media screen and (max-width: 768px) {
-    ul.word-types li {
-        width: 100%;
-    }
-    
-}
-
 .word-type-results-title {
     margin: 20px 0;
-  background: lightgray;
   padding: 10px;
+  border-bottom: 1px solid var(--color-light);
 }
 
 section.images{
-    max-height: 50vh;
-    overflow-y: auto;
+    display: block;
 }
 
 ul.image-output {
@@ -241,11 +293,11 @@ ul.image-output {
     flex-wrap: wrap;
     width: 100%;
     align-items: flex-start;
+    justify-content: space-evenly;
 }
 
 .image-wrapper {
-    padding: 0 20px 20px 0;
-    width: 11%;
+    width: 22%;
 }
 
 .image-wrapper img {
@@ -254,31 +306,58 @@ ul.image-output {
     cursor: pointer;
 }
 
+.full-screen {
+    position: fixed;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    background: rgba(0,0,0,0.8);
+}
+.full-screen h3, 
+.full-screen h6 {
+    display: none;
+}
+
+.full-screen img{
+    height: 100%;
+    width: auto;
+}
+
 .image-wrapper img:hover {
-    outline: 10px solid aquamarine;
+    outline: 1px solid var(--color-green);
 }
 
-.image-wrapper:first-child {
-    padding-left: 0;
+.full-screen img:hover {
+    outline: 1px solid var(--color-dark);
 }
 
-.prompts, .output {
+.prompts {
     max-height: 50vh;
     overflow-y: auto;
 }
 
 ul.matches {
-    background: whitesmoke;
-    max-width: 430px;
+    background: rgba(255,255,255,0.2);
+    max-width: 30vw;
+    overflow-y: auto;
 }
 
 ul.matches li {
     font-size: 18px;
     cursor: pointer;
+    background: var(--color-dark);
+    color: var(--color-light);
+    outline: 1px solid var(--color-light);
 }
 
 .matches li:hover {
-    background-color: rgb(29, 239, 53) !important;
+    background-color: var(--color-green);
+    color: var(--color-dark);
 }
 
 #multiplier, textarea {
@@ -286,11 +365,6 @@ ul.matches li {
     padding: 2%;
 }
 
-button.btn-generate {
-    width: 100%;
-    background: lime;
-    margin-top: 20px;
-}
 
 .hidden {
     display: none;
@@ -300,6 +374,7 @@ button.btn-generate {
     display: flex;
     width: 100%;
     flex-wrap: wrap;
+    
 }
 
 #login-form button, #registration-form button {
@@ -317,6 +392,10 @@ button.btn-generate {
     align-items: center;
     justify-content: center;
     flex-direction: column;
+}
+
+.align-top{
+    justify-content: flex-start;
 }
 
 .masthead {
@@ -387,36 +466,79 @@ button.btn-generate {
 }
 
 .loading .message {
-    font-size: 14px;
-    padding: 20px 0;
+    font-size: 22px;
+    padding: 20px;
     animation: flash 4s infinite linear;
 }
 
 .processing {
-    border: 2px dashed lime;
-    background-color: whitesmoke !important;
-    color: black !important;
+    border: 2px dashed var(--color-green);
+    background-color: var(--color-dark);
     position: relative;
-    animation: processing 1.23s linear infinite;
+    animation: processing 3s linear infinite;
+}
+
+.processing::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px; 
+    background: var(--color-green);
+    width: 0;
+    animation: progress 8s linear infinite;
 }
 
 .processing:hover, .processing:active {
-    border: 2px dashed lime;
-    background-color: whitesmoke !important;
-    color: black !important;
+    border: 2px dashed var(--color-green);
+    background-color: var(--color-dark);
+}
+
+@keyframes progress {
+    0% { width: 0; }
+    100% { width: 100%; }
 }
 
 @keyframes processing {
     0% {
         border-color: green;
         border-style: dotted;
+        background-color: var(--color-dark);
     }
     50% {
         border-color: transparent;
         border: 2px dashed #000;
+        color: var(--color-accent);
+        background-color: var(--color-darker);
     }
     100% {
         border-color: green;
         border-style: dotted;
+        background-color: var(--color-dark);
+    }
+}
+
+@media (min-width: 768px) {
+    body {
+        width: 50%;
+    }
+    
+}
+
+@media screen and (max-width: 768px) {
+    ul.matches {
+        max-width: 100%;
+    }
+    ul.word-types li {
+        width: 100%;
+    }
+
+    .prompt .col {
+        width: 100%;
+    }
+    
+    .prompt .col:first-child {
+        width: 100%;
+        padding-right: 0%;
     }
 }
