@@ -7,6 +7,6 @@ async function setupWordTypeSection() {
 
 function renderWordTypes(words) {
     const wordTypesEl = document.querySelector('ul.word-types');
-    wordTypesEl.innerHTML = words.map(word => `<li>${word}</li>`).join('');
+    wordTypesEl.innerHTML = words.map(word => `<li title="${word}">${word}</li>`).join('');
 
 }

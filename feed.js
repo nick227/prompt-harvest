@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import url from 'url';
 import axios from 'axios';
-
+const DEFAULT_GUIDANCE_VALUE = 10;
 dotenv.config();
 
 const __filename = url.fileURLToPath(import.meta.url);
@@ -28,12 +28,6 @@ export default feed;
 Array.prototype.shuffle = function() {
     return this.sort(() => Math.random() - 0.5);
 }
-
-
-/***********
- * START BUILD
- * 
- */
 
 let replacementDict = {};
 
@@ -273,7 +267,7 @@ async function generateTshirtImage(prompt, guidance, userId=null){
 }
 
 async function generateDezgoImage(prompt, guidance, url, model){
-    const params = { prompt, negative_prompt: "", guidance: guidance || 10, seed: generateRandomNineCharNumber(), model };
+    const params = { prompt, negative_prompt: "", guidance: guidance || DEFAULT_GUIDANCE_VALUE, seed: generateRandomNineCharNumber(), model };
     const options = {
         method: 'POST', url, headers: { 'content-type': 'application/x-www-form-urlencoded', 'X-Dezgo-Key': process.env.DEZGO_API_KEY },
         data: new URLSearchParams(params).toString(), responseType: 'arraybuffer'

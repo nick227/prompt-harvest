@@ -83,7 +83,8 @@ function setup(app) {
     
     app.get('/word/type/:word', async (req, res) => {
         const word = decodeURIComponent(req.params.word).toLowerCase();
-        const response = await getWordType(word);
+        const limit = req.query.limit || 8;
+        const response = await getWordType(word, limit);
         res.send(response);
     });
 
@@ -126,18 +127,20 @@ function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-async function getWordType(word) {
+async function getWordType(word, limit) {
     const db = new DB('word-types.db');
     const escapedWord = escapeRegExp(word);
     const wordDocs = await db.find({
         word: { $regex: new RegExp(escapedWord, 'i') },
         projection: JSON.stringify({ word: 1 }),
-        sort: JSON.stringify({ word: 1 }) 
+        sort: JSON.stringify({ word: 1 }),
+        limit: limit 
     });
     const typeDocs = await db.find({
         types: { $regex: new RegExp(escapedWord, 'i') },
         projection: JSON.stringify({ word: 1 }),
-        sort: JSON.stringify({ word: 1 }) 
+        sort: JSON.stringify({ word: 1 }),
+        limit: limit
     });
     const docs = [...wordDocs, ...typeDocs];
     const results = [...new Set(docs.map(doc => doc.word))];
@@ -196,7 +199,7 @@ function createAddWordAIOptions(word) {
     return {
         model: openAiModel4,
         messages: [
-            { "role": "user", "content": `Attempt to generate at least 75 unique examples of "${word}". Be creative and thorough.` },
+            { "role": "user", "content": `Attempt to generate at least 75 unique examples of "${word}".` },
         ],
         max_tokens: maxTokens4,
         tool_choice: { "type": "function", "function": { "name": "get_word_types" } },

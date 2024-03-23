@@ -1,11 +1,13 @@
-async function setupFeed(){
+const DEFAULT_PROMPT = '';
+
+async function setupFeed() {
     const target = document.querySelector('.prompt-output');
     target.innerHTML = '';
     setupFeedPrompts();
     setupFeedImages();
 }
 
-async function setupFeedPrompts(){
+async function setupFeedPrompts() {
     const url = '/prompts?limit=10';
     const response = await fetch(url);
     if (!response.ok) {
@@ -17,7 +19,7 @@ async function setupFeedPrompts(){
     }
 }
 
-async function setupFeedImages(){
+async function setupFeedImages() {
     const url = '/images?limit=88';
     const response = await fetch(url);
     if (!response.ok) {

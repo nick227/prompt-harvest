@@ -4,6 +4,35 @@ const IMAGE_WRAPPER_CLASS = 'image-wrapper';
 const DOWNLOAD_PROMPT = 'Click to download: ';
 const IMAGE_FULLSCREEN_CLASS = 'full-screen';
 
+async function generateImage(text, e=null){
+    const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
+    if(!checkedProviders.length){
+        alert("Please select at least one provider");
+        return;
+    }
+    if(!text.length){
+        alert("Invalid Prompt");
+        return;
+    }
+    toggleProcessingStyle(e);
+    const guidanceElm = document.querySelector('select[name="guidance"]');
+    const guidanceVal = guidanceElm.value;
+    const url = `/image/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}&guidance=${parseInt(guidanceVal)}`;
+    const results = await fetch(url).then(res => res.json());
+    addImageB64ToOutput(results, true);
+    toggleProcessingStyle(e);
+}
+
+function toggleProcessingStyle(e=null){
+    const generateBtn = document.querySelector('.btn-generate');
+    const currentPrompt = e || document.querySelector('.prompt-output li:first-child');
+    generateBtn.classList.toggle('processing');
+    currentPrompt.classList.toggle('processing');
+    generateBtn.innerText = generateBtn.innerText === 'loading...' ? "Let's Go" : 'loading...';
+    generateBtn.disabled = !generateBtn.disabled;
+    currentPrompt.disabled = !currentPrompt.disabled;
+}
+
 function addImageB64ToOutput(results, download=false) {
     if(isErrorInResults(results)){
         alert(getErrorMessage(results));
@@ -43,7 +72,9 @@ function displayImage(img, results){
     const title = createTitleElement(results);
     const note = createNoteElement(results);
 
-    img.addEventListener("click", toggleFullScreenThisImage);
+    wrapper.addEventListener("click", function(){
+        toggleFullScreenThisImage(wrapper);
+    });
     img.title = results.prompt;
 
     img.onload = () => {
@@ -61,44 +92,39 @@ function downloadThisImage(e){
     a.click();
 }
 
-function toggleFullScreenThisImage(e){
-    const img = e.target;
-    const wrapper = img.closest(`.${IMAGE_WRAPPER_CLASS}`);
+function toggleFullScreenThisImage(wrapper){
     wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
     if(wrapper.classList.contains(IMAGE_FULLSCREEN_CLASS)){
-        addFullScreenControls(wrapper);
+        addKeyBoardListeners();
     } else {
-        clearFullScreenControls();
+        removeKeyBoardListeners();
     }
 }
 
-function clearFullScreenControls(){
-    const controls = document.querySelector('.fullscreen-controls');
-    if(controls){
-        controls.remove();
-    }
+function removeKeyBoardListeners(){
+    window.removeEventListener('keyup', (e) => {
+        if(e.key === 'ArrowRight'){
+            navigateImages('next', document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
+        } else if(e.key === 'ArrowLeft'){
+            navigateImages('prev', document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
+        }
+        if(e.key === 'Escape'){
+            toggleFullScreenThisImage(document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
+        }
+    });
 }
 
-function addFullScreenControls(currentImageWrapper) {
-    clearFullScreenControls();
-    // Create next and previous buttons
-    const wrapper = document.createElement('div');
-    wrapper.className = 'fullscreen-controls';
-    const nextButton = document.createElement('button');
-    const prevButton = document.createElement('button');
-
-    // Add text to buttons
-    nextButton.textContent = 'Next';
-    prevButton.textContent = 'Previous';
-
-    // Add event listeners to buttons
-    nextButton.addEventListener('click', () => navigateImages('next', currentImageWrapper));
-    prevButton.addEventListener('click', () => navigateImages('prev', currentImageWrapper));
-
-    // Add buttons to image wrapper
-    wrapper.appendChild(prevButton);
-    wrapper.appendChild(nextButton);
-    currentImageWrapper.appendChild(wrapper);
+function addKeyBoardListeners(){
+    window.addEventListener('keyup', (e) => {
+        if(e.key === 'ArrowRight'){
+            navigateImages('next', document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
+        } else if(e.key === 'ArrowLeft'){
+            navigateImages('prev', document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
+        }
+        if(e.key === 'Escape'){
+            toggleFullScreenThisImage(document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
+        }
+    });
 }
 
 function navigateImages(direction, currentImageWrapper) {
@@ -120,8 +146,6 @@ function navigateImages(direction, currentImageWrapper) {
     currentImageWrapper.classList.remove(IMAGE_FULLSCREEN_CLASS);
     imageWrappers[newIndex].classList.add(IMAGE_FULLSCREEN_CLASS);
 
-    // Add fullscreen controls to the new image wrapper
-    addFullScreenControls(imageWrappers[newIndex]);
 }
 
 function createWrapperElement() {

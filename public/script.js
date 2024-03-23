@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     setupFeed();
 
     setupStatsBar();
+    
+    setupGuidance();
 
 
     checkUser().then(user => {
