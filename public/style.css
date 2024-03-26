@@ -15,6 +15,7 @@
     --color-button-hover: #3e4147;
     --color-green: lime;
     --color-button-active: #292b2f;
+    --color-blue: dodgerblue;
     --color-link: #00b0f4;
     --color-link-hover: #0087c1;
     --spacing: 10px;
@@ -27,9 +28,16 @@ body {
     line-height: var(--line-height);
     color: var(--color-text);
     background-color: var(--color-dark);
-    width: 92%;
+    width: 100%;
     height: 100%;
     margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    body {
+        width: 56%;
+    }
+    
 }
 
 h1,
@@ -126,7 +134,6 @@ section {
     padding: 20px 0 40px 0;
     background-color: var(--color-dark);
     margin: 20px 0;
-    border-bottom: 2px solid lightgray;
 }
 
 .term-container {
@@ -138,11 +145,14 @@ section {
 .fullscreen-controls {
     right: 10px;
   bottom: 40px;
-  position: absolute;
+  z-index: 3;
+  position: fixed;
   display: flex;
+  flex-direction: column;
+  width: 160px;
 }
 
-input#term {
+input#term, input#examples {
     width: 360px;
 }
 
@@ -276,11 +286,21 @@ ul.prompt-output button {
     width: 90px;
 }
 
+ul.word-types {
+    max-height: 43vh;
+    overflow-y: scroll;
+}
+
 ul.word-types li {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 20%;
+    cursor: pointer;
+}
+
+ul.word-types li:hover {
+    text-decoration: underline;
 }
 
 .word-type-results-title {
@@ -291,12 +311,15 @@ ul.word-types li {
 
 section.images{
     display: block;
+    max-height: 100vh;
+    overflow-y: auto;
+    border-bottom: none;
 }
 
 ul.image-output {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(22%, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(12%, 1fr));
     grid-gap: 20px;
 }
 
@@ -304,6 +327,10 @@ ul.image-output {
     position: relative;
     width: 100%;
     cursor: pointer;
+}
+
+.image-wrapper img:hover {
+    border-bottom: var(--color-green);
 }
 
 .full-screen {
@@ -329,12 +356,8 @@ ul.image-output {
     width: auto;
 }
 
-.image-wrapper img:hover {
-    outline: 1px solid var(--color-green);
-}
-
 .full-screen img:hover {
-    outline: 1px solid var(--color-dark);
+    border-bottom: 1px solid var(--color-dark);
 }
 
 .prompts {
@@ -343,22 +366,32 @@ ul.image-output {
 }
 
 ul.matches {
-    background: rgba(255,255,255,1);
     overflow-y: auto;
     width: 100%;
+    margin: 10px;
 }
 
 ul.matches li {
     font-size: 18px;
     cursor: pointer;
-    background: var(--color-dark);
-    color: var(--color-light);
-    outline: 1px solid var(--color-light);
+    background: var(--color-light);
+    color: var(--color-darker);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 15%;
+    padding: 2px 3px;
+    border-bottom: 1px solid transparent;
+    text-align: center;
 }
 
-.matches li:hover {
-    background-color: var(--color-green);
-    color: var(--color-dark);
+ul.matches li:hover {
+    text-decoration: underline;
+}
+
+ul.matches li:active {
+    padding-top: 3px;
+    padding-bottom: 1px;
 }
 
 #multiplier, textarea {
@@ -519,13 +552,6 @@ ul.matches li {
     }
 }
 
-@media (min-width: 768px) {
-    body {
-        width: 50%;
-    }
-    
-}
-
 @media screen and (max-width: 768px) {
     ul.matches {
         max-width: 100%;
@@ -541,5 +567,9 @@ ul.matches li {
     .prompt .col:first-child {
         width: 100%;
         padding-right: 0%;
+    }
+    ul.image-output {
+        width: 100%;
+        display: block;
     }
 }

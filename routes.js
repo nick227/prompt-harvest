@@ -32,10 +32,16 @@ function setup(app) {
         const userId = req.user?._id;
         const db = new DB('images.db');
         const limit = req.query.limit || 8;
+        let page = req.query.page;
+        if (isNaN(page)) {
+            page = 0;
+        } else {
+            page = Number(page);
+        }
         const params = {
             userId: userId || 'undefined',
-            type: 'image',
-            limit: limit
+            limit,
+            page
         };
         const response = await db.find(params);
         res.send(response.map(doc => doc.data));
@@ -44,11 +50,18 @@ function setup(app) {
     app.get('/prompts', async (req, res) => {
         const userId = req.user?._id;
         const limit = req.query.limit || 8;
+        let page = req.query.page;
+        if (isNaN(page)) {
+            page = 0;
+        } else {
+            page = Number(page);
+        }
         const db = new DB('prompts.db');
         const params = {
             userId: userId || 'undefined',
-            type: 'prompt',
-            limit: limit
+            limit,
+            page
+
         };
         const response = await db.find(params);
         res.send(response.map(doc => doc.data));
@@ -64,7 +77,7 @@ function setup(app) {
         const response = await db.count(params);
         res.send({ count: response });
     });
-    
+
     app.get('/prompt/build', async (req, res) => {
         const prompt = decodeURIComponent(req.query.prompt);
         const multiplier = req.query.multiplier ? decodeURIComponent(req.query.multiplier) : false;
@@ -72,7 +85,7 @@ function setup(app) {
         const response = await feed.prompt.build(prompt, multiplier, mixup, req);
         res.send(response);
     });
-    
+
     app.get('/image/generate', async (req, res) => {
         const prompt = decodeURIComponent(req.query.prompt);
         const providers = decodeURIComponent(req.query.providers).split(',');
@@ -80,14 +93,21 @@ function setup(app) {
         const response = await feed.image.generate(prompt,providers, guidance, req);
         res.send(response);
     });
-    
+
     app.get('/word/type/:word', async (req, res) => {
         const word = decodeURIComponent(req.params.word).toLowerCase();
         const limit = req.query.limit || 8;
         const response = await getWordType(word, limit);
         res.send(response);
     });
-
+    
+    app.get('/word/examples/:word', async (req, res) => {
+        const limit = req.query.limit || 8;
+        const word = decodeURIComponent(req.params.word).toLowerCase();
+        const response = await getWordExamplesList(word, parseInt(limit));
+        res.send(response);
+    });
+    
     app.get('/word/types/:word', async (req, res) => {
         const limit = req.query.limit || 8;
         const word = decodeURIComponent(req.params.word).toLowerCase();
@@ -108,6 +128,19 @@ function setup(app) {
         const response = await addAiWordType(word);
         res.send(response);
     });
+}
+
+async function getWordExamplesList(word, limit=8) {
+    const db = new DB('word-examples.db');
+    const docs = await db.find({
+        limit: limit,
+        $or: [
+            { word: word }
+        ]
+    });
+    let examples = docs[0]?.examples || [];
+    examples.sort();
+    return examples;
 }
 
 async function getWordTypesList(word, limit=8) {

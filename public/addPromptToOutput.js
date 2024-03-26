@@ -1,9 +1,10 @@
-
-
 function addPromptToOutput(prompt) {
+    const target = document.querySelector('.prompt-output');
+    if(!target){
+        return;
+    }
     const value = typeof prompt.processed === 'string' ? prompt.processed : prompt;
     const originalVal = typeof prompt.original === 'string' ? prompt.original : "";
-    const target = document.querySelector('.prompt-output');
     const h6 = document.createElement('h6');
     const row = document.createElement('div');
     const li = document.createElement('li');

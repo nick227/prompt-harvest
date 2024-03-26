@@ -6,13 +6,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
     
     setupSearchTerm();
 
-    setupWordTypeSection();
-
     setupFeed();
 
     setupStatsBar();
     
     setupGuidance();
+
+    setupWordTypeSection();
 
 
     checkUser().then(user => {

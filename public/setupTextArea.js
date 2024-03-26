@@ -1,5 +1,6 @@
-WORD_TYPE_LIMIT = 20;
+WORD_TYPE_LIMIT = 8;
 MAX_AUTO_NUM = 5;
+let requestCount = 0;
 
 async function getMatches(word) {
     return await fetch(`/word/type/${word}?limit=${WORD_TYPE_LIMIT}`).then(res => res.json());
@@ -7,117 +8,119 @@ async function getMatches(word) {
 
 function setupTextArea() {
     const textArea = document.getElementById('prompt-textarea');
-    const convertBtn = document.querySelector('.btn-convert');
-    const startGeneratingBtn = document.querySelector('.btn-generate');
     const matchesEl = document.getElementById('matches');
-    const toggleProviders = document.querySelector('.all-providers');
-
-    const helpLink = document.querySelector('.help');
     let dropdownIsOpen = false;
+    let lastMatchedWord = '';
 
     const updateMatchesDisplay = matches => {
-        matchesEl.innerHTML = matches.map(word => `<li>${word}</li>`).join('');
+        matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         updateModal(textArea, matches.length);
         dropdownIsOpen = matches.length > 0;
     };
 
-    let lastMatchedWord = '';
+const handleInput = async (e) => {
+    const textBeforeCursor = e.target.value.slice(0, e.target.selectionStart).trim();
+    if (!textBeforeCursor || textBeforeCursor.split(/\s+/).pop().length < 3) {
+        matchesEl.innerHTML = '';
+        return;
+    }
 
-    const handleInput = async (e) => {
-        const textArea = e.target;
-        const cursorPosition = textArea.selectionStart;
-        const textBeforeCursor = textArea.value.slice(0, cursorPosition).trim();
-
-        if (!textBeforeCursor) {
-            matchesEl.innerHTML = '';
-            return;
-        }
-
-        const wordsBeforeCursor = textBeforeCursor.split(/\s+/);
-        const currentWord = wordsBeforeCursor[wordsBeforeCursor.length - 1];
-
-        if (currentWord.length < 3) {
-            matchesEl.innerHTML = '';
-            return;
-        }
-
-        let matches = [];
-        for (let i = 1; i <= 3; i++) {
-            if (wordsBeforeCursor.length >= i) {
-                lastMatchedWord = wordsBeforeCursor.slice(-i).join(' ');
-                try {
-                    matches = await getMatches(lastMatchedWord);
-                    if (matches.length > 0) break;
-                } catch (error) {
-                    console.error('An error occurred while getting matches:', error);
-                    return;
-                }
+    let matches = [];
+    const wordsBeforeCursor = textBeforeCursor.split(/\s+/);
+    for (let i = 1; i <= 3; i++) {
+        if (wordsBeforeCursor.length >= i) {
+            lastMatchedWord = wordsBeforeCursor.slice(-i).join(' ');
+            try {
+                matches = await getMatches(lastMatchedWord);
+                if (matches.length > 0) break;
+            } catch (error) {
+                console.error('An error occurred while getting matches:', error);
+                return;
             }
         }
+    }
 
-        if(matches.length){
-            matches.push(', ');
-        }
+    if(matches.length){
+        matches.push(', ');
+    }
 
-        updateMatchesDisplay(matches);
-    };
+    updateMatchesDisplay(matches);
+};
+
+const getReplacement = (innerText) => innerText === ',' ? ', ' : `\${${innerText}} `;
+
+const getNumWordsToReplace = (dropdownIsOpen, replacement, lastMatchedWord) => 
+    dropdownIsOpen && replacement !== ', ' ? (lastMatchedWord.match(/\s/g) || []).length + 1 : 0;
+
+const getWords = (textBeforeCursor) => textBeforeCursor.split(/\s+/);
+
+const replaceWords = (words, numWordsToReplace, replacement) => {
+    if (replacement.trim() !== ',') {
+        words.splice(-numWordsToReplace, numWordsToReplace, replacement.trim());
+    }
+    return words;
+};
+
+const appendReplacement = (replacement, newTextBeforeCursor) => {
+    if (newTextBeforeCursor !== '' || replacement.trim() !== ',') {
+        return replacement === ', ' ? newTextBeforeCursor.trim() + replacement : newTextBeforeCursor + ' ';
+    }
+    return newTextBeforeCursor;
+};
+
+const getNewTextBeforeCursor = (replacement, newTextBeforeCursor) => {
+    return appendReplacement(replacement, newTextBeforeCursor);
+};
+
+const updateTextArea = (textArea, newTextBeforeCursor, textAfterCursor) => {
+    textArea.value = newTextBeforeCursor + textAfterCursor;
+    textArea.focus();
+    textArea.selectionStart = newTextBeforeCursor.length;
+    textArea.selectionEnd = newTextBeforeCursor.length;
+};
 
 const handleMatchListItemClick = e => {
     if (e.target.tagName === 'LI') {
-   
-        const getTextBeforeCursor = (textArea, cursorPosition) => textArea.value.slice(0, cursorPosition);
-        
-        const getNumWordsToReplace = (lastMatchedWord) => (lastMatchedWord.match(/\s/g) || []).length + 1;
-        
-        const getCursorPosition = (textArea) => textArea.selectionStart;
-        
-        const getTextAfterCursor = (textArea, cursorPosition) => textArea.value.slice(cursorPosition);
-     
-        const getReplacement = (text) => {
-            return text === ',' ? ', ' : `\${${text}} `;
-        }; 
-
-        const replaceLastWords = (textBeforeCursor, numWordsToReplace, replacement) => {
-        const words = textBeforeCursor.split(/\s+/);
-            if (replacement.trim() === ',') {
-                textBeforeCursor = textBeforeCursor.replace(/\s+$/, '');
-            }
-            words.splice(-numWordsToReplace, numWordsToReplace, replacement);
-            return words.join(' ') + ' ';
-        };
-        
-        const updateTextAreaValue = (textArea, newTextBeforeCursor, textAfterCursor) => {
-            textArea.value = newTextBeforeCursor + textAfterCursor;
-        };
-        
-        const updateTextAreaSelection = (textArea, newTextBeforeCursor) => {
-            textArea.focus();
-            textArea.selectionStart = newTextBeforeCursor.length;
-            textArea.selectionEnd = newTextBeforeCursor.length;
-        };
-
         const replacement = getReplacement(e.target.innerText);
-        const numWordsToReplace = dropdownIsOpen ? getNumWordsToReplace(lastMatchedWord) : 0;
-        
-        const cursorPosition = getCursorPosition(textArea);
-        const textBeforeCursor = getTextBeforeCursor(textArea, cursorPosition);
-        const textAfterCursor = getTextAfterCursor(textArea, cursorPosition);
+        console.log('replacement', replacement)
+        let numWordsToReplace = getNumWordsToReplace(dropdownIsOpen, replacement, lastMatchedWord);
 
-        const newTextBeforeCursor = replaceLastWords(textBeforeCursor, numWordsToReplace, replacement);
-        updateTextAreaValue(textArea, newTextBeforeCursor, textAfterCursor);
-        updateTextAreaSelection(textArea, newTextBeforeCursor);
+        if (replacement === ', ') {
+            numWordsToReplace = 0;
+        }
 
+        const cursorPosition = textArea.selectionStart;
+        const textBeforeCursor = textArea.value.slice(0, cursorPosition);
+        const textAfterCursor = textArea.value.slice(cursorPosition);
+
+        let words = getWords(textBeforeCursor);
+        words = replaceWords(words, numWordsToReplace, replacement);
+        let newTextBeforeCursor = words.join(' ');
+
+        newTextBeforeCursor = getNewTextBeforeCursor(replacement, newTextBeforeCursor);
+        updateTextArea(textArea, newTextBeforeCursor, textAfterCursor);
         updateModal(textArea, true);
+
     }
 };
 
     setupMaxNumInput();
     textArea.addEventListener('input', handleInput);
     matchesEl.addEventListener('click', handleMatchListItemClick);
-    convertBtn.addEventListener('click', handleConvertClick);
-    startGeneratingBtn.addEventListener('click', handleGenerateClick);
-    toggleProviders.addEventListener('click', toggleAllProviders);
-    helpLink.addEventListener('click', handleHelpLinkClick);
+    document.querySelector('.btn-convert').addEventListener('click', handleConvertClick);
+    document.querySelector('.btn-generate').addEventListener('click', handleGenerateClick);
+    document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
+    document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
+    
+    const wordTypesEl = document.querySelector('ul.word-types');
+    wordTypesEl.addEventListener('click', function(e){
+        if (e.target.tagName === 'LI') {
+            const replacement = getReplacement(e.target.innerText);
+            textArea.value = textArea.value + ' ' + replacement;
+
+        }
+
+});
 }
 
 function toggleAllProviders(e){
@@ -125,8 +128,6 @@ function toggleAllProviders(e){
     checkboxes.forEach(checkbox => checkbox.checked = e.target.checked);
 }
 
-let maxRequests = 3;
-let requestCount = 0;
 
 async function makeFeedBuildUrl() {
     const textArea = document.getElementById('prompt-textarea');
@@ -165,7 +166,7 @@ async function handleGenerateClick(e){
         const isAuto = document.querySelector('input[name="auto-generate"]:checked');
         const maxNum = document.querySelector('input[name="maxNum"]');
 
-        if(isAuto && requestCount < (maxNum.value || maxRequests)) {
+        if(isAuto && (requestCount < (maxNum.value || MAX_AUTO_NUM)-1)) {
             requestCount++;
             handleGenerateClick(e);
         } else {

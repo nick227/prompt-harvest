@@ -44,39 +44,50 @@ export default class DB {
     }
 
     async _find(query) {
-        let sort = { timestamp: -1 };
-        let limit = null;
-        let projection = {};
+    let sort = { timestamp: -1 };
+    let limit = null;
+    let projection = {};
+    let page = 0;
 
-        if (query.projection) {
-            projection = JSON.parse(query.projection) || {};
-            delete query.projection;
-        }
 
-        if (query.sort) {
-            sort = query.sort;
-            delete query.sort;
-        }
-
-        if (query.limit) {
-            limit = query.limit;
-            delete query.limit;
-        }
-
-        let cursor = this.db.find(query, projection);
-
-        if (sort) {
-            cursor = cursor.sort(sort);
-        }
-
-        if (limit) {
-            cursor = cursor.limit(limit);
-        }
-
-        const execAsync = util.promisify(cursor.exec.bind(cursor));
-        const results = await execAsync();
-        return results;
+    if (query.projection) {
+        projection = JSON.parse(query.projection) || {};
+        delete query.projection;
     }
+
+    if (query.sort) {
+        sort = query.sort;
+        delete query.sort;
+    }
+
+    if (query.limit) {
+        limit = Number(query.limit);
+        delete query.limit;
+    }
+
+    if (!isNaN(query.page)) {
+        page = Number(query.page)+1;
+        delete query.page;
+    }
+
+    let cursor = this.db.find(query, projection);
+
+    if (sort) {
+        cursor = cursor.sort(sort);
+    }
+
+    if (limit) {
+        cursor = cursor.limit(limit);
+    }
+
+    if (page) {
+        cursor = cursor.skip((page - 1) * limit).limit(limit);
+    }
+
+    const execAsync = util.promisify(cursor.exec.bind(cursor));
+    const results = await execAsync();
+    return results;
+}
 
     async insert(rows) {
         if (Array.isArray(rows)) {

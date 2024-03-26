@@ -25,7 +25,6 @@
         <div id="authentication"></div>
     </section>
     <div class="modal hidden">
-        <ul id="matches" class="matches"></ul>
     </div>
     <div class="stats  align-right ">image count: <span id="image-count"></span>
     </div>
@@ -36,9 +35,6 @@
         <div class="row">
             <div class="col">
                 <h3>Prompt Builder: <a class="link help">(?)</a></h3>
-
-                
-
                     <div class="row">
                         <label for="dalle"><input type="checkbox" value="dalle" id="dalle" name="providers" />Dalle3</label>
                         <label for="juggernaut"><input type="checkbox" value="juggernaut" id="juggernaut" name="providers" />Juggernaut</label>
@@ -61,8 +57,33 @@
                         <input type="checkbox" name="mixup" /> mixup
                     </label>
                     <label>
-                        <select name="guidance">
-                            <option>guidance</option>
+                        <select style="width: 55px;" name="guidance-bottom">
+                            <option>guidance bottom</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                        </select> 
+                    </label>
+                    <label>
+                        <select style="width: 55px;" name="guidance-top">
+                            <option>guidance top</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="3">3</option>
@@ -86,19 +107,26 @@
                         </select> 
                     </label>
                     </div>
+                    
 
                 <textarea id="prompt-textarea" rows="10"></textarea>
+                <ul id="matches" class="matches"></ul>
                 <input type="text" id="multiplier" placeholder="multiplier text" />
                 <button class="btn-generate">Let's Go!</button>
             </div>
             <div class="col">
-                    <div class="prompts">
-                        <ul class="prompt-output"></ul>
-                    </div>
+                <h3>All Terms:</h3>
+                <input type="text" id="filterTypes" placeholder="filter" />
+                <ul class="word-types"></ul>
+            
 
             </div>
         </div>
     </section>
+
+    <div class="prompts">
+        <ul class="prompt-output"></ul>
+    </div>
 
     <section class="images">
         <ul class="image-output"></ul>
@@ -118,22 +146,20 @@
         </div>
     </section>
 
-    <section class="word-types">
-        <h3>All Terms:</h3>
-        <input type="text" id="filterTypes" placeholder="filter" />
-        <ul class="word-types"></ul>
-    </section>
+    <section class="word-types"></section>
+
+
     <script src="user.js"></script>
     <script src="tools.js"></script>
     <script src="images.js"></script>
+    <script src="setupTextArea.js"></script>
     <script src="setupGuidance.js"></script>
     <script src="handleHelpLinkClick.js"></script>
     <script src="addPromptToOutput.js"></script>
-    <script src="setupWordTypeSection.js"></script>
     <script src="setupStatsBar.js"></script>
     <script src="setupModal.js"></script>
-    <script src="setupTextArea.js"></script>
     <script src="setupSearchTerm.js"></script>
+    <script src="setupWordTypeSection.js"></script>
     <script src="setupFeed.js"></script>
     <script src="script.js"></script>
 </body>

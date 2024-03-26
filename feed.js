@@ -39,19 +39,23 @@ async function buildPrompt(prompt, multiplier, mixup, req) {
     if (!prompt) {
         return;
     }
-    if(mixup){
-        prompt = shufflePrompt(prompt);
-    }
-    if(multiplier){
-        prompt = await multiplyPrompt(prompt, multiplier);
-    }
     replacementDict = {};
     const regex = /(\$\$\{[^}]+\})|(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
     const textArray = prompt.match(regex);
     const processedArray = await Promise.all(textArray.map(getWordReplacement));
-    const processedString = processedArray.join('');
+    let processedString = processedArray.join('');
+    if(mixup) {
+        processedString = shufflePrompt(processedString);
+    }
+    if(multiplier) {
+        processedString = await multiplyPrompt(processedString, multiplier);
+    }
+
+
     const result = { original: prompt, processed: processedString };
+
     saveFeedEvent('prompt', result, req);
+
     return result;
 }
 
@@ -189,13 +193,15 @@ async function generateImageInternal(prompt, providers, guidance, req) {
     const providerName = providers[Math.floor(Math.random() * providers.length)];
     const dynamicFunction = providerList[providerName];
     const b64_json = await dynamicFunction(prompt, guidance, req.user?._id || 'undefined');
-    //const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
-    saveFeedEvent('image', {
+    const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
+    const data = {
         prompt,
         providerName,
-        b64_json
-    }, req);
-    return { b64_json, prompt, providerName: providerName };
+        imageName,
+        guidance
+    };
+    saveFeedEvent('image', data, req);
+    return { b64_json, prompt, providerName, guidance, imageName };
 }
 
 async function saveB64Image(b64_json, providerName, prompt, req) {
@@ -209,7 +215,7 @@ async function saveB64Image(b64_json, providerName, prompt, req) {
 
 async function saveFeedEvent(type, data, req){
     const db = type === 'image' ? new DB('images.db') : new DB('prompts.db');
-    const payload = { type, data, userId: req.user?._id || 'undefined' };
+    const payload = { data, userId: req.user?._id || 'undefined' };
     await db.insert(payload);
 }
 
