@@ -6,6 +6,7 @@ const PREVIOUS_BUTTON_TEXT = 'Previous';
 const NEXT_BUTTON_TEXT = 'Next';
 const IMAGE_FULLSCREEN_CLASS = 'full-screen';
 const IMAGE_CONTROLS_CLASS = 'fullscreen-controls';
+const MAX_TITLE_CHARS = 124;
 
 async function generateImage(text, e=null){
     const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
@@ -31,25 +32,26 @@ async function generateImage(text, e=null){
 
 function toggleProcessingStyle(e=null){
     const generateBtn = document.querySelector('.btn-generate');
-    const currentPrompt = e || document.querySelector('.prompt-output li:first-child');
     generateBtn.classList.toggle('processing');
-    currentPrompt.classList.toggle('processing');
     generateBtn.innerText = generateBtn.innerText === 'loading...' ? "Let's Go" : 'loading...';
     generateBtn.disabled = !generateBtn.disabled;
-    currentPrompt.disabled = !currentPrompt.disabled;
+
+    const currentPrompt = e || document.querySelector('.prompt-output li:first-child');
+    if(currentPrompt) {
+        currentPrompt.classList.toggle('processing');
+        currentPrompt.disabled = !currentPrompt.disabled;
+    }
 }
 
 function createImageElementUrl(results) {
     const img = document.createElement('img');
     img.src = `images/${results.imageName}`;
-    console.log('img.src', img.src)
     return img;
 }
 
 function createImageElement(results) {
     const img = document.createElement('img');
     img.src = `data:${IMAGE_MIME_TYPE};base64,${results.b64_json}`;
-    console.log(results,'img.src', img.src)
     return img;
 }
 
@@ -73,10 +75,21 @@ function downloadImage(img, results) {
     a.click();
 }
 
+function createButtonElement(results){
+    const btn = document.createElement('button');
+    btn.classList.add('btn-make');
+    btn.innerText = 'make';
+    btn.addEventListener('click', () => {
+        generateImage(results.prompt, btn);
+    });
+    return btn;
+}
+
 function displayImage(img, results){
     const wrapper = createWrapperElement();
     const title = createTitleElement(results);
     const note = createNoteElement(results);
+    const btn = createButtonElement(results);
 
     img.addEventListener("click", function(){
         if(isMobile()){
@@ -88,7 +101,7 @@ function displayImage(img, results){
     img.title = results.prompt;
 
     img.onload = () => {
-        appendElementsToWrapper(wrapper, [img, title, note]);
+        appendElementsToWrapper(wrapper, [img, btn, title, note]);
     }
 
     prependWrapperToTarget(wrapper);
@@ -255,6 +268,6 @@ function prependWrapperToTarget(wrapper) {
 }
 
 function truncatePrompt(prompt){
-    const maxChars = 24;
+    const maxChars = MAX_TITLE_CHARS;
     return prompt.length > maxChars ? prompt.slice(0, maxChars)+'...' : prompt
 }

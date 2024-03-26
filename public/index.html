@@ -16,21 +16,20 @@
     <form action="/create-checkout-session" method="POST">
       <button type="submit" id="checkout-button">Checkout</button>
     </form>
--->
-    <section class="row">
-        <div class="align-center masthead">
-            <h6 class="title">Power Prompt</h6>
             <img class="logo" src="favicon.png" />
-        </div>
-        <div id="authentication"></div>
-    </section>
-    <div class="modal hidden">
-    </div>
+    -->
+
+        
+<div class="align-center masthead">
+    <h6 class="title">Power Prompt</h6>
+</div>
+    <div class="modal hidden"></div>
+    <div id="authentication"></div>
     <div class="stats  align-right ">image count: <span id="image-count"></span>
     </div>
-    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="nicholasjay" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
-    
 
+    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="nicholasjay" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+        
     <section class="prompt">
         <div class="row">
             <div class="col">
@@ -106,6 +105,7 @@
                             <option value="20">20</option>
                         </select> 
                     </label>
+                    <div class="insert-comma">Add comma</div>
                     </div>
                     
 
@@ -115,7 +115,6 @@
                 <button class="btn-generate">Let's Go!</button>
             </div>
             <div class="col">
-                <h3>All Terms:</h3>
                 <input type="text" id="filterTypes" placeholder="filter" />
                 <ul class="word-types"></ul>
             
@@ -124,13 +123,10 @@
         </div>
     </section>
 
-    <div class="prompts">
-        <ul class="prompt-output"></ul>
-    </div>
-
     <section class="images">
         <ul class="image-output"></ul>
     </section>
+
 
     <section class="term-results">
         <h3>Find Terms</h3>
@@ -144,9 +140,13 @@
         <div class="loading hidden">
             <div class="message">Working on it...</div>
         </div>
+        <div class="term-results"></div>
     </section>
-
-    <section class="word-types"></section>
+<!--
+    <div class="prompts">
+        <ul class="prompt-output"></ul>
+    </div>
+-->
 
 
     <script src="user.js"></script>

@@ -9,8 +9,18 @@ async function getMatches(word) {
 function setupTextArea() {
     const textArea = document.getElementById('prompt-textarea');
     const matchesEl = document.getElementById('matches');
+    const insertComma = document.querySelector('.insert-comma');
     let dropdownIsOpen = false;
     let lastMatchedWord = '';
+
+    insertComma.addEventListener("click", function(){
+        const val = textArea.value;
+        if(val.length > 0 && val.charAt(val.length - 1) === " "){
+            textArea.value = val.slice(0, val.length - 1);
+        }
+        textArea.value += ", ";
+        textArea.focus();
+    });
 
     const updateMatchesDisplay = matches => {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');

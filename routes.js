@@ -71,8 +71,7 @@ function setup(app) {
         const userId = req.user?._id;
         const db = new DB('images.db');
         const params = {
-            userId: userId || 'undefined',
-            type: 'image'
+            userId: userId || 'undefined'
         };
         const response = await db.count(params);
         res.send({ count: response });

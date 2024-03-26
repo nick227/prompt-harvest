@@ -1,6 +1,9 @@
 const authSection = document.getElementById('authentication');
 let user = null;
 async function checkUser() {
+    if(!authSection){
+        return;
+    }
     try {
         const response = await fetch('/user', { credentials: 'include' });
         if (response.status === 401) {

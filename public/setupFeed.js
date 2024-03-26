@@ -1,6 +1,6 @@
 const DEFAULT_PROMPT = '';
 const DEFAULT_PROMPT_LIMIT = 124;
-const DEFAULT_IMAGE_LIMIT = 6;
+const DEFAULT_IMAGE_LIMIT = 100;
 const IMAGES_ELM_SELECTOR = 'section.images';
 let currentPageCount = 0;
 
@@ -9,8 +9,8 @@ async function setupFeed() {
     if(target){
         target.innerHTML = '';
         setupFeedPrompts();
-        setupFeedImages();
     }
+    setupFeedImages();
 }
 
 async function setupFeedPrompts() {
