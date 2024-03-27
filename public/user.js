@@ -18,6 +18,11 @@ async function checkUser() {
     }
 }
 
+function renderGuestUi (){
+    authSection.innerHTML = `<div class="row align-right"><a href="">register / login</a></div>`;
+
+}
+
 function renderRegistrationForm() {
     authSection.innerHTML = `
     <a id="toggle-login" class="row align-right" href="javascript:void">Login</a>

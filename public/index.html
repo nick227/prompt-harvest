@@ -27,13 +27,14 @@
     <div id="authentication"></div>
     <div class="stats  align-right ">image count: <span id="image-count"></span>
     </div>
-
-    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="nicholasjay" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    <div class="row">
+        <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="nicholasjay" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    </div>
         
     <section class="prompt">
         <div class="row">
             <div class="col">
-                <h3>Prompt Builder: <a class="link help">(?)</a></h3>
+                <h3>Prompt Builder <a class="link help">(?)</a></h3>
                     <div class="row">
                         <label for="dalle"><input type="checkbox" value="dalle" id="dalle" name="providers" />Dalle3</label>
                         <label for="juggernaut"><input type="checkbox" value="juggernaut" id="juggernaut" name="providers" />Juggernaut</label>
@@ -124,12 +125,13 @@
     </section>
 
     <section class="images">
+        <h3>Images</h3>
         <ul class="image-output"></ul>
     </section>
 
 
     <section class="term-results">
-        <h3>Find Terms</h3>
+        <h3>Add Term</h3>
         <div class="">
             <div class="term-container">
                 <input type="text" id="term" placeholder="search">
@@ -142,11 +144,10 @@
         </div>
         <div class="term-results"></div>
     </section>
-<!--
     <div class="prompts">
         <ul class="prompt-output"></ul>
     </div>
--->
+
 
 
     <script src="user.js"></script>

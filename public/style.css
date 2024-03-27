@@ -93,6 +93,14 @@ p {
     font-family: Courier;
 }
 
+a {
+    color: white;
+}
+
+section.prompt {
+    border-bottom: 1px solid var(--color-light);
+}
+
 .prompt.row {
     display: flex;
     justify-content: space-between;
@@ -279,7 +287,7 @@ ul.prompt-output li h6:active, .image-wrapper h3:active {
 }
 
 ul.prompt-output div {
-    width: 90%;
+    width: 100%;
 }
 
 ul.prompt-output button {
@@ -359,7 +367,8 @@ ul.image-output {
 }
 
 .full-screen h3, 
-.full-screen h6 {
+.full-screen h6, 
+.full-screen button {
     display: none;
 }
 

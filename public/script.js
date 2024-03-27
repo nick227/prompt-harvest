@@ -20,7 +20,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
             renderUserUI(user.username);
 
         } else {
-            renderLoginForm();
+            //renderLoginForm();
+            //renderGuestUi();
         }
     });
    

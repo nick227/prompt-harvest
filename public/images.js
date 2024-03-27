@@ -7,6 +7,7 @@ const NEXT_BUTTON_TEXT = 'Next';
 const IMAGE_FULLSCREEN_CLASS = 'full-screen';
 const IMAGE_CONTROLS_CLASS = 'fullscreen-controls';
 const MAX_TITLE_CHARS = 124;
+const REMIX_BTN_TEXT = 'remix';
 
 async function generateImage(text, e=null){
     const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
@@ -78,7 +79,7 @@ function downloadImage(img, results) {
 function createButtonElement(results){
     const btn = document.createElement('button');
     btn.classList.add('btn-make');
-    btn.innerText = 'make';
+    btn.innerText = REMIX_BTN_TEXT;
     btn.addEventListener('click', () => {
         generateImage(results.prompt, btn);
     });
