@@ -81,7 +81,8 @@ function setup(app) {
         const prompt = decodeURIComponent(req.query.prompt);
         const multiplier = req.query.multiplier ? decodeURIComponent(req.query.multiplier) : false;
         const mixup = req.query.mixup ? decodeURIComponent(req.query.mixup) : false;
-        const response = await feed.prompt.build(prompt, multiplier, mixup, req);
+        const customVariables = decodeURIComponent(req.query.customVariables);
+        const response = await feed.prompt.build(prompt, multiplier, mixup, customVariables, req);
         res.send(response);
     });
 
@@ -89,7 +90,7 @@ function setup(app) {
         const prompt = decodeURIComponent(req.query.prompt);
         const providers = decodeURIComponent(req.query.providers).split(',');
         const guidance = isNaN(req.query.guidance) ? false : parseInt(req.query.guidance);
-        const response = await feed.image.generate(prompt,providers, guidance, req);
+        const response = await feed.image.generate(prompt, providers, guidance, req);
         res.send(response);
     });
 

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Power Prompt - Image and Prompt Harvesting</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="images/favicon.png" type="image/png">
     <script src=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.all.min.js "></script>
 <link href=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.min.css " rel="stylesheet">
 </head>
@@ -16,7 +16,7 @@
     <form action="/create-checkout-session" method="POST">
       <button type="submit" id="checkout-button">Checkout</button>
     </form>
-            <img class="logo" src="favicon.png" />
+            <img class="logo" src="images/favicon.png" />
     -->
 
         
@@ -107,31 +107,31 @@
                         </select> 
                     </label>
                     <div class="insert-comma">Add comma</div>
+                    <div class="insert-variable">Add variable</div>
+                    <div class="chips-variables"></div>
                     </div>
                     
 
                 <textarea id="prompt-textarea" rows="10"></textarea>
                 <ul id="matches" class="matches"></ul>
-                <input type="text" id="multiplier" placeholder="multiplier text" />
-                <button class="btn-generate">Let's Go!</button>
-            </div>
-            <div class="col">
                 <input type="text" id="filterTypes" placeholder="filter" />
                 <ul class="word-types"></ul>
             
+                <input type="text" id="multiplier" placeholder="Multiplier text - Added between comma clauses" />
+                <button class="btn-generate">Let's Go!</button>
+            </div>
+            <div class="col">
+                <div class="prompts">
+                    <ul class="prompt-output"></ul>
+                </div>
 
             </div>
         </div>
     </section>
 
-    <section class="images">
-        <h3>Images</h3>
-        <ul class="image-output"></ul>
-    </section>
-
 
     <section class="term-results">
-        <h3>Add Term</h3>
+        <h3>Search Terms</h3>
         <div class="">
             <div class="term-container">
                 <input type="text" id="term" placeholder="search">
@@ -144,25 +144,21 @@
         </div>
         <div class="term-results"></div>
     </section>
-    <div class="prompts">
-        <ul class="prompt-output"></ul>
-    </div>
 
-
-
-    <script src="user.js"></script>
-    <script src="tools.js"></script>
-    <script src="images.js"></script>
-    <script src="setupTextArea.js"></script>
-    <script src="setupGuidance.js"></script>
-    <script src="handleHelpLinkClick.js"></script>
-    <script src="addPromptToOutput.js"></script>
-    <script src="setupStatsBar.js"></script>
-    <script src="setupModal.js"></script>
-    <script src="setupSearchTerm.js"></script>
-    <script src="setupWordTypeSection.js"></script>
-    <script src="setupFeed.js"></script>
-    <script src="script.js"></script>
+    <script src="js/user.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/images.js"></script>
+    <script src="js/helpers/handleHelpLinkClick.js"></script>
+    <script src="js/helpers/addPromptToOutput.js"></script>
+    <script src="js/setup/setupCustomVariables.js"></script>
+    <script src="js/setup/setupTextArea.js"></script>
+    <script src="js/setup/setupGuidance.js"></script>
+    <script src="js/setup/setupStatsBar.js"></script>
+    <script src="js/setup/setupModal.js"></script>
+    <script src="js/setup/setupSearchTerm.js"></script>
+    <script src="js/setup/setupWordTypeSection.js"></script>
+    <script src="js/setup/setupFeed.js"></script>
+    <script src="js/script.js"></script>
 </body>
 
 </html>

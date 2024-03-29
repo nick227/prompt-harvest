@@ -5,12 +5,10 @@ const IMAGES_ELM_SELECTOR = 'section.images';
 let currentPageCount = 0;
 
 async function setupFeed() {
-    const target = document.querySelector('.prompt-output');
-    if(target){
-        target.innerHTML = '';
-        setupFeedPrompts();
-    }
-    setupFeedImages();
+    await setupFeedPrompts();
+    setTimeout(async function(){
+        await setupFeedImages();
+    }, 200);
 }
 
 async function setupFeedPrompts() {

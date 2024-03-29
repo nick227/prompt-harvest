@@ -14,14 +14,16 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupWordTypeSection();
 
+    setupCustomVariables();
+
 
     checkUser().then(user => {
         if (user) {
             renderUserUI(user.username);
 
         } else {
-            //renderLoginForm();
-            //renderGuestUi();
+            renderLoginForm();
+            renderGuestUi();
         }
     });
    

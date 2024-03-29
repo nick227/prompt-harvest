@@ -10,7 +10,7 @@ dotenv.config();
 
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const baseDir = path.join(__dirname, '/public/images/');
+const baseDir = path.join(__dirname, '/public/uploads/');
 let queue = [];
 let isProcessing = false;
 
@@ -30,8 +30,9 @@ Array.prototype.shuffle = function() {
 }
 
 let replacementDict = {};
+let customDict = {};
 
-async function buildPrompt(prompt, multiplier, mixup, req) {
+async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
     
     if (typeof prompt !== 'string') {
         throw new Error('Prompt must be a string');
@@ -40,6 +41,15 @@ async function buildPrompt(prompt, multiplier, mixup, req) {
         return;
     }
     replacementDict = {};
+    customDict = {};
+    if (customVariables) {
+        const customVariablesPairs = customVariables.split(';');
+        for (const pair of customVariablesPairs) {
+            const [key, list] = pair.split('=');
+            const value = list.split(',');
+            customDict[key] = value;
+        }
+    }
     const regex = /(\$\$\{[^}]+\})|(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
     const textArray = prompt.match(regex);
     const processedArray = await Promise.all(textArray.map(getWordReplacement));
@@ -73,6 +83,19 @@ async function multiplyPrompt(prompt, multiplier) {
 async function getWordReplacement(element) {
     if (!element.startsWith('${') && !element.endsWith('}')) return element;
     const word = getWordFromElement(element);
+    if (customDict[word]) {
+        if (element.startsWith('$$')) {
+            if (replacementDict[word]) {
+                return replacementDict[word];
+            } else {
+                const replacement = customDict[word][0];
+                replacementDict[word] = replacement;
+                return replacement;
+            }
+        } else {
+            return customDict[word][Math.floor(Math.random() * customDict[word].length)];
+        }
+    }
     if (element.startsWith('$$')) {
         if (replacementDict[word]) {
             return replacementDict[word];

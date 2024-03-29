@@ -1,28 +1,34 @@
-function addPromptToOutput(prompt) {
+const PROMPT_TEXT_CLASS_NAME = 'prompt-text';
+
+function addPromptToOutput(result) {
     const target = document.querySelector('.prompt-output');
     if(!target){
         return;
     }
-    const value = typeof prompt.processed === 'string' ? prompt.processed : prompt;
-    const originalVal = typeof prompt.original === 'string' ? prompt.original : "";
+    console.log('result',result)
+    const value = typeof result.processed === 'string' ? result.processed : result;
+    const originalVal = typeof result.original === 'string' ? result.original : "";
     const h6 = document.createElement('h6');
     const row = document.createElement('div');
     const li = document.createElement('li');
 
     row.className = 'row';
-    h6.textContent = 'original';
+    h6.textContent = originalVal;
     h6.setAttribute('title', originalVal);
     h6.addEventListener('click', function(){
         navigator.clipboard.writeText(originalVal);
     });
-    h6.style.width = '100%';
-    h6.style.cursor = 'pointer';
     
     const button = document.createElement('button');
     button.addEventListener('click', handleNewPromptClick);
     button.textContent = 'make';
 
     const div = document.createElement('div');
+    div.classList.add('link');
+    div.addEventListener('click', function(){
+        navigator.clipboard.writeText(value);
+    });
+    div.className = PROMPT_TEXT_CLASS_NAME;
     div.textContent = value;
 
     row.appendChild(div);
@@ -31,4 +37,11 @@ function addPromptToOutput(prompt) {
     li.appendChild(row);
 
     target.prepend(li);
+    li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+}
+
+async function handleNewPromptClick(e) {
+    e.preventDefault();
+    const text = e.target.previousElementSibling.textContent;
+    await generateImage(text, e.target.closest('li'));
 }

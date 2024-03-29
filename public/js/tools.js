@@ -15,3 +15,25 @@ function makeFileNameSafeForWindows(name) {
     }
     return safeName.slice(0, maxLength);
 }
+
+HTMLElement.prototype.addSwipe = function(callback) {
+    let startX = 0;
+    let startY = 0;
+    let dragging = false;
+
+    this.addEventListener('mousedown', function(e) {
+        startX = e.clientX;
+        startY = e.clientY;
+        dragging = true;
+    }, false);
+
+    this.addEventListener('mousemove', function(e) {
+        if (dragging) {
+            callback(e, {dx: e.clientX - startX, dy: e.clientY - startY});
+        }
+    }, false);
+
+    this.addEventListener('mouseup', function(e) {
+        dragging = false;
+    }, false);
+}

@@ -32,7 +32,14 @@ function handleHelpLinkClick(){
 
 <BR>
 
-8.) Be respectful of the Dalle3 content policies. 
+8.) Add you own custom variables. Dblclick to delete. Click to insert.
+
+<BR>
+
+9.) Be respectful of the Dalle3 content policies. 
+<BR>
+
+10.) If you enjoy please throw in a few bucks. 
 <BR>
 
 </div>`;

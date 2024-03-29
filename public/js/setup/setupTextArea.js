@@ -141,7 +141,7 @@ function toggleAllProviders(e){
 
 async function makeFeedBuildUrl() {
     const textArea = document.getElementById('prompt-textarea');
-    const prompt = encodeURIComponent(textArea.value.trim());
+    const prompt = encodeURIComponent(removeExtraWhiteSpace(textArea.value.trim()));
     if(!prompt){
         return false;
     }
@@ -149,8 +149,13 @@ async function makeFeedBuildUrl() {
     const multiplierPair = multiplier.value.length ? `&multiplier=${encodeURIComponent(multiplier.value)}` : '';
     const mixup = document.querySelector('input[name="mixup"]:checked');
     const mixupPair = mixup ? `&mixup=true` : '';
+    const customVariables = getCustomVariables();
 
-    return `/prompt/build?prompt=${prompt}${multiplierPair}${mixupPair}`;
+    return `/prompt/build?prompt=${prompt}${multiplierPair}${mixupPair}${customVariables}`;
+}
+
+function removeExtraWhiteSpace(str){
+    return str.replace(/\s+/g, ' ').trim();
 }
 
 async function fetchData(url) {
@@ -218,10 +223,4 @@ async function handleConvertClick() {
     } catch (error) {
         console.error('An error occurred while fetching the data.', error);
     }
-}
-
-async function handleNewPromptClick(e) {
-    e.preventDefault();
-    const text = e.target.previousElementSibling.textContent;
-    await generateImage(text, e.target.closest('li'));
 }

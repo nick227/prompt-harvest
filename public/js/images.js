@@ -1,5 +1,5 @@
 const IMAGE_MIME_TYPE = 'image/jpeg';
-const IMAGE_OUTPUT_CLASS = '.image-output';
+const IMAGE_OUTPUT_CLASS = 'image-output';
 const IMAGE_WRAPPER_CLASS = 'image-wrapper';
 const DOWNLOAD_PROMPT = 'Download';
 const PREVIOUS_BUTTON_TEXT = 'Previous';
@@ -25,10 +25,24 @@ async function generateImage(text, e=null){
     const guidanceElmBottom = document.querySelector('select[name="guidance-bottom"]');
     const guidanceValBottom = guidanceElmBottom.value;
     const guidanceVal = Math.floor(Math.random() * (parseInt(guidanceValTop) - parseInt(guidanceValBottom))) + parseInt(guidanceValBottom);
-    const url = `/image/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}&guidance=${parseInt(guidanceVal)}`;
+    const customVariables = getCustomVariables();
+    const url = `/image/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}&guidance=${parseInt(guidanceVal)}${customVariables}`;
+    
     const results = await fetch(url).then(res => res.json());
     addImageToOutput(results, true);
     toggleProcessingStyle(e);
+}
+
+function getCustomVariables(){
+    const variablesString = localStorage.getItem('variables');
+    if(variablesString){
+        const variablesArr = JSON.parse(variablesString);
+        const variables = variablesArr.map((variable) => {
+            return `${variable.variableName}=${variable.variableValues}`;
+        });
+        return `&customVariables=${encodeURIComponent(variables.join(';'))}`;
+    }
+    return '';
 }
 
 function toggleProcessingStyle(e=null){
@@ -46,7 +60,7 @@ function toggleProcessingStyle(e=null){
 
 function createImageElementUrl(results) {
     const img = document.createElement('img');
-    img.src = `images/${results.imageName}`;
+    img.src = `uploads/${results.imageName}`;
     return img;
 }
 
@@ -61,12 +75,38 @@ function addImageToOutput(results, download=false) {
     displayImage(img, results);
     if(download === true){
         setupStatsBar();
-        downloadImage(img, results);
+        //downloadImage(img, results);
     }
 }
 
-function getErrorMessage(results) {
-    return `${results.b64_json.details?.error?.message}`;
+function displayImage(img, results){
+    const wrapper = createWrapperElement();
+    const title = createTitleElement(results);
+    const btn = createButtonElement(results);
+    const note = createNoteElement(results);
+    wrapper.appendChild(note);
+
+    img.title = results.prompt;
+    img.addEventListener("click", function(){
+        toggleFullScreenThisImage(wrapper);
+    });
+
+    img.onload = () => {
+        appendElementsToWrapper(wrapper, [img]);
+        attachImage(results, wrapper);
+    }
+}
+
+function attachImage(results, wrapper){
+    const target = findPromptPreviewElement(results);
+    if(!target.querySelector('.'+IMAGE_OUTPUT_CLASS)){
+        const output = document.createElement('div');
+        output.className = IMAGE_OUTPUT_CLASS;
+        output.appendChild(wrapper);
+        target.appendChild(output);
+    } else {
+        target.querySelector('.'+IMAGE_OUTPUT_CLASS).appendChild(wrapper);
+    }
 }
 
 function downloadImage(img, results) {
@@ -74,6 +114,10 @@ function downloadImage(img, results) {
     a.href = img.src;
     a.download = `${makeFileNameSafeForWindows(results.providerName +'-'+ results.prompt)}.jpg`;
     a.click();
+}
+
+function getErrorMessage(results) {
+    return `${results.b64_json.details?.error?.message}`;
 }
 
 function createButtonElement(results){
@@ -86,26 +130,17 @@ function createButtonElement(results){
     return btn;
 }
 
-function displayImage(img, results){
-    const wrapper = createWrapperElement();
-    const title = createTitleElement(results);
-    const note = createNoteElement(results);
-    const btn = createButtonElement(results);
-
-    img.addEventListener("click", function(){
-        if(isMobile()){
-            downloadImage(img, results);
-        } else {
-            toggleFullScreenThisImage(wrapper);
-        }
+function findPromptPreviewElement(results){
+    const elm = Array.from(document.querySelectorAll('.prompt-text')).find((li) => {
+        return li.innerText.replace(/  /g, ' ').trim() === results.prompt.replace(/  /g, ' ').trim();
     });
-    img.title = results.prompt;
-
-    img.onload = () => {
-        appendElementsToWrapper(wrapper, [img, btn, title, note]);
+    if(elm){
+        return elm.closest('li');
+    } else {
+        
+        return document.querySelector('.prompt-text:first-child').closest('li');
     }
 
-    prependWrapperToTarget(wrapper);
 }
 
 function isMobile(){
@@ -146,9 +181,9 @@ function addFullScreenControls() {
     const navBtns = getNavigateButtons();
     const closeBtn = getCloseButton();
     
+    controls.appendChild(closeBtn);
     controls.appendChild(downloadBtn);
     controls.appendChild(navBtns);
-    controls.appendChild(closeBtn);
 
     document.body.appendChild(controls);
 
@@ -173,7 +208,6 @@ function getNavigateButtons(){
         const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
         navigateImages('next', wrapper);
     });
-    container.appendChild(nextBtn);
     const prevBtn = document.createElement('button');
     prevBtn.innerText = PREVIOUS_BUTTON_TEXT;
     prevBtn.addEventListener('click', function(){
@@ -181,6 +215,7 @@ function getNavigateButtons(){
         navigateImages('prev', wrapper);
     });
     container.appendChild(prevBtn);
+    container.appendChild(nextBtn);
 
     return container;
 
@@ -254,18 +289,13 @@ function createTitleElement(results) {
 }
 
 function createNoteElement(results) {
-    const note = document.createElement('h6');
+    const note = document.createElement('h5');
     note.textContent = results.providerName + `, ${results.guidance}`;
     return note;
 }
 
 function appendElementsToWrapper(wrapper, elements) {
     elements.forEach(element => wrapper.appendChild(element));
-}
-
-function prependWrapperToTarget(wrapper) {
-    const target = document.querySelector(IMAGE_OUTPUT_CLASS);
-    target.prepend(wrapper);
 }
 
 function truncatePrompt(prompt){
