@@ -32,41 +32,61 @@ Array.prototype.shuffle = function() {
 let replacementDict = {};
 let customDict = {};
 
-async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
-    
-    if (typeof prompt !== 'string') {
-        throw new Error('Prompt must be a string');
+// Helper function to process custom variables
+function processCustomVariables(customVariables) {
+    const customDict = {};
+    if (!customVariables) {
+        return customDict;
     }
-    if (!prompt) {
-        return;
-    }
-    replacementDict = {};
-    customDict = {};
-    if (customVariables) {
-        const customVariablesPairs = customVariables.split(';');
-        for (const pair of customVariablesPairs) {
-            const [key, list] = pair.split('=');
-            const value = list.split(',');
-            customDict[key] = value;
+
+    const customVariablesPairs = customVariables.split(';');
+    customVariablesPairs.forEach(pair => {
+        const [key, list] = pair.split('=');
+        if (!key || !list) {
+            console.log(`Invalid pair: ${pair}`);
+            return;
         }
-    }
+
+        const value = list.split(',');
+        customDict[key] = value;
+    });
+
+    return customDict;
+}
+
+async function processPromptText(prompt) {
     const regex = /(\$\$\{[^}]+\})|(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
     const textArray = prompt.match(regex);
     const processedArray = await Promise.all(textArray.map(getWordReplacement));
-    let processedString = processedArray.join('');
-    if(mixup) {
-        processedString = shufflePrompt(processedString);
+    return processedArray.join('');
+}
+
+async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
+    try {
+        if (typeof prompt !== 'string') {
+            throw new Error('Prompt must be a string');
+        }
+        if (!prompt) {
+            return;
+        }
+
+        const customDict = processCustomVariables(customVariables);
+        let processedString = await processPromptText(prompt);
+
+        if(mixup) {
+            processedString = shufflePrompt(processedString);
+        }
+        if(multiplier) {
+            processedString = await multiplyPrompt(processedString, multiplier);
+        }
+
+        const result = { original: prompt, processed: processedString };
+        saveFeedEvent('prompt', result, req);
+
+        return result;
+    } catch (error) {
+        console.error(`Error building prompt: ${error.message}`);
     }
-    if(multiplier) {
-        processedString = await multiplyPrompt(processedString, multiplier);
-    }
-
-
-    const result = { original: prompt, processed: processedString };
-
-    saveFeedEvent('prompt', result, req);
-
-    return result;
 }
 
 function shufflePrompt(prompt) {

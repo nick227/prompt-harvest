@@ -1,6 +1,9 @@
 node_modules/
 .env
-public/images
+public/uploads
 images/
 lists/
 data/*.backup
+data/images.db
+data/prompts.db
+data/users.db
