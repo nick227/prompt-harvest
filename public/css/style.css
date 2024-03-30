@@ -262,9 +262,7 @@ ul {
 }
 
 ul li {
-    padding: 10px 20px;
-    margin: 2px;
-    border-radius: 5px;
+    margin: 2px 0;
 }
 
 ul.prompt-output li {
@@ -310,7 +308,7 @@ ul.prompt-output button {
 }
 
 ul.word-types {
-    max-height: 7.5vh;
+    max-height: 12.5vh;
     overflow-y: scroll;
 }
 
@@ -319,6 +317,9 @@ ul.word-types li {
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: pointer;
+    padding: 3px 6px;
+    margin: 2px;
+    text-decoration: underline;
 }
 
 .insert-comma, .insert-variable {
@@ -431,7 +432,6 @@ section.images{
 ul.matches {
     overflow-y: auto;
     width: 100%;
-    margin: 10px;
 }
 
 ul.matches li {

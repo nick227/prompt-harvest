@@ -96,7 +96,9 @@ function toggleLoading() {
 
 function setupFilterInput() {
     const filterInput = document.querySelector('#filterTypes');
-    filterInput.addEventListener('input', handleFilterInput);
+    if(filterInput){
+        filterInput.addEventListener('input', handleFilterInput);
+    }   
 }
 
 function handleFilterInput(e) {
