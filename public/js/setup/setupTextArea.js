@@ -44,7 +44,7 @@ const handleInput = async (e) => {
                 matches = await getMatches(lastMatchedWord);
                 if (matches.length > 0) break;
             } catch (error) {
-                console.error('An error occurred while getting matches:', error);
+                console.error('A handleInput error occurred while getting matches:', error);
                 return;
             }
         }
@@ -189,7 +189,8 @@ async function handleGenerateClick(e){
         }
 
     } catch (error) {
-        console.error('An error occurred while fetching the data.', error);
+        console.error('A handleGenerateClick error occurred while fetching the data.', error);
+        console.log(results);
     }
 }
 
