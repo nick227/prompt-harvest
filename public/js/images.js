@@ -79,6 +79,27 @@ function addImageToOutput(results, download=false) {
     }
 }
 
+function downloadImage(img, results) {
+    const a = document.createElement('a');
+    a.href = img.src;
+    a.download = `${makeFileNameSafeForWindows(results.providerName +'-'+ results.prompt)}.jpg`;
+    a.click();
+}
+
+function getErrorMessage(results) {
+    return `${results.b64_json.details?.error?.message}`;
+}
+
+function createButtonElement(results){
+    const btn = document.createElement('button');
+    btn.classList.add('btn-make');
+    btn.innerText = REMIX_BTN_TEXT;
+    btn.addEventListener('click', () => {
+        generateImage(results.prompt, btn);
+    });
+    return btn;
+}
+
 function displayImage(img, results){
     const wrapper = createWrapperElement();
     const title = createTitleElement(results);
@@ -102,35 +123,20 @@ function attachImage(results, wrapper){
     if(!target.querySelector('.'+IMAGE_OUTPUT_CLASS)){
         const output = document.createElement('div');
         output.className = IMAGE_OUTPUT_CLASS;
-        output.appendChild(wrapper);
-        target.appendChild(output);
+        output.prepend(wrapper);
+        target.prepend(output);
+        console.log('aa')
     } else {
-        target.querySelector('.'+IMAGE_OUTPUT_CLASS).appendChild(wrapper);
+        console.log('gg')
+        target.querySelector('.'+IMAGE_OUTPUT_CLASS).prepend(wrapper);
     }
 }
 
-function downloadImage(img, results) {
-    const a = document.createElement('a');
-    a.href = img.src;
-    a.download = `${makeFileNameSafeForWindows(results.providerName +'-'+ results.prompt)}.jpg`;
-    a.click();
-}
-
-function getErrorMessage(results) {
-    return `${results.b64_json.details?.error?.message}`;
-}
-
-function createButtonElement(results){
-    const btn = document.createElement('button');
-    btn.classList.add('btn-make');
-    btn.innerText = REMIX_BTN_TEXT;
-    btn.addEventListener('click', () => {
-        generateImage(results.prompt, btn);
-    });
-    return btn;
-}
-
 function findPromptPreviewElement(results){
+    const viewSwitch = document.querySelector('.prompt-view-switch');
+    if(viewSwitch.checked){
+        return document.querySelector('.image-list');
+    }
     const elm = Array.from(document.querySelectorAll('.prompt-text')).find((li) => {
         return li.innerText.replace(/  /g, ' ').trim() === results.prompt.replace(/  /g, ' ').trim();
     });
@@ -140,7 +146,6 @@ function findPromptPreviewElement(results){
         
         return document.querySelector('.prompt-text:first-child').closest('li');
     }
-
 }
 
 function isMobile(){

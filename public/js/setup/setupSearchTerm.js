@@ -1,4 +1,4 @@
-let isProcessingAddRequest = false;
+var isProcessingAddRequest = false;
 
 function setupSearchTerm() {
     const searchTerm = document.querySelector('#term');

@@ -115,6 +115,7 @@ const handleMatchListItemClick = e => {
 };
 
     setupMaxNumInput();
+    setupProviderClicks();
     textArea.addEventListener('input', handleInput);
     matchesEl.addEventListener('click', handleMatchListItemClick);
     document.querySelector('.btn-convert').addEventListener('click', handleConvertClick);
@@ -131,6 +132,20 @@ const handleMatchListItemClick = e => {
         }
 
 });
+}
+
+function setupProviderClicks(){
+    const providerCheckElms = document.querySelectorAll('input[name="providers"]');
+    providerCheckElms.forEach(elm => elm.addEventListener('change', handleProviderClick));
+}
+
+function handleProviderClick(e){
+    const anyProvidersChecked = document.querySelectorAll('input[name="providers"]:checked').length;
+    const allProvidersCount = document.querySelectorAll('input[name="providers"]').length;
+    if(anyProvidersChecked !== allProvidersCount){
+        const allProvidersElm = document.querySelector('.all-providers');
+        allProvidersElm.checked = false;
+    }
 }
 
 function toggleAllProviders(e){

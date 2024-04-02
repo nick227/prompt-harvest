@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Prompt - Image and Prompt Harvesting</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+</head>
+
+<body>
+<!--
+    <script src="https://js.stripe.com/v3/"></script>
+    <form action="/create-checkout-session" method="POST">
+      <button type="submit" id="checkout-button">Checkout</button>
+    </form>
+            <img class="logo" src="images/favicon.png" />
+    -->
+
+        
+<div class="align-center masthead">
+    <h6 class="title">Power Prompt</h6>
+</div>
+    <div class="modal hidden"></div>
+    <div id="authentication"></div>
+    <div class="stats  align-right ">image count: <span id="image-count"></span>
+    </div>
+    <div class="row">
+        <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="nicholasjay" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    </div>
+    <section class="term-results">
+        <h3>Search Terms</h3>
+        <div class="">
+            <div class="term-container">
+                <input type="text" id="term" placeholder="search">
+            </div>
+            <button class="find">find</button>
+            <button class="clear">clear</button>
+        </div>
+        <div class="loading hidden">
+            <div class="message">Working on it...</div>
+        </div>
+        <div class="term-results"></div>
+    </section>
+
+    <script src="js/user.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/setup/setupSearchTerm.js"></script>
+    <script>
+        setupSearchTerm();
+    </script>
+</body>
+
+</html>

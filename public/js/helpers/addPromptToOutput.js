@@ -5,7 +5,6 @@ function addPromptToOutput(result) {
     if(!target){
         return;
     }
-    console.log('result',result)
     const value = typeof result.processed === 'string' ? result.processed : result;
     const originalVal = typeof result.original === 'string' ? result.original : "";
     const h6 = document.createElement('h6');
@@ -33,11 +32,14 @@ function addPromptToOutput(result) {
 
     row.appendChild(div);
     row.appendChild(button);
-    li.appendChild(h6);
     li.appendChild(row);
+    //li.appendChild(h6);
 
     target.prepend(li);
-    li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+    const viewSwitch = document.querySelector('.prompt-view-switch');
+    
+        li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+    
 }
 
 async function handleNewPromptClick(e) {

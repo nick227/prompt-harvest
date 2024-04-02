@@ -3,8 +3,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     setupModal();
 
     setupTextArea();
-    
-    setupSearchTerm();
 
     setupFeed();
 
@@ -15,6 +13,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     setupWordTypeSection();
 
     setupCustomVariables();
+
+    setupToggleView();
 
 
     checkUser().then(user => {

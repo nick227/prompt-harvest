@@ -32,9 +32,7 @@ Array.prototype.shuffle = function() {
 let replacementDict = {};
 let customDict = {};
 
-// Helper function to process custom variables
 function processCustomVariables(customVariables) {
-    const customDict = {};
     if (!customVariables) {
         return customDict;
     }
@@ -70,7 +68,8 @@ async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
             return;
         }
 
-        const customDict = processCustomVariables(customVariables);
+        customDict = processCustomVariables(customVariables);
+        replacementDict = {};
         let processedString = await processPromptText(prompt);
 
         if(mixup) {
@@ -206,7 +205,16 @@ const providerList = {
     cyber: generateCyberImage,
     disco: generateDiscoImage,
     synthwave: generateSynthImage,
-    ink: generateInkImage
+    ink: generateInkImage,
+    dreamshaper: generateDreamshaper,
+    bluepencil: generateBluePencil,
+    abyssorange: generateAbyssOrange,
+    icbinp: generateIcbinp,
+    analogmadness: generateAnalogMadeness,
+    portraitplus: generatePortraitPlus,
+    realisticvision: generateRealisticVision,
+    nightmareshaper: generateNightmareShaper,
+    openjourney: generateOpenjourney,
 }
 
 async function generateImage(prompt, providers, guidance, req) {
@@ -220,6 +228,7 @@ async function generateImage(prompt, providers, guidance, req) {
 async function processQueue(req) {
     if (isProcessing) return;
     isProcessing = true;
+
     while (queue.length > 0) {
         const { prompt, providers, guidance, resolve, reject } = queue.shift();
         try {
@@ -280,6 +289,14 @@ async function generateDalleImage(prompt, guidance, userId=null){
         }
         return { error: 'Error generating image', details: error };
     }
+} 
+
+async function generatePortraitPlus(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'portrait_plus');
+}
+
+async function generateAnalogMadeness(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'analogmadness_7');
 }
 
 async function generateInkImage(prompt, guidance, userId=null){
@@ -294,12 +311,32 @@ async function generateDiscoImage(prompt, guidance, userId=null){
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'disco_diffusion_style');
 }
 
+async function generateOpenjourney(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'openjourney_2');
+}
+
+async function generateNightmareShaper(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'nightmareshaper');
+}
+
+async function generateRealisticVision(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'realistic_vision_5_1');
+}
+
 async function generateCyberImage(prompt, guidance, userId=null){
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'cyberrealistic_3_1');
 }
 
 async function generateLowPolyImage(prompt, guidance, userId=null){
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'lowpoly_world');
+}
+
+async function generateIcbinp(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'icbinp');
+}
+
+async function generateAbyssOrange(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'abyss_orange_mix_2');
 }
 
 async function generateAbsoluteImage(prompt, guidance, userId=null){
@@ -310,9 +347,16 @@ async function generateJuggernautImage(prompt, guidance, userId=null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'juggernautxl_1024px');
 }
 
+async function generateDreamshaper(prompt, guidance, userId=null) {
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'dreamshaperxl_1024px');
+}
+
+async function generateBluePencil(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'bluepencilxl_1024px');
+}
+
 async function generateTshirtImage(prompt, guidance, userId=null){
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'tshirtdesignredmond_1024px');
-
 }
 
 async function generateDezgoImage(prompt, guidance, url, model){

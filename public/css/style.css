@@ -99,10 +99,6 @@ a {
     color: white;
 }
 
-section.prompt {
-    border-bottom: 1px solid var(--color-light);
-}
-
 .prompt.row {
     display: flex;
     justify-content: space-between;
@@ -116,7 +112,12 @@ label {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+  margin-right: 15px;
 }
+
+input[type="checkbox"] {
+    margin-right: 5px;
+}   
 
 textarea,
 input,
@@ -130,7 +131,7 @@ textarea,
 input,
 ul,
 select {
-    margin: 10px;
+    margin: 10px 0;
     box-shadow: none;
     border: none;
     box-shadow: none;
@@ -153,7 +154,7 @@ section {
 }
 
 .fullscreen-controls {
-    right: 10px;
+  right: 10px;
   bottom: 40px;
   z-index: 3;
   position: fixed;
@@ -161,6 +162,8 @@ section {
   flex-direction: row;
   width: 100%;
   justify-content: flex-end;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 input#term, input#examples {
@@ -183,6 +186,7 @@ input#term, input#examples {
     background: white;
     border-radius: 0;
     cursor: pointer;
+    padding-left: 10px;
 }
 
 .dropdown li:hover {
@@ -218,8 +222,6 @@ button {
     border: none;
     cursor: pointer;
     background-color: var(--color-button);
-    margin-left: var(--spacing);
-    width: 150px;
     height: 40px;
 }
 
@@ -230,8 +232,8 @@ button:active {
 button.btn-generate {
     background: var(--color-green);
     color: var(--color-darker);
-    width: 99.5%;
-    margin-top: 20px;
+    width: 100%;
+    margin: 20px 0;
 }
 
 button.btn-generate:hover {
@@ -267,9 +269,8 @@ ul li {
 
 ul.prompt-output li {
     width: 100%;
-    display: flex;
-    flex-direction: column;
     border-bottom: 1px solid var(--color-light);
+    padding: 30px;
 }
 
 ul.prompt-output li .row {
@@ -310,6 +311,7 @@ ul.prompt-output button {
 ul.word-types {
     max-height: 12.5vh;
     overflow-y: scroll;
+    display: none;
 }
 
 ul.word-types li {
@@ -362,6 +364,10 @@ ul.word-types li:hover {
   border-bottom: 1px solid var(--color-light);
 }
 
+.word-type-results-title li {
+    text-align: center;
+}
+
 section.images{
     display: block;
     max-height: 50vh;
@@ -375,63 +381,17 @@ section.images{
     flex-wrap: wrap;
 }
 
-.image-wrapper {
-    max-width: 100px;
-    margin-right: 20px;
-
-}
-
-.image-wrapper img {
-    position: relative;
-    width: 100%;
-    cursor: pointer;
-}
-
-.image-wrapper img:hover {
-    border-bottom: var(--color-green);
-}
-
-.full-screen {
-    position: fixed;
-    z-index: 2;
-    max-width: 100%;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    top: 0;
-    left: 0;
-    background: rgba(0,0,0,0.8);
-}
-
-.full-screen p, 
-.full-screen h3, 
-.full-screen h5, 
-.full-screen h6, 
-.full-screen button {
-    display: none;
-}
-
-.full-screen img, .full-screen .image-wrapper{
-    height: 100%;
-    width: auto;
-    max-width: 100%;
-    margin: 0px auto;
-}
-
-.full-screen img:hover {
-    border-bottom: 1px solid var(--color-dark);
-}
-
 .prompts {
     max-height: 76vh;
     overflow-y: auto;
 }
 
+
+
 ul.matches {
     overflow-y: auto;
     width: 100%;
+    margin-left: 10px;
 }
 
 ul.matches li {
@@ -442,7 +402,7 @@ ul.matches li {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    width: 13%;
+    width: 23.75%;
     margin: 1px;
     padding: 2px 3px;
     border-bottom: 1px solid transparent;
@@ -459,7 +419,7 @@ ul.matches li:active {
 }
 
 #multiplier, textarea {
-    width:95.5%;
+    width: 96%;
     padding: 2%;
 }
 
@@ -472,7 +432,11 @@ ul.matches li:active {
     display: flex;
     width: 100%;
     flex-wrap: wrap;
+}
+
+.space-between {
     
+    justify-content: space-between;
 }
 
 #login-form, #registration-form {
@@ -643,4 +607,126 @@ ul.matches li:active {
         width: 100%;
         display: block;
     }
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 66px;
+    height: 28px;
+    margin-right: 20px;
+  margin-bottom: 10px;
+}
+
+.switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 7px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--color-accent);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--color-accent);
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(28px);
+    -ms-transform: translateX(28px);
+    transform: translateX(28px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 28px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.image-list {
+    display: flex;
+    max-height: 76vh;
+    overflow-y: auto;
+    flex-wrap: wrap;
+}
+
+
+.image-wrapper {
+    width: 17.21%;
+    margin-right: 20px;
+    float: left;
+}
+
+.image-wrapper img {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+}
+
+.image-wrapper img:hover {
+    border-bottom: var(--color-green);
+}
+
+.full-screen {
+    position: fixed;
+    z-index: 2;
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    background: rgba(0,0,0,0.8);
+}
+
+.full-screen p, 
+.full-screen h3, 
+.full-screen h5, 
+.full-screen h6, 
+.full-screen button {
+    display: none;
+}
+
+.full-screen img, .full-screen .image-wrapper{
+    height: 100% !important;
+    width: auto !important;
+    margin: 0px auto !important;
+}
+
+.full-screen img:hover {
+    border-bottom: 1px solid var(--color-dark);
+}
+
+.image-size{
+    width: 60px;
 }

@@ -1,6 +1,5 @@
 const DEFAULT_PROMPT = '';
-const DEFAULT_PROMPT_LIMIT = 124;
-const DEFAULT_IMAGE_LIMIT = 100;
+const DEFAULT_REQUEST_LIMIT = 10;
 const IMAGES_ELM_SELECTOR = 'section.images';
 let currentPageCount = 0;
 
@@ -12,7 +11,7 @@ async function setupFeed() {
 }
 
 async function setupFeedPrompts() {
-    const url = `/prompts?limit=${DEFAULT_PROMPT_LIMIT}`;
+    const url = `/prompts?limit=${DEFAULT_REQUEST_LIMIT}`;
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -24,7 +23,7 @@ async function setupFeedPrompts() {
 }
 
 async function setupFeedImages() {
-    const url = `/images?limit=${DEFAULT_IMAGE_LIMIT}`;
+    const url = `/images?limit=${DEFAULT_REQUEST_LIMIT}`;
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
