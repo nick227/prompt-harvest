@@ -24,7 +24,7 @@ async function generateImage(text, e=null){
     const guidanceValTop = guidanceElmTop.value;
     const guidanceElmBottom = document.querySelector('select[name="guidance-bottom"]');
     const guidanceValBottom = guidanceElmBottom.value;
-    const guidanceVal = Math.floor(Math.random() * (parseInt(guidanceValTop) - parseInt(guidanceValBottom))) + parseInt(guidanceValBottom);
+    const guidanceVal = Math.abs(Math.floor(Math.random() * (parseInt(guidanceValTop) - parseInt(guidanceValBottom))) + parseInt(guidanceValBottom));
     const customVariables = getCustomVariables();
     const url = `/image/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}&guidance=${parseInt(guidanceVal)}${customVariables}`;
     
@@ -73,9 +73,10 @@ function createImageElement(results) {
 function addImageToOutput(results, download=false) {
     const img = createImageElementUrl(results);
     displayImage(img, results);
-    if(download === true){
+    const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
+    if(download === true && autoDownload){
         setupStatsBar();
-        //downloadImage(img, results);
+        downloadImage(img, results);
     }
 }
 
@@ -125,7 +126,6 @@ function attachImage(results, wrapper){
         output.className = IMAGE_OUTPUT_CLASS;
         output.prepend(wrapper);
         target.prepend(output);
-        console.log('aa')
     } else {
         console.log('gg')
         target.querySelector('.'+IMAGE_OUTPUT_CLASS).prepend(wrapper);

@@ -75,14 +75,17 @@ export default class User {
     }
 
     login(req, res) {
+        if (!req.user) {
+            return res.status(400).send({ error: 'Invalid username or password' });
+        }
         res.send(req.user);
     }
     
     logout(req, res) {
-    req.logout(() => {
-        res.send({ message: 'Logged out' });
-    });
-}
+        req.logout(() => {
+            res.send({ message: 'Logged out' });
+        });
+    }
 
     async resetPassword(req, res) {
         let { username, newPassword } = req.body;

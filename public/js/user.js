@@ -1,142 +1,124 @@
-const authSection = document.getElementById('authentication');
+const authSection = document.getElementById('authWidget');
 let user = null;
-async function checkUser() {
-    if(!authSection){
-        return;
-    }
-    try {
-        const response = await fetch('/user', { credentials: 'include' });
-        if (response.status === 401) {
-            return null;
-        }
-        const data = await response.json();
-        user = data;
-        return data;
-    } catch (error) {
-        console.error('Error:', error);
+
+async function fetchWithCredentials(endpoint) {
+    return await fetch(endpoint, { credentials: 'include' });
+}
+
+async function fetchAndHandleResponse(endpoint, options) {
+    const response = await fetch(endpoint, options);
+    console.log('response:', response)
+    if (!response.ok) {
+        alert(`HTTP error! status: ${response.status}`);
         return null;
     }
+    const data = await response.json();
+    if (data.error) {
+        alert(data.error);
+        return null;
+    }
+    return data;
 }
 
-function renderGuestUi (){
-    authSection.innerHTML = `<div class="row align-right"><a href="">register / login</a></div>`;
-
+async function checkUser() {
+    const response = await fetchWithCredentials('/user');
+    if (response.status === 401) {
+        return null;
+    }
+    user = await response.json();
+    return user;
 }
-
-function renderRegistrationForm() {
-    authSection.innerHTML = `
-    <a id="toggle-login" class="row align-right" href="javascript:void">Login</a>
-        <form id="registration-form">
-        <h2>Register</h2>
-            <input type="text" id="register-username" placeholder="Username">
-            <input type="password" id="register-password" placeholder="Password">
-            <div>
-            <button type="submit">Submit</button>
-            </div>
-        </form>
-    `;
-    document.getElementById('registration-form').addEventListener('submit', registerUser);
-    document.getElementById('toggle-login').addEventListener('click', renderLoginForm);
-}
-
-function renderLoginForm() {
-    authSection.innerHTML = `
-    <a id="registration-form" class="row align-right" href="javascript:void">Register</a>
-        <form id="login-form">
-        <h2>Login</h2>
-            <input type="text" id="login-username" placeholder="Username">
-            <input type="password" id="login-password" placeholder="Password">
-            <div>
-            <button type="submit">Submit</button>
-            </div>
-        </form>
-    `;
-    document.getElementById('login-form').addEventListener('submit', loginUser);
-    document.getElementById('registration-form').addEventListener('click', renderRegistrationForm);
-}
-
 
 async function registerUser(e) {
     e.preventDefault();
-    const username = document.getElementById('register-username').value;
-    const password = document.getElementById('register-password').value;
-
-    const response = await fetch('/register', {
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const data = await fetchAndHandleResponse('/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ email, password })
     });
-
-    const data = await response.json();
-    if(data.error){
-        alert(data.error);
-        return;
+    if (data && data.email) {
+        window.location.href = '/';
     }
-    if (data.username) renderUserUI(data.username);
 }
 
 async function loginUser(e) {
     e.preventDefault();
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-    const response = await fetch('/login', {
+    console.log('loginUser')
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) {
+        alert("Please enter email and password");
+        return;
+    }
+    const data = await fetchAndHandleResponse('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username:email, password:password })
     });
-
-    try {
-        const data = await response.json();
-        if(data.error){
-            alert(data.error);
-            return;
+    if (data) {
+        const user = await checkUser();
+        if (user) {
+            window.location.href = '/';
+        } else {
+            alert("User failed");
         }
-        checkUser().then(user => {
-            if (user) {
-                renderUserUI(user.username);
-            }
-            else {
-                renderRegistrationForm();
-            }
-        });
-    } catch(err){
-        alert("Login failed")
-
+    } else {
+        alert("Login failed");
     }
 }
 
-function renderUserUI(username) {
-    authSection.innerHTML = `
+function renderUserUI(email) {
+    const authentication = document.getElementById('authentication');
+    authentication.innerHTML = `
         <div class="row align-right">
-            <h3 class="user">Logged in as: ${username}</h3>
+            <h3 class="user">Logged in as: ${email}</h3>
             <button id="logout-button">Logout</button>
         </div>
     `;
     document.getElementById('logout-button').addEventListener('click', logoutUser);
-    //document.getElementById('reset-button').addEventListener('click', resetPassword);
-    //document.getElementById('delete-button').addEventListener('click', deleteUser);
-    setupFeed();
 }
 
 async function logoutUser() {
-    const response = await fetch('/logout');
-    const data = await response.json();
-    if (data.message === 'Logged out') renderLoginForm();
+    const data = await fetchAndHandleResponse('/logout');
+    if (data && data.message === 'Logged out') {
+        window.location.href = '/';
+    }
 }
 
-async function resetPassword() {
-    const newPassword = prompt('Enter new password');
-    const response = await fetch('/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newPassword })
-    });
-    const data = await response.json();
-    alert(data.message);
+function toggleFormVisibility(showFormId, hideFormId) {
+    document.getElementById(showFormId).style.display = 'block';
+    document.getElementById(hideFormId).style.display = 'none';
 }
 
-async function deleteUser() {
-    const response = await fetch('/user', { method: 'DELETE' });
-    const data = await response.json();
-    if (data.message === 'User deleted') renderLoginForm();
+function loadPageElements() {
+    const showRegisterForm = document.getElementById('showRegisterForm');
+    const showLoginForm = document.getElementById('showLoginForm');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    if (showRegisterForm) {
+        showRegisterForm.addEventListener('click', e => {
+            e.preventDefault();
+            toggleFormVisibility('registerForm', 'loginForm');
+        });
+    }
+
+    if (showLoginForm) {
+        showLoginForm.addEventListener('click', e => {
+            e.preventDefault();
+            toggleFormVisibility('loginForm', 'registerForm');
+        });
+    }
+
+    if (loginForm) {
+        loginForm.querySelector('button[type="submit"]').addEventListener('click', loginUser);
+    }
+
+    if (registerForm) {
+        registerForm.querySelector('button[type="submit"]').addEventListener('click', registerUser);
+    }
 }
+
+document.addEventListener('DOMContentLoaded', loadPageElements);

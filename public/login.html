@@ -4,23 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Power Prompt - Image and Prompt Harvesting</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="images/favicon.png" type="image/png">
     <script src=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.all.min.js "></script>
 <link href=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.min.css " rel="stylesheet">
 </head>
 
 <body>
-    <section class="row">
-        <div class="align-center masthead">
-            <h6 class="title">Power Prompt</h6>
-            <img class="logo" src="favicon.png" />
-        </div>
-        <div id="authentication"></div>
-    </section>
-    
-    
-    <script src="user.js"></script>
+<!--
+    <script src="https://js.stripe.com/v3/"></script>
+    <form action="/create-checkout-session" method="POST">
+      <button type="submit" id="checkout-button">Checkout</button>
+    </form>
+            <img class="logo" src="images/favicon.png" />
+    -->
+
+        
+<div class="align-center" style="width:100%;">
+    <a href="/"><h6 class="title">Power Prompt</h6></a>
+    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="nicholasjay" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+</div>
+
+    <div id="authWidget">
+        <form id="loginForm" class="authForm">
+            <h2>Login</h2>
+            <input type="email" name="email" id="loginEmail" placeholder="Email">
+            <input type="password" name="password" id="loginPassword" placeholder="Password">
+            <button type="submit">Submit</button>
+            <a href="#" id="showRegisterForm">Register</a>
+        </form>
+
+        <form id="registerForm" class="authForm" style="display: none;">
+            <h2>Register</h2>
+            <input type="email" name="email" id="registerEmail" placeholder="Email">
+            <input type="password" name="password" id="registerPassword" placeholder="Password">
+            <button type="submit">Submit</button>
+            <a href="#" id="showLoginForm">Login</a>
+        </form>
+    </div>
+
+    <script src="js/user.js"></script>
+    <script>   
+    </script>
 </body>
 
 </html>

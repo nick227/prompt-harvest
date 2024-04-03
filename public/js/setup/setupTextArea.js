@@ -113,7 +113,7 @@ const handleMatchListItemClick = e => {
 
     }
 };
-
+    setupAutoDownload();
     setupMaxNumInput();
     setupProviderClicks();
     textArea.addEventListener('input', handleInput);
@@ -122,6 +122,10 @@ const handleMatchListItemClick = e => {
     document.querySelector('.btn-generate').addEventListener('click', handleGenerateClick);
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
+
+}
+
+function handleWordLiClick(){
     
     const wordTypesEl = document.querySelector('ul.word-types');
     wordTypesEl.addEventListener('click', function(e){
@@ -130,8 +134,16 @@ const handleMatchListItemClick = e => {
             textArea.value = textArea.value + ' ' + replacement;
 
         }
+    });
+}
 
-});
+function setupAutoDownload() {
+    let autoDownload = localStorage.getItem('autoDownload');
+    autoDownload = autoDownload ? JSON.parse(autoDownload) : false;
+    document.querySelector('input[name="autoDownload"]').checked = autoDownload;
+    document.querySelector('input[name="autoDownload"]').addEventListener('change', function(e){
+        localStorage.setItem('autoDownload', e.target.checked);
+    });
 }
 
 function setupProviderClicks(){

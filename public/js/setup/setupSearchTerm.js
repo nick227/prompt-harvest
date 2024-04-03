@@ -40,6 +40,9 @@ function clearTermDropDown(){
 function addAutoDropDown(e) {
     clearTermDropDown();
     const searchTerm = document.querySelector('#term').value.toLowerCase();
+    if(!searchTerm){
+        return;
+    }
     const matches = Array.from(document.querySelectorAll('.word-types li'))
         .reduce((acc, li) => {
             const text = li.textContent;
@@ -165,10 +168,12 @@ function resetTextArea() {
 
 function renderTermResults(list, searchTerm) {
     const target = document.querySelector('.term-results');
-
     const resultsEl = document.createElement('ul');
     resultsEl.classList.add('word-type-results');
-    resultsEl.innerHTML = list.map(word => `<li>${word}</li>`).join('');
+    resultsEl.innerHTML = list.map((word, index) => {
+        let comma = index === list.length - 1? '' : ', ';
+        return `<li>${word}${comma}</li>`;
+    }).join('');
     
     const h4 = document.createElement('h4');
     h4.classList.add('word-type-results-title');

@@ -10,20 +10,16 @@ document.addEventListener('DOMContentLoaded', (event) => {
     
     setupGuidance();
 
-    setupWordTypeSection();
-
     setupCustomVariables();
 
     setupToggleView();
 
 
     checkUser().then(user => {
+        console.log('user', user)
         if (user) {
             renderUserUI(user.username);
 
-        } else {
-            renderLoginForm();
-            renderGuestUi();
         }
     });
    

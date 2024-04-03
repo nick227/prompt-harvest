@@ -21,10 +21,10 @@
 
         
 <div class="align-center masthead">
-    <h6 class="title">Power Prompt</h6>
+    <a href="/"><h6 class="title">Power Prompt</h6></a>
 </div>
     <div class="modal hidden"></div>
-    <div id="authentication"></div>
+    <div id="authentication"><a href="/login.html">Register / Login</a></div>
     <div class="stats  align-right ">image count: <span id="image-count"></span>
     </div>
     <div class="row">
@@ -35,6 +35,7 @@
             <div class="col">
                 <h3>Prompt Builder <a class="link help">(?)</a></h3>
                     <div class="row">
+                        <label for="dalle"><input type="checkbox" value="dalle" id="dalle" name="providers" />Dalle3</label>
                         <label for="juggernaut"><input type="checkbox" value="juggernaut" id="juggernaut" name="providers" />Juggernaut</label>
                         <label for="absolute"><input type="checkbox" value="absolute" id="absolute" name="providers" />Absolute Reality</label>
                         <label for="realisticvision"><input type="checkbox" value="realisticvision" id="realisticvision" name="providers" />Realistic Vision</label>
@@ -117,12 +118,13 @@
                     <div class="insert-comma">Add comma</div>
                     <div class="insert-variable">Add variable</div>
                     <div class="chips-variables"></div>
+                    <label><input type="checkbox" name="autoDownload" /> auto-download</label>
+                    <a href="/terms.html">All terms</a>
                     </div>
                     
 
                 <textarea id="prompt-textarea" rows="10"></textarea>
                 <ul id="matches" class="matches"></ul>
-                <ul class="word-types"></ul>
             
                 <input type="text" id="multiplier" placeholder="Multiplier text - Added between comma clauses" />
                 <button class="btn-generate">Let's Go!</button>
@@ -158,7 +160,6 @@
     <script src="js/setup/setupStatsBar.js"></script>
     <script src="js/setup/setupModal.js"></script>
     <script src="js/setup/setupToggleView.js"></script>
-    <script src="js/setup/setupWordTypeSection.js"></script>
     <script src="js/setup/setupFeed.js"></script>
     <script src="js/script.js"></script>
 </body>

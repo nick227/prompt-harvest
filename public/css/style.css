@@ -30,16 +30,40 @@ body {
     line-height: var(--line-height);
     color: var(--color-text);
     background-color: var(--color-dark);
-    width: 100%;
+    width: 56%;
     height: 100%;
     margin: 0 auto;
 }
 
-@media (min-width: 768px) {
+@media screen and (max-width: 1400px) {
     body {
-        width: 56%;
+        width: 98%;
+    }
+    ul.matches {
+        max-width: 100%;
+    }
+    ul.word-types li {
+        width: 100%;
+    }
+
+    .prompt .col {
+        width: 100%;
     }
     
+    .prompt .col:first-child {
+        width: 100%;
+        padding-right: 0%;
+    }
+    .image-output {
+        width: 100%;
+        display: block;
+    }
+    
+    .full-screen img, .full-screen .image-wrapper{
+        height: auto !important;
+        width: 100% !important;
+        margin: 0px auto;
+    }
 }
 
 h1,
@@ -175,7 +199,6 @@ input#term, input#examples {
     top: 185%;
     display: block;
     min-width: 382px;
-    left: 9px;
     color: var(--color-dark);
     box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.23);
     background-color: var(--color-darker);
@@ -276,6 +299,7 @@ ul.prompt-output li {
 ul.prompt-output li .row {
     flex-wrap: nowrap;  
     padding-bottom: 15px;
+    justify-content: space-between;
 }
 
 .prompt-text {
@@ -309,9 +333,7 @@ ul.prompt-output button {
 }
 
 ul.word-types {
-    max-height: 12.5vh;
-    overflow-y: scroll;
-    display: none;
+    margin-bottom: 100px;
 }
 
 ul.word-types li {
@@ -359,13 +381,19 @@ ul.word-types li:hover {
 }
 
 .word-type-results-title {
-    margin: 20px 0;
-  padding: 10px;
-  border-bottom: 1px solid var(--color-light);
+    margin-top: 30px;
 }
 
-.word-type-results-title li {
+.word-type-results {
+  margin: 20px 0;
+  border-bottom: 1px solid var(--color-light);
+  padding-bottom: 20px;
+}
+
+.word-type-results li {
     text-align: center;
+    margin-right: 10px;
+    margin-bottom: 5px;
 }
 
 section.images{
@@ -391,22 +419,20 @@ section.images{
 ul.matches {
     overflow-y: auto;
     width: 100%;
-    margin-left: 10px;
 }
 
 ul.matches li {
     font-size: 18px;
     cursor: pointer;
-    background: var(--color-light);
-    color: var(--color-darker);
+    color: var(--color-light);
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    width: 23.75%;
+    width: 31%;
     margin: 1px;
     padding: 2px 3px;
-    border-bottom: 1px solid transparent;
-    text-align: center;
+    border: 1px solid var(--color-light);
+    text-align: left;
 }
 
 ul.matches li:hover {
@@ -587,28 +613,6 @@ ul.matches li:active {
     }
 }
 
-@media screen and (max-width: 768px) {
-    ul.matches {
-        max-width: 100%;
-    }
-    ul.word-types li {
-        width: 100%;
-    }
-
-    .prompt .col {
-        width: 100%;
-    }
-    
-    .prompt .col:first-child {
-        width: 100%;
-        padding-right: 0%;
-    }
-    .image-output {
-        width: 100%;
-        display: block;
-    }
-}
-
 .switch {
     position: relative;
     display: inline-block;
@@ -691,6 +695,10 @@ input:checked + .slider:before {
     cursor: pointer;
 }
 
+.image-wrapper h5 {
+    white-space: nowrap;
+}
+
 .image-wrapper img:hover {
     border-bottom: var(--color-green);
 }
@@ -718,9 +726,9 @@ input:checked + .slider:before {
 }
 
 .full-screen img, .full-screen .image-wrapper{
-    height: 100% !important;
-    width: auto !important;
-    margin: 0px auto !important;
+    height: 100%;
+    width: auto;
+    margin: 0px auto;
 }
 
 .full-screen img:hover {
@@ -729,4 +737,36 @@ input:checked + .slider:before {
 
 .image-size{
     width: 60px;
+}
+
+
+#authWidget {
+    width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 25vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.authForm {
+    text-align: center;
+}
+
+.authForm input {
+    width: 90%;
+    margin-bottom: 10px;
+}
+
+.authForm button {
+    width: 96%;
+}
+
+.authForm a {
+    display: block;
+    margin-top: 10px;
+    color: blue;
+    text-decoration: none;
 }

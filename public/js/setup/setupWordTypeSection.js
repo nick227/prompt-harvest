@@ -10,4 +10,11 @@ function renderWordTypes(words) {
     if(wordTypesEl){
         wordTypesEl.innerHTML = words.map(word => `<li title="${word}">${word}</li>`).join('');
     }
+    wordTypesEl.addEventListener('click', handleWordTypeClick);
+}
+
+function handleWordTypeClick(e){
+    const termEl = document.querySelector('#term');
+    termEl.value = e.target.innerHTML;
+
 }
