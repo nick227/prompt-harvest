@@ -117,7 +117,7 @@ const handleMatchListItemClick = e => {
     setupProviderClicks();
     textArea.addEventListener('input', handleInput);
     matchesEl.addEventListener('click', handleMatchListItemClick);
-    document.querySelector('.btn-convert').addEventListener('click', handleConvertClick);
+    //document.querySelector('.btn-convert').addEventListener('click', handleConvertClick);
     document.querySelector('.btn-generate').addEventListener('click', handleGenerateClick);
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
