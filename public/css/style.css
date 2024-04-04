@@ -63,24 +63,6 @@ p {
     padding: var(--spacing);
 }
 
-#authentication {
-    display: flex; 
-    justify-content: flex-end;
-    align-items: flex-end;
-    flex-direction: column;
-    margin: 0;
-    flex-grow: 1;
-    padding-right: 10px;
-}
-
-#authentication input:first-child {
-    margin: 0 0 5px 0;
-}
-
-#authentication .row {
-    align-items: center;
-}
-
 .modal {
     position: absolute;
     z-index: 2;
@@ -169,7 +151,7 @@ section {
 }
 
 .fullscreen-controls button {
-    width: 120px;
+    outline: 1px solid black;
 }
 
 input#term, input#examples {
@@ -485,10 +467,17 @@ ul.matches li:active {
     justify-content: flex-start;
 }
 
+#authentication{
+    margin-left: 20px;
+}
+
+.topbar {
+    display: flex;
+  justify-content: flex-end;
+}
+
 .masthead {
-  padding: 15px;
-  border-radius: 5px;
-  float: left;
+  float:left;
 }
 
 .v-align-center {
@@ -833,5 +822,10 @@ input:checked + .slider:before {
 
     .fullscreen-controls button {
         width: 25vw;
+    }
+
+    .info-box {
+        left: 40px;
+        right: auto;
     }
 }

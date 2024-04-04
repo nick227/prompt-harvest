@@ -74,8 +74,8 @@ function addImageToOutput(results, download = false) {
     const img = createImageElementUrl(results);
     displayImage(img, results);
     const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
+    setupStatsBar();
     if (download === true && autoDownload) {
-        setupStatsBar();
         downloadImage(img, results);
     }
 }
@@ -241,6 +241,13 @@ function getInfoBox(){
     return infoBox;
 }
 
+function updateInfoBox(){
+    removeInfoBox();
+    const infoBox = getInfoBox();
+    document.body.appendChild(infoBox);
+
+}
+
 function removeInfoBox(){
     const infoBox = document.querySelector('.info-box');
     if(infoBox){
@@ -365,6 +372,7 @@ function navigateImages(direction, currentImageWrapper) {
     imageWrappers[newIndex].classList.add(IMAGE_FULLSCREEN_CLASS);
     removeSwipeListeners(currentImageWrapper);
     addSwipeListeners(imageWrappers[newIndex]);
+    updateInfoBox()
 }
 
 function createWrapperElement() {
