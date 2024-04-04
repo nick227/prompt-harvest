@@ -41,7 +41,7 @@ function addPromptToOutput(result) {
 
     target.prepend(li);
     
-        li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+    li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
     
 }
 

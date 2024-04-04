@@ -7,23 +7,23 @@
 function handleHelpLinkClick(){
     const helpText = `
     <div style=" text-align: left; line-height: 1.6;">
-    1.) Use \${term} for dynamic values.
+    1.) Use \${term} for dynamic values. 
     <BR />
-    2.) Make arrays like \${["one", "two"]}.
+    2.) Auto-generate loops until max number. You can edit while it runs.
     <BR />
-    3.) $\${term} keeps value constant.
+    3.) The double dollar sign like $\${term} keeps value constant. 
     <BR />
-    4.) 'Mixup' shuffles comma-separated clauses.
+    4.) 'Mixup' shuffles your comma-separated clauses.
     <BR />
-    5.) 'Multiplier' inserts text between clauses.
+    5.) 'Multiplier' text is inserted between clauses.
     <BR />
-    6.) Click 'convert' to build prompt.
+    6.) Make your own quick arrays like \${["one", "two"]}.
     <BR />
-    7.) 'Guidance' adjusts AI imagination.
+    7.) 'Guidance' adjusts the AI randomness.
     <BR />
-    8.) Add custom variables. Swipe to remove.
+    8.) Add custom variables if you prefer. Swipe to remove.
     <BR />
-    9.) Click image to browse.
+    9.) Click the images to open full-screen view.
     <BR />
     10.) Respect Dalle3 content policies.
     <BR />
@@ -34,7 +34,7 @@ function handleHelpLinkClick(){
     Swal.fire({
         html: helpText,
         confirmButtonText: 'Cool',
-        width: '640',
+        width: '720',
         title: "Power Prompt Tips"
       })
 }

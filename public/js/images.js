@@ -29,6 +29,7 @@ async function generateImage(text, e = null) {
     const url = `/image/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}&guidance=${parseInt(guidanceVal)}${customVariables}`;
 
     const results = await fetch(url).then(res => res.json());
+    setupStatsBar();
     addImageToOutput(results, true);
     toggleProcessingStyle(e);
 }
@@ -74,7 +75,6 @@ function addImageToOutput(results, download = false) {
     const img = createImageElementUrl(results);
     displayImage(img, results);
     const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
-    setupStatsBar();
     if (download === true && autoDownload) {
         downloadImage(img, results);
     }
@@ -130,6 +130,7 @@ function attachImage(results, wrapper) {
     } else {
         target.querySelector('.' + IMAGE_OUTPUT_CLASS).prepend(wrapper);
     }
+    wrapper.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
 }
 
 function findPromptPreviewElement(results) {

@@ -1,5 +1,5 @@
 WORD_TYPE_LIMIT = 8;
-MAX_AUTO_NUM = 5;
+MAX_AUTO_NUM = 10;
 let requestCount = 0;
 
 async function getMatches(word) {
@@ -202,7 +202,7 @@ async function handleGenerateClick(e){
     }
     try {
         const results = await fetchData(url);
-        await addPromptToOutput(results); 
+        addPromptToOutput(results);
         await generateImage(results.processed);
         const isAuto = document.querySelector('input[name="auto-generate"]:checked');
         const maxNum = document.querySelector('input[name="maxNum"]');
