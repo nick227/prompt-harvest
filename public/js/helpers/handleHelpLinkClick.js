@@ -21,7 +21,7 @@ function handleHelpLinkClick(){
     <BR />
     7.) 'Guidance' adjusts AI imagination.
     <BR />
-    8.) Add custom variables, click to manage.
+    8.) Add custom variables. Swipe to remove.
     <BR />
     9.) Click image to browse.
     <BR />

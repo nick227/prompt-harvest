@@ -316,9 +316,6 @@ ul.word-types {
 }
 
 ul.word-types li {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     cursor: pointer;
     padding: 3px 6px;
     margin: 2px;
