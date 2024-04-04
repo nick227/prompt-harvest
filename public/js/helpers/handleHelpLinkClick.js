@@ -7,39 +7,26 @@
 function handleHelpLinkClick(){
     const helpText = `
     <div style=" text-align: left; line-height: 1.6;">
-   
-1.) Use template literals like \${term} to load in a dynamic value.
-<BR>
-
-2.) You can make your own arrays too i.e. \${["one", "two"]}.
-<BR>
-
-3.) Use double-dollar signs like $\${term} for the same value every time.
-<BR>
-
-4.) Mixup shuffles your prompt's comma-separated clauses. 
-<BR>
-
-5.) Multiplier text is inserted between the clauses.
-
-<BR>
-
-6.) Hit convert to build the prompt first.
-
-<BR>
-
-7.) The guidance value sets the amount of AI imagination.
-
-<BR>
-
-8.) Add you own custom variables. Dblclick to delete. Click to insert.
-
-<BR>
-
-9.) Be respectful of the Dalle3 content policies. 
-<BR>
-
-10.) If you enjoy please throw in a few bucks. 
+    1.) Use \${term} for dynamic values.
+    <BR />
+    2.) Make arrays like \${["one", "two"]}.
+    <BR />
+    3.) $\${term} keeps value constant.
+    <BR />
+    4.) 'Mixup' shuffles comma-separated clauses.
+    <BR />
+    5.) 'Multiplier' inserts text between clauses.
+    <BR />
+    6.) Click 'convert' to build prompt.
+    <BR />
+    7.) 'Guidance' adjusts AI imagination.
+    <BR />
+    8.) Add custom variables, click to manage.
+    <BR />
+    9.) Click image to browse.
+    <BR />
+    10.) Respect Dalle3 content policies.
+    <BR />
 <BR>
 
 </div>`;

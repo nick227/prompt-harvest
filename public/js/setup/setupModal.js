@@ -3,7 +3,6 @@ function setupModal(){
     document.addEventListener("click", (e) => {
         //check if e.target !== modal or not a modal child then hide modal
         if (e.target!== modal &&!modal.contains(e.target)) {
-            return;
             modal.style.display = "none";
             const textArea = document.querySelector('#prompt-textarea');
             updateModal(textArea, false);
@@ -12,7 +11,6 @@ function setupModal(){
 }
 
 const updateModal = (textArea, visible) => {
-    return;
     const modal = document.querySelector('.modal');
     const matches = document.querySelector('.matches');
 

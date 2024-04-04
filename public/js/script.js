@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', (event) => {
 
-    setupModal();
-
     setupTextArea();
 
     setupFeed();
@@ -13,7 +11,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     setupCustomVariables();
 
     setupToggleView();
-
 
     checkUser().then(user => {
         if (user) {
