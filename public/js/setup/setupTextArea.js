@@ -92,7 +92,6 @@ const updateTextArea = (textArea, newTextBeforeCursor, textAfterCursor) => {
 const handleMatchListItemClick = e => {
     if (e.target.tagName === 'LI') {
         const replacement = getReplacement(e.target.innerText);
-        console.log('replacement', replacement)
         let numWordsToReplace = getNumWordsToReplace(dropdownIsOpen, replacement, lastMatchedWord);
 
         if (replacement === ', ') {
@@ -216,7 +215,7 @@ async function handleGenerateClick(e){
         }
 
     } catch (error) {
-        console.error('A handleGenerateClick error occurred while fetching the data.', error);
+        alert(`Error ${error}`);
         console.log(results);
     }
 }

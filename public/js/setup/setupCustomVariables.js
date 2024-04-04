@@ -38,7 +38,6 @@ function createChip(variableName, variableValues){
         target.focus();
     });
     chip.addSwipe(function(e) {
-        console.log('k')
         e.target.remove();
         removeFromLocalStorage(e.target.getAttribute('data-variable-name'));
     });

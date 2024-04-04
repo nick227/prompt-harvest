@@ -16,9 +16,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 
     checkUser().then(user => {
-        console.log('user', user)
         if (user) {
-            renderUserUI(user.username);
+            renderUserUI(user.email);
 
         }
     });

@@ -29,8 +29,8 @@ export default class User {
         this.app.use(passport.session());
 
         passport.use(new LocalStrategy(
-            async (username, password, done) => {
-                let user = await db.findOne({ username: username });
+            async (email, password, done) => {
+                let user = await db.findOne({ email: email });
                 if (!user) { return done(null, false); }
                 if (!bcrypt.compareSync(password, user.password)) { return done(null, false); }
                 return done(null, user);
@@ -57,16 +57,17 @@ export default class User {
     }
 
     async register(req, res, next) {
-        let { username, password } = req.body;
-        let existingUser = await db.findOne({ username });
+        let { email, password } = req.body;
+        console.log(email, password)
+        let existingUser = await db.findOne({ email });
         if (existingUser) {
-            return res.status(400).send({ error: 'Username is already in use' });
+            return res.status(400).send({ error: 'Email is already in use' });
         }
         if (!password) {
             return res.status(400).send({ error: 'Password is required' });
         }
         let hashedPassword = bcrypt.hashSync(password, 10);
-        let user = await db.insert({ username, password: hashedPassword });
+        let user = await db.insert({ email:email, password: hashedPassword });
 
         req.login(user, function(err) {
             if (err) { return next(err); }
@@ -76,7 +77,7 @@ export default class User {
 
     login(req, res) {
         if (!req.user) {
-            return res.status(400).send({ error: 'Invalid username or password' });
+            return res.status(400).send({ error: 'Invalid email or password' });
         }
         res.send(req.user);
     }
@@ -88,14 +89,14 @@ export default class User {
     }
 
     async resetPassword(req, res) {
-        let { username, newPassword } = req.body;
-        let user = await db.findOne({ username });
+        let { email, newPassword } = req.body;
+        let user = await db.findOne({ email });
         if (!user) {
             res.status(404).send('User not found');
             return;
         }
         let hashedPassword = bcrypt.hashSync(newPassword, 10);
-        await db.update({ username }, { $set: { password: hashedPassword } });
+        await db.update({ email }, { $set: { password: hashedPassword } });
         res.send({ message: 'Password reset' });
     }
 

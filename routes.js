@@ -28,6 +28,17 @@ function setup(app) {
         res.send(response);
     });
 
+    app.get('/like/image/:id', async() => {
+        const db = new DB('likes.db');
+        const imageId = req.params.id;
+        const params = {
+            userId: req.user?._id || 'undefined',
+            imageId
+        };
+        await db.upsert(params);
+        res.send('ok');
+    });
+
     app.get('/images', async (req, res) => {
         const userId = req.user?._id;
         const db = new DB('images.db');
@@ -44,7 +55,11 @@ function setup(app) {
             page
         };
         const response = await db.find(params);
-        res.send(response.map(doc => doc.data));
+        res.send(response.map((doc) => {
+            const results = doc.data;
+            results.id = doc._id;
+            return results;
+        }));
     });
 
     app.get('/prompts', async (req, res) => {

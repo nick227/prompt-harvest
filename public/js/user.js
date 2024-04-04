@@ -7,16 +7,10 @@ async function fetchWithCredentials(endpoint) {
 
 async function fetchAndHandleResponse(endpoint, options) {
     const response = await fetch(endpoint, options);
-    console.log('response:', response)
     if (!response.ok) {
-        alert(`HTTP error! status: ${response.status}`);
         return null;
     }
     const data = await response.json();
-    if (data.error) {
-        alert(data.error);
-        return null;
-    }
     return data;
 }
 
@@ -32,6 +26,10 @@ async function checkUser() {
 async function registerUser(e) {
     e.preventDefault();
     const email = document.getElementById('registerEmail').value;
+    if(!isValidEmail(email)){
+        alert("Invalid email address");
+        return;
+    }
     const password = document.getElementById('registerPassword').value;
     const data = await fetchAndHandleResponse('/register', {
         method: 'POST',
@@ -40,22 +38,32 @@ async function registerUser(e) {
     });
     if (data && data.email) {
         window.location.href = '/';
+    } else {
+        console.log(data)
     }
+}
+
+function isValidEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
 }
 
 async function loginUser(e) {
     e.preventDefault();
-    console.log('loginUser')
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     if (!email || !password) {
         alert("Please enter email and password");
         return;
     }
+    if(!isValidEmail(email)){
+        alert("Invalid Login");
+        return;
+    }
     const data = await fetchAndHandleResponse('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username:email, password:password })
+        body: JSON.stringify({ email:email, password:password })
     });
     if (data) {
         const user = await checkUser();

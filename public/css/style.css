@@ -32,7 +32,11 @@ body {
     background-color: var(--color-dark);
     width: 56%;
     height: 100%;
-    margin: 0 auto;
+    margin: 10px auto 0 auto;
+}
+
+a {
+    color: var(--color-green);
 }
 
 h1,
@@ -66,6 +70,7 @@ p {
     flex-direction: column;
     margin: 0;
     flex-grow: 1;
+    padding-right: 10px;
 }
 
 #authentication input:first-child {
@@ -132,6 +137,10 @@ select {
     line-height: 2;
 }
 
+input[name="maxNum"] {
+    padding: 0 0 0 5px;
+}
+
 section {
     width: 100%;
     height: auto;
@@ -157,6 +166,10 @@ section {
   justify-content: flex-end;
   flex-wrap: nowrap;
   white-space: nowrap;
+}
+
+.fullscreen-controls button {
+    width: 120px;
 }
 
 input#term, input#examples {
@@ -259,25 +272,35 @@ ul li {
     margin: 2px 0;
 }
 
+.prompt-text-wrapper{
+    width: 75%;
+}
+
+.image-wrapper h3,  .prompt-text, .info-box h3, .info-box h5 {
+    cursor: pointer;
+    font-size: 1em;
+    display: -webkit-box;
+    -webkit-line-clamp: 11; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+ul.prompt-output {
+    padding: 10px 20px;
+}
+
 ul.prompt-output li {
     width: 100%;
     border-bottom: 1px solid var(--color-light);
-    padding: 30px;
+    padding: 0px;
 }
 
 ul.prompt-output li .row {
     flex-wrap: nowrap;  
     padding-bottom: 15px;
     justify-content: space-between;
-}
-
-.prompt-text {
-    width: 70%;
-}
-
-.image-wrapper h3,  .prompt-text {
-    cursor: pointer;
-    font-size: 1em;
 }
 
 .prompt-output h6{
@@ -288,7 +311,7 @@ ul.prompt-output li .row {
     cursor: pointer;
 }
 
-ul.prompt-output li h6:active, .image-wrapper h3:active, .prompt-text:active {
+ul.prompt-output li h6:active, .image-wrapper h3:active, .prompt-text:active, .info-box h3:active, .info-box h5:active {
     color: dodgerblue;
     
 }
@@ -654,7 +677,8 @@ input:checked + .slider:before {
 
 
 .image-wrapper {
-    width: 17.21%;
+    width: calc(25% - 20px);
+    min-width: 150px;
     margin-right: 20px;
     float: left;
 }
@@ -737,8 +761,34 @@ input:checked + .slider:before {
 .authForm a {
     display: block;
     margin-top: 10px;
-    color: blue;
-    text-decoration: none;
+    font-size: 1.5em;
+}
+
+.provider-list{
+    border-bottom: 1px solid var(--color-light);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.info-box {
+    position: fixed;
+    top: 40px;
+    right: 40px;
+    width: 300px;
+    color: white;
+    cursor: pointer;
+    z-index: 4;
+}
+
+.info-box h3 {
+    width: 100%;
+    
+    display: -webkit-box;
+    -webkit-line-clamp: 35; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
 }
 
 @media screen and (max-width: 1400px) {
@@ -766,5 +816,22 @@ input:checked + .slider:before {
         height: auto !important;
         width: 100% !important;
         margin: 0px auto;
+    }
+
+    .fullscreen-controls {
+      left: 0px;
+      bottom: 140px;
+      z-index: 3;
+      position: fixed;
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+    }
+
+    .fullscreen-controls button {
+        width: 25vw;
     }
 }

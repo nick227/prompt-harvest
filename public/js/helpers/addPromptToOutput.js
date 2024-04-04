@@ -30,13 +30,16 @@ function addPromptToOutput(result) {
     div.className = PROMPT_TEXT_CLASS_NAME;
     div.textContent = value;
 
-    row.appendChild(div);
+    const divWrapper = document.createElement('div');
+    divWrapper.classList.add('prompt-text-wrapper');
+
+    divWrapper.appendChild(div);
+    divWrapper.appendChild(h6);
+    row.appendChild(divWrapper);
     row.appendChild(button);
     li.appendChild(row);
-    //li.appendChild(h6);
 
     target.prepend(li);
-    const viewSwitch = document.querySelector('.prompt-view-switch');
     
         li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
     

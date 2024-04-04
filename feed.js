@@ -358,12 +358,13 @@ async function generateBluePencil(prompt, guidance, userId=null){
 async function generateTshirtImage(prompt, guidance, userId=null){
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'tshirtdesignredmond_1024px');
 }
+
 async function generateDezgoImage(prompt, guidance, url, model){
     const params = { prompt, negative_prompt: "", guidance: guidance || DEFAULT_GUIDANCE_VALUE, seed: generateRandomNineCharNumber(), model };
     const options = {
         method: 'POST', 
         url, 
-        timeout: 30000, // Timeout of 30 seconds
+        timeout: 120000, 
         headers: { 'content-type': 'application/x-www-form-urlencoded', 'X-Dezgo-Key': process.env.DEZGO_API_KEY },
         data: new URLSearchParams(params).toString(), 
         responseType: 'arraybuffer'
@@ -377,8 +378,8 @@ async function generateDezgoImage(prompt, guidance, url, model){
         return Buffer.from(response.data, 'binary').toString('base64');
     } catch (error) {
         console.error(`Error in generateDezgoImage: ${error.message}`);
-        // Re-throw the error if you want it to propagate up
-        throw error;
+        // Instead of re-throwing the error, return a custom error message
+        return { error: 'Error generating image', details: error.message };
     }
 }
 

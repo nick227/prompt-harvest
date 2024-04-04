@@ -1,153 +1,307 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Power Prompt - Image and Prompt Harvesting</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="images/favicon.png" type="image/png">
-    <script src=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.all.min.js "></script>
-<link href=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.min.css " rel="stylesheet">
-</head>
-
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="icon" href="images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  </head>
 <body>
+
 <!--
     <script src="https://js.stripe.com/v3/"></script>
     <form action="/create-checkout-session" method="POST">
       <button type="submit" id="checkout-button">Checkout</button>
     </form>
-            <img class="logo" src="images/favicon.png" />
-    -->
+    <img class="logo" src="images/favicon.png" />
+-->
 
-        
-<div class="align-center masthead">
-    <a href="/"><h6 class="title">Power Prompt</h6></a>
-</div>
+    <div class="align-center masthead">
+      <a href="/"><h6 class="title">Power Prompt</h6></a>
+    </div>
     <div class="modal hidden"></div>
     <div id="authentication"><a href="/login.html">Register / Login</a></div>
-    <div class="stats  align-right ">image count: <span id="image-count"></span>
+    <div class="stats align-right">
+      image count: <span id="image-count"></span>
     </div>
     <div class="row">
-        <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="nicholasjay" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+      <script
+        type="text/javascript"
+        src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+        data-name="bmc-button"
+        data-slug="nicholasjay"
+        data-color="#FFDD00"
+        data-emoji="☕"
+        data-font="Cookie"
+        data-text="Buy me a coffee"
+        data-outline-color="#000000"
+        data-font-color="#000000"
+        data-coffee-color="#ffffff"
+      ></script>
     </div>
     <section class="prompt">
-        <div class="row">
-            <div class="col">
-                <h3>Prompt Builder <a class="link help">(?)</a></h3>
-                    <div class="row">
-                        <label for="dalle"><input type="checkbox" value="dalle" id="dalle" name="providers" />Dalle3</label>
-                        <label for="juggernaut"><input type="checkbox" value="juggernaut" id="juggernaut" name="providers" />Juggernaut</label>
-                        <label for="absolute"><input type="checkbox" value="absolute" id="absolute" name="providers" />Absolute Reality</label>
-                        <label for="realisticvision"><input type="checkbox" value="realisticvision" id="realisticvision" name="providers" />Realistic Vision</label>
-                        <label for="icbinp"><input type="checkbox" value="icbinp" id="icbinp" name="providers" />Icbinp</label>
-                        <label for="dreamshaper"><input type="checkbox" value="dreamshaper" id="dreamshaper" name="providers" />Dreamshaper</label>
-                        <label for="nightmareshaper"><input type="checkbox" value="nightmareshaper" id="nightmareshaper" name="providers" />Nightmare Shaper</label>
-                        <label for="openjourney"><input type="checkbox" value="openjourney" id="openjourney" name="providers" />Open Journey</label>
-                        <label for="analogmadness"><input type="checkbox" value="analogmadness" id="analogmadness" name="providers" />Analog Madeness</label>
-                        <label for="portraitplus"><input type="checkbox" value="portraitplus" id="portraitplus" name="providers" />Portrait Plus</label>
-                        <label for="tshirt"><input type="checkbox" value="tshirt" id="tshirt" name="providers" />Tshirt Design</label>
-                        <label for="abyssorange"><input type="checkbox" value="abyssorange" id="abyssorange" name="providers" />Abyss Orange</label>
-                        <label for="cyber"><input type="checkbox" value="cyber" id="cyber" name="providers" />Cyber Real</label>
-                        <label for="disco"><input type="checkbox" value="disco" id="disco" name="providers" />Disco</label>
-                        <label for="synthwave"><input type="checkbox" value="synthwave" id="synthwave" name="providers" />Synthwave</label>
-                        <label for="lowpoly"><input type="checkbox" value="lowpoly" id="lowpoly" name="providers" />Low Poly</label>
-                        <label for="bluepencil"><input type="checkbox" value="bluepencil" id="bluepencil" name="providers" />Blue Pencil</label>
-                        <label for="ink"><input type="checkbox" value="ink" id="ink" name="providers" />Ink Punk</label>
-                        <label for="all"><input type="checkbox" class="all-providers" />all</label>
-                    </div>
-                    <div class="row v-align-center">
-                    <button class="btn-convert">convert</button> &nbsp; &nbsp;
-                    <input type="number" name="maxNum" style="width: 55px;" placeholder="max" /> &nbsp; &nbsp;
-                    <label>
-                        <input type="checkbox" name="auto-generate" /> auto
-                    </label> &nbsp; &nbsp;
-                    <label>
-                        <input type="checkbox" name="mixup" /> mixup
-                    </label>   &nbsp; &nbsp;
-                    <label>
-                        <select style="width: 55px;" name="guidance-bottom">
-                            <option>guidance bottom</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                        </select> 
-                    </label>
-                    <label>
-                        <select style="width: 55px;" name="guidance-top">
-                            <option>guidance top</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                        </select> 
-                    </label></div>
-                <div class="row v-align-center">  
-                    <div class="insert-comma">Add comma</div>
-                    <div class="insert-variable">Add variable</div>
-                    <div class="chips-variables"></div>
-                    <label><input type="checkbox" name="autoDownload" /> auto-download</label>
-                    <a href="/terms.html">All terms</a>
-                    </div>
-                    
+      <div class="row">
+        <div class="col">
+          <h3>Prompt Builder <a class="link help">(?)</a></h3>
+          <div class="row provider-list">
+            <label for="dalle"
+              ><input
+                type="checkbox"
+                value="dalle"
+                id="dalle"
+                name="providers"
+              />Dalle3</label
+            >
+            <label for="juggernaut"
+              ><input
+                type="checkbox"
+                value="juggernaut"
+                id="juggernaut"
+                name="providers"
+              />Juggernaut</label
+            >
+            <label for="absolute"
+              ><input
+                type="checkbox"
+                value="absolute"
+                id="absolute"
+                name="providers"
+              />Absolute Reality</label
+            >
+            <label for="realisticvision"
+              ><input
+                type="checkbox"
+                value="realisticvision"
+                id="realisticvision"
+                name="providers"
+              />Realistic Vision</label
+            >
+            <label for="icbinp"
+              ><input
+                type="checkbox"
+                value="icbinp"
+                id="icbinp"
+                name="providers"
+              />Icbinp</label
+            >
+            <label for="dreamshaper"
+              ><input
+                type="checkbox"
+                value="dreamshaper"
+                id="dreamshaper"
+                name="providers"
+              />Dreamshaper</label
+            >
+            <label for="nightmareshaper"
+              ><input
+                type="checkbox"
+                value="nightmareshaper"
+                id="nightmareshaper"
+                name="providers"
+              />Nightmare Shaper</label
+            >
+            <label for="openjourney"
+              ><input
+                type="checkbox"
+                value="openjourney"
+                id="openjourney"
+                name="providers"
+              />Open Journey</label
+            >
+            <label for="analogmadness"
+              ><input
+                type="checkbox"
+                value="analogmadness"
+                id="analogmadness"
+                name="providers"
+              />Analog Madeness</label
+            >
+            <label for="portraitplus"
+              ><input
+                type="checkbox"
+                value="portraitplus"
+                id="portraitplus"
+                name="providers"
+              />Portrait Plus</label
+            >
+            <label for="tshirt"
+              ><input
+                type="checkbox"
+                value="tshirt"
+                id="tshirt"
+                name="providers"
+              />Tshirt Design</label
+            >
+            <label for="abyssorange"
+              ><input
+                type="checkbox"
+                value="abyssorange"
+                id="abyssorange"
+                name="providers"
+              />Abyss Orange</label
+            >
+            <label for="cyber"
+              ><input
+                type="checkbox"
+                value="cyber"
+                id="cyber"
+                name="providers"
+              />Cyber Real</label
+            >
+            <label for="disco"
+              ><input
+                type="checkbox"
+                value="disco"
+                id="disco"
+                name="providers"
+              />Disco</label
+            >
+            <label for="synthwave"
+              ><input
+                type="checkbox"
+                value="synthwave"
+                id="synthwave"
+                name="providers"
+              />Synthwave</label
+            >
+            <label for="lowpoly"
+              ><input
+                type="checkbox"
+                value="lowpoly"
+                id="lowpoly"
+                name="providers"
+              />Low Poly</label
+            >
+            <label for="bluepencil"
+              ><input
+                type="checkbox"
+                value="bluepencil"
+                id="bluepencil"
+                name="providers"
+              />Blue Pencil</label
+            >
+            <label for="ink"
+              ><input
+                type="checkbox"
+                value="ink"
+                id="ink"
+                name="providers"
+              />Ink Punk</label
+            >
+            <label for="all"
+              ><input type="checkbox" class="all-providers" />all</label
+            >
+          </div>
+          <div class="row v-align-center">
+            <input
+              type="number"
+              name="maxNum"
+              style="width: 55px"
+              placeholder="max"
+            />
+            &nbsp;
+            <label>
+              <input type="checkbox" name="auto-generate" /> auto-generate
+            </label>
+            &nbsp;
+            <label
+              ><input type="checkbox" name="autoDownload" />
+              auto-download</label
+            >
+            &nbsp;
+            <label> <input type="checkbox" name="mixup" /> mixup </label>
+          </div>
+          <div class="row v-align-center">
+            &nbsp; guidance: &nbsp;
+            <label>
+              <select style="width: 55px" name="guidance-bottom">
+                <option>bottom</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+              </select>
+            </label>
+            <label>
+              <select style="width: 55px" name="guidance-top">
+                <option>top</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+              </select>
+            </label>
+            <div class="insert-variable">Add variable</div>
+            <div class="insert-comma">Add comma</div>
+            <div class="chips-variables"></div>
+          </div>
 
-                <textarea id="prompt-textarea" rows="10"></textarea>
-                <ul id="matches" class="matches"></ul>
-            
-                <input type="text" id="multiplier" placeholder="Multiplier text - Added between comma clauses" />
-                <button class="btn-generate">Let's Go!</button>
-            </div>
-            <div class="col">
-                <div class="row align-right v-align-center">
-                    <label class="switch">
-                        <input type="checkbox" class="prompt-view-switch">
-                        <span class="slider round">
-                        </span>
-                        
-                    </label>
-                </div>
-                <div class="image-list"></div>
-                <div class="prompts">
-                    <ul class="prompt-output"></ul>
-                </div>
+          <textarea id="prompt-textarea" rows="10"></textarea>
+          <ul id="matches" class="matches"></ul>
 
-            </div>
+          <input
+            type="text"
+            id="multiplier"
+            placeholder="Multiplier text - Added between comma clauses"
+          />
+          <button class="btn-generate">Let's Go!</button>
         </div>
+        <div class="col">
+          <div class="row align-right v-align-center">
+            <label class="switch">
+              <input type="checkbox" checked class="prompt-view-switch" />
+              <span class="slider round"> </span>
+            </label>
+          </div>
+          <div class="image-list"></div>
+          <div class="prompts">
+            <ul class="prompt-output"></ul>
+          </div>
+        </div>
+      </div>
     </section>
+    <a href="/terms.html">All terms</a> 
 
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.all.min.js "></script>
+    <link
+      href=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.min.css "
+      rel="stylesheet"
+    />
 
     <script src="js/user.js"></script>
     <script src="js/tools.js"></script>
@@ -162,6 +316,5 @@
     <script src="js/setup/setupToggleView.js"></script>
     <script src="js/setup/setupFeed.js"></script>
     <script src="js/script.js"></script>
-</body>
-
+  </body>
 </html>

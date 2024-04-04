@@ -1,5 +1,5 @@
 const DEFAULT_PROMPT = '';
-const DEFAULT_REQUEST_LIMIT = 10;
+const DEFAULT_REQUEST_LIMIT = 100000;
 const IMAGES_ELM_SELECTOR = 'section.images';
 let currentPageCount = 0;
 
