@@ -28,15 +28,28 @@ function setup(app) {
         res.send(response);
     });
 
-    app.get('/like/image/:id', async() => {
+    app.delete('/like/image/:id', async (req, res) => {
         const db = new DB('likes.db');
         const imageId = req.params.id;
         const params = {
             userId: req.user?._id || 'undefined',
             imageId
         };
-        await db.upsert(params);
-        res.send('ok');
+        console.log('delete', params)
+        await db.delete(params);
+        res.send({ status: 'ok' });
+    });
+
+    app.get('/like/image/:id', async (req, res) => {
+        const db = new DB('likes.db');
+        const imageId = req.params.id;
+        const params = {
+            userId: req.user?._id || 'undefined',
+            imageId
+        };
+        console.log('like', params)
+        await db.insert(params);
+        res.send({ status: 'ok' });
     });
 
     app.get('/images', async (req, res) => {
@@ -115,14 +128,14 @@ function setup(app) {
         const response = await getWordType(word, limit);
         res.send(response);
     });
-    
+
     app.get('/word/examples/:word', async (req, res) => {
         const limit = req.query.limit || 8;
         const word = decodeURIComponent(req.params.word).toLowerCase();
         const response = await getWordExamplesList(word, parseInt(limit));
         res.send(response);
     });
-    
+
     app.get('/word/types/:word', async (req, res) => {
         const limit = req.query.limit || 8;
         const word = decodeURIComponent(req.params.word).toLowerCase();
@@ -137,15 +150,15 @@ function setup(app) {
         response.sort();
         res.send(response);
     });
-    
-     app.get('/ai/word/add/:word', async (req, res) => {
+
+    app.get('/ai/word/add/:word', async (req, res) => {
         const word = decodeURIComponent(req.params.word).toLowerCase();
         const response = await addAiWordType(word);
         res.send(response);
     });
 }
 
-async function getWordExamplesList(word, limit=8) {
+async function getWordExamplesList(word, limit = 8) {
     const db = new DB('word-examples.db');
     const docs = await db.find({
         limit: limit,
@@ -158,7 +171,7 @@ async function getWordExamplesList(word, limit=8) {
     return examples;
 }
 
-async function getWordTypesList(word, limit=8) {
+async function getWordTypesList(word, limit = 8) {
     const db = new DB('word-types.db');
     const docs = await db.find({
         limit: limit,
@@ -182,7 +195,7 @@ async function getWordType(word, limit) {
         word: { $regex: new RegExp(escapedWord, 'i') },
         projection: JSON.stringify({ word: 1 }),
         sort: JSON.stringify({ word: 1 }),
-        limit: limit 
+        limit: limit
     });
     const typeDocs = await db.find({
         types: { $regex: new RegExp(escapedWord, 'i') },
@@ -203,7 +216,7 @@ async function addAiWordType(word) {
         const res = await openai.chat.completions.create(options);
         const resObj = extractOpenAiResponse(res);
 
-        if(resObj && typeof resObj.types === 'object') {
+        if (resObj && typeof resObj.types === 'object') {
             const types = resObj.types;
             db.insert({ word, types }, (err, newDoc) => {
                 if (err) {
@@ -228,8 +241,8 @@ function extractOpenAiResponse(response) {
     }
     const firstToolCall = firstChoice.message.tool_calls[0];
     if (firstToolCall.function && firstToolCall.function.arguments) {
-        return typeof firstToolCall.function.arguments === 'object' 
-            ? firstToolCall.function.arguments 
+        return typeof firstToolCall.function.arguments === 'object'
+            ? firstToolCall.function.arguments
             : safeJsonParse(firstToolCall.function.arguments);
     }
     return null;

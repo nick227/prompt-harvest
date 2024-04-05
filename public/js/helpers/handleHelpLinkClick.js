@@ -25,7 +25,7 @@ function handleHelpLinkClick(){
     <BR />
     9.) Click the images to open full-screen view.
     <BR />
-    10.) Respect Dalle3 content policies.
+    10.) You can click on most text to copy it to clipboard.
     <BR />
 <BR>
 

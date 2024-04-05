@@ -1,13 +1,14 @@
 const IMAGE_MIME_TYPE = 'image/jpeg';
 const IMAGE_OUTPUT_CLASS = 'image-output';
 const IMAGE_WRAPPER_CLASS = 'image-wrapper';
-const DOWNLOAD_PROMPT = 'Download';
-const PREVIOUS_BUTTON_TEXT = 'Previous';
-const NEXT_BUTTON_TEXT = 'Next';
 const IMAGE_FULLSCREEN_CLASS = 'full-screen';
 const IMAGE_CONTROLS_CLASS = 'fullscreen-controls';
 const MAX_TITLE_CHARS = 124;
-const REMIX_BTN_TEXT = 'remix';
+const LIKE_BTN_HTML = '<i class="fas fa-heart"></i>';
+const DOWNLOAD_BTN_HTML = '<i class="fas fa-download"></i>';
+const CLOSE_ICON_HTML = '<i class="fas fa-times"></i>';
+const PREV_ICON_HTML = '<i class="fas fa-arrow-left"></i>';
+const NEXT_ICON_HTML = '<i class="fas fa-arrow-right"></i>';
 
 async function generateImage(text, e = null) {
     const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
@@ -91,20 +92,8 @@ function getErrorMessage(results) {
     return `${results.b64_json.details?.error?.message}`;
 }
 
-function createButtonElement(results) {
-    const btn = document.createElement('button');
-    btn.classList.add('btn-make');
-    btn.innerText = REMIX_BTN_TEXT;
-    btn.addEventListener('click', () => {
-        generateImage(results.prompt, btn);
-    });
-    return btn;
-}
-
 function displayImage(img, results) {
     const wrapper = createWrapperElement();
-    const title = createTitleElement(results);
-    const btn = createButtonElement(results);
     const note = createNoteElement(results);
     wrapper.appendChild(note);
 
@@ -260,7 +249,8 @@ function getLikeButton() {
     const btn = document.createElement('button');
     btn.classList.add('btn-like');
     btn.addEventListener('click', handleLikeClick);
-    btn.innerText = 'Like';
+    btn.innerHTML = LIKE_BTN_HTML;
+    btn.setAttribute('title', 'L');
     if (checkIsLiked()) {
         btn.classList.add('liked');
         btn.innerText = 'Liked';
@@ -276,22 +266,35 @@ function checkIsLiked() {
 
 async function handleLikeClick() {
     const btn = document.querySelector('.btn-like');
-    btn.dataset.like = 'true';
-    btn.classList.add('liked');
-    btn.innerText = 'Liked';
-
     const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
     const img = wrapper.querySelector('img');
     const id = img.dataset.id;
-
-    const url = `/like/image/${id}`;
-    const results = await fetch(url).then(res => res.json());
-    console.log(results);
+    if(!id){
+        //temporary
+        console.log('no id');
+        return;
+    }
+    if(!btn.dataset.like){
+        btn.dataset.like = 'true';
+        btn.classList.add('liked');
+        const url = `/like/image/${id}`;
+        const results = await fetch(url).then(res => res.json());
+        console.log(results);
+    } else {
+        btn.dataset.like = 'false';
+        btn.classList.remove('liked');
+        const url = `/like/image/${id}`;
+        const results = await fetch(url, {
+            method: 'DELETE',
+        }).then(res => res.json());
+        console.log(results);
+    }
 }
 
 function getCloseButton() {
     const btn = document.createElement('button');
-    btn.innerText = 'Close';
+    btn.innerHTML = CLOSE_ICON_HTML;
+    btn.setAttribute('title', 'Esc');
     btn.addEventListener('click', function () {
         const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
         toggleFullScreenThisImage(wrapper);
@@ -303,13 +306,15 @@ function getNavigateButtons() {
     const container = document.createElement('div');
     const nextBtn = document.createElement('button');
     nextBtn.className = 'next-btn';
-    nextBtn.innerText = NEXT_BUTTON_TEXT;
+    nextBtn.innerHTML = NEXT_ICON_HTML;
+    nextBtn.setAttribute('title', 'Right Arrow');
     nextBtn.addEventListener('click', function () {
         const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
         navigateImages('next', wrapper);
     });
     const prevBtn = document.createElement('button');
-    prevBtn.innerText = PREVIOUS_BUTTON_TEXT;
+    prevBtn.innerHTML = PREV_ICON_HTML;
+    prevBtn.setAttribute('title', 'Left Arrow');
     prevBtn.addEventListener('click', function () {
         const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
         navigateImages('prev', wrapper);
@@ -324,7 +329,8 @@ function getDownloadButton() {
     const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
     const img = wrapper.querySelector('img');
     const downloadBtn = document.createElement('button');
-    downloadBtn.innerText = DOWNLOAD_PROMPT;
+    downloadBtn.innerHTML = DOWNLOAD_BTN_HTML;
+    downloadBtn.setAttribute('title', 'D');
     downloadBtn.addEventListener('click', function () {
         downloadThisImage(img);
     });
@@ -342,6 +348,11 @@ function keyupHandler(e) {
     }
     if (e.key === 'l') {
         handleLikeClick();
+    }
+    if (e.key === 'd') {
+        const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
+        const img = wrapper.querySelector('img');
+        downloadThisImage(img);
     }
 }
 

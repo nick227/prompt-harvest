@@ -7,3 +7,4 @@ data/*.backup
 data/images.db
 data/prompts.db
 data/users.db
+data/likes.db
