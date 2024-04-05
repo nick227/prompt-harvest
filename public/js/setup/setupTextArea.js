@@ -24,7 +24,6 @@ function setupTextArea() {
 
     const updateMatchesDisplay = matches => {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
-        updateModal(textArea, matches.length);
         dropdownIsOpen = matches.length > 0;
     };
 
@@ -108,8 +107,6 @@ const handleMatchListItemClick = e => {
 
         newTextBeforeCursor = getNewTextBeforeCursor(replacement, newTextBeforeCursor);
         updateTextArea(textArea, newTextBeforeCursor, textAfterCursor);
-        updateModal(textArea, true);
-
     }
 };
     setupAutoDownload();
@@ -117,7 +114,7 @@ const handleMatchListItemClick = e => {
     setupProviderClicks();
     textArea.addEventListener('input', handleInput);
     matchesEl.addEventListener('click', handleMatchListItemClick);
-    //document.querySelector('.btn-convert').addEventListener('click', handleConvertClick);
+    document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
     document.querySelector('.btn-generate').addEventListener('click', handleGenerateClick);
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
@@ -164,8 +161,7 @@ function toggleAllProviders(e){
     checkboxes.forEach(checkbox => checkbox.checked = e.target.checked);
 }
 
-
-async function makeFeedBuildUrl() {
+async function convertPromptUrl() {
     const textArea = document.getElementById('prompt-textarea');
     const prompt = encodeURIComponent(removeExtraWhiteSpace(textArea.value.trim()));
     if(!prompt){
@@ -190,7 +186,7 @@ async function fetchData(url) {
 }
 
 async function handleGenerateClick(e){
-    const url = await makeFeedBuildUrl();
+    const url = await convertPromptUrl();
     if(!url){
         alert('Invalid Prompt');
         return;
@@ -238,7 +234,7 @@ function setupMaxNumInput(){
 }
 
 async function handleConvertClick() {
-    const url = await makeFeedBuildUrl();
+    const url = await convertPromptUrl();
     if(!url){
         alert('Invalid Prompt');
         return;

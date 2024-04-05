@@ -1,6 +1,6 @@
 const PROMPT_TEXT_CLASS_NAME = 'prompt-text';
 
-function addPromptToOutput(result) {
+function addPromptToOutput(result, className='') {
     const target = document.querySelector('.prompt-output');
     if(!target){
         return;
@@ -10,6 +10,7 @@ function addPromptToOutput(result) {
     const h6 = document.createElement('h6');
     const row = document.createElement('div');
     const li = document.createElement('li');
+    li.className = className;
 
     row.className = 'row';
     h6.textContent = originalVal;

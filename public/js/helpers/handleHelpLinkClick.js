@@ -1,31 +1,27 @@
 
 
 /*
-* handleHelpLinkClick
+handleHelpLinkClick
 */
 
 function handleHelpLinkClick(){
     const helpText = `
     <div style=" text-align: left; line-height: 1.6;">
-    1.) Use \${term} for dynamic values. 
+    Use \${term} for dynamic values. 
     <BR />
-    2.) Auto-generate loops until max number. You can edit while it runs.
+    $\${term} keeps value constant. 
     <BR />
-    3.) The double dollar sign like $\${term} keeps value constant. 
+    'Mixup' shuffles your clauses.
     <BR />
-    4.) 'Mixup' shuffles your comma-separated clauses.
+    'Multiplier' inserts between clauses.
     <BR />
-    5.) 'Multiplier' text is inserted between clauses.
+    Custom arrays: \${["one", "two"]}.
     <BR />
-    6.) Make your own quick arrays like \${["one", "two"]}.
+    'Guidance' adjusts the AI randomness.
     <BR />
-    7.) 'Guidance' adjusts the AI randomness.
+    Click images to open full-screen.
     <BR />
-    8.) Add custom variables if you prefer. Swipe to remove.
-    <BR />
-    9.) Click the images to open full-screen view.
-    <BR />
-    10.) You can click on most text to copy it to clipboard.
+    Click text to copy it to clipboard.
     <BR />
 <BR>
 

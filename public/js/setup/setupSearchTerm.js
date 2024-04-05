@@ -81,7 +81,7 @@ async function handleFindClick() {
         return;
     }
 
-    const searchTerm = document.querySelector('#term').value;
+    const searchTerm = document.querySelector('#term').value.toLowerCase();
     if (searchTerm.trim() === '') {
         alert('Please enter a search term');
         return;

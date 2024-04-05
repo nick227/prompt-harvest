@@ -154,7 +154,6 @@ function toggleFullScreenThisImage(wrapper) {
     } else {
         removeKeyBoardListeners();
         removeFullScreenControls();
-        removeInfoBox();
         removeSwipeListeners(wrapper);
     }
 }
@@ -183,6 +182,7 @@ function removeSwipeListeners(wrapper){
 }
 
 function removeFullScreenControls() {
+    removeInfoBox();
     const target = document.querySelector(`.${IMAGE_CONTROLS_CLASS}`);
     if (target) {
         target.remove();
@@ -382,7 +382,8 @@ function navigateImages(direction, currentImageWrapper) {
     imageWrappers[newIndex].classList.add(IMAGE_FULLSCREEN_CLASS);
     removeSwipeListeners(currentImageWrapper);
     addSwipeListeners(imageWrappers[newIndex]);
-    updateInfoBox()
+    updateInfoBox();
+    addFullScreenControls();
 }
 
 function createWrapperElement() {
