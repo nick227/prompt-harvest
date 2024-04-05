@@ -241,6 +241,7 @@ async function processQueue(req) {
 async function generateImageInternal(prompt, providers, guidance, req) {
     const providerName = providers[Math.floor(Math.random() * providers.length)];
     const dynamicFunction = providerList[providerName];
+
     const b64_json = await dynamicFunction(prompt, guidance, req.user?._id || 'undefined');
     const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
     const data = {
@@ -254,6 +255,11 @@ async function generateImageInternal(prompt, providers, guidance, req) {
 }
 
 async function saveB64Image(b64_json, providerName, prompt, req) {
+    
+    if (b64_json.error) {
+        console.error(`Error in saveB64Image: ${b64_json}`);
+        return b64_json; // Return the error object
+    }
     const buffer = Buffer.from(b64_json, 'base64');
     const imageName = `${providerName}-${makeFileNameSafeForWindows(prompt)}-${Date.now()}.jpg`;
     const imagePath = path.join(baseDir, imageName);
@@ -370,6 +376,7 @@ async function generateDezgoImage(prompt, guidance, url, model){
     try {
         const response = await axios.request(options);
         if (response.status !== 200) {
+            console.error(`Error in generateDezgoImage: ${response.status}`);
             return { error: 'Error generating image', details: response.status };
         }
         return Buffer.from(response.data, 'binary').toString('base64');
