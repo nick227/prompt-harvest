@@ -61,11 +61,8 @@ async function processPromptText(prompt) {
 
 async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
     try {
-        if (typeof prompt !== 'string') {
-            throw new Error('Prompt must be a string');
-        }
-        if (!prompt) {
-            return;
+        if (typeof prompt !== 'string' || !prompt) {
+            return { error: 'Error generating image' };
         }
 
         customDict = processCustomVariables(customVariables);
@@ -373,12 +370,11 @@ async function generateDezgoImage(prompt, guidance, url, model){
     try {
         const response = await axios.request(options);
         if (response.status !== 200) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            return { error: 'Error generating image', details: response.status };
         }
         return Buffer.from(response.data, 'binary').toString('base64');
     } catch (error) {
         console.error(`Error in generateDezgoImage: ${error.message}`);
-        // Instead of re-throwing the error, return a custom error message
         return { error: 'Error generating image', details: error.message };
     }
 }

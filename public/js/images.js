@@ -134,10 +134,10 @@ function attachImage(results, wrapper) {
 }
 
 function findPromptPreviewElement(results) {
-    const viewSwitch = document.querySelector('.prompt-view-switch');
-    if (viewSwitch.checked) {
-        return document.querySelector('.image-list');
-    }
+    ///const viewSwitch = document.querySelector('.prompt-view-switch');
+    //if (viewSwitch.checked) {
+        //return document.querySelector('.image-list');
+    //}
     const elm = Array.from(document.querySelectorAll('.prompt-text')).find((div) => {
         return div.innerText.replace(/  /g, ' ').trim() === results.prompt.replace(/  /g, ' ').trim();
     });

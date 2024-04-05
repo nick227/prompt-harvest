@@ -274,7 +274,22 @@ ul li {
     cursor: pointer;
 }
 
-ul.prompt-output {
+ul.prompt-output.list-view .prompt-text, 
+ul.prompt-output.list-view h6, 
+ul.prompt-output.list-view button {
+    display: none;
+}
+
+ul.prompt-output.list-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+ul.prompt-output.list-view li {
+    border-bottom: none;
+}
+
+    ul.prompt-output {
     padding: 10px 20px;
 }
 
@@ -381,8 +396,31 @@ section.images{
 
 .image-output {
     width: 100%;
+}
+
+.image-list {
     display: flex;
+    overflow-y: auto;
     flex-wrap: wrap;
+}
+
+
+.image-wrapper {
+    width: 100%;
+}
+
+.image-wrapper img {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+}
+
+.image-wrapper h5 {
+    white-space: nowrap;
+}
+
+.image-wrapper img:hover {
+    border-bottom: var(--color-green);
 }
 
 .prompts {
@@ -405,7 +443,7 @@ ul.matches li {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    width: 31%;
+    width: 30%;
     margin: 1px;
     padding: 2px 3px;
     border: 1px solid var(--color-light);
@@ -655,35 +693,6 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
-.image-list {
-    display: flex;
-    max-height: 76vh;
-    overflow-y: auto;
-    flex-wrap: wrap;
-}
-
-
-.image-wrapper {
-    width: calc(50% - 20px);
-    min-width: 150px;
-    margin-right: 20px;
-    float: left;
-}
-
-.image-wrapper img {
-    position: relative;
-    width: 100%;
-    cursor: pointer;
-}
-
-.image-wrapper h5 {
-    white-space: nowrap;
-}
-
-.image-wrapper img:hover {
-    border-bottom: var(--color-green);
-}
-
 .full-screen {
     position: fixed;
     z-index: 2;
@@ -802,10 +811,6 @@ input:checked + .slider:before {
         width: 100%;
         padding-right: 0%;
     }
-    .image-output {
-        width: 100%;
-        display: block;
-    }
     
     .full-screen img, .full-screen .image-wrapper{
         height: auto !important;
@@ -827,11 +832,15 @@ input:checked + .slider:before {
     }
 
     .fullscreen-controls button {
-        width: 25vw;
+        width: 20vw;
     }
 
     .info-box {
         left: 40px;
         right: auto;
+    }
+
+    .info-box h3 {
+        -webkit-line-clamp: 4;
     }
 }

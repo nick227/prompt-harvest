@@ -1,22 +1,17 @@
 const IMAGE_WRAPPER_CLASS_NAME = 'image-wrapper';
 function setupToggleView() {
     const viewSwitch = document.querySelector('.prompt-view-switch');
-    const promptList = document.querySelector('.prompts');
     const isChecked = localStorage.getItem('promptView') === 'true';
+    const promptOutput = document.querySelector('.prompt-output');
     viewSwitch.checked = isChecked;
 
     if(isChecked){
-        promptList.classList.add('hidden');
+        promptOutput.classList.add('list-view');
     }
 
     viewSwitch.addEventListener('change', (elm) => {
-        promptList.classList.toggle('hidden');
+        promptOutput.classList.toggle('list-view');
         localStorage.setItem('promptView', elm.target.checked);
-        if(elm.target.checked){
-            moveImagesToImageList();
-        } else {
-            moveImagesToPromptContainer();
-        }
     });
 
 }
