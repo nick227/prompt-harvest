@@ -346,6 +346,7 @@ ul.word-types li {
   padding: 3px 6px;
   margin: 2px;
   text-decoration: underline;
+  white-space: nowrap;
 }
 
 .insert-comma,

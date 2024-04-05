@@ -270,8 +270,6 @@ async function handleLikeClick() {
     const img = wrapper.querySelector('img');
     const id = img.dataset.id;
     if(!id){
-        //temporary
-        console.log('no id');
         return;
     }
     if(!btn.dataset.like){
