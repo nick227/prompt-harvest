@@ -438,8 +438,19 @@ section.images {
 }
 
 .prompts {
-  max-height: 76vh;
-  overflow-y: auto;
+  position: relative;
+}
+
+.prompts .search {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin-top: -72px;
+  margin-left: 20px;
+}
+
+.prompts .search input {
+  padding: 0;
 }
 
 ul.matches {
@@ -592,7 +603,6 @@ textarea {
 
 .loading .message {
   font-size: 22px;
-  padding: 20px;
   animation: flash 4s infinite linear;
 }
 

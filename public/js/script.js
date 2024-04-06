@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupToggleView();
 
+    setupImageSearch();
+
     checkUser().then(user => {
         if (user) {
             renderUserUI(user.email);

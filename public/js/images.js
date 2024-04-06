@@ -60,53 +60,48 @@ function toggleProcessingStyle(e = null) {
     }
 }
 
-function createImageElementUrl(results) {
-    const img = document.createElement('img');
-    img.src = `uploads/${results.imageName}`;
-    return img;
-}
-
 function createImageElement(results) {
     const img = document.createElement('img');
-    img.src = `data:${IMAGE_MIME_TYPE};base64,${results.b64_json}`;
+    img.dataset.src = `uploads/${results.imageName}`; // Use data-src instead of src
     return img;
 }
 
 function addImageToOutput(results, download = false) {
-    const img = createImageElementUrl(results);
-    displayImage(img, results);
+    const img = createImageElement(results);
     const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
     if (download === true && autoDownload) {
         downloadImage(img, results);
     }
-}
 
-function downloadImage(img, results) {
-    const a = document.createElement('a');
-    a.href = img.src;
-    a.download = `${makeFileNameSafeForWindows(results.providerName + '-' + results.prompt)}.jpg`;
-    a.click();
-}
-
-function getErrorMessage(results) {
-    return `${results.b64_json.details?.error?.message}`;
-}
-
-function displayImage(img, results) {
+    // Attach the image to the DOM before starting the Intersection Observer
     const wrapper = createWrapperElement();
     const note = createNoteElement(results);
     wrapper.appendChild(note);
+    attachImage(results, wrapper);
+    wrapper.appendChild(img);
 
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                displayImage(img, results, wrapper); // Pass wrapper as a parameter
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { rootMargin: '0px 0px 100px 0px' });
+
+    observer.observe(img);
+}
+
+function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
     img.title = results.prompt;
     img.dataset.id = results.id;
     img.addEventListener("click", function () {
-        toggleFullScreenThisImage(wrapper);
+        if (!isDragging) {
+            toggleFullScreenThisImage(wrapper);
+        }
     });
 
-    img.onload = () => {
-        appendElementsToWrapper(wrapper, [img]);
-        attachImage(results, wrapper);
-    }
+    img.src = img.dataset.src; // Set the src here to start loading the image
 }
 
 function attachImage(results, wrapper) {
@@ -119,13 +114,31 @@ function attachImage(results, wrapper) {
     } else {
         target.querySelector('.' + IMAGE_OUTPUT_CLASS).prepend(wrapper);
     }
-    wrapper.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+    wrapper.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+}
+
+function downloadImage(img, results) {
+    const a = document.createElement('a');
+    a.href = img.src;
+    a.download = `${makeFileNameSafeForWindows(results.providerName + '-' + results.prompt)}.jpg`;
+    a.click();
+}
+
+function downloadThisImage(img) {
+    const a = document.createElement('a');
+    a.href = img.src;
+    a.download = img.src.split('/').pop();
+    a.click();
+}
+
+function getErrorMessage(results) {
+    return `${results.b64_json.details?.error?.message}`;
 }
 
 function findPromptPreviewElement(results) {
     ///const viewSwitch = document.querySelector('.prompt-view-switch');
     //if (viewSwitch.checked) {
-        //return document.querySelector('.image-list');
+    //return document.querySelector('.image-list');
     //}
     const elm = Array.from(document.querySelectorAll('.prompt-text')).find((div) => {
         return div.innerText.replace(/  /g, ' ').trim() === results.prompt.replace(/  /g, ' ').trim();
@@ -138,23 +151,20 @@ function findPromptPreviewElement(results) {
     }
 }
 
-function downloadThisImage(img) {
-    const a = document.createElement('a');
-    a.href = img.src;
-    a.download = img.src.split('/').pop();
-    a.click();
-}
-
 function toggleFullScreenThisImage(wrapper) {
     wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
     if (wrapper.classList.contains(IMAGE_FULLSCREEN_CLASS)) {
         addKeyBoardListeners();
         addFullScreenControls();
         addSwipeListeners(wrapper);
+        addMouseWheelListeners(wrapper);
+        addDragHandlers(wrapper);
     } else {
+        removeMouseWheelListeners(wrapper);
         removeKeyBoardListeners();
         removeFullScreenControls();
         removeSwipeListeners(wrapper);
+        removeDragHandlers(wrapper);
     }
 }
 
@@ -173,7 +183,7 @@ function addSwipeListeners(wrapper) {
     }
 }
 
-function removeSwipeListeners(wrapper){
+function removeSwipeListeners(wrapper) {
     if (wrapper.hammerHandler) {
         wrapper.hammerHandler.off('swipeleft');
         wrapper.hammerHandler.off('swiperight');
@@ -209,7 +219,7 @@ function addFullScreenControls() {
     document.body.appendChild(controls);
 }
 
-function getInfoBox(){
+function getInfoBox() {
     const infoBox = document.createElement('div');
     infoBox.className = 'info-box';
     const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
@@ -222,25 +232,25 @@ function getInfoBox(){
     h5.innerText = note;
     infoBox.appendChild(h3);
     infoBox.appendChild(h5);
-    h3.addEventListener('click', function(){
+    h3.addEventListener('click', function () {
         navigator.clipboard.writeText(title);
     });
-    h5.addEventListener('click', function(){
+    h5.addEventListener('click', function () {
         navigator.clipboard.writeText(title);
     });
     return infoBox;
 }
 
-function updateInfoBox(){
+function updateInfoBox() {
     removeInfoBox();
     const infoBox = getInfoBox();
     document.body.appendChild(infoBox);
 
 }
 
-function removeInfoBox(){
+function removeInfoBox() {
     const infoBox = document.querySelector('.info-box');
-    if(infoBox){
+    if (infoBox) {
         infoBox.remove();
     }
 }
@@ -269,10 +279,10 @@ async function handleLikeClick() {
     const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
     const img = wrapper.querySelector('img');
     const id = img.dataset.id;
-    if(!id){
+    if (!id) {
         return;
     }
-    if(!btn.dataset.like){
+    if (!btn.dataset.like) {
         btn.dataset.like = 'true';
         btn.classList.add('liked');
         const url = `/like/image/${id}`;
@@ -347,11 +357,117 @@ function keyupHandler(e) {
     if (e.key === 'l') {
         handleLikeClick();
     }
+    if (e.key === '+') {
+        zoomImage();
+    }
+    if (e.key === '-') {
+        unZoomImage();
+    }
     if (e.key === 'd') {
         const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
         const img = wrapper.querySelector('img');
         downloadThisImage(img);
     }
+    if (e.key === 'ArrowUp') {
+        moveImgUp();
+    }
+    if (e.key === 'ArrowDown') {
+        moveImgDown();
+    }
+}
+
+let isMouseDown = false;
+let lastMouseY;
+
+function mousedownHandler(e) {
+    isMouseDown = true;
+    lastMouseY = e.clientY;
+}
+
+function mousemoveHandler(e) {
+    if (isMouseDown) {
+        if (e.clientY > lastMouseY) {
+            moveImgDown();
+        } else if (e.clientY < lastMouseY) {
+            moveImgUp();
+        }
+        lastMouseY = e.clientY;
+    };
+}
+let isDragging = false;
+
+function addDragHandlers(wrapper) {
+    const img = wrapper.querySelector('img');
+
+    interact(img)
+        .draggable({
+            onstart: function (event) {
+                isDragging = false; // Reset the flag at the start of a drag
+            },
+            onmove: function (event) {
+                var target = event.target,
+                    y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                target.style.webkitTransform =
+                target.style.transform =
+                    'translateY(' + y + 'px)';
+
+                target.setAttribute('data-y', y);
+
+                isDragging = true; // Set the flag when a drag occurs
+            },
+            onend: function (event) {
+                // If needed, you can use a timeout to ensure that the click event is not fired immediately after the drag ends
+                setTimeout(function () {
+                    isDragging = false;
+                }, 0);
+            }
+        });
+}
+
+function removeDragHandlers(wrapper) {
+    const img = wrapper.querySelector('img');
+
+    // To remove the draggable functionality, you can use the unset method
+    interact(img).unset();
+}
+
+function mouseupHandler(e) {
+    isMouseDown = false;
+}
+
+function moveImgUp() {
+    const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
+    const img = wrapper.querySelector('img');
+    const currentTransform = img.style.transform;
+    const currentY = currentTransform ? parseFloat(currentTransform.split('(')[1]) : 0;
+    const newY = currentY - 50;
+    img.style.transform = `translateY(${newY}px)`;
+}
+
+function moveImgDown() {
+    const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
+    const img = wrapper.querySelector('img');
+    const currentTransform = img.style.transform;
+    const currentY = currentTransform ? parseFloat(currentTransform.split('(')[1]) : 0;
+    const newY = currentY + 50;
+    img.style.transform = `translateY(${newY}px)`;
+}
+
+function zoomImage() {
+    const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
+    const img = wrapper.querySelector('img');
+    const currentScale = img.style.transform ? parseFloat(img.style.transform.split('(')[1]) : 1;
+    const newScale = currentScale + 0.1;
+    img.style.transform = `scale(${newScale})`;
+}
+
+function unZoomImage() {
+    const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
+    const img = wrapper.querySelector('img');
+    const currentScale = img.style.transform ? parseFloat(img.style.transform.split('(')[1]) : 1;
+    const newScale = currentScale - 0.1;
+    img.style.transform = `scale(${newScale})`;
 }
 
 function removeKeyBoardListeners() {
@@ -360,6 +476,26 @@ function removeKeyBoardListeners() {
 
 function addKeyBoardListeners() {
     window.addEventListener('keyup', keyupHandler);
+}
+
+function removeMouseWheelListeners(wrapper) {
+    const img = wrapper.querySelector(`img`);
+    img.style.transform = '';
+    wrapper.removeEventListener('wheel', wheelHandler);
+}
+
+function addMouseWheelListeners(wrapper) {
+    wrapper.addEventListener('wheel', wheelHandler);
+}
+
+function wheelHandler(e) {
+    console.log('d')
+    e.preventDefault();
+    if (e.deltaY > 0) {
+        unZoomImage();
+    } else {
+        zoomImage();
+    }
 }
 
 function navigateImages(direction, currentImageWrapper) {
@@ -381,7 +517,12 @@ function navigateImages(direction, currentImageWrapper) {
     currentImageWrapper.classList.remove(IMAGE_FULLSCREEN_CLASS);
     imageWrappers[newIndex].classList.add(IMAGE_FULLSCREEN_CLASS);
     removeSwipeListeners(currentImageWrapper);
+    removeMouseWheelListeners(currentImageWrapper);
+    removeDragHandlers(currentImageWrapper);
+
     addSwipeListeners(imageWrappers[newIndex]);
+    addDragHandlers(imageWrappers[newIndex]);
+    addMouseWheelListeners(imageWrappers[newIndex]);
     updateInfoBox();
     addFullScreenControls();
 }

@@ -276,10 +276,11 @@
             <div class="insert-comma">+ Comma</div>
             <div class="chips-variables"></div>
           </div>
+          <!--
           <div>
             <button class="prompt-convert">Convert</button>
           </div>
-
+          -->
           <textarea id="prompt-textarea" rows="10"></textarea>
           <ul id="matches" class="matches"></ul>
 
@@ -299,12 +300,15 @@
           </div>
           <div class="image-list"></div>
           <div class="prompts">
+            <div class="search">
+              <input type="text" placeholder="search" />
+            </div>
             <ul class="prompt-output"></ul>
           </div>
         </div>
       </div>
     </section>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.0.2/interact.min.js" integrity="sha512-Ipef/NhGC7SlCer4041clfWKsriVhnGMcS15cVrl9j/NFtNmqeK28tbfOFwASlSfy4j8XjcpVw4HXvTvzgA8rA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.all.min.js "></script>
     <link
@@ -320,6 +324,7 @@
     <script src="js/setup/setupCustomVariables.js"></script>
     <script src="js/setup/setupTextArea.js"></script>
     <script src="js/setup/setupGuidance.js"></script>
+    <script src="js/setup/setupImageSearch.js"></script>
     <script src="js/setup/setupStatsBar.js"></script>
     <script src="js/setup/setupToggleView.js"></script>
     <script src="js/setup/setupFeed.js"></script>

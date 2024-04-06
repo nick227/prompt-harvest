@@ -114,7 +114,7 @@ const handleMatchListItemClick = e => {
     setupProviderClicks();
     textArea.addEventListener('input', handleInput);
     matchesEl.addEventListener('click', handleMatchListItemClick);
-    document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
+    //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
     document.querySelector('.btn-generate').addEventListener('click', handleGenerateClick);
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
@@ -168,7 +168,7 @@ async function convertPromptUrl() {
         return false;
     }
     const multiplier = document.querySelector("#multiplier");
-    const multiplierPair = multiplier.value.length ? `&multiplier=${encodeURIComponent(multiplier.value)}` : '';
+    const multiplierPair = multiplier.value.length ? `&multiplier=${encodeURIComponent(multiplier.value.trim().toLowerCase())}` : '';
     const mixup = document.querySelector('input[name="mixup"]:checked');
     const mixupPair = mixup ? `&mixup=true` : '';
     const customVariables = getCustomVariables();

@@ -90,10 +90,28 @@ function shufflePrompt(prompt) {
 }
 
 async function multiplyPrompt(prompt, multiplier) {
-    if (multiplier.startsWith('${') && multiplier.endsWith('}')) {
-        multiplier = await getWordReplacement(multiplier);
+    if (!multiplier) {
+        return prompt;
     }
-    return prompt.split(', ').join(`, ${multiplier}, `);
+
+    // Use match to get all instances of ${}, $${}, ${[]}, and $${[]} in the multiplier string
+    const multiplierElements = multiplier.match(/(\$\$\{[^}]+\})|(\$\{[^}]+\})|(\$\[\{[^}]+\}\])|(\$\$\[\{[^}]+\}\])/g);
+
+    // If no matches were found, return prompt
+    if (!multiplierElements) {
+        return prompt.split(', ').join(`, ${multiplier} `);
+    }
+
+    // Process each element with getWordReplacement
+    const processedMultiplierElements = await Promise.all(multiplierElements.map(getWordReplacement));
+
+    // Replace each instance of ${}, $${}, ${[]}, and $${[]} in the multiplier string with its corresponding processed element
+    let processedMultiplier = multiplier;
+    for (let i = 0; i < multiplierElements.length; i++) {
+        processedMultiplier = processedMultiplier.replace(multiplierElements[i], processedMultiplierElements[i]);
+    }
+
+    return prompt.split(', ').join(`, ${processedMultiplier} `);
 }
 
 async function getWordReplacement(element) {
@@ -117,8 +135,8 @@ async function getWordReplacement(element) {
             return replacementDict[word];
         } else {
             let replacement;
-            if (isJsonArray(word)) {
-                replacement = getRandomElementFromJsonArray(word);
+            if (isCustomArray(word)) {
+                replacement = getRandomElementFromCustomArray(word);
             } else {
                 const db = new DB('word-types.db');
                 const results = await db.find({ word });
@@ -132,8 +150,8 @@ async function getWordReplacement(element) {
             return replacement;
         }
     }
-    if (isJsonArray(word)) {
-        return getRandomElementFromJsonArray(word);
+    if (isCustomArray(word)) {
+        return getRandomElementFromCustomArray(word);
     }
     const db = new DB('word-types.db');
     const results = await db.find({ word });
@@ -145,11 +163,11 @@ function getWordFromElement(element) {
     return element.slice(element.startsWith('$$') ? 3 : 2, -1);
 }
 
-function isJsonArray(word) {
+function isCustomArray(word) {
     return word.startsWith('[') && word.endsWith(']');
 }
 
-function getRandomElementFromJsonArray(word) {
+function getRandomElementFromCustomArray(word) {
     try {
         const words = JSON.parse(word.replace(/'/g, '"'));
         if (!Array.isArray(words)) {
@@ -229,7 +247,7 @@ async function processQueue(req) {
     while (queue.length > 0) {
         const { prompt, providers, guidance, resolve, reject } = queue.shift();
         try {
-            const response = await generateImageInternal(prompt, providers, guidance, req);
+            const response = await generate(prompt, providers, guidance, req);
             resolve(response);
         } catch (error) {
             reject(error);
@@ -238,7 +256,7 @@ async function processQueue(req) {
     isProcessing = false;
 }
 
-async function generateImageInternal(prompt, providers, guidance, req) {
+async function generate(prompt, providers, guidance, req) {
     const providerName = providers[Math.floor(Math.random() * providers.length)];
     const dynamicFunction = providerList[providerName];
 
