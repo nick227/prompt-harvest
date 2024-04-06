@@ -441,15 +441,7 @@ section.images {
   position: relative;
 }
 
-.prompts .search {
-  position: absolute;
-  top: 0;
-  left: 0;
-  margin-top: -72px;
-  margin-left: 20px;
-}
-
-.prompts .search input {
+.search input {
   padding: 0;
 }
 
