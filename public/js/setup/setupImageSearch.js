@@ -9,7 +9,7 @@ function handleImageSearch(event) {
     const input = event.target;
     const searchValue = input.value.toLowerCase();
 
-    const ulElement = input.closest('.prompts').querySelector('ul');
+    const ulElement = input.closest('.col').querySelector('ul');
     const liItems = Array.from(ulElement.querySelectorAll('li'));
 
     // If the input is cleared, show all images

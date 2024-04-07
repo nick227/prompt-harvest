@@ -399,6 +399,13 @@ let isDragging = false;
 function addDragHandlers(wrapper) {
     const img = wrapper.querySelector('img');
 
+    function handleTap(event) {
+        if (!isDragging) {
+            toggleFullScreenThisImage(wrapper);
+        }
+    }
+    img.addEventListener('touchend', handleTap);
+
     interact(img)
         .draggable({
             onstart: function (event) {
@@ -422,7 +429,28 @@ function addDragHandlers(wrapper) {
                     isDragging = false;
                 }, 0);
             }
-        });
+        })
+        .gesturable({
+            onstart: function (event) {
+                var rect = interact.getElementRect(event.target);
+
+                // Remember the initial scale at the start of the gesture
+                event.target.dataset.scale = event.target.dataset.scale || 1;
+
+                // Center the zoom at the initial touch point, not the center of the element
+                event.target.dataset.x = rect.left + rect.width / 2 - event.clientX0;
+                event.target.dataset.y = rect.top + rect.height / 2 - event.clientY0;
+            },
+            onmove: function (event) {
+                event.target.style.transform =
+                    'scale(' + event.scale * event.target.dataset.scale + ')' +
+                    'translate(' + event.target.dataset.x + 'px, ' + event.target.dataset.y + 'px)';
+            },
+            onend: function (event) {
+                // Remember the final scale at the end of the gesture
+                event.target.dataset.scale = event.scale * event.target.dataset.scale;
+            }
+        });;
 }
 
 function removeDragHandlers(wrapper) {
@@ -489,7 +517,6 @@ function addMouseWheelListeners(wrapper) {
 }
 
 function wheelHandler(e) {
-    console.log('d')
     e.preventDefault();
     if (e.deltaY > 0) {
         unZoomImage();
