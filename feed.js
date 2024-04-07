@@ -52,13 +52,6 @@ function processCustomVariables(customVariables) {
     return customDict;
 }
 
-async function processPromptText(prompt) {
-    const regex = /(\$\$\{[^}]+\})|(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
-    const textArray = prompt.match(regex);
-    const processedArray = await Promise.all(textArray.map(getWordReplacement));
-    return processedArray.join('');
-}
-
 async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
     try {
         if (typeof prompt !== 'string' || !prompt) {
@@ -89,74 +82,76 @@ function shufflePrompt(prompt) {
     return prompt.split(', ').shuffle().join(', ');
 }
 
+async function processPromptText(prompt) {
+    const regex = /(\$\$\{[^}]+\})|(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
+    const textArray = prompt.match(regex);
+    const processedArray = await Promise.all(textArray.map(getWordReplacement));
+    return processedArray.join('');
+}
+
 async function multiplyPrompt(prompt, multiplier) {
     if (!multiplier) {
         return prompt;
     }
 
-    // Use match to get all instances of ${}, $${}, ${[]}, and $${[]} in the multiplier string
-    const multiplierElements = multiplier.match(/(\$\$\{[^}]+\})|(\$\{[^}]+\})|(\$\[\{[^}]+\}\])|(\$\$\[\{[^}]+\}\])/g);
+    const promptParts = prompt.split(', ');
+    const processedPromptParts = [];
 
-    // If no matches were found, return prompt
-    if (!multiplierElements) {
-        return prompt.split(', ').join(`, ${multiplier} `);
+    for (let part of promptParts) {
+        const multiplierElements = multiplier.match(/(\$\$\{[^}]+\})|(\$\{[^}]+\})|(\$\[\{[^}]+\}\])|(\$\$\[\{[^}]+\}\])/g);
+
+        if (!multiplierElements) {
+            processedPromptParts.push(`${part}, ${multiplier}`);
+            continue;
+        }
+
+        const processedMultiplierElements = await Promise.all(multiplierElements.map(getWordReplacement));
+
+        let processedMultiplier = multiplier;
+        for (let i = 0; i < multiplierElements.length; i++) {
+            const regex = new RegExp(multiplierElements[i].replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+            processedMultiplier = processedMultiplier.replace(regex, processedMultiplierElements[i]);
+        }
+
+        processedPromptParts.push(`${part}, ${processedMultiplier}`);
     }
 
-    // Process each element with getWordReplacement
-    const processedMultiplierElements = await Promise.all(multiplierElements.map(getWordReplacement));
-
-    // Replace each instance of ${}, $${}, ${[]}, and $${[]} in the multiplier string with its corresponding processed element
-    let processedMultiplier = multiplier;
-    for (let i = 0; i < multiplierElements.length; i++) {
-        processedMultiplier = processedMultiplier.replace(multiplierElements[i], processedMultiplierElements[i]);
-    }
-
-    return prompt.split(', ').join(`, ${processedMultiplier} `);
+    return processedPromptParts.join(' ');
 }
 
 async function getWordReplacement(element) {
-    if (!element.startsWith('${') && !element.endsWith('}')) return element;
+    if (!element.startsWith('$')) return element;
+
+    const isDoubleDollar = element.startsWith('$$');
     const word = getWordFromElement(element);
+    let replacement;
+
     if (customDict[word]) {
-        if (element.startsWith('$$')) {
+        if (isDoubleDollar) {
             if (replacementDict[word]) {
                 return replacementDict[word];
             } else {
-                const replacement = customDict[word][0];
+                replacement = customDict[word][0];
                 replacementDict[word] = replacement;
-                return replacement;
             }
         } else {
-            return customDict[word][Math.floor(Math.random() * customDict[word].length)];
+            replacement = customDict[word][Math.floor(Math.random() * customDict[word].length)];
         }
+    } else if (isDoubleDollar && replacementDict[word]) {
+        return replacementDict[word];
+    } else if (isCustomArray(word)) {
+        replacement = getRandomElementFromCustomArray(word);
+    } else {
+        const db = new DB('word-types.db');
+        const results = await db.find({ word });
+        replacement = results.length === 0 ? word : getReplacementWord(element, results);
     }
-    if (element.startsWith('$$')) {
-        if (replacementDict[word]) {
-            return replacementDict[word];
-        } else {
-            let replacement;
-            if (isCustomArray(word)) {
-                replacement = getRandomElementFromCustomArray(word);
-            } else {
-                const db = new DB('word-types.db');
-                const results = await db.find({ word });
-                if (results.length === 0) {
-                    replacement = word;
-                } else {
-                    replacement = getReplacementWord(element, results);
-                }
-            }
-            replacementDict[word] = replacement;
-            return replacement;
-        }
+
+    if (isDoubleDollar && !replacementDict[word]) {
+        replacementDict[word] = replacement;
     }
-    if (isCustomArray(word)) {
-        return getRandomElementFromCustomArray(word);
-    }
-    const db = new DB('word-types.db');
-    const results = await db.find({ word });
-    if (results.length === 0) return word;
-    return getReplacementWord(element, results);
+
+    return replacement;
 }
 
 function getWordFromElement(element) {

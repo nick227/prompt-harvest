@@ -45,6 +45,16 @@
 
     <script src="js/user.js"></script>
     <script>   
+
+        checkUser().then(user => {
+            if (user) {
+                renderUserUI(user.email);
+    
+            } else {
+                console.log('No user', user);
+            }
+        });
+       
     </script>
 </body>
 

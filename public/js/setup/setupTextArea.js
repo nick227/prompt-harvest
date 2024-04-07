@@ -109,6 +109,8 @@ const handleMatchListItemClick = e => {
         updateTextArea(textArea, newTextBeforeCursor, textAfterCursor);
     }
 };
+
+    setupResizeEventHandler(textArea);
     setupAutoDownload();
     setupMaxNumInput();
     setupProviderClicks();
@@ -119,6 +121,16 @@ const handleMatchListItemClick = e => {
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
 
+}
+
+function setupResizeEventHandler(textArea){
+    textArea.addEventListener('mouseup', function(e){
+        localStorage.setItem('textAreaHeight', e.target.style.height);
+    });
+    const height = localStorage.getItem('textAreaHeight');
+    if(height){
+        textArea.style.height = height;
+    }
 }
 
 function handleWordLiClick(){

@@ -2,12 +2,17 @@ const DEFAULT_PROMPT = '';
 const DEFAULT_REQUEST_LIMIT = 150;
 const IMAGES_ELM_SELECTOR = 'section.images';
 let currentPageCount = 0;
-
+let setupFeedComplete = false;
 async function setupFeed() {
     await setupFeedPrompts();
     setTimeout(async function(){
         await setupFeedImages();
     }, 200);
+    setTimeout(async function(){
+        window.scrollTop = 0;
+        window.scrollTo(0, 0);
+        setupFeedComplete = true;
+    }, 400);
 }
 
 async function setupFeedPrompts() {

@@ -20,10 +20,10 @@ export default class User {
     initializePassport() {
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: false }));
-        this.app.use(session({ 
-            secret: process.env.SESSION_SECRET, 
-            resave: false, 
-            saveUninitialized: false 
+        this.app.use(session({
+            secret: process.env.SESSION_SECRET,
+            resave: false,
+            saveUninitialized: false
         }));
         this.app.use(passport.initialize());
         this.app.use(passport.session());
@@ -48,8 +48,24 @@ export default class User {
     }
 
     setupRoutes() {
+        this.app.post('/login', (req, res, next) => {
+            passport.authenticate('local', (err, user, info) => {
+                if (err) {
+                    return next(err);
+                }
+                if (!user) {
+                    console.log('login');
+                    return res.status(400).send({ error: 'Invalid email or password' });
+                }
+                req.logIn(user, (err) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    return res.send(user);
+                });
+            })(req, res, next);
+        });
         this.app.post('/register', this.register.bind(this));
-        this.app.post('/login', passport.authenticate('local'), this.login.bind(this));
         this.app.get('/logout', this.logout.bind(this));
         this.app.post('/reset-password', this.resetPassword.bind(this));
         this.app.get('/user', this.getUser.bind(this));
@@ -59,6 +75,7 @@ export default class User {
     async register(req, res, next) {
         let { email, password } = req.body;
         let existingUser = await db.findOne({ email });
+        console.log('existingUser', existingUser)
         if (existingUser) {
             return res.status(400).send({ error: 'Email is already in use' });
         }
@@ -66,21 +83,22 @@ export default class User {
             return res.status(400).send({ error: 'Password is required' });
         }
         let hashedPassword = bcrypt.hashSync(password, 10);
-        let user = await db.insert({ email:email, password: hashedPassword });
+        let user = await db.insert({ email: email, password: hashedPassword });
 
-        req.login(user, function(err) {
+        req.login(user, function (err) {
             if (err) { return next(err); }
             return res.send(user);
         });
     }
 
     login(req, res) {
+        console.log('login')
         if (!req.user) {
             return res.status(400).send({ error: 'Invalid email or password' });
         }
         res.send(req.user);
     }
-    
+
     logout(req, res) {
         req.logout(() => {
             res.send({ message: 'Logged out' });

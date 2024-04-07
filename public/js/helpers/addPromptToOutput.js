@@ -41,8 +41,9 @@ function addPromptToOutput(result, className='') {
     li.appendChild(row);
 
     target.prepend(li);
-    
-    li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+    if(setupFeedComplete){
+        li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+    }
     
 }
 

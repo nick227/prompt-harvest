@@ -5,17 +5,9 @@ async function fetchWithCredentials(endpoint) {
     return await fetch(endpoint, { credentials: 'include' });
 }
 
-async function fetchAndHandleResponse(endpoint, options) {
-    const response = await fetch(endpoint, options);
-    if (!response.ok) {
-        return null;
-    }
-    const data = await response.json();
-    return data;
-}
-
 async function checkUser() {
     const response = await fetchWithCredentials('/user');
+    console.log(response)
     if (response.status === 401) {
         return null;
     }
@@ -24,57 +16,66 @@ async function checkUser() {
 }
 
 async function registerUser(e) {
-    e.preventDefault();
-    const email = document.getElementById('registerEmail').value;
-    if(!isValidEmail(email)){
-        alert("Invalid email address");
-        return;
-    }
-    const password = document.getElementById('registerPassword').value;
-    const data = await fetchAndHandleResponse('/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-    });
+    const data = await fetchData(e, '/register', 'registerEmail', 'registerPassword');
     if (data && data.email) {
         window.location.href = '/';
     } else {
-        console.log(data)
+        console.log('registerUser error', data)
     }
+}
+
+async function logoutUser() {
+    const data = await fetchAndHandleResponse('/logout');
+    if (data && data.message === 'Logged out') {
+        window.location.href = '/';
+    }
+}
+
+async function fetchData(e, endpoint, emailId, passwordId) {
+    e.preventDefault();
+    const email = document.getElementById(emailId).value;
+    const password = document.getElementById(passwordId).value;
+    const payload = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    };
+    console.log('endpoint', endpoint)
+    console.log('payload', payload)
+    return await fetchAndHandleResponse(endpoint, payload);
+}
+
+async function loginUser(e) {
+    const data = await fetchData(e, '/login', 'loginEmail', 'loginPassword');
+    if (!data) {
+        alert("Login failed");
+        return;
+    }
+    const user = await checkUser();
+    if (user) {
+        window.location.href = '/';
+    } else {
+        alert("User failed");
+    }
+}
+
+async function fetchAndHandleResponse(endpoint, options) {
+    console.log(endpoint, options)
+    const response = await fetch(endpoint, options);
+    console.log('response', response)
+    let data;
+    if (response.body) {
+        data = await response.json();
+    }
+    if (!response.ok) {
+        console.log('Server error:', data);
+    }
+    return data;
 }
 
 function isValidEmail(email) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
-}
-
-async function loginUser(e) {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    if (!email || !password) {
-        alert("Please enter email and password");
-        return;
-    }
-    if(!isValidEmail(email)){
-        alert("Invalid Login");
-        return;
-    }
-    const data = await fetchAndHandleResponse('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email:email, password:password })
-    });
-    if (data) {
-        const user = await checkUser();
-        if (user) {
-            window.location.href = '/';
-        } else {
-            alert("User failed");
-        }
-    } else {
-        alert("Login failed");
-    }
 }
 
 function renderUserUI(email) {
@@ -86,13 +87,6 @@ function renderUserUI(email) {
         </div>
     `;
     document.getElementById('logout-button').addEventListener('click', logoutUser);
-}
-
-async function logoutUser() {
-    const data = await fetchAndHandleResponse('/logout');
-    if (data && data.message === 'Logged out') {
-        window.location.href = '/';
-    }
 }
 
 function toggleFormVisibility(showFormId, hideFormId) {
