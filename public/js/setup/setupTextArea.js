@@ -161,9 +161,9 @@ function toggleAllProviders(e){
     checkboxes.forEach(checkbox => checkbox.checked = e.target.checked);
 }
 
-async function convertPromptUrl() {
+async function convertPromptUrl(prompt=null) {
     const textArea = document.getElementById('prompt-textarea');
-    const prompt = encodeURIComponent(removeExtraWhiteSpace(textArea.value.trim()));
+    prompt = prompt ? prompt : encodeURIComponent(removeExtraWhiteSpace(textArea.value.trim()));
     if(!prompt){
         return false;
     }

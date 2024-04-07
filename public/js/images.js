@@ -101,7 +101,11 @@ function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
         }
     });
 
-    img.src = img.dataset.src; // Set the src here to start loading the image
+    img.src = img.dataset.src;
+
+    const downloadBtn = getDownloadButton(img);
+    img.parentElement.appendChild(downloadBtn);
+
 }
 
 function attachImage(results, wrapper) {
@@ -333,9 +337,11 @@ function getNavigateButtons() {
     return container;
 }
 
-function getDownloadButton() {
-    const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
-    const img = wrapper.querySelector('img');
+function getDownloadButton(img = null) {
+    if (!img) {
+        const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
+        img = wrapper.querySelector('img');
+    }
     const downloadBtn = document.createElement('button');
     downloadBtn.innerHTML = DOWNLOAD_BTN_HTML;
     downloadBtn.setAttribute('title', 'D');
@@ -416,7 +422,7 @@ function addDragHandlers(wrapper) {
                     y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
                 target.style.webkitTransform =
-                target.style.transform =
+                    target.style.transform =
                     'translateY(' + y + 'px)';
 
                 target.setAttribute('data-y', y);

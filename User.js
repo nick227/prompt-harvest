@@ -58,7 +58,6 @@ export default class User {
 
     async register(req, res, next) {
         let { email, password } = req.body;
-        console.log(email, password)
         let existingUser = await db.findOne({ email });
         if (existingUser) {
             return res.status(400).send({ error: 'Email is already in use' });

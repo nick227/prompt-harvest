@@ -294,10 +294,13 @@ ul.prompt-output.list-view button {
 ul.prompt-output.list-view {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
+  grid-auto-rows: minmax(300px, 300px); 
+  grid-auto-flow: dense;
 }
 
 ul.prompt-output.list-view li {
   border-bottom: none;
+  height: 300px;
 }
 
 ul.prompt-output {

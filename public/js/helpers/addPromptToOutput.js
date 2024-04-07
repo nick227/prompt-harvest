@@ -20,7 +20,7 @@ function addPromptToOutput(result, className='') {
     });
     
     const button = document.createElement('button');
-    button.addEventListener('click', handleNewPromptClick);
+    button.addEventListener('click', handleMakeNewImageClick);
     button.textContent = 'make';
 
     const div = document.createElement('div');
@@ -46,8 +46,28 @@ function addPromptToOutput(result, className='') {
     
 }
 
-async function handleNewPromptClick(e) {
+async function handleMakeNewImageClick(e) {
     e.preventDefault();
-    const text = e.target.previousElementSibling.textContent;
-    await generateImage(text, e.target.closest('li'));
+    originalVal = e.target.closest('li').querySelector('h6').textContent;
+    const text = e.target.closest('li').querySelector('.prompt-text').textContent;
+    const url = await convertPromptUrl(text);
+    if(!url){
+        alert('Invalid Prompt');
+        return;
+    }
+console.log(url)
+    const results = await fetchData(url);
+    addPromptToOutput(results);
+    await generateImage(results.processed);
+
+    /*
+    const promptObj = {
+        processed: text,
+        original: originalVal
+    };
+    console.log(promptObj)
+    addPromptToOutput(promptObj, 'loading');
+    await generateImage(text);
+
+    */
 }

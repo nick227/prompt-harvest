@@ -35,7 +35,6 @@ function setup(app) {
             userId: req.user?._id || 'undefined',
             imageId
         };
-        console.log('delete', params)
         await db.delete(params);
         res.send({ status: 'ok' });
     });
@@ -47,7 +46,6 @@ function setup(app) {
             userId: req.user?._id || 'undefined',
             imageId
         };
-        console.log('like', params)
         await db.insert(params);
         res.send({ status: 'ok' });
     });
