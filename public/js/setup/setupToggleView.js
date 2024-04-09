@@ -16,16 +16,6 @@ function setupToggleView() {
 
 }
 
-function moveImagesToImageList() {
-    const imageWrappers = document.querySelectorAll('.image-wrapper');
-    const imageList = document.querySelector('.image-list');
-
-    imageWrappers.forEach(wrapper => {
-        wrapper.parentNode.removeChild(wrapper);
-        imageList.appendChild(wrapper);
-    });
-}
-
 function moveImagesToPromptContainer() {
     const imageWrappers = document.querySelectorAll('.image-wrapper');
 

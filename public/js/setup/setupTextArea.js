@@ -1,4 +1,4 @@
-WORD_TYPE_LIMIT = 8;
+WORD_TYPE_LIMIT = 22;
 MAX_AUTO_NUM = 10;
 let requestCount = 0;
 
@@ -211,7 +211,7 @@ async function handleGenerateClick(e){
     try {
         const results = await fetchData(url);
         addPromptToOutput(results);
-        await generateImage(results.processed);
+        await generateImage(results);
         const isAuto = document.querySelector('input[name="auto-generate"]:checked');
         const maxNum = document.querySelector('input[name="maxNum"]');
 
@@ -224,7 +224,6 @@ async function handleGenerateClick(e){
 
     } catch (error) {
         alert(`Error ${error}`);
-        console.log(results);
     }
 }
 

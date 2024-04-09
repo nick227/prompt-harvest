@@ -19,6 +19,11 @@
     </form>
     <img class="logo" src="images/favicon.png" />
 -->
+<div class="scroll-top-bar">
+  <button class="top-btn">top</button>
+  <button class="view-btn">view</button>
+
+</div>
     <a class="masthead" href="/">
       <h6 class="title">Power Prompt</h6>
     </a>
@@ -26,7 +31,7 @@
       <div id="authentication"><a href="/login.html">Login</a></div>
     </div>
     <div class="stats align-right">
-      image count: <span id="image-count"></span>
+      image count: <span id="image-count"></span> &nbsp; cost: <span id="image-cost"></span>
     </div>
     <div class="row">
       <script
@@ -89,6 +94,22 @@
                 id="icbinp"
                 name="providers"
               />Icbinp</label
+            >
+            <label for="icbinp_seco"
+              ><input
+                type="checkbox"
+                value="icbinp_seco"
+                id="icbinp_seco"
+                name="providers"
+              />Icbinp2</label
+            >
+            <label for="hasdx"
+              ><input
+                type="checkbox"
+                value="hasdx"
+                id="hasdx"
+                name="providers"
+              />Hasdx</label
             >
             <label for="dreamshaper"
               ><input
@@ -303,7 +324,6 @@
               <span class="slider round"> </span>
             </label>
           </div>
-          <div class="image-list"></div>
           <div class="prompts">
             <ul class="prompt-output"></ul>
           </div>
@@ -327,6 +347,7 @@
     <script src="js/helpers/toggleFullScreenThisImage.js"></script>
     <script src="js/helpers/handleHelpLinkClick.js"></script>
     <script src="js/helpers/addPromptToOutput.js"></script>
+    <script src="js/setup/setupScrollTopBar.js"></script>
     <script src="js/setup/setupCustomVariables.js"></script>
     <script src="js/setup/setupTextArea.js"></script>
     <script src="js/setup/setupGuidance.js"></script>

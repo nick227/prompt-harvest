@@ -1,18 +1,27 @@
 const DEFAULT_PROMPT = '';
-const DEFAULT_REQUEST_LIMIT = 150;
+const DEFAULT_REQUEST_LIMIT = 10;
 const IMAGES_ELM_SELECTOR = 'section.images';
 let currentPageCount = 0;
 let setupFeedComplete = false;
 async function setupFeed() {
-    await setupFeedPrompts();
-    setTimeout(async function(){
-        await setupFeedImages();
-    }, 200);
+    await setupFeedPromptsNew();
     setTimeout(async function(){
         window.scrollTop = 0;
         window.scrollTo(0, 0);
         setupFeedComplete = true;
     }, 400);
+}
+
+function setupFeedPromptsNew(){
+    const url = `/feed?limit=${DEFAULT_REQUEST_LIMIT}`;
+    fetch(url).then(response => response.json()).then(results => {
+        for(let i=results.length-1; i > -1; i--){
+            console.log('results', results)
+            addPromptToOutput(results[i]);
+            addImageToOutput(results[i]);
+        }
+    });
+
 }
 
 async function setupFeedPrompts() {

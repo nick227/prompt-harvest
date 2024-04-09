@@ -69,8 +69,12 @@ async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
             processedString = await multiplyPrompt(processedString, multiplier);
         }
 
-        const result = { original: prompt, processed: processedString };
-        saveFeedEvent('prompt', result, req);
+        const data = { original: prompt, prompt: processedString };
+
+        const promptReponse = await saveFeedEvent('prompt', data, req);
+
+
+        const result = { original: prompt, prompt: processedString, promptId: promptReponse._id };
 
         return result;
     } catch (error) {
@@ -220,17 +224,19 @@ const providerList = {
     bluepencil: generateBluePencil,
     abyssorange: generateAbyssOrange,
     icbinp: generateIcbinp,
+    icbinp_seco: generateIcbinpSeco,
     analogmadness: generateAnalogMadeness,
     portraitplus: generatePortraitPlus,
     realisticvision: generateRealisticVision,
     nightmareshaper: generateNightmareShaper,
     openjourney: generateOpenjourney,
+    hasdx: generateHasdxImage
 }
 
-async function generateImage(prompt, providers, guidance, req) {
+async function generateImage(prompt, original, promptId, providers, guidance, req) {
     return new Promise((resolve, reject) => {
         const wasEmpty = queue.length === 0;
-        queue.push({ prompt, providers, guidance, resolve, reject });
+        queue.push({ prompt, original, promptId, providers, guidance, resolve, reject });
         if (wasEmpty) processQueue(req);
     });
 }
@@ -240,9 +246,9 @@ async function processQueue(req) {
     isProcessing = true;
 
     while (queue.length > 0) {
-        const { prompt, providers, guidance, resolve, reject } = queue.shift();
+        const { prompt, original, promptId, providers, guidance, resolve, reject } = queue.shift();
         try {
-            const response = await generate(prompt, providers, guidance, req);
+            const response = await generate(prompt, original, promptId, providers, guidance, req);
             resolve(response);
         } catch (error) {
             reject(error);
@@ -251,7 +257,7 @@ async function processQueue(req) {
     isProcessing = false;
 }
 
-async function generate(prompt, providers, guidance, req) {
+async function generate(prompt, original, promptId, providers, guidance, req) {
     const providerName = providers[Math.floor(Math.random() * providers.length)];
     const dynamicFunction = providerList[providerName];
 
@@ -261,10 +267,15 @@ async function generate(prompt, providers, guidance, req) {
         prompt,
         providerName,
         imageName,
-        guidance
+        guidance,
+        promptId,
+        original
     };
-    saveFeedEvent('image', data, req);
-    return { b64_json, prompt, providerName, guidance, imageName };
+    const results = await saveFeedEvent('image', data, req);
+
+    return results.data;
+
+    //return { b64_json, prompt, providerName, guidance, imageName };
 }
 
 async function saveB64Image(b64_json, providerName, prompt, req) {
@@ -284,7 +295,7 @@ async function saveB64Image(b64_json, providerName, prompt, req) {
 async function saveFeedEvent(type, data, req){
     const db = type === 'image' ? new DB('images.db') : new DB('prompts.db');
     const payload = { data, userId: req.user?._id || 'undefined' };
-    await db.insert(payload);
+    return await db.insert(payload);
 }
 
 async function generateDalleImage(prompt, guidance, userId=null){
@@ -319,6 +330,10 @@ async function generateInkImage(prompt, guidance, userId=null){
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'inkpunk_diffusion');
 }
 
+async function generateHasdxImage(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'hasdx');
+}
+
 async function generateSynthImage(prompt, guidance, userId=null){
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'synthwavepunk_v2');
 }
@@ -336,6 +351,7 @@ async function generateNightmareShaper(prompt, guidance, userId=null){
 }
 
 async function generateRealisticVision(prompt, guidance, userId=null){
+    const key = ['realistic_vision_5_1', 'realistic_vision_1_3'][Math.floor(Math.random() * 2)];
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'realistic_vision_5_1');
 }
 
@@ -345,6 +361,10 @@ async function generateCyberImage(prompt, guidance, userId=null){
 
 async function generateLowPolyImage(prompt, guidance, userId=null){
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'lowpoly_world');
+}
+
+async function generateIcbinpSeco(prompt, guidance, userId=null){
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'icbinp_seco');
 }
 
 async function generateIcbinp(prompt, guidance, userId=null){

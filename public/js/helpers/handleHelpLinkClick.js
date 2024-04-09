@@ -23,6 +23,8 @@ function handleHelpLinkClick(){
     <BR />
     Click text to copy it to clipboard.
     <BR />
+    Logging in keeps your images private.
+    <BR />
 <BR>
 
 </div>`;

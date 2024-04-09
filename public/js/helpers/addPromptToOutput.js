@@ -5,7 +5,8 @@ function addPromptToOutput(result, className='') {
     if(!target){
         return;
     }
-    const value = typeof result.processed === 'string' ? result.processed : result;
+    console.log('result', result)
+    const value = typeof result.prompt === 'string' ? result.prompt : result;
     const originalVal = typeof result.original === 'string' ? result.original : "";
     const h6 = document.createElement('h6');
     const row = document.createElement('div');
@@ -39,6 +40,8 @@ function addPromptToOutput(result, className='') {
     row.appendChild(divWrapper);
     row.appendChild(button);
     li.appendChild(row);
+    li.dataset.originalPrompt = originalVal;
+    li.dataset.prompt = value;
 
     target.prepend(li);
     if(setupFeedComplete){
@@ -50,25 +53,14 @@ function addPromptToOutput(result, className='') {
 async function handleMakeNewImageClick(e) {
     e.preventDefault();
     originalVal = e.target.closest('li').querySelector('h6').textContent;
-    const text = e.target.closest('li').querySelector('.prompt-text').textContent;
-    const url = await convertPromptUrl(text);
+    const prompt = e.target.closest('li').querySelector('.prompt-text').textContent;
+    
+    const url = await convertPromptUrl(prompt);
     if(!url){
         alert('Invalid Prompt');
         return;
     }
-console.log(url)
     const results = await fetchData(url);
     addPromptToOutput(results);
-    await generateImage(results.processed);
-
-    /*
-    const promptObj = {
-        processed: text,
-        original: originalVal
-    };
-    console.log(promptObj)
-    addPromptToOutput(promptObj, 'loading');
-    await generateImage(text);
-
-    */
+    await generateImage(results);
 }

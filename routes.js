@@ -35,7 +35,7 @@ function setup(app) {
             userId: req.user?._id || 'undefined',
             imageId
         };
-        await db.delete(params);
+        await db.remove(params);
         res.send({ status: 'ok' });
     });
 
@@ -48,6 +48,33 @@ function setup(app) {
         };
         await db.insert(params);
         res.send({ status: 'ok' });
+    });
+
+    app.get('/feed', async (req, res) => {
+        const images_db = new DB('images.db');
+        const limit = req.query.limit || 8;
+        let page = req.query.page;
+        if (isNaN(page)) {
+            page = 0;
+        } else {
+            page = Number(page);
+        }
+        const params = {
+            userId: req.user?._id || 'undefined',
+            limit,
+            page
+        };
+
+        const images = await images_db.find(params);
+        const data = images.map((image) => {
+            const results = image.data;
+            results.id = image._id;
+            return results;
+        });
+
+        console.log('data', data)
+        res.send(data);
+
     });
 
     app.get('/images', async (req, res) => {
@@ -71,6 +98,20 @@ function setup(app) {
             results.id = doc._id;
             return results;
         }));
+    });
+
+    app.get('/image/:id/like', async (req, res) => {
+        const db = new DB('likes.db');
+        const imageId = req.params.id;
+        const params = {
+            userId: req.user?._id || 'undefined',
+            imageId
+        };
+        console.log(params);
+        const results = await db.findOne(params);
+        console.log(results);
+        console.log(String(!!results));
+        res.send(String(!!results));
     });
 
     app.get('/prompts', async (req, res) => {
@@ -116,7 +157,9 @@ function setup(app) {
         const prompt = decodeURIComponent(req.query.prompt);
         const providers = decodeURIComponent(req.query.providers).split(',');
         const guidance = isNaN(req.query.guidance) ? false : parseInt(req.query.guidance);
-        const response = await feed.image.generate(prompt, providers, guidance, req);
+        const promptId = req.query.promptId;
+        const original = req.query.original;
+        const response = await feed.image.generate(prompt, original, promptId, providers, guidance, req);
         res.send(response);
     });
 

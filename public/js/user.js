@@ -7,7 +7,6 @@ async function fetchWithCredentials(endpoint) {
 
 async function checkUser() {
     const response = await fetchWithCredentials('/user');
-    console.log(response)
     if (response.status === 401) {
         return null;
     }
@@ -20,7 +19,7 @@ async function registerUser(e) {
     if (data && data.email) {
         window.location.href = '/';
     } else {
-        console.log('registerUser error', data)
+        console.log('error', data)
     }
 }
 
@@ -40,8 +39,6 @@ async function fetchData(e, endpoint, emailId, passwordId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
     };
-    console.log('endpoint', endpoint)
-    console.log('payload', payload)
     return await fetchAndHandleResponse(endpoint, payload);
 }
 
@@ -60,9 +57,7 @@ async function loginUser(e) {
 }
 
 async function fetchAndHandleResponse(endpoint, options) {
-    console.log(endpoint, options)
     const response = await fetch(endpoint, options);
-    console.log('response', response)
     let data;
     if (response.body) {
         data = await response.json();

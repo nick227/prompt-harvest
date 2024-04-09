@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupImageSearch();
 
+    setupScrollTopBar();
+
     checkUser().then(user => {
         if (user) {
             renderUserUI(user.email);

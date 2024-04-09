@@ -10,7 +10,10 @@ const CLOSE_ICON_HTML = '<i class="fas fa-times"></i>';
 const PREV_ICON_HTML = '<i class="fas fa-arrow-left"></i>';
 const NEXT_ICON_HTML = '<i class="fas fa-arrow-right"></i>';
 
-async function generateImage(text, e = null) {
+async function generateImage(promptObj, e = null) {
+    const text = promptObj.prompt;
+    console.log('promptObj: ');
+    console.log(promptObj);
     const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
     if (!checkedProviders.length) {
         alert("Please select at least one provider");
@@ -27,7 +30,10 @@ async function generateImage(text, e = null) {
     const guidanceValBottom = guidanceElmBottom.value;
     const guidanceVal = Math.abs(Math.floor(Math.random() * (parseInt(guidanceValTop) - parseInt(guidanceValBottom))) + parseInt(guidanceValBottom));
     const customVariables = getCustomVariables();
-    const url = `/image/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}&guidance=${parseInt(guidanceVal)}${customVariables}`;
+    console.log('promptObj', promptObj);
+    const promptIdVal = `&promptId=${promptObj.promptId}`;
+    const originalVal = `&original=${encodeURIComponent(promptObj.original)}`;
+    const url = `/image/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}&guidance=${parseInt(guidanceVal)}${customVariables}${promptIdVal}${originalVal}`;
 
     const results = await fetch(url).then(res => res.json());
     setupStatsBar();
@@ -62,7 +68,10 @@ function toggleProcessingStyle(e = null) {
 
 function createImageElement(results) {
     const img = document.createElement('img');
-    img.dataset.src = `uploads/${results.imageName}`; // Use data-src instead of src
+    img.dataset.src = `uploads/${results.imageName}`; 
+    if(results.liked){
+        img.classList.add('liked');
+    }
     return img;
 }
 
@@ -139,19 +148,7 @@ function getErrorMessage(results) {
 }
 
 function findPromptPreviewElement(results) {
-    ///const viewSwitch = document.querySelector('.prompt-view-switch');
-    //if (viewSwitch.checked) {
-    //return document.querySelector('.image-list');
-    //}
-    const elm = Array.from(document.querySelectorAll('.prompt-text')).find((div) => {
-        return div.innerText.replace(/  /g, ' ').trim() === results.prompt.replace(/  /g, ' ').trim();
-    });
-    if (elm) {
-        return elm.closest('li');
-    } else {
-
-        return document.querySelector('.prompt-text:first-child').closest('li');
-    }
+    return document.querySelector('.prompt-text:first-child').closest('li');
 }
 
 
@@ -165,4 +162,4 @@ function createNoteElement(results) {
     const note = document.createElement('h5');
     note.textContent = results.providerName + `, ${results.guidance}`;
     return note;
-}
+} 
