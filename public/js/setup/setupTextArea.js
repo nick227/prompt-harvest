@@ -1,4 +1,4 @@
-WORD_TYPE_LIMIT = 22;
+WORD_TYPE_LIMIT = 17;
 MAX_AUTO_NUM = 10;
 let requestCount = 0;
 

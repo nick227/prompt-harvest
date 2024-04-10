@@ -12,8 +12,6 @@ const NEXT_ICON_HTML = '<i class="fas fa-arrow-right"></i>';
 
 async function generateImage(promptObj, e = null) {
     const text = promptObj.prompt;
-    console.log('promptObj: ');
-    console.log(promptObj);
     const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
     if (!checkedProviders.length) {
         alert("Please select at least one provider");
@@ -30,12 +28,28 @@ async function generateImage(promptObj, e = null) {
     const guidanceValBottom = guidanceElmBottom.value;
     const guidanceVal = Math.abs(Math.floor(Math.random() * (parseInt(guidanceValTop) - parseInt(guidanceValBottom))) + parseInt(guidanceValBottom));
     const customVariables = getCustomVariables();
-    console.log('promptObj', promptObj);
-    const promptIdVal = `&promptId=${promptObj.promptId}`;
-    const originalVal = `&original=${encodeURIComponent(promptObj.original)}`;
-    const url = `/image/generate?prompt=${encodeURIComponent(text)}&providers=${encodeURIComponent(checkedProviders)}&guidance=${parseInt(guidanceVal)}${customVariables}${promptIdVal}${originalVal}`;
+    const promptIdVal = promptObj.promptId;
+    const originalVal = promptObj.original;
 
-    const results = await fetch(url).then(res => res.json());
+    const url = `/image/generate`;
+
+    const data = {
+        prompt: text,
+        providers: checkedProviders,
+        guidance: parseInt(guidanceVal),
+        ...customVariables,
+        promptId: promptIdVal,
+        original: originalVal
+    };
+
+    const results = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }).then(res => res.json());
+
     setupStatsBar();
     addImageToOutput(results, true);
     toggleProcessingStyle(e);
@@ -68,10 +82,8 @@ function toggleProcessingStyle(e = null) {
 
 function createImageElement(results) {
     const img = document.createElement('img');
-    img.dataset.src = `uploads/${results.imageName}`; 
-    if(results.liked){
-        img.classList.add('liked');
-    }
+    img.dataset.src = `uploads/${results.imageName}`;
+    img.dataset.id = results.id;
     return img;
 }
 
@@ -98,6 +110,25 @@ function addImageToOutput(results, download = false) {
     observer.observe(img);
 }
 
+function attachImage(results, wrapper) {
+    const target = findPromptPreviewElement(results);
+    if (!target.querySelector('.' + IMAGE_OUTPUT_CLASS)) {
+        const output = document.createElement('div');
+        output.className = IMAGE_OUTPUT_CLASS;
+        output.prepend(wrapper);
+        target.prepend(output);
+    } else {
+        target.querySelector('.' + IMAGE_OUTPUT_CLASS).prepend(wrapper);
+    }
+    if (setupFeedComplete) {
+        ////wrapper.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    }
+}
+
+function findPromptPreviewElement(results) {
+    return document.querySelector('li[data-id="' + results.promptId + '"]');
+}
+
 function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
     img.title = results.prompt;
     img.dataset.id = results.id;
@@ -112,21 +143,6 @@ function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
     const downloadBtn = getDownloadButton(img);
     img.parentElement.appendChild(downloadBtn);
 
-}
-
-function attachImage(results, wrapper) {
-    const target = findPromptPreviewElement(results);
-    if (!target.querySelector('.' + IMAGE_OUTPUT_CLASS)) {
-        const output = document.createElement('div');
-        output.className = IMAGE_OUTPUT_CLASS;
-        output.prepend(wrapper);
-        target.prepend(output);
-    } else {
-        target.querySelector('.' + IMAGE_OUTPUT_CLASS).prepend(wrapper);
-    }
-    if (setupFeedComplete) {
-        wrapper.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
-    }
 }
 
 function downloadImage(img, results) {
@@ -145,10 +161,6 @@ function downloadThisImage(img) {
 
 function getErrorMessage(results) {
     return `${results.b64_json.details?.error?.message}`;
-}
-
-function findPromptPreviewElement(results) {
-    return document.querySelector('.prompt-text:first-child').closest('li');
 }
 
 

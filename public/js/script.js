@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupScrollTopBar();
 
+    setupScrollLoading();
+
     checkUser().then(user => {
         if (user) {
             renderUserUI(user.email);

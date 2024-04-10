@@ -39,7 +39,7 @@ function setup(app) {
         res.send({ status: 'ok' });
     });
 
-    app.get('/like/image/:id', async (req, res) => {
+    app.post('/like/image/:id', async (req, res) => {
         const db = new DB('likes.db');
         const imageId = req.params.id;
         const params = {
@@ -48,6 +48,17 @@ function setup(app) {
         };
         await db.insert(params);
         res.send({ status: 'ok' });
+    });
+
+    app.get('/image/:id/liked', async (req, res) => {
+        const db = new DB('likes.db');
+        const imageId = req.params.id;
+        const params = {
+            userId: req.user?._id || 'undefined',
+            imageId
+        };
+        const results = await db.findOne(params);
+        res.send(String(!!results));
     });
 
     app.get('/feed', async (req, res) => {
@@ -72,7 +83,6 @@ function setup(app) {
             return results;
         });
 
-        console.log('data', data)
         res.send(data);
 
     });
@@ -80,6 +90,7 @@ function setup(app) {
     app.get('/images', async (req, res) => {
         const userId = req.user?._id;
         const db = new DB('images.db');
+        const likesDb = new DB('likes.db');
         const limit = req.query.limit || 8;
         let page = req.query.page;
         if (isNaN(page)) {
@@ -93,25 +104,12 @@ function setup(app) {
             page
         };
         const response = await db.find(params);
+        const likesResponse = await likesDb.find(params);
         res.send(response.map((doc) => {
             const results = doc.data;
             results.id = doc._id;
             return results;
         }));
-    });
-
-    app.get('/image/:id/like', async (req, res) => {
-        const db = new DB('likes.db');
-        const imageId = req.params.id;
-        const params = {
-            userId: req.user?._id || 'undefined',
-            imageId
-        };
-        console.log(params);
-        const results = await db.findOne(params);
-        console.log(results);
-        console.log(String(!!results));
-        res.send(String(!!results));
     });
 
     app.get('/prompts', async (req, res) => {
@@ -153,12 +151,12 @@ function setup(app) {
         res.send(response);
     });
 
-    app.get('/image/generate', async (req, res) => {
-        const prompt = decodeURIComponent(req.query.prompt);
-        const providers = decodeURIComponent(req.query.providers).split(',');
-        const guidance = isNaN(req.query.guidance) ? false : parseInt(req.query.guidance);
-        const promptId = req.query.promptId;
-        const original = req.query.original;
+    app.post('/image/generate', async (req, res) => {
+        const prompt = decodeURIComponent(req.body.prompt);
+        const providers = decodeURIComponent(req.body.providers).split(',');
+        const guidance = isNaN(req.body.guidance) ? false : parseInt(req.body.guidance);
+        const promptId = req.body.promptId;
+        const original = req.body.original;
         const response = await feed.image.generate(prompt, original, promptId, providers, guidance, req);
         res.send(response);
     });

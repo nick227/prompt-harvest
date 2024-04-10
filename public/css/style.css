@@ -298,13 +298,13 @@ ul.prompt-output.list-view button {
 ul.prompt-output.list-view {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  grid-auto-rows: minmax(200px, 200px); 
+  grid-auto-rows: minmax(250px, 250px); 
   grid-auto-flow: dense;
 }
 
 ul.prompt-output.list-view li {
   border-bottom: none;
-  height: 200px;
+  height: 250px;
 }
 
 .wide-screen {
@@ -906,12 +906,12 @@ input:checked + .slider:before {
   ul.prompt-output.list-view {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-auto-rows: minmax(150px, 150px); 
+    grid-auto-rows: minmax(170px, 170px); 
     grid-auto-flow: dense;
   }
 
   ul.prompt-output.list-view li {
-    height: 150px;
+    height: 170px;
   }
 
   

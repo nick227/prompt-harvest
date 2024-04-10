@@ -1,5 +1,5 @@
 const DEFAULT_PROMPT = '';
-const DEFAULT_REQUEST_LIMIT = 10;
+const DEFAULT_REQUEST_LIMIT = 3;
 const IMAGES_ELM_SELECTOR = 'section.images';
 let currentPageCount = 0;
 let setupFeedComplete = false;
@@ -16,12 +16,10 @@ function setupFeedPromptsNew(){
     const url = `/feed?limit=${DEFAULT_REQUEST_LIMIT}`;
     fetch(url).then(response => response.json()).then(results => {
         for(let i=results.length-1; i > -1; i--){
-            console.log('results', results)
             addPromptToOutput(results[i]);
             addImageToOutput(results[i]);
         }
     });
-
 }
 
 async function setupFeedPrompts() {

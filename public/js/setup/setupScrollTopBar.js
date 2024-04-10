@@ -37,7 +37,9 @@ function handleTopBtnClick(){
     window.scrollTo(0, 0);
 }
 function handleViewBtnClick(){
+    const promptCol = document.querySelector('.prompt .col:nth-child(1)');
     const imgCol = document.querySelector('.prompt .col:nth-child(2)');
     imgCol.style.width = imgCol.style.width === '100%' ? '50%' : '100%';
     imgCol.classList.toggle('wide-screen');
+    promptCol.classList.toggle('hidden');
 }

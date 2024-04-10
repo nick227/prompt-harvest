@@ -108,7 +108,7 @@ function removeDragHandlers(wrapper) {
     }
 }
 
-function navigateImages(direction, currentImageWrapper) {
+async function navigateImages(direction, currentImageWrapper) {
     // Get all image wrappers
     const imageWrappers = Array.from(document.getElementsByClassName(IMAGE_WRAPPER_CLASS));
 
@@ -138,7 +138,7 @@ function navigateImages(direction, currentImageWrapper) {
     addMouseWheelListeners(imageWrappers[newIndex]);
 
     updateInfoBox();
-    addFullScreenControls();
+    await addFullScreenControls();
 }
 
 function updateElementTransformValue(target, newTransform) {
@@ -317,36 +317,39 @@ async function getLikeButton() {
     btn.addEventListener('click', handleLikeClick);
     btn.innerHTML = LIKE_BTN_HTML;
     btn.setAttribute('title', 'L');
-    if (checkIsLikedReal()) {
+    const isLiked = await checkIsLikedReal();
+    if (isLiked === 'true') {
         btn.classList.add('liked');
     }
     return btn;
 }
 
-function checkIsLikedReal() {
+async function checkIsLikedReal() {
     const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
     const img = wrapper.querySelector('img');
-    return img.classList.contains('liked');
+    const imageId = img.dataset.id;
+    const response = await fetch(`/image/${imageId}/liked`);
+    const isLiked = await response.text();
+    return isLiked;
 }
 
 async function handleLikeClick() {
-    const btn = document.querySelector('.btn-like');
     const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
     const img = wrapper.querySelector('img');
-    const id = img.dataset.id;
-    if (!id) {
-        return;
-    }
+    const imageId = img.dataset.id;
+    const btn = document.querySelector('.btn-like');
     btn.classList.toggle('liked');
     img.classList.toggle('liked');
-    if (!img.classList.contains('liked')) {
-        const url = `/like/image/${id}`;
-        await fetch(url).then(res => res.json());
+    if (img.classList.contains('liked')) {
+        const url = `/like/image/${imageId}`;
+        await fetch(url, {
+            method: 'POST',
+        });
     } else {
-        const url = `/like/image/${id}`;
+        const url = `/like/image/${imageId}`;
         await fetch(url, {
             method: 'DELETE',
-        }).then(res => res.json());
+        });
     }
 }
 

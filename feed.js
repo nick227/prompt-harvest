@@ -30,9 +30,8 @@ Array.prototype.shuffle = function() {
 }
 
 let replacementDict = {};
-let customDict = {};
 
-function processCustomVariables(customVariables) {
+function processCustomVariables(customVariables, customDict) {
     if (!customVariables) {
         return customDict;
     }
@@ -57,10 +56,10 @@ async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
         if (typeof prompt !== 'string' || !prompt) {
             return { error: 'Error generating image' };
         }
-
-        customDict = processCustomVariables(customVariables);
+        let customDict = {};
+        customDict = processCustomVariables(customVariables, customDict);
         replacementDict = {};
-        let processedString = await processPromptText(prompt);
+        let processedString = await processPromptText(prompt, customDict);
 
         if(mixup) {
             processedString = shufflePrompt(processedString);
@@ -86,10 +85,10 @@ function shufflePrompt(prompt) {
     return prompt.split(', ').shuffle().join(', ');
 }
 
-async function processPromptText(prompt) {
+async function processPromptText(prompt, customDict) {
     const regex = /(\$\$\{[^}]+\})|(\$\{[^}]+\})|\b(\w+)\b|[^\s]+|\s/g;
     const textArray = prompt.match(regex);
-    const processedArray = await Promise.all(textArray.map(getWordReplacement));
+    const processedArray = await Promise.all(textArray.map(word => getWordReplacement(word, customDict)));
     return processedArray.join('');
 }
 
@@ -123,7 +122,7 @@ async function multiplyPrompt(prompt, multiplier) {
     return processedPromptParts.join(' ');
 }
 
-async function getWordReplacement(element) {
+async function getWordReplacement(element, customDict) {
     if (!element.startsWith('$')) return element;
 
     const isDoubleDollar = element.startsWith('$$');
@@ -135,13 +134,13 @@ async function getWordReplacement(element) {
             if (replacementDict[word]) {
                 return replacementDict[word];
             } else {
-                replacement = customDict[word][0];
+                replacement = customDict[word][Math.floor(Math.random() * customDict[word].length)];
                 replacementDict[word] = replacement;
             }
         } else {
             replacement = customDict[word][Math.floor(Math.random() * customDict[word].length)];
         }
-    } else if (isDoubleDollar && replacementDict[word]) {
+    } else if (isDoubleDollar && replacementDict[word] && customDict[word]) {
         return replacementDict[word];
     } else if (isCustomArray(word)) {
         replacement = getRandomElementFromCustomArray(word);
@@ -262,6 +261,10 @@ async function generate(prompt, original, promptId, providers, guidance, req) {
     const dynamicFunction = providerList[providerName];
 
     const b64_json = await dynamicFunction(prompt, guidance, req.user?._id || 'undefined');
+    if (b64_json.error) {
+        console.error(`Error in saveB64Image: ${b64_json.error}`);
+        return b64_json; 
+    }
     const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
     const data = {
         prompt,
@@ -280,10 +283,6 @@ async function generate(prompt, original, promptId, providers, guidance, req) {
 
 async function saveB64Image(b64_json, providerName, prompt, req) {
     
-    if (b64_json.error) {
-        console.error(`Error in saveB64Image: ${b64_json}`);
-        return b64_json; // Return the error object
-    }
     const buffer = Buffer.from(b64_json, 'base64');
     const imageName = `${providerName}-${makeFileNameSafeForWindows(prompt)}-${Date.now()}.jpg`;
     const imagePath = path.join(baseDir, imageName);
@@ -409,12 +408,12 @@ async function generateDezgoImage(prompt, guidance, url, model){
     try {
         const response = await axios.request(options);
         if (response.status !== 200) {
-            console.error(`Error in generateDezgoImage: ${response.status}`);
+            console.error(`Error !200 in generateDezgoImage: ${response.status}`);
             return { error: 'Error generating image', details: response.status };
         }
         return Buffer.from(response.data, 'binary').toString('base64');
     } catch (error) {
-        console.error(`Error in generateDezgoImage: ${error.message}`);
+        console.error(`Axios Error in generateDezgoImage: ${error.message}`, prompt, guidance, url, model);
         return { error: 'Error generating image', details: error.message };
     }
 }

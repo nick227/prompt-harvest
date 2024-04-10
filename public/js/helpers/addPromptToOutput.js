@@ -1,17 +1,15 @@
 const PROMPT_TEXT_CLASS_NAME = 'prompt-text';
 
-function addPromptToOutput(result, className='') {
+function addPromptToOutput(result, append=false) {
     const target = document.querySelector('.prompt-output');
     if(!target){
         return;
     }
-    console.log('result', result)
     const value = typeof result.prompt === 'string' ? result.prompt : result;
     const originalVal = typeof result.original === 'string' ? result.original : "";
     const h6 = document.createElement('h6');
     const row = document.createElement('div');
     const li = document.createElement('li');
-    li.className = className;
 
     row.className = 'row';
     h6.textContent = originalVal;
@@ -42,10 +40,18 @@ function addPromptToOutput(result, className='') {
     li.appendChild(row);
     li.dataset.originalPrompt = originalVal;
     li.dataset.prompt = value;
+    li.dataset.id = result.promptId;
 
-    target.prepend(li);
+    if(append){
+        target.append(li);
+
+    } else {
+        target.prepend(li);
+
+    }
+
     if(setupFeedComplete){
-        li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+       /// li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
     }
     
 }
