@@ -399,7 +399,7 @@ async function generateDezgoImage(prompt, guidance, url, model){
     const options = {
         method: 'POST', 
         url, 
-        timeout: 120000, 
+        timeout: 180000, 
         headers: { 'content-type': 'application/x-www-form-urlencoded', 'X-Dezgo-Key': process.env.DEZGO_API_KEY },
         data: new URLSearchParams(params).toString(), 
         responseType: 'arraybuffer'
@@ -413,7 +413,7 @@ async function generateDezgoImage(prompt, guidance, url, model){
         }
         return Buffer.from(response.data, 'binary').toString('base64');
     } catch (error) {
-        console.error(`Axios Error in generateDezgoImage: ${error.message}`, prompt, guidance, url, model);
+        console.error(`Axios Error in generateDezgoImage: ${error.message}`, url, model);
         return { error: 'Error generating image', details: error.message };
     }
 }

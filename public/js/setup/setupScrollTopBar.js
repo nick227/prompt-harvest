@@ -1,6 +1,10 @@
 let lastScrollTop = 0;
 
 function setupScrollTopBar() {
+    //if is less than 1200 px wide screen return
+    if (window.innerWidth < 1200) {
+        return;
+    }
     setupTopBarButtons();
     const scrollbar = document.querySelector('.scroll-top-bar');
     window.addEventListener('scroll', () => {

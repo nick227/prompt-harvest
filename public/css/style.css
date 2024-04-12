@@ -567,7 +567,6 @@ textarea {
 .scroll-top-bar.show {
   transform: translateY(0);
   transition: transform 0.3s;
-
 }
 
 .v-align-center {
@@ -926,6 +925,10 @@ input:checked + .slider:before {
 
 .wide-screen ul.prompt-output.list-view li {
   height: 200px;
+}
+
+.scroll-top-bar, .scroll-top-bar.show{
+  display: none;
 }
 }
 
