@@ -115,6 +115,7 @@ input[type="checkbox"] {
 
 textarea {
     height: 120px;
+    font-size: 16px;
 }
 
 textarea,
@@ -273,6 +274,10 @@ ul li {
 
 .prompt-text-wrapper {
   width: 75%;
+}
+
+.prompt-text-wrapper h6 {
+  margin: 10px 0;
 }
 
 .tags-box {
@@ -755,7 +760,7 @@ input:checked + .slider:before {
   align-items: center;
   top: 0;
   left: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--color-dark);
 }
 
 .full-screen p,

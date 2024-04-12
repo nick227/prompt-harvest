@@ -1,10 +1,8 @@
 const IMAGE_MIME_TYPE = 'image/jpeg';
 const IMAGE_OUTPUT_CLASS = 'image-output';
 const IMAGE_WRAPPER_CLASS = 'image-wrapper';
-const IMAGE_FULLSCREEN_CLASS = 'full-screen';
 const IMAGE_CONTROLS_CLASS = 'fullscreen-controls';
 const MAX_TITLE_CHARS = 124;
-const LIKE_BTN_HTML = '<i class="fas fa-heart"></i>';
 const CLOSE_ICON_HTML = '<i class="fas fa-times"></i>';
 const PREV_ICON_HTML = '<i class="fas fa-arrow-left"></i>';
 const NEXT_ICON_HTML = '<i class="fas fa-arrow-right"></i>';

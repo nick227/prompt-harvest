@@ -11,7 +11,7 @@ function setupScrollTopBar() {
         let st = window.pageYOffset || document.documentElement.scrollTop;
         if (st > lastScrollTop){
             // downscroll code
-            if (window.scrollY > 100) {
+            if (window.scrollY > 200) {
                 scrollbar.classList.add('show');
             }
         } else {

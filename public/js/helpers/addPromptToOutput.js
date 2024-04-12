@@ -33,8 +33,8 @@ function addPromptToOutput(result, append=false) {
     const divWrapper = document.createElement('div');
     divWrapper.classList.add('prompt-text-wrapper');
 
-    divWrapper.appendChild(h6);
     divWrapper.appendChild(div);
+    divWrapper.appendChild(h6);
     row.appendChild(divWrapper);
     row.appendChild(button);
     li.appendChild(row);

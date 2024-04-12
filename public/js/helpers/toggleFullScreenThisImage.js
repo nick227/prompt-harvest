@@ -1,7 +1,9 @@
 
 const DOWNLOAD_BTN_HTML = '<i class="fas fa-download"></i>';
+const IMAGE_FULLSCREEN_CLASS = 'full-screen';
 const INFO_BOX_CLASS = 'info-box';
 const TAGS_BOX_CLASS = 'tags-box';
+const LIKE_BTN_HTML = '<i class="fas fa-heart"></i>';
 
 function toggleFullScreenThisImage(wrapper) {
     if (wrapper.classList.contains(IMAGE_FULLSCREEN_CLASS)) {
@@ -51,7 +53,7 @@ function removeFullScreenControls() {
 
 async function updateLikeButton(btn) {
     const isLiked = await checkIsLikedReal();
-    if (isLiked === 'true') {
+    if (isLiked) {
         btn.classList.add('liked');
     } else {
         btn.classList.remove('liked');
@@ -77,7 +79,7 @@ async function getLikeButton() {
     btn.innerHTML = LIKE_BTN_HTML;
     btn.setAttribute('title', 'L');
     const isLiked = await checkIsLikedReal();
-    if (isLiked === 'true') {
+    if (isLiked) {
         btn.classList.add('liked');
     }
     return btn;
@@ -363,15 +365,7 @@ async function getTagsFromServer() {
 async function getTagsBox(){
     const tags = document.createElement('div');
     const hasTagList = tags.querySelector('ul');
-    const ul = hasTagList ? tags.querySelector('ul') : document.createElement('ul');/*
-    if(!hasTagList){
-        const tags = await getTagsFromServer();
-        for(let tag of tags){
-            const li = document.createElement('li');
-            li.innerText = tag;
-            ul.appendChild(li);
-        }
-    }*/
+    const ul = hasTagList ? tags.querySelector('ul') : document.createElement('ul');
     tags.className = TAGS_BOX_CLASS;
     const addTagButton = document.createElement('button');
     addTagButton.classList = 'btn btn-tag';
@@ -387,7 +381,6 @@ async function getTagsBox(){
 async function handleAddTagBtnClick(target) {
         const tag = prompt('Enter tag');
         if (tag) {
-            console.log(tag);
             const payload = {
                 tag: tag,
                 imageId: document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`).dataset.imageId
