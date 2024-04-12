@@ -1,8 +1,9 @@
-WORD_TYPE_LIMIT = 17;
+WORD_TYPE_LIMIT = 12;
 MAX_AUTO_NUM = 10;
 let requestCount = 0;
 
 async function getMatches(word) {
+    console.log('WORD_TYPE_LIMIT', WORD_TYPE_LIMIT)
     return await fetch(`/word/type/${word}?limit=${WORD_TYPE_LIMIT}`).then(res => res.json());
 }
 
@@ -245,6 +246,8 @@ async function handleGenerateClick(e){
 
     } catch (error) {
         alert(`Error ${error}`);
+        location.reload();
+
     }
 }
 

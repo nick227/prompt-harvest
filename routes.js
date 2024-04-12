@@ -191,7 +191,7 @@ function setup(app) {
     app.get('/word/type/:word', async (req, res) => {
         const word = decodeURIComponent(req.params.word).toLowerCase();
         const limit = req.query.limit || 8;
-        const response = await getWordType(word, limit);
+        const response = await getWordType(word, parseInt(limit));
         res.send(response);
     });
 
@@ -258,19 +258,35 @@ async function getWordType(word, limit) {
     const db = new DB('word-types.db');
     const escapedWord = escapeRegExp(word);
     const wordDocs = await db.find({
-        word: { $regex: new RegExp(escapedWord, 'i') },
+        word: { $regex: new RegExp('^' + escapedWord + '$', 'i') },
         projection: JSON.stringify({ word: 1 }),
-        sort: JSON.stringify({ word: 1 }),
         limit: limit
     });
     const typeDocs = await db.find({
         types: { $regex: new RegExp(escapedWord, 'i') },
         projection: JSON.stringify({ word: 1 }),
-        sort: JSON.stringify({ word: 1 }),
         limit: limit
     });
-    const docs = [...wordDocs, ...typeDocs];
-    const results = [...new Set(docs.map(doc => doc.word))];
+    const docs = [...wordDocs, ...typeDocs].slice(0, limit);
+    let results = [...new Set(docs.map(doc => doc.word))];
+
+    // Remove blank or empty strings
+    results = results.filter(word => word.trim() !== '');
+
+    // Sort the results to prioritize exact matches
+    results.sort((a, b) => {
+        const aIsExactMatch = a.toLowerCase() === word.toLowerCase();
+        const bIsExactMatch = b.toLowerCase() === word.toLowerCase();
+
+        if (aIsExactMatch && !bIsExactMatch) {
+            return -1; // a comes first
+        } else if (!aIsExactMatch && bIsExactMatch) {
+            return 1; // b comes first
+        } else {
+            return 0; // no change
+        }
+    });
+
     return results;
 }
 
