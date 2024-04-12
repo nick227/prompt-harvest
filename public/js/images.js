@@ -5,18 +5,16 @@ const IMAGE_FULLSCREEN_CLASS = 'full-screen';
 const IMAGE_CONTROLS_CLASS = 'fullscreen-controls';
 const MAX_TITLE_CHARS = 124;
 const LIKE_BTN_HTML = '<i class="fas fa-heart"></i>';
-const DOWNLOAD_BTN_HTML = '<i class="fas fa-download"></i>';
 const CLOSE_ICON_HTML = '<i class="fas fa-times"></i>';
 const PREV_ICON_HTML = '<i class="fas fa-arrow-left"></i>';
 const NEXT_ICON_HTML = '<i class="fas fa-arrow-right"></i>';
 
+
 async function generateImage(promptObj, e = null) {
+    if (!isProviderSelected()) {
+        alert("Must select at least one provider");
+    } 
     const text = promptObj.prompt;
-    const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
-    if (!checkedProviders.length) {
-        alert("Please select at least one provider");
-        return;
-    }
     if (!text.length) {
         alert("Invalid Prompt");
         return;
@@ -32,6 +30,7 @@ async function generateImage(promptObj, e = null) {
     const originalVal = promptObj.original;
 
     const url = `/image/generate`;
+    const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
 
     const data = {
         prompt: text,
@@ -121,7 +120,7 @@ function attachImage(results, wrapper) {
         target.querySelector('.' + IMAGE_OUTPUT_CLASS).prepend(wrapper);
     }
     if (setupFeedComplete) {
-        ////wrapper.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+        wrapper.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
     }
 }
 
@@ -148,14 +147,8 @@ function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
 function downloadImage(img, results) {
     const a = document.createElement('a');
     a.href = img.src;
-    a.download = `${makeFileNameSafeForWindows(results.providerName + '-' + results.prompt)}.jpg`;
-    a.click();
-}
-
-function downloadThisImage(img) {
-    const a = document.createElement('a');
-    a.href = img.src;
-    a.download = img.src.split('/').pop();
+    const fileName = decodeURIComponent(img.src.split('/').pop());
+    a.download = fileName;
     a.click();
 }
 

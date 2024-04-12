@@ -275,6 +275,10 @@ ul li {
   width: 75%;
 }
 
+.tags-box {
+  margin-top: 40px;
+}
+
 .image-wrapper h3,
 .prompt-text,
 .info-box h3,
@@ -924,3 +928,4 @@ input:checked + .slider:before {
   height: 200px;
 }
 }
+

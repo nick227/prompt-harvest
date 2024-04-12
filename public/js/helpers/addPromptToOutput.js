@@ -19,7 +19,7 @@ function addPromptToOutput(result, append=false) {
     });
     
     const button = document.createElement('button');
-    button.addEventListener('click', handleMakeNewImageClick);
+    button.addEventListener('click', handleMakeBtnClick);
     button.textContent = 'make';
 
     const div = document.createElement('div');
@@ -33,8 +33,8 @@ function addPromptToOutput(result, append=false) {
     const divWrapper = document.createElement('div');
     divWrapper.classList.add('prompt-text-wrapper');
 
-    divWrapper.appendChild(div);
     divWrapper.appendChild(h6);
+    divWrapper.appendChild(div);
     row.appendChild(divWrapper);
     row.appendChild(button);
     li.appendChild(row);
@@ -44,20 +44,22 @@ function addPromptToOutput(result, append=false) {
 
     if(append){
         target.append(li);
-
     } else {
         target.prepend(li);
-
     }
 
     if(setupFeedComplete){
-       /// li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+       li.scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
     }
     
 }
 
-async function handleMakeNewImageClick(e) {
+async function handleMakeBtnClick(e) {
     e.preventDefault();
+    if(!isProviderSelected()){
+        alert('Please select at least one provider');
+        return;
+    }
     originalVal = e.target.closest('li').querySelector('h6').textContent;
     const prompt = e.target.closest('li').querySelector('.prompt-text').textContent;
     

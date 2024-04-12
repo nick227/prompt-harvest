@@ -1,5 +1,9 @@
+let isFetching = false;
+let scrollCurrentPosition = 0;
+let currentPage = 0;
+
 function setupScrollLoading() {
-    window.addEventListener('scroll', handleWindowScroll);
+    window.addEventListener('scroll', debounce(handleWindowScroll, 200));
     loadMoreImagesUntilScrollable();
 }
 
@@ -12,26 +16,23 @@ function loadMoreImagesUntilScrollable() {
 }
 
 function loadMoreImages(){
-    setupFeedComplete = false;
+    if (isFetching) return;
+    isFetching = true;
     currentPage++;
     const url = `/images?limit=${DEFAULT_REQUEST_LIMIT}&page=${currentPage}`;
     return fetch(url).then(response => response.json()).then(results => {
         if (results.length === 0) {
-            // No more images to load
             return;
         }
-        for(let i=results.length-1; i > -1; i--){
-            addPromptToOutput(results[i], true);
-            addImageToOutput(results[i]);
-        }
-        setupFeedComplete = true;
+        results.forEach(result => {
+            addPromptToOutput(result, true);
+            addImageToOutput(result);
+        });
+        isFetching = false;
     });
 }
 
-let scrollCurrentPosition = 0;
-let currentPage = 0;
-
-function handleWindowScroll(e){
+function handleWindowScroll(e) {
     const scrollTop = window.pageYOffset;
     const scrollHeight = document.body.scrollHeight;
     const clientHeight = document.documentElement.clientHeight;
@@ -41,4 +42,12 @@ function handleWindowScroll(e){
         loadMoreImages();
     }
     scrollCurrentPosition = scrollTop;
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
 }

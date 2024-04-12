@@ -151,6 +151,33 @@ function setup(app) {
         res.send(response);
     });
 
+    app.get('/image/tags', async (req, res) => {
+        const db = new DB('tags.db');
+        const imageId = req.query.imageId;
+        const userId = req.user?._id;
+        const params = {
+            imageId,
+            userId
+        };
+        const results = await db.find(params);
+        res.send(results.map(obj => obj.tag));
+
+    });
+
+        app.post('/image/tag', async (req, res) => {
+        const db = new DB('tags.db');
+        const imageId = req.body.imageId;
+        const tag = req.body.tag;
+        const userId = req.user?._id;
+        const params = {
+            imageId,
+            tag,
+            userId
+        };
+        await db.insert(params);
+        res.send({ status: 'ok' });
+    });
+
     app.post('/image/generate', async (req, res) => {
         const prompt = decodeURIComponent(req.body.prompt);
         const providers = decodeURIComponent(req.body.providers).split(',');

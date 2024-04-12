@@ -4,7 +4,6 @@ function makeFileNameSafeForWindows(name) {
     const maxLength = 100;
     let safeName = name.replace(illegalChars, '')
         .replace(/\.{2,}/g, '.')
-        .replace(/ /g, '-')  // Replace spaces with dashes
         .trim()
         .replace(/(^[. ]+|[. ]+$)/g, '');
 
@@ -23,3 +22,12 @@ HTMLElement.prototype.addSwipe = function (callback) {
         callback(event);
     });
 } 
+
+
+function isProviderSelected() {
+    const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
+    if (checkedProviders.length) {
+        return true;
+    }
+    return false;
+}

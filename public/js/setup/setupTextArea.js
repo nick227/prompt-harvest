@@ -115,11 +115,33 @@ const handleMatchListItemClick = e => {
     setupMaxNumInput();
     setupProviderClicks();
     textArea.addEventListener('input', handleInput);
+    textArea.addEventListener('keydown', handleTextAreaEnterKey);
     matchesEl.addEventListener('click', handleMatchListItemClick);
     //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
     document.querySelector('.btn-generate').addEventListener('click', handleGenerateClick);
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
+
+}
+
+function handleTextAreaEnterKey(e) {
+    if (e.keyCode === 13) { // 13 is the keyCode for Enter
+        e.preventDefault();
+        if (e.shiftKey) {
+            // If Shift+Enter was pressed, add a new line
+            const value = this.value;
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+
+            this.value = value.substring(0, start) + '\n' + value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 1;
+        } else {
+            // If Enter was pressed without Shift, prevent the default action (new line)
+            // and trigger handleGenerateClick
+            handleGenerateClick(e);
+        }
+    }
+
 
 }
 
@@ -203,8 +225,7 @@ async function handleGenerateClick(e){
         alert('Invalid Prompt');
         return;
     }
-    const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
-    if(!checkedProviders.length){
+    if(!isProviderSelected()){
         alert('Please select at least one provider');
         return;
     }

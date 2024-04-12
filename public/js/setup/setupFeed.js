@@ -8,7 +8,7 @@ async function setupFeed() {
     setTimeout(async function(){
         window.scrollTop = 0;
         window.scrollTo(0, 0);
-        setupFeedComplete = true;
+        let setupFeedComplete = true;
     }, 400);
 }
 
