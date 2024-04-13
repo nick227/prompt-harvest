@@ -8,6 +8,7 @@ async function fetchWithCredentials(endpoint) {
 async function checkUser() {
     const response = await fetchWithCredentials('/user');
     if (response.status === 401) {
+        alert('Please login!')
         return null;
     }
     user = await response.json();

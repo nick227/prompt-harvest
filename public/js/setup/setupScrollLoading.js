@@ -2,6 +2,24 @@ let isFetching = false;
 let scrollCurrentPosition = 0;
 let currentPage = 0;
 
+function loadMoreImages(){
+    if (isFetching) return Promise.resolve();
+    isFetching = true;
+    currentPage++;
+    const url = `/images?limit=${DEFAULT_REQUEST_LIMIT}&page=${currentPage}`;
+    return fetch(url).then(response => response.json()).then(results => {
+        if (results.length === 0) {
+            isFetching = false;
+            return Promise.resolve();
+        }
+        results.forEach(result => {
+            addPromptToOutput(result, true);
+            addImageToOutput(result);
+        });
+        isFetching = false;
+    });
+}
+
 function setupScrollLoading() {
     window.addEventListener('scroll', debounce(handleWindowScroll, 200));
     loadMoreImagesUntilScrollable();
@@ -15,22 +33,6 @@ function loadMoreImagesUntilScrollable() {
     }
 }
 
-function loadMoreImages(){
-    if (isFetching) return;
-    isFetching = true;
-    currentPage++;
-    const url = `/images?limit=${DEFAULT_REQUEST_LIMIT}&page=${currentPage}`;
-    return fetch(url).then(response => response.json()).then(results => {
-        if (results.length === 0) {
-            return;
-        }
-        results.forEach(result => {
-            addPromptToOutput(result, true);
-            addImageToOutput(result);
-        });
-        isFetching = false;
-    });
-}
 
 function handleWindowScroll(e) {
     const scrollTop = window.pageYOffset;

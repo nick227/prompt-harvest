@@ -1,5 +1,5 @@
 WORD_TYPE_LIMIT = 12;
-MAX_AUTO_NUM = 10;
+MAX_AUTO_NUM = 3;
 let requestCount = 0;
 
 async function getMatches(word) {

@@ -86,6 +86,7 @@ export default class DB {
 
     const execAsync = util.promisify(cursor.exec.bind(cursor));
     const results = await execAsync();
+
     return results;
 }
 
