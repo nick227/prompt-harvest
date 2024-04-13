@@ -1,9 +1,8 @@
-WORD_TYPE_LIMIT = 12;
+WORD_TYPE_LIMIT = 533;
 MAX_AUTO_NUM = 3;
 let requestCount = 0;
 
 async function getMatches(word) {
-    console.log('WORD_TYPE_LIMIT', WORD_TYPE_LIMIT)
     return await fetch(`/word/type/${word}?limit=${WORD_TYPE_LIMIT}`).then(res => res.json());
 }
 
@@ -31,7 +30,7 @@ function setupTextArea() {
 const handleInput = async (e) => {
     const textBeforeCursor = e.target.value.slice(0, e.target.selectionStart).trim();
     if (!textBeforeCursor || textBeforeCursor.split(/\s+/).pop().length < 3) {
-        matchesEl.innerHTML = '';
+        //matchesEl.innerHTML = '';
         return;
     }
 
@@ -44,7 +43,8 @@ const handleInput = async (e) => {
                 matches = await getMatches(lastMatchedWord);
                 if (matches.length > 0) break;
             } catch (error) {
-                console.error('A handleInput error occurred while getting matches:', error);
+                alert(`Error ${error}`);
+                console.error('An error occurred while getting matches:', error);
                 return;
             }
         }
@@ -206,9 +206,11 @@ async function convertPromptUrl(prompt=null) {
     const multiplierPair = multiplier.value.length ? `&multiplier=${encodeURIComponent(multiplier.value.trim().toLowerCase())}` : '';
     const mixup = document.querySelector('input[name="mixup"]:checked');
     const mixupPair = mixup ? `&mixup=true` : '';
+    const mashup = document.querySelector('input[name="mashup"]:checked');
+    const mashupPair = mashup ? `&mashup=true` : '';
     const customVariables = getCustomVariables();
 
-    return `/prompt/build?prompt=${prompt}${multiplierPair}${mixupPair}${customVariables}`;
+    return `/prompt/build?prompt=${prompt}${multiplierPair}${mixupPair}${customVariables}${mashupPair}`;
 }
 
 function removeExtraWhiteSpace(str){
@@ -258,7 +260,14 @@ function setupMaxNumInput(){
     maxNum.setAttribute('max', MAX_AUTO_NUM);
     maxNum.value = localStorageMaxNum || MAX_AUTO_NUM;
     maxNum.addEventListener('change', () => {
-        localStorage.setItem('maxNum', maxNum.value);
+        let value = parseInt(maxNum.value);
+        if (value < 1) {
+            value = 1;
+        } else if (value > MAX_AUTO_NUM) {
+            value = MAX_AUTO_NUM;
+        }
+        maxNum.value = value;
+        localStorage.setItem('maxNum', value);
     });
 
     const isAuto = document.querySelector("input[name='auto-generate']");

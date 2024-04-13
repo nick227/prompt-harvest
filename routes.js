@@ -146,8 +146,9 @@ function setup(app) {
         const prompt = decodeURIComponent(req.query.prompt);
         const multiplier = req.query.multiplier ? decodeURIComponent(req.query.multiplier) : false;
         const mixup = req.query.mixup ? decodeURIComponent(req.query.mixup) : false;
+        const mashup = req.query.mashup ? decodeURIComponent(req.query.mashup) : false;
         const customVariables = decodeURIComponent(req.query.customVariables);
-        const response = await feed.prompt.build(prompt, multiplier, mixup, customVariables, req);
+        const response = await feed.prompt.build(prompt, multiplier, mixup, mashup, customVariables, req);
         res.send(response);
     });
 
@@ -258,38 +259,44 @@ async function getWordType(word, limit) {
     const db = new DB('word-types.db');
     const escapedWord = escapeRegExp(word);
     const wordDocs = await db.find({
-        word: { $regex: new RegExp('^' + escapedWord, 'i') },
+        word: { $regex: new RegExp(escapedWord, 'i') },
         projection: JSON.stringify({ word: 1 }),
-        limit: limit
+        limit: limit / 2
     });
     const typeDocs = await db.find({
-        types: { $regex: new RegExp('^' + escapedWord, 'i') },
+        types: { $regex: new RegExp(escapedWord, 'i') },
         projection: JSON.stringify({ word: 1 }),
-        limit: limit
+        limit: limit / 2
     });
-    const docs = [...wordDocs, ...typeDocs].slice(0, limit);
+    wordDocs.sort((a, b) => a.word.length - b.word.length);
+    const docs = [...wordDocs, ...typeDocs];
     let results = [...new Set(docs.map(doc => doc.word))];
 
     // Remove blank or empty strings
     results = results.filter(word => word.trim() !== '');
 
-    // Sort the results to prioritize exact matches and startsWith matches
+    // Sort the results to prioritize exact matches, startsWith matches, and contains matches
     results.sort((a, b) => {
         const aIsExactMatch = a.toLowerCase() === word.toLowerCase();
         const bIsExactMatch = b.toLowerCase() === word.toLowerCase();
         const aStartsWith = a.toLowerCase().startsWith(word.toLowerCase());
         const bStartsWith = b.toLowerCase().startsWith(word.toLowerCase());
+        const aContains = a.toLowerCase().includes(word.toLowerCase());
+        const bContains = b.toLowerCase().includes(word.toLowerCase());
 
         if ((aIsExactMatch || aStartsWith) && !(bIsExactMatch || bStartsWith)) {
             return -1; // a comes first
         } else if (!(aIsExactMatch || aStartsWith) && (bIsExactMatch || bStartsWith)) {
+            return 1; // b comes first
+        } else if (aContains && !bContains) {
+            return -1; // a comes first
+        } else if (!aContains && bContains) {
             return 1; // b comes first
         } else {
             return 0; // no change
         }
     });
 
-    console.log(results);
     return results;
 }
 

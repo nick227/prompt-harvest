@@ -70,27 +70,17 @@ async function addAiWordType(word) {
         const openai = new OpenAI();
         const res = await openai.chat.completions.create(options);
         const resObj = extractOpenAiResponse(res);
+        let newRow = null;
 
         if (resObj && typeof resObj.types === 'object') {
-            const newTypes = resObj.types;
-
-            // Find the existing document for the word
-            const existingDoc = await db.find({ word.word });
-
-            let types;
-            if (existingDoc) {
-                // If the document exists, merge the new types with the existing ones
-                types = [...new Set([...existingDoc.types, ...newTypes])];
-            } else {
-                // If the document doesn't exist, use the new types
-                types = newTypes;
-            }
-
-            // Upsert the document
-            await db.upsert({ word }, { word, types });
+            const types = resObj.types;
+            newRow = db.insert({ word, types }, (err, newDoc) => {
+                if (err) {
+                    console.error(`Failed to insert record: ${err}`);
+                }
+            });
         }
-
-        return res;
+        return newRow;
     } catch (error) {
         console.error(error);
         return { error: error.message };
@@ -191,11 +181,14 @@ function createAddWordAIOptions(word) {
         }]
     };
 }
-
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
 export {
     getWordExamplesList,
     getWordType,
     addAiWordType,
     getWordRelationships,
-    analyzeText
+    analyzeText,
+    shuffle
 };  

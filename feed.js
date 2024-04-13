@@ -51,7 +51,7 @@ function processCustomVariables(customVariables, customDict) {
     return customDict;
 }
 
-async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
+async function buildPrompt(prompt, multiplier, mixup, mashup, customVariables, req) {
     try {
         if (typeof prompt !== 'string' || !prompt) {
             return { error: 'Error generating image' };
@@ -64,8 +64,13 @@ async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
         if(mixup) {
             processedString = shufflePrompt(processedString);
         }
+
         if(multiplier) {
             processedString = await multiplyPrompt(processedString, multiplier);
+        }
+
+        if(mashup) {
+            processedString = mashupPrompt(processedString);
         }
 
         const data = { original: prompt, prompt: processedString };
@@ -83,6 +88,11 @@ async function buildPrompt(prompt, multiplier, mixup, customVariables, req) {
 
 function shufflePrompt(prompt) {
     return prompt.split(', ').shuffle().join(', ');
+}
+
+function mashupPrompt(prompt) {
+    return prompt.replace(/,/g, '').split(' ').shuffle().join(' ');
+
 }
 
 async function processPromptText(prompt, customDict) {

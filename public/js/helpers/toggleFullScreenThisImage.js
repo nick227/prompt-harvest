@@ -32,9 +32,9 @@ async function addFullScreenControls() {
     const downloadBtn = getDownloadButton();
     const navBtns = getNavigateButtons();
     const closeBtn = getCloseButton();
-    const likeBtn = await getLikeButton();
+    //const likeBtn = await getLikeButton();
 
-    controls.appendChild(likeBtn);
+    //controls.appendChild(likeBtn);
     controls.appendChild(closeBtn);
     controls.appendChild(downloadBtn);
     controls.appendChild(navBtns);
