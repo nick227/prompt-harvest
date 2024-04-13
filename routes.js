@@ -269,7 +269,7 @@ async function getWordType(word, limit) {
         limit: limit / 2
     });
     wordDocs.sort((a, b) => a.word.length - b.word.length);
-    const docs = [...wordDocs, ...typeDocs];
+    const docs = [...wordDocs, ...typeDocs].slice(0, limit);
     let results = [...new Set(docs.map(doc => doc.word))];
 
     // Remove blank or empty strings
