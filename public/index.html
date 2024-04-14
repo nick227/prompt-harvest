@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Power Prompt - Image and Prompt Harvesting</title>
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
     <link rel="icon" href="images/favicon.png" type="image/png" />
     <link
       rel="stylesheet"
@@ -299,21 +300,18 @@
               </select>
             </label>
             <div class="insert-variable">+ Variable</div>
-            <div class="insert-comma">+ Comma</div>
             <div class="chips-variables"></div>
           </div>
-          <!--
-          <div>
-            <button class="prompt-convert">Convert</button>
-          </div>
-          -->
           <textarea id="prompt-textarea" rows="10"></textarea>
-
+          <div class="row space-between v-align-center">
           <input
             type="text"
             id="multiplier"
             placeholder="Multiplier text - Added between comma clauses"
           />
+          <div class="prompt-convert">+ Convert</div>
+          <div class="insert-comma">+ Comma</div>
+        </div>
           <button class="btn-generate">Let's Go!</button>
           <ul id="matches" class="matches"></ul>
         </div>

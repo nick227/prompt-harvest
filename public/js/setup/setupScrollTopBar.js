@@ -1,4 +1,5 @@
 let lastScrollTop = 0;
+WIDE_SCREEN_CLASS_NAME = "wide-screen";
 
 function setupScrollTopBar() {
     //if is less than 1200 px wide screen return
@@ -9,7 +10,7 @@ function setupScrollTopBar() {
     const scrollbar = document.querySelector('.scroll-top-bar');
     window.addEventListener('scroll', () => {
         let st = window.pageYOffset || document.documentElement.scrollTop;
-        if (st > lastScrollTop){
+        if (st > lastScrollTop) {
             // downscroll code
             if (window.scrollY > 200) {
                 scrollbar.classList.add('show');
@@ -30,20 +31,33 @@ function setupScrollTopBar() {
 
 }
 
-function setupTopBarButtons(){
+function setupTopBarButtons() {
     const topBtn = document.querySelector('.top-btn');
     const viewBtn = document.querySelector('.view-btn');
     topBtn.addEventListener('click', handleTopBtnClick);
     viewBtn.addEventListener('click', handleViewBtnClick);
+    const checkView = getLocalStorageView();
+    if (checkView) {
+        handleViewBtnClick();
+    }
 }
 
-function handleTopBtnClick(){
+function handleTopBtnClick() {
     window.scrollTo(0, 0);
 }
-function handleViewBtnClick(){
+
+function handleViewBtnClick() {
     const promptCol = document.querySelector('.prompt .col:nth-child(1)');
     const imgCol = document.querySelector('.prompt .col:nth-child(2)');
-    imgCol.style.width = imgCol.style.width === '100%' ? '50%' : '100%';
-    imgCol.classList.toggle('wide-screen');
-    promptCol.classList.toggle('hidden');
+    imgCol.classList.toggle(WIDE_SCREEN_CLASS_NAME);
+    promptCol.classList.toggle(WIDE_SCREEN_CLASS_NAME);
+    updateLocalStorageView(promptCol.classList.contains(WIDE_SCREEN_CLASS_NAME));
+}
+
+function updateLocalStorageView(isWide) {
+    localStorage.setItem('view', isWide);
+}
+
+function getLocalStorageView() {
+    return localStorage.getItem('view') === 'true';
 }

@@ -18,6 +18,7 @@ async function generateImage(promptObj, e = null) {
         return;
     }
     toggleProcessingStyle(e);
+
     const guidanceElmTop = document.querySelector('select[name="guidance-top"]');
     const guidanceValTop = guidanceElmTop.value;
     const guidanceElmBottom = document.querySelector('select[name="guidance-bottom"]');
@@ -84,11 +85,22 @@ function createImageElement(results) {
     return img;
 }
 
+function downloadImage(img, results) {
+    const a = document.createElement('a');
+    a.href = img.src;
+    const fileName = decodeURIComponent(img.src.split('/').pop());
+    a.download = fileName;
+    a.click();
+}
+
 function addImageToOutput(results, download = false) {
     const img = createImageElement(results);
     const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
     if (download === true && autoDownload) {
-        downloadImage(img, results);
+        console.log('img', img)
+        img.onload = function() {
+            downloadImage(img, results);
+        }
     }
     const wrapper = createWrapperElement();
     const note = createNoteElement(results);
@@ -140,14 +152,6 @@ function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
     const downloadBtn = getDownloadButton(img);
     img.parentElement.appendChild(downloadBtn);
 
-}
-
-function downloadImage(img, results) {
-    const a = document.createElement('a');
-    a.href = img.src;
-    const fileName = decodeURIComponent(img.src.split('/').pop());
-    a.download = fileName;
-    a.click();
 }
 
 function getErrorMessage(results) {

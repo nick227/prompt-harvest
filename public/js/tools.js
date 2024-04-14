@@ -1,3 +1,5 @@
+const IMAGE_FULLSCREEN_CLASS = 'full-screen';
+const DOWNLOAD_BTN_HTML = '<i class="fas fa-download"></i>';
 
 function makeFileNameSafeForWindows(name) {
     const illegalChars = /[\u0000-\u001F<>:"\/\\|?*.,;(){}[\]!@#$%^&+=`~]/g;
@@ -30,4 +32,51 @@ function isProviderSelected() {
         return true;
     }
     return false;
+}
+
+async function handleMakeBtnClick(e) {
+    e.preventDefault();
+    if (!isProviderSelected()) {
+        alert('Please select at least one provider');
+        return;
+    }
+    let prompt = null;
+
+    if(e.target.closest('.fullscreen-controls')){
+        prompt = document.querySelector('.full-screen-prompt').textContent;
+    } else {
+        prompt = e.target.closest('li').querySelector('.prompt-text').textContent;
+    } 
+    const url = await convertPromptUrl(prompt);
+    
+    if (!url) {
+        alert('Invalid Prompt');
+        return;
+    }
+    const results = await fetchData(url);
+    addPromptToOutput(results);
+    await generateImage(results);
+}
+
+
+function getDownloadButton(img = null) {
+    if (!img) {
+        const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
+        img = wrapper.querySelector('img');
+    }
+    const downloadBtn = document.createElement('button');
+    downloadBtn.innerHTML = DOWNLOAD_BTN_HTML;
+    downloadBtn.setAttribute('title', 'D');
+    downloadBtn.addEventListener('click', function () {
+        downloadImage(img);
+    });
+    return downloadBtn;
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
 }

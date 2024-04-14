@@ -20,7 +20,9 @@ async function checkUser() {
 }
 
 async function registerUser(e) {
-    const data = await fetchData(e, '/register', 'registerEmail', 'registerPassword');
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const data = await fetchData(e, '/register', email, password);
     if (data && data.email) {
         window.location.href = '/';
     } else {
@@ -35,10 +37,8 @@ async function logoutUser() {
     }
 }
 
-async function fetchData(e, endpoint, emailId, passwordId) {
+async function fetchData(e, endpoint, email, password) {
     e.preventDefault();
-    const email = document.getElementById(emailId).value;
-    const password = document.getElementById(passwordId).value;
     const payload = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,7 +48,9 @@ async function fetchData(e, endpoint, emailId, passwordId) {
 }
 
 async function loginUser(e) {
-    const data = await fetchData(e, '/login', 'loginEmail', 'loginPassword');
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const data = await fetchData(e, '/login', email, password);
     if (!data) {
         alert("Login failed");
         return;
@@ -56,8 +58,6 @@ async function loginUser(e) {
     const user = await checkUser();
     if (user) {
         window.location.href = '/';
-    } else {
-        alert("User failed");
     }
 }
 
@@ -68,6 +68,7 @@ async function fetchAndHandleResponse(endpoint, options) {
         data = await response.json();
     }
     if (!response.ok) {
+        alert(JSON.stringify(data));
         console.log('Server error:', data);
     }
     return data;
@@ -89,30 +90,9 @@ function renderUserUI(email) {
     document.getElementById('logout-button').addEventListener('click', logoutUser);
 }
 
-function toggleFormVisibility(showFormId, hideFormId) {
-    document.getElementById(showFormId).style.display = 'block';
-    document.getElementById(hideFormId).style.display = 'none';
-}
-
 function loadPageElements() {
-    const showRegisterForm = document.getElementById('showRegisterForm');
-    const showLoginForm = document.getElementById('showLoginForm');
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
-
-    if (showRegisterForm) {
-        showRegisterForm.addEventListener('click', e => {
-            e.preventDefault();
-            toggleFormVisibility('registerForm', 'loginForm');
-        });
-    }
-
-    if (showLoginForm) {
-        showLoginForm.addEventListener('click', e => {
-            e.preventDefault();
-            toggleFormVisibility('loginForm', 'registerForm');
-        });
-    }
 
     if (loginForm) {
         loginForm.querySelector('button[type="submit"]').addEventListener('click', loginUser);

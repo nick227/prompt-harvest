@@ -4,6 +4,7 @@ import datamuse from 'datamuse';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import feed from './feed.js';
+import getWordType from './lib/getWordType.js';
 
 const maxTokens = 15555;
 const openAiModel = 'gpt-3.5-turbo-16k';
@@ -48,6 +49,18 @@ function setup(app) {
         };
         await db.insert(params);
         res.send({ status: 'ok' });
+    });
+
+    app.get('/prompt/clauses', async (req, res) => {
+        const db = new DB('prompt-clauses.db');
+        const limit = req.query.limit || 5;
+        const params = {
+            userId: req.user?._id || 'undefined',
+            limit
+        };
+        const results = await db.find(params);
+        const uniqueResults = [...new Set(results.map(row => row.value))];
+        res.send(uniqueResults);
     });
 
     app.get('/image/:id/liked', async (req, res) => {
@@ -249,55 +262,6 @@ async function getWordTypesList(word, limit = 8) {
     let types = docs[0]?.types || [];
     types.sort();
     return types;
-}
-
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-async function getWordType(word, limit) {
-    const db = new DB('word-types.db');
-    const escapedWord = escapeRegExp(word);
-    const wordDocs = await db.find({
-        word: { $regex: new RegExp(escapedWord, 'i') },
-        projection: JSON.stringify({ word: 1 }),
-        limit: limit / 2
-    });
-    const typeDocs = await db.find({
-        types: { $regex: new RegExp(escapedWord, 'i') },
-        projection: JSON.stringify({ word: 1 }),
-        limit: limit / 2
-    });
-    wordDocs.sort((a, b) => a.word.length - b.word.length);
-    const docs = [...wordDocs, ...typeDocs].slice(0, limit);
-    let results = [...new Set(docs.map(doc => doc.word))];
-
-    // Remove blank or empty strings
-    results = results.filter(word => word.trim() !== '');
-
-    // Sort the results to prioritize exact matches, startsWith matches, and contains matches
-    results.sort((a, b) => {
-        const aIsExactMatch = a.toLowerCase() === word.toLowerCase();
-        const bIsExactMatch = b.toLowerCase() === word.toLowerCase();
-        const aStartsWith = a.toLowerCase().startsWith(word.toLowerCase());
-        const bStartsWith = b.toLowerCase().startsWith(word.toLowerCase());
-        const aContains = a.toLowerCase().includes(word.toLowerCase());
-        const bContains = b.toLowerCase().includes(word.toLowerCase());
-
-        if ((aIsExactMatch || aStartsWith) && !(bIsExactMatch || bStartsWith)) {
-            return -1; // a comes first
-        } else if (!(aIsExactMatch || aStartsWith) && (bIsExactMatch || bStartsWith)) {
-            return 1; // b comes first
-        } else if (aContains && !bContains) {
-            return -1; // a comes first
-        } else if (!aContains && bContains) {
-            return 1; // b comes first
-        } else {
-            return 0; // no change
-        }
-    });
-
-    return results;
 }
 
 async function addAiWordType(word) {

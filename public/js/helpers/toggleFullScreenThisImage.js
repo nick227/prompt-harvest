@@ -1,26 +1,32 @@
 
-const DOWNLOAD_BTN_HTML = '<i class="fas fa-download"></i>';
-const IMAGE_FULLSCREEN_CLASS = 'full-screen';
 const INFO_BOX_CLASS = 'info-box';
 const TAGS_BOX_CLASS = 'tags-box';
 const LIKE_BTN_HTML = '<i class="fas fa-heart"></i>';
 
 function toggleFullScreenThisImage(wrapper) {
     if (wrapper.classList.contains(IMAGE_FULLSCREEN_CLASS)) {
+        addFullScreen(wrapper);
+    } else {
+        removeFullScreen(wrapper);
+    }
+}
+
+function addFullScreen(wrapper) {
         removeMouseWheelListeners(wrapper);
         removeKeyBoardListeners();
         removeFullScreenControls();
         removeSwipeListeners(wrapper);
         removeDragHandlers(wrapper);
         wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
-    } else {
-        wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
-        addKeyBoardListeners();
-        addFullScreenControls();
-        addSwipeListeners(wrapper);
-        addMouseWheelListeners(wrapper);
-        addDragHandlers(wrapper);
-    }
+}
+
+function removeFullScreen(wrapper) {
+    wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
+    addKeyBoardListeners();
+    addFullScreenControls();
+    addSwipeListeners(wrapper);
+    addMouseWheelListeners(wrapper);
+    addDragHandlers(wrapper);
 }
 
 async function addFullScreenControls() {
@@ -33,14 +39,39 @@ async function addFullScreenControls() {
     const navBtns = getNavigateButtons();
     const closeBtn = getCloseButton();
     //const likeBtn = await getLikeButton();
+    const makeBtn = await getMakeButton();
 
     //controls.appendChild(likeBtn);
+    controls.appendChild(makeBtn);
     controls.appendChild(closeBtn);
     controls.appendChild(downloadBtn);
     controls.appendChild(navBtns);
 
     document.body.appendChild(infoBox);
     document.body.appendChild(controls);
+}
+
+function getMakeButton(){
+    const btn = document.createElement('button');
+    btn.classList.add('btn-make');
+    btn.addEventListener('click', handleMakeBtnClick);
+    btn.innerHTML = 'make';
+    btn.setAttribute('title', 'm');
+    return btn;
+
+}
+
+async function getLikeButton() {
+    const btn = document.createElement('button');
+    btn.classList.add('btn-like');
+    btn.addEventListener('click', handleLikeClick);
+    btn.innerHTML = LIKE_BTN_HTML;
+    btn.setAttribute('title', 'L');
+    const isLiked = await checkIsLikedReal();
+    if (isLiked) {
+        btn.classList.add('liked');
+    }
+    return btn;
 }
 
 function removeFullScreenControls() {
@@ -65,24 +96,7 @@ async function reloadFullScreenControls() {
     if (controls) {
         const infoBox = document.querySelector(`.${INFO_BOX_CLASS}`);
         updateInfoBox(infoBox);
-
-        // Update likeBtn
-        const likeBtn = controls.querySelector('.btn-like');
-        await updateLikeButton(likeBtn);
     }
-}
-
-async function getLikeButton() {
-    const btn = document.createElement('button');
-    btn.classList.add('btn-like');
-    btn.addEventListener('click', handleLikeClick);
-    btn.innerHTML = LIKE_BTN_HTML;
-    btn.setAttribute('title', 'L');
-    const isLiked = await checkIsLikedReal();
-    if (isLiked) {
-        btn.classList.add('liked');
-    }
-    return btn;
 }
 
 async function checkIsLikedReal() {
@@ -326,7 +340,7 @@ function getInfoBox() {
     const note = wrapper.querySelector('h5').innerText;
 
     const h3 = document.createElement('h3');
-    h3.classList = 'link';
+    h3.classList.add('full-screen-prompt', 'link');
     h3.innerText = title;
     infoBox.appendChild(h3);
 
@@ -474,20 +488,6 @@ function getNavigateButtons() {
     return container;
 }
 
-function getDownloadButton(img = null) {
-    if (!img) {
-        const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
-        img = wrapper.querySelector('img');
-    }
-    const downloadBtn = document.createElement('button');
-    downloadBtn.innerHTML = DOWNLOAD_BTN_HTML;
-    downloadBtn.setAttribute('title', 'D');
-    downloadBtn.addEventListener('click', function () {
-        downloadImage(img);
-    });
-    return downloadBtn;
-}
-
 function keyupHandler(e) {
     if (e.key === 'ArrowRight') {
         navigateImages('next', document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
@@ -496,10 +496,10 @@ function keyupHandler(e) {
     }
     if (e.key === 'Escape') {
         toggleFullScreenThisImage(document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
-    }
+    }/*
     if (e.key === 'l') {
         handleLikeClick();
-    }
+    }*/
     if (e.key === '+') {
         zoomImage();
     }
@@ -510,6 +510,9 @@ function keyupHandler(e) {
         const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
         const img = wrapper.querySelector('img');
         downloadImage(img);
+    }
+    if (e.key === 'm') {
+        handleMakeBtnClick();
     }
     if (e.key === 'ArrowUp') {
         moveImgUp();

@@ -17,7 +17,7 @@ let isProcessing = false;
 const feed = {
     prompt: {
         build: buildPrompt
-    }, 
+    },
     image: {
         generate: generateImage
     }
@@ -25,7 +25,7 @@ const feed = {
 
 export default feed;
 
-Array.prototype.shuffle = function() {
+Array.prototype.shuffle = function () {
     return this.sort(() => Math.random() - 0.5);
 }
 
@@ -51,25 +51,32 @@ function processCustomVariables(customVariables, customDict) {
     return customDict;
 }
 
+async function batchSaveToNedb(strings, dbName, userId) {
+    const db = new DB(dbName);
+    const promises = strings.map(str => db.insert({ value: str.trim(), userId }));
+    await Promise.all(promises);
+}
+
 async function buildPrompt(prompt, multiplier, mixup, mashup, customVariables, req) {
     try {
         if (typeof prompt !== 'string' || !prompt) {
             return { error: 'Error generating image' };
         }
+        savePromptComponents(prompt, multiplier, req);
         let customDict = {};
         customDict = processCustomVariables(customVariables, customDict);
         replacementDict = {};
         let processedString = await processPromptText(prompt, customDict);
 
-        if(mixup) {
+        if (mixup) {
             processedString = shufflePrompt(processedString);
         }
 
-        if(multiplier) {
-            processedString = await multiplyPrompt(processedString, multiplier);
+        if (multiplier) {
+            processedString = await multiplyPrompt(processedString, multiplier, customDict);
         }
 
-        if(mashup) {
+        if (mashup) {
             processedString = mashupPrompt(processedString);
         }
 
@@ -102,7 +109,7 @@ async function processPromptText(prompt, customDict) {
     return processedArray.join('');
 }
 
-async function multiplyPrompt(prompt, multiplier) {
+async function multiplyPrompt(prompt, multiplier, customDict) {
     if (!multiplier) {
         return prompt;
     }
@@ -118,7 +125,7 @@ async function multiplyPrompt(prompt, multiplier) {
             continue;
         }
 
-        const processedMultiplierElements = await Promise.all(multiplierElements.map(getWordReplacement));
+        const processedMultiplierElements = await Promise.all(multiplierElements.map(element => getWordReplacement(element, customDict))); // Pass customDict as a second argument
 
         let processedMultiplier = multiplier;
         for (let i = 0; i < multiplierElements.length; i++) {
@@ -214,6 +221,29 @@ function getRandomType(results, originalWord) {
     return results[0].types[Math.floor(Math.random() * results[0].types.length)];
 }
 
+function savePromptComponents(prompt, multiplier, req) {
+    saveClauses(prompt, req);
+    if (multiplier) {
+        saveMultipliers(multiplier, req);
+    }
+}
+
+function saveMultipliers(multiplier, req) {
+    const userId = req.user?._id;
+    const multipliers = new DB('multipliers.db');
+    return multipliers.insert({
+        value: multiplier,
+        userId
+    });
+}
+
+function saveClauses(prompt, req) {
+    const userId = req.user?._id;
+    const clauses = prompt.split(',').map(str => str.trim());
+    const dbName = 'prompt-clauses.db';
+    batchSaveToNedb(clauses, dbName, userId);
+}
+
 /***********
  * START GENERATE
  * 
@@ -273,9 +303,9 @@ async function generate(prompt, original, promptId, providers, guidance, req) {
     const b64_json = await dynamicFunction(prompt, guidance, req.user?._id || 'undefined');
     if (b64_json.error) {
         console.error(`Error in saveB64Image: ${b64_json.error}`);
-        return b64_json; 
+        return b64_json;
     }
-    const imageName = await saveB64Image(b64_json, providerName, prompt, req); 
+    const imageName = await saveB64Image(b64_json, providerName, prompt, req);
     const data = {
         prompt,
         providerName,
@@ -292,7 +322,7 @@ async function generate(prompt, original, promptId, providers, guidance, req) {
 }
 
 async function saveB64Image(b64_json, providerName, prompt, req) {
-    
+
     const buffer = Buffer.from(b64_json, 'base64');
     const imageName = `${providerName}-${makeFileNameSafeForWindows(prompt)}-${Date.now()}.jpg`;
     const imagePath = path.join(baseDir, imageName);
@@ -301,13 +331,13 @@ async function saveB64Image(b64_json, providerName, prompt, req) {
     return imageName;
 }
 
-async function saveFeedEvent(type, data, req){
+async function saveFeedEvent(type, data, req) {
     const db = type === 'image' ? new DB('images.db') : new DB('prompts.db');
     const payload = { data, userId: req.user?._id || 'undefined' };
     return await db.insert(payload);
 }
 
-async function generateDalleImage(prompt, guidance, userId=null){
+async function generateDalleImage(prompt, guidance, userId = null) {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     try {
         const response = await openai.images.generate({
@@ -325,93 +355,93 @@ async function generateDalleImage(prompt, guidance, userId=null){
         }
         return { error: 'Error generating image', details: error };
     }
-} 
+}
 
-async function generatePortraitPlus(prompt, guidance, userId=null){
+async function generatePortraitPlus(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'portrait_plus');
 }
 
-async function generateAnalogMadeness(prompt, guidance, userId=null){
+async function generateAnalogMadeness(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'analogmadness_7');
 }
 
-async function generateInkImage(prompt, guidance, userId=null){
+async function generateInkImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'inkpunk_diffusion');
 }
 
-async function generateHasdxImage(prompt, guidance, userId=null){
+async function generateHasdxImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'hasdx');
 }
 
-async function generateSynthImage(prompt, guidance, userId=null){
+async function generateSynthImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'synthwavepunk_v2');
 }
 
-async function generateDiscoImage(prompt, guidance, userId=null){
+async function generateDiscoImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'disco_diffusion_style');
 }
 
-async function generateOpenjourney(prompt, guidance, userId=null){
+async function generateOpenjourney(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'openjourney_2');
 }
 
-async function generateNightmareShaper(prompt, guidance, userId=null){
+async function generateNightmareShaper(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'nightmareshaper');
 }
 
-async function generateRealisticVision(prompt, guidance, userId=null){
+async function generateRealisticVision(prompt, guidance, userId = null) {
     const key = ['realistic_vision_5_1', 'realistic_vision_1_3'][Math.floor(Math.random() * 2)];
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'realistic_vision_5_1');
 }
 
-async function generateCyberImage(prompt, guidance, userId=null){
+async function generateCyberImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'cyberrealistic_3_1');
 }
 
-async function generateLowPolyImage(prompt, guidance, userId=null){
+async function generateLowPolyImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'lowpoly_world');
 }
 
-async function generateIcbinpSeco(prompt, guidance, userId=null){
+async function generateIcbinpSeco(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'icbinp_seco');
 }
 
-async function generateIcbinp(prompt, guidance, userId=null){
+async function generateIcbinp(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'icbinp');
 }
 
-async function generateAbyssOrange(prompt, guidance, userId=null){
+async function generateAbyssOrange(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'abyss_orange_mix_2');
 }
 
-async function generateAbsoluteImage(prompt, guidance, userId=null){
+async function generateAbsoluteImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'absolute_reality_1_8_1');
 }
 
-async function generateJuggernautImage(prompt, guidance, userId=null) {
+async function generateJuggernautImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'juggernautxl_1024px');
 }
 
-async function generateDreamshaper(prompt, guidance, userId=null) {
+async function generateDreamshaper(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'dreamshaperxl_1024px');
 }
 
-async function generateBluePencil(prompt, guidance, userId=null){
+async function generateBluePencil(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'bluepencilxl_1024px');
 }
 
-async function generateTshirtImage(prompt, guidance, userId=null){
+async function generateTshirtImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'tshirtdesignredmond_1024px');
 }
 
-async function generateDezgoImage(prompt, guidance, url, model){
+async function generateDezgoImage(prompt, guidance, url, model) {
     const params = { prompt, negative_prompt: "", guidance: guidance || DEFAULT_GUIDANCE_VALUE, seed: generateRandomNineCharNumber(), model };
     const options = {
-        method: 'POST', 
-        url, 
-        timeout: 180000, 
+        method: 'POST',
+        url,
+        timeout: 180000,
         headers: { 'content-type': 'application/x-www-form-urlencoded', 'X-Dezgo-Key': process.env.DEZGO_API_KEY },
-        data: new URLSearchParams(params).toString(), 
+        data: new URLSearchParams(params).toString(),
         responseType: 'arraybuffer'
     };
 
@@ -428,7 +458,7 @@ async function generateDezgoImage(prompt, guidance, url, model){
     }
 }
 
-function generateRandomNineCharNumber () {
+function generateRandomNineCharNumber() {
     return Math.floor(Math.random() * 1e9).toString().padStart(9, '0');
 }
 

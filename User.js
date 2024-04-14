@@ -9,7 +9,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const db = new DB('users.db');
-
 export default class User {
     constructor(app) {
         this.app = app;
@@ -30,10 +29,16 @@ export default class User {
 
         passport.use(new LocalStrategy(
             async (email, password, done) => {
-                let user = await db.findOne({ email: email });
-                if (!user) { return done(null, false); }
-                if (!bcrypt.compareSync(password, user.password)) { return done(null, false); }
-                return done(null, user);
+                console.log(email, password);
+                try {
+                    let user = await db.findOne({ email: email });
+                    console.log(user);
+                    if (!user) { return done(null, false); }
+                    if (!bcrypt.compareSync(password, user.password)) { return done(null, false); }
+                    return done(null, user);
+                } catch (err) {
+                    return done(err);
+                }
             }
         ));
 
