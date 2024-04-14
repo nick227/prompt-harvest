@@ -33,9 +33,9 @@ function setupScrollTopBar() {
 
 function setupTopBarButtons() {
     const topBtn = document.querySelector('.top-btn');
-    const viewBtn = document.querySelector('.view-btn');
+    //const viewBtn = document.querySelector('.view-btn');
     topBtn.addEventListener('click', handleTopBtnClick);
-    viewBtn.addEventListener('click', handleViewBtnClick);
+    //viewBtn.addEventListener('click', handleViewBtnClick);
     const checkView = getLocalStorageView();
     if (checkView) {
         handleViewBtnClick();

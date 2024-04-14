@@ -9,7 +9,6 @@ async function setupTextArea() {
     let dropdownIsOpen = false;
     let lastMatchedWord = '';
     const matchesEl = document.getElementById('matches');
-    matchesEl.innerHTML = await getSampleMatches();
 
     insertComma.addEventListener("click", function () {
         const val = textArea.value;
@@ -24,7 +23,7 @@ async function setupTextArea() {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         dropdownIsOpen = matches.length > 0;
         if(!dropdownIsOpen){
-            matchesEl.innerHTML = await getSampleMatches();
+            //matchesEl.innerHTML = matchesEl.innerHTML + await getSampleMatches();
 
         }
     };
@@ -38,7 +37,7 @@ async function setupTextArea() {
         const textBeforeCursor = e.target.value.slice(0, e.target.selectionStart).trim();
         if (!textBeforeCursor || textBeforeCursor.split(/\s+/).pop().length < 2) {
             //matchesEl.innerHTML = '';
-            matchesEl.innerHTML = await getSampleMatches();
+            //matchesEl.innerHTML = matchesEl.innerHTML + await getSampleMatches();
             return;
         }
 

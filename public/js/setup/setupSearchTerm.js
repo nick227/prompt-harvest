@@ -87,6 +87,8 @@ async function handleFindClick() {
         return;
     }
 
+
+
     clearTermDropDown();
     resetTextArea();
     await checkTermTypes(searchTerm);
@@ -133,6 +135,7 @@ async function checkTermTypes(searchTerm) {
     } else {
         renderTermResults(results, searchTerm);
     }
+    setupTermCount();
 }
 
 function makeUrlSafe(term) {

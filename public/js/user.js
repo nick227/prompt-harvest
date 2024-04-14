@@ -8,10 +8,6 @@ async function fetchWithCredentials(endpoint) {
 async function checkUser() {
     const response = await fetchWithCredentials('/user');
     if (response.status === 401) {
-        //if is not currently at localhost
-        if (window.location.href.indexOf('localhost') === -1) {
-            alert('Please login!');
-        }
 
         return null;
     }

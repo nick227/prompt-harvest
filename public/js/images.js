@@ -130,7 +130,7 @@ function attachImage(results, wrapper) {
         target.querySelector('.' + IMAGE_OUTPUT_CLASS).prepend(wrapper);
     }
     if (setupFeedComplete) {
-        wrapper.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+        target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
     }
 }
 
