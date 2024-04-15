@@ -28,12 +28,12 @@
       <h6 class="title">Power Prompt</h6>
     </a>
     <div class="topbar">
-      <div id="authentication"><a href="/login.html">Login</a></div>
-    </div>
-    <div class="stats align-right">
-      image count: <span id="image-count"></span> &nbsp; cost: <span id="image-cost"></span>
+      <div id="authentication"><a href="/login.html">Login</a> / <a href="/register.html">Register</a></div>
     </div>
     <div class="row">
+      image count: <span id="image-count"></span> &nbsp; cost: <span id="image-cost"></span>
+    </div>
+    <div class="row align-right">
       <script
         type="text/javascript"
         src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
@@ -55,6 +55,14 @@
           <h3>Prompt Builder <a class="link help">(?)</a></h3>
           <div class="row provider-list">
             <!--
+            <label for="dreamshaperLighting"
+              ><input
+                type="checkbox"
+                value="dreamshaperLighting"
+                id="dreamshaperLighting"
+                name="providers"
+              />DreamShaper2</label
+            >
             <label for="dalle"
               ><input
                 type="checkbox"
@@ -308,8 +316,10 @@
             id="multiplier"
             placeholder="Multiplier text - Added between comma clauses"
           />
-          <div class="prompt-convert">+ Convert</div>
-          <div class="insert-comma">+ Comma</div>
+          <div class="row align-right button-row">
+            <div class="prompt-convert">+ Convert</div>
+            <div class="insert-comma">+ Comma</div>
+          </div>
         </div>
           <button class="btn-generate">Let's Go!</button>
           <ul id="matches" class="matches"></ul>
@@ -341,12 +351,13 @@
       rel="stylesheet"
     />
 
+    <script src="js/api.js"></script>
     <script src="js/user.js"></script>
     <script src="js/tools.js"></script>
-    <script src="js/images.js"></script>
     <script src="js/helpers/toggleFullScreenThisImage.js"></script>
     <script src="js/helpers/handleHelpLinkClick.js"></script>
     <script src="js/helpers/addPromptToOutput.js"></script>
+    <script src="js/setup/setupImageTags.js"></script>
     <script src="js/setup/setupScrollLoading.js"></script>
     <script src="js/setup/setupScrollTopBar.js"></script>
     <script src="js/setup/setupCustomVariables.js"></script>
@@ -356,6 +367,7 @@
     <script src="js/setup/setupStatsBar.js"></script>
     <script src="js/setup/setupToggleView.js"></script>
     <script src="js/setup/setupFeed.js"></script>
+    <script src="js/images.js"></script>
     <script src="js/script.js"></script>
   </body>
 </html>

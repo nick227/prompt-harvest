@@ -79,5 +79,9 @@
 .scroll-top-bar, .scroll-top-bar.show{
   display: none;
 }
+
+#multiplier {
+  width: 47%;
+}
 }
 

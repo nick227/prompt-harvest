@@ -149,6 +149,12 @@ section {
   margin: 20px 0;
 }
 
+.row {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
 .term-container {
   position: relative;
   overflow: visible;
@@ -272,6 +278,12 @@ ul li {
   margin: 2px 0;
 }
 
+.test {
+  background: red !important;
+  color: red !important;
+  border: 1px solid red !important;
+}
+
 .prompt-text-wrapper {
   padding: 10px;
 }
@@ -282,6 +294,33 @@ ul li {
 
 .tags-box {
   margin-top: 40px;
+}
+
+.tags {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 70%;
+  float: right;
+}
+
+.tags:before {
+  content: 'tags:';
+}
+
+.tags li {
+  text-align: center;
+  position: relative;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.tags li:hover {
+  color: var(--color-red);
+}
+
+.tags li:not(:last-child)::after {
+  content: ",";
 }
 
 .image-wrapper h3,
@@ -300,7 +339,8 @@ ul li {
 
 ul.prompt-output.list-view .prompt-text,
 ul.prompt-output.list-view h6,
-ul.prompt-output.list-view button {
+ul.prompt-output.list-view button ,
+ul.prompt-output.list-view .tags {
   display: none;
 }
 
@@ -378,7 +418,7 @@ ul.prompt-output {
   padding: 0px 0 60px 0;
 }
 
-ul.prompt-output li {
+ul.prompt-output > li {
   width: 100%;
   border-bottom: 1px solid var(--color-light);
   padding: 0px;
@@ -386,7 +426,7 @@ ul.prompt-output li {
   padding: 20px 0 40px 0;
 }
 
-ul.prompt-output li .row {
+ul.prompt-output > li .row {
   flex-wrap: nowrap;
   padding-bottom: 15px;
   justify-content: space-between;
@@ -400,7 +440,7 @@ ul.prompt-output li .row {
   cursor: pointer;
 }
 
-ul.prompt-output li h6:active,
+ul.prompt-output > li h6:active,
 .image-wrapper h3:active,
 .prompt-text:active,
 .info-box h3:active,
@@ -437,6 +477,10 @@ ul.word-types li {
   margin: 10px;
   padding: 6px;
   cursor: pointer;
+}
+
+.button-row {
+  width: 30%;
 }
 
 .chips-variables {
@@ -565,12 +609,6 @@ textarea {
   display: none !important;
 }
 
-.row {
-  display: flex;
-  width: 100%;
-  flex-wrap: wrap;
-}
-
 .space-between {
   justify-content: space-between;
 }
@@ -588,7 +626,6 @@ textarea {
 }
 
 .align-right {
-  text-align: right;
   justify-content: flex-end;
 }
 
@@ -755,6 +792,7 @@ input:checked + .slider:before {
 .full-screen h3,
 .full-screen h5,
 .full-screen h6,
+.full-screen .tags,
 .full-screen button {
   display: none;
 }

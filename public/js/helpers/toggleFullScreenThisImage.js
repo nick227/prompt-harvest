@@ -3,6 +3,12 @@ const INFO_BOX_CLASS = 'info-box';
 const TAGS_BOX_CLASS = 'tags-box';
 const LIKE_BTN_HTML = '<i class="fas fa-heart"></i>';
 
+document.addEventListener('toggleFullScreenThisImage', function (e) {
+    const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
+    toggleFullScreenThisImage(wrapper);
+});
+
+
 function toggleFullScreenThisImage(wrapper) {
     if (wrapper.classList.contains(IMAGE_FULLSCREEN_CLASS)) {
         addFullScreen(wrapper);
@@ -355,11 +361,11 @@ function getInfoBox() {
     infoBox.appendChild(h62);
 
     h3.addEventListener('click', function () {
-        navigator.clipboard.writeText(title);
+        navigator.clipboard.writeText(h3.innerText);
     });
 
     h6.addEventListener('click', function () {
-        navigator.clipboard.writeText(title);
+        navigator.clipboard.writeText(h6.innerText);
     });
 
     return infoBox;

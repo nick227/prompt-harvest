@@ -28,7 +28,6 @@ async function generateImage(promptObj, e = null) {
     const promptIdVal = promptObj.promptId;
     const originalVal = promptObj.original;
 
-    const url = `/image/generate`;
     const checkedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked')).map(input => input.value);
 
     const data = {
@@ -40,7 +39,7 @@ async function generateImage(promptObj, e = null) {
         original: originalVal
     };
 
-    const results = await fetch(url, {
+    const results = await fetch(API_IMAGE_GENERATE, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -148,10 +147,14 @@ function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
     });
 
     img.src = img.dataset.src;
-
     const downloadBtn = getDownloadButton(img);
     img.parentElement.appendChild(downloadBtn);
-
+    
+    const addTagBtn = getTagButton(img);
+    const addTagList = getTagList(img);
+    img.parentElement.appendChild(addTagBtn);
+    img.parentElement.appendChild(addTagList);
+    updateTagList(img);
 }
 
 function getErrorMessage(results) {

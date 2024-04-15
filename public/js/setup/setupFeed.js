@@ -8,12 +8,12 @@ async function setupFeed() {
     setTimeout(async function(){
         window.scrollTop = 0;
         window.scrollTo(0, 0);
-        let setupFeedComplete = true;
+        ///setupFeedComplete = true;
     }, 400);
 }
 
 function setupFeedPromptsNew(){
-    const url = `/feed?limit=${DEFAULT_REQUEST_LIMIT}`;
+    const url = `${API_FEED}?limit=${DEFAULT_REQUEST_LIMIT}`;
     fetch(url).then(response => response.json()).then(results => {
         for(let i=results.length-1; i > -1; i--){
             addPromptToOutput(results[i]);

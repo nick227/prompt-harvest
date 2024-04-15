@@ -1,5 +1,5 @@
-WORD_TYPE_LIMIT = 43;
-MAX_AUTO_NUM = 3;
+WORD_TYPE_LIMIT = 8;
+MAX_AUTO_NUM = 5;
 MAX_SAMPLES_NUM = 14;
 let requestCount = 0;
 
@@ -127,10 +127,9 @@ async function setupTextArea() {
     setupMaxNumInput();
     setupProviderClicks();
     textArea.addEventListener('input', debounce(handleInput, 200));
-    textArea.addEventListener('keydown', handleTextAreaEnterKey);
     matchesEl.addEventListener('click', handleMatchListItemClick);
     document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
-    document.querySelector('.btn-generate').addEventListener('click', handleGenerateClick);
+    document.querySelector('.btn-generate').addEventListener('click', debounce(handleGenerateClick, 200));
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
 
@@ -150,7 +149,7 @@ function handleTextAreaEnterKey(e) {
         } else {
             // If Enter was pressed without Shift, prevent the default action (new line)
             // and trigger handleGenerateClick
-            handleGenerateClick(e);
+            debounce(handleGenerateClick, 200)
         }
     }
 
@@ -207,7 +206,7 @@ function toggleAllProviders(e) {
     checkboxes.forEach(checkbox => checkbox.checked = e.target.checked);
 }
 
-async function convertPromptUrl(prompt = null) {
+function convertPromptToUrl(prompt = null) {
     const textArea = document.getElementById('prompt-textarea');
     prompt = prompt ? prompt : encodeURIComponent(removeExtraWhiteSpace(textArea.value.trim()));
     if (!prompt) {
@@ -221,7 +220,7 @@ async function convertPromptUrl(prompt = null) {
     const mashupPair = mashup ? `&mashup=true` : '';
     const customVariables = getCustomVariables();
 
-    return `/prompt/build?prompt=${prompt}${multiplierPair}${mixupPair}${customVariables}${mashupPair}`;
+    return `${API_PROMPT_BUILD}?prompt=${prompt}${multiplierPair}${mixupPair}${customVariables}${mashupPair}`;
 }
 
 function removeExtraWhiteSpace(str) {
@@ -233,8 +232,8 @@ async function fetchData(url) {
     return await response.json();
 }
 
-async function handleGenerateClick(e) {
-    const url = await convertPromptUrl();
+async function handleGenerateClick() {
+    const url = convertPromptToUrl();
     if (!url) {
         alert('Invalid Prompt');
         return;
@@ -252,7 +251,7 @@ async function handleGenerateClick(e) {
 
         if (isAuto && (requestCount < (maxNum.value || MAX_AUTO_NUM) - 1)) {
             requestCount++;
-            handleGenerateClick(e);
+            setTimeout(handleGenerateClick, 100);
         } else {
             requestCount = 0;
         }
@@ -289,7 +288,7 @@ function setupMaxNumInput() {
 }
 
 async function handleConvertClick() {
-    const url = await convertPromptUrl();
+    const url = convertPromptToUrl();
     if (!url) {
         alert('Invalid Prompt');
         return;

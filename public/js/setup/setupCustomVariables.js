@@ -32,10 +32,8 @@ function createChip(variableName, variableValues){
     chip.setAttribute('data-variable-values', variableValues);
     chip.setAttribute('title', '[' + variableValues + '] click to add, swipe to delete');
     chip.innerHTML = variableName;
-    chip.addEventListener('click', function(e){
-        const target = document.querySelector('#prompt-textarea');
-        target.value += '${'+chip.innerHTML+'}';
-        target.focus();
+    chip.addEventListener('click', function(){
+        handleChipClick(chip);
     });
     chip.addSwipe(function(e) {
         e.target.remove();
@@ -43,6 +41,18 @@ function createChip(variableName, variableValues){
     });
 
     return chip;
+}
+
+function handleChipClick(chip){
+    const target = document.querySelector('#prompt-textarea');
+    const cursorPosition = target.selectionStart;
+    const textBeforeCursor = target.value.substring(0, cursorPosition);
+    const textAfterCursor = target.value.substring(cursorPosition);
+    target.value = textBeforeCursor + '${'+chip.innerHTML+'}' + textAfterCursor;
+    const newPosition = cursorPosition + '${'+chip.innerHTML+'}'.length;
+    target.focus();
+    target.setSelectionRange(newPosition, newPosition);
+
 }
 
 function removeFromLocalStorage(variableName){

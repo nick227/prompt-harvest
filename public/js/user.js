@@ -1,6 +1,44 @@
 const authSection = document.getElementById('authWidget');
 let user = null;
 
+
+/*
+* register
+*/
+
+async function registerUser(e) {
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const data = await fetchData(e, '/register', email, password);
+    if (data && data.email) {
+        window.location.href = '/';
+    } else {
+        console.log('error', data)
+    }
+}
+
+/*
+* login
+*/
+
+async function loginUser(e) {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const data = await fetchData(e, '/login', email, password);
+    if (!data) {
+        alert("Login failed");
+        return;
+    }
+    const user = await checkUser();
+    if (user) {
+        window.location.href = '/';
+    }
+}
+
+/*
+* misc
+*/
+
 async function fetchWithCredentials(endpoint) {
     return await fetch(endpoint, { credentials: 'include' });
 }
@@ -15,24 +53,6 @@ async function checkUser() {
     return user;
 }
 
-async function registerUser(e) {
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const data = await fetchData(e, '/register', email, password);
-    if (data && data.email) {
-        window.location.href = '/';
-    } else {
-        console.log('error', data)
-    }
-}
-
-async function logoutUser() {
-    const data = await fetchAndHandleResponse('/logout');
-    if (data && data.message === 'Logged out') {
-        window.location.href = '/';
-    }
-}
-
 async function fetchData(e, endpoint, email, password) {
     e.preventDefault();
     const payload = {
@@ -41,20 +61,6 @@ async function fetchData(e, endpoint, email, password) {
         body: JSON.stringify({ email, password })
     };
     return await fetchAndHandleResponse(endpoint, payload);
-}
-
-async function loginUser(e) {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const data = await fetchData(e, '/login', email, password);
-    if (!data) {
-        alert("Login failed");
-        return;
-    }
-    const user = await checkUser();
-    if (user) {
-        window.location.href = '/';
-    }
 }
 
 async function fetchAndHandleResponse(endpoint, options) {
@@ -84,6 +90,13 @@ function renderUserUI(email) {
         </div>
     `;
     document.getElementById('logout-button').addEventListener('click', logoutUser);
+}
+
+async function logoutUser() {
+    const data = await fetchAndHandleResponse('/logout');
+    if (data && data.message === 'Logged out') {
+        window.location.href = '/';
+    }
 }
 
 function loadPageElements() {

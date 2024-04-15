@@ -42,12 +42,14 @@ async function handleMakeBtnClick(e) {
     }
     let prompt = null;
 
-    if(e.target.closest('.fullscreen-controls')){
+    if(e.target.closest('.fullscreen-controls')) {
         prompt = document.querySelector('.full-screen-prompt').textContent;
+        const event = new Event('toggleFullScreenThisImage');
+        document.dispatchEvent(event);
     } else {
         prompt = e.target.closest('li').querySelector('.prompt-text').textContent;
-    } 
-    const url = await convertPromptUrl(prompt);
+    }
+    const url = convertPromptToUrl(prompt);
     
     if (!url) {
         alert('Invalid Prompt');
@@ -72,6 +74,7 @@ function getDownloadButton(img = null) {
     });
     return downloadBtn;
 }
+
 
 function debounce(func, wait) {
     let timeout;

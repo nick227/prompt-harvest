@@ -27,7 +27,10 @@ export default class User {
         this.app.use(passport.initialize());
         this.app.use(passport.session());
 
-        passport.use(new LocalStrategy(
+        passport.use(new LocalStrategy({
+            usernameField: 'email',
+            passwordField: 'password'
+          },
             async (email, password, done) => {
                 console.log(email, password);
                 try {

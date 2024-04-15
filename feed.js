@@ -251,6 +251,7 @@ function saveClauses(prompt, req) {
 
 const providerList = {
     dalle: generateDalleImage,
+    dreamshaperLighting: generateDreamShaperLighting,
     juggernaut: generateJuggernautImage,
     absolute: generateAbsoluteImage,
     tshirt: generateTshirtImage,
@@ -416,6 +417,10 @@ async function generateAbyssOrange(prompt, guidance, userId = null) {
 
 async function generateAbsoluteImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'absolute_reality_1_8_1');
+}
+
+async function generateDreamShaperLighting(prompt, guidance, userId = null) {
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl_lightning', 'dreamshaperxl_lightning_102');
 }
 
 async function generateJuggernautImage(prompt, guidance, userId = null) {
