@@ -150,7 +150,12 @@ async function navigateImages(direction, currentImageWrapper) {
 function addSwipeListeners(wrapper) {
     if (wrapper.classList.contains(IMAGE_FULLSCREEN_CLASS)) {
         const img = wrapper.querySelector('img');
-        var hammerHandler = new Hammer(wrapper);
+        var hammerHandler = new Hammer(wrapper, {
+            touchAction: 'none'  // Prevents default browser pinch action
+        });
+
+        hammerHandler.get('pinch').set({ enable: true });  // Enable pinch event
+
         hammerHandler.on('swipeleft', function () {
             navigateImages('next', wrapper);
         });
@@ -158,6 +163,13 @@ function addSwipeListeners(wrapper) {
         hammerHandler.on('swiperight', function () {
             navigateImages('prev', wrapper);
         });
+
+        hammerHandler.on('pinch', function (ev) {
+            // You can access scale factor through ev.scale
+            // Use this to adjust the zoom level of your image
+            img.style.transform = `scale(${ev.scale})`;
+        });
+
         wrapper.hammerHandler = hammerHandler;
     }
 }
@@ -166,10 +178,10 @@ function removeSwipeListeners(wrapper) {
     if (wrapper.hammerHandler) {
         wrapper.hammerHandler.off('swipeleft');
         wrapper.hammerHandler.off('swiperight');
+        wrapper.hammerHandler.off('pinch');
         delete wrapper.hammerHandler;
     }
 }
-
 
 let isMouseDown = false;
 let lastMouseY;
