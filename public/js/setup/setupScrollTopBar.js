@@ -12,7 +12,7 @@ function setupScrollTopBar() {
         let st = window.pageYOffset || document.documentElement.scrollTop;
         if (st > lastScrollTop) {
             // downscroll code
-            if (window.scrollY > 200) {
+            if (window.scrollY > 300) { // Changed from 200 to 300
                 scrollbar.classList.add('show');
             }
         } else {
@@ -23,8 +23,8 @@ function setupScrollTopBar() {
     }, false);
 
     //also if user moves mouse to top of screen show the scroll bar
-    window.addEventListener('mousemove', (e) => {
-        if (e.clientY < 50) {
+    window.addEventListener('mouseover', (e) => {
+        if (e.clientY < 50 && window.scrollY > 300) {
             scrollbar.classList.add('show');
         }
     });

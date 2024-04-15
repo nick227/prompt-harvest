@@ -95,9 +95,11 @@ async function setupTextArea() {
 
     const updateTextArea = (textArea, newTextBeforeCursor, textAfterCursor) => {
         textArea.value = newTextBeforeCursor + textAfterCursor;
-        textArea.focus();
         textArea.selectionStart = newTextBeforeCursor.length;
         textArea.selectionEnd = newTextBeforeCursor.length;
+        if (window.innerWidth > 1200) {
+            textArea.focus();
+        }
     };
 
     const handleMatchListItemClick = e => {
