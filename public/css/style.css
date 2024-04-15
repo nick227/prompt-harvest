@@ -481,6 +481,7 @@ ul.word-types li {
 
 .button-row {
   width: 30%;
+  display: flex;
 }
 
 .chips-variables {
