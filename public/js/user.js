@@ -7,9 +7,10 @@ let user = null;
 */
 
 async function registerUser(e) {
+    e.preventDefault();
     const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
-    const data = await fetchData(e, '/register', email, password);
+    const data = await fetchData('/register', email, password);
     if (data && data.email) {
         window.location.href = '/';
     } else {
@@ -22,11 +23,11 @@ async function registerUser(e) {
 */
 
 async function loginUser(e) {
+    e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
-    const data = await fetchData(e, '/login', email, password);
+    const data = await fetchData('/login', email, password);
     if (!data) {
-        alert("Login failed");
         return;
     }
     const user = await checkUser();
@@ -46,15 +47,27 @@ async function fetchWithCredentials(endpoint) {
 async function checkUser() {
     const response = await fetchWithCredentials('/user');
     if (response.status === 401) {
-
+        showRegisterLoginFormPopUp();
         return null;
     }
     user = await response.json();
     return user;
 }
 
-async function fetchData(e, endpoint, email, password) {
-    e.preventDefault();
+function showRegisterLoginFormPopUp() {
+    if (window.location.pathname !== '/') {
+        return;
+    }
+    const registerLoginForm = `<a href="/register.html" class="link" id="">Register</a> / <a href="/login.html" class="link" id="">Login</a>`;
+    Swal.fire({
+        html: registerLoginForm,
+        width: '720',
+        confirmButtonText: 'later',
+      });
+      loadPageElements();
+}
+
+async function fetchData(endpoint, email, password) {
     const payload = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

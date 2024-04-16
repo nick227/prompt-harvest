@@ -69,14 +69,8 @@ p {
 }
 
 .title {
-  text-align: center;
   margin: 5px 0;
   font-family: Courier;
-}
-
-.masthead {
-  float: left;
-  text-decoration: none;
 }
 
 a {
@@ -259,7 +253,7 @@ button.btn-generate:active {
 }
 
 .prompt {
-  margin-top: 50px;
+  margin-top: 10px;
 }
 
 .prompt .col {
@@ -303,10 +297,10 @@ ul li {
 
 .tags {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  width: 70%;
-  float: right;
+  width: calc(100% - 20px);
+  padding: 0 10px;
+  margin-top: 15px;
 }
 
 .tags:before {
@@ -467,7 +461,7 @@ ul.word-types {
 
 ul.word-types li {
   cursor: pointer;
-  padding: 3px 6px;
+  padding: 13px 6px;
   margin: 2px;
   text-decoration: underline;
   white-space: nowrap;

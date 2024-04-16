@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Power Prompt - Image and Prompt Harvesting</title>
+    <title>Power Prompt</title>
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/mobile.css" />
     <link rel="icon" href="images/favicon.png" type="image/png" />
@@ -22,7 +22,6 @@
 -->
 <div class="scroll-top-bar">
   <button class="top-btn">top</button>
-
 </div>
     <div class="row space-between">
       <div class="donate-btn">
@@ -42,11 +41,18 @@
       </div>
       <div id="authentication"><a href="/login.html">Login</a> / <a href="/register.html">Register</a></div>
     </div>
+    <div class="" style="width:100%;">
+      <a href="/"><h1 class="title">Power Prompt</h1></a>
+    </div>
     
     <section class="prompt">
       <div class="row">
         <div class="col">
-          <h3>Prompt Builder <a class="link help">(?)</a></h3>
+          <div>
+            <a class="link help" href="javascript:void(0)">info</a>
+            &nbsp;/&nbsp;
+            <a clas="link" href="/terms.html" target="_blank">terms</a>
+          </div>
           <div class="row">
             image count: <span id="image-count"></span> &nbsp; cost: <span id="image-cost"></span>
           </div>
@@ -249,8 +255,6 @@
             <label> <input type="checkbox" name="mixup" /> mixup </label>
             &nbsp;
             <label> <input type="checkbox" name="mashup" /> mashup </label>
-            &nbsp;
-            <a href="/terms.html" target="_blank"><i class="fas fa-book"></i></a>
           </div>
           <div class="row v-align-center">
             <label>

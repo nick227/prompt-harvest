@@ -326,7 +326,7 @@ function createAddWordAIOptions(word) {
     return {
         model: openAiModel4,
         messages: [
-            { "role": "user", "content": `Attempt to generate at least 75 unique types, examples of synonyms for: "${word}".` },
+            { "role": "user", "content": `Attempt to generate at least 75 unique examples of "${word}".` },
         ],
         max_tokens: maxTokens4,
         tool_choice: { "type": "function", "function": { "name": "get_word_types" } },
@@ -343,7 +343,7 @@ function createAddWordAIOptions(word) {
                             "description": "Examples or types of the user prompt, attempt 75 unique examples.",
                             "items": {
                                 "type": "string",
-                                "description": "A type, example or synonym of ${word}."
+                                "description": "A type of ${word}."
                             }
                         }
                     },

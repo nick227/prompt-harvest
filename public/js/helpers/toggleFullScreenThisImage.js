@@ -11,13 +11,13 @@ document.addEventListener('toggleFullScreenThisImage', function (e) {
 
 function toggleFullScreenThisImage(wrapper) {
     if (wrapper.classList.contains(IMAGE_FULLSCREEN_CLASS)) {
-        addFullScreen(wrapper);
-    } else {
         removeFullScreen(wrapper);
+    } else {
+        addFullScreen(wrapper);
     }
 }
 
-function addFullScreen(wrapper) {
+function removeFullScreen(wrapper) {
         removeMouseWheelListeners(wrapper);
         removeKeyBoardListeners();
         removeFullScreenControls();
@@ -26,7 +26,7 @@ function addFullScreen(wrapper) {
         wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
 }
 
-function removeFullScreen(wrapper) {
+function addFullScreen(wrapper) {
     wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
     addKeyBoardListeners();
     addFullScreenControls();
@@ -64,7 +64,6 @@ function getMakeButton(){
     btn.innerHTML = 'make';
     btn.setAttribute('title', 'm');
     return btn;
-
 }
 
 async function getLikeButton() {

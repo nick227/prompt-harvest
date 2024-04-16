@@ -49,8 +49,8 @@
     right: auto;
   }
 
-  .info-box h3 {
-    -webkit-line-clamp: 4;
+  .info-box h3, .info-box h6 {
+    -webkit-line-clamp: 2;
   }
 
   ul.prompt-output.list-view {

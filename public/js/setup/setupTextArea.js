@@ -170,27 +170,6 @@ function updateTextAreaHeight(e) {
 
 }
 
-function handleTextAreaEnterKey(e) {
-    if (e.keyCode === 13) { // 13 is the keyCode for Enter
-        e.preventDefault();
-        if (e.shiftKey) {
-            // If Shift+Enter was pressed, add a new line
-            const value = this.value;
-            const start = this.selectionStart;
-            const end = this.selectionEnd;
-
-            this.value = value.substring(0, start) + '\n' + value.substring(end);
-            this.selectionStart = this.selectionEnd = start + 1;
-        } else {
-            // If Enter was pressed without Shift, prevent the default action (new line)
-            // and trigger handleGenerateClick
-            debounce(handleGenerateClick, 200)
-        }
-    }
-
-
-}
-
 function setupResizeEventHandler(textArea) {
     textArea.addEventListener('mouseup', function (e) {
         localStorage.setItem('textAreaHeight', e.target.style.height);
