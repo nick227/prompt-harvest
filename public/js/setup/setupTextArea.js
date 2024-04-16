@@ -26,8 +26,8 @@ async function setupTextArea() {
     const updateMatchesDisplay = async matches => {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         dropdownIsOpen = matches.length > 0;
-        if (!dropdownIsOpen) {
-            //matchesEl.innerHTML = matchesEl.innerHTML + await getSampleMatches();
+        if (dropdownIsOpen) {
+            matchesEl.scrollIntoView();
 
         }
     };
