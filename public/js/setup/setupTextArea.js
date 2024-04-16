@@ -13,7 +13,7 @@ async function setupTextArea() {
     let dropdownIsOpen = false;
     let lastMatchedWord = '';
     const matchesEl = document.getElementById('matches');
-
+/*
     insertComma.addEventListener("click", function () {
         const val = textArea.value;
         if (val.length > 0 && val.charAt(val.length - 1) === " ") {
@@ -22,7 +22,7 @@ async function setupTextArea() {
         textArea.value += ", ";
         textArea.focus();
     });
-
+*/
     const updateMatchesDisplay = async matches => {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         dropdownIsOpen = matches.length > 0;
@@ -163,7 +163,7 @@ function updateTextAreaHeight(e) {
     textArea.addEventListener('input', debounce(updateTextAreaHeight, 200));
     textArea.addEventListener('input', debounce(handleInput, 200));
     matchesEl.addEventListener('click', handleMatchListItemClick);
-    document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
+    //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
     document.querySelector('.btn-generate').addEventListener('click', debounce(handleGenerateClick, 200));
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     document.querySelector('.help').addEventListener('click', handleHelpLinkClick);

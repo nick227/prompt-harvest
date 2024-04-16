@@ -518,8 +518,8 @@ ul.word-types li:hover {
 
 .word-type-results li {
   text-align: center;
-  margin-right: 10px;
-  margin-bottom: 5px;
+  margin: 5px 10px;
+  white-space: nowrap;
 }
 
 section.images {
