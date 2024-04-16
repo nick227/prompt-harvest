@@ -27,7 +27,7 @@ async function setupTextArea() {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         dropdownIsOpen = matches.length > 0;
         if (dropdownIsOpen) {
-            matchesEl.scrollIntoView({ block: 'nearest' });
+            matchesEl.scrollIntoView({ block: 'nearest', behavior: 'smooth'  });
 
         }
     };
