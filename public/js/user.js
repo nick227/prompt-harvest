@@ -70,8 +70,7 @@ async function fetchAndHandleResponse(endpoint, options) {
         data = await response.json();
     }
     if (!response.ok) {
-        alert(JSON.stringify(data));
-        console.log('Server error:', data);
+        alert(data.error);
     }
     return data;
 }

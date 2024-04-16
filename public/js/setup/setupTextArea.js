@@ -1,5 +1,8 @@
 WORD_TYPE_LIMIT = 8;
-MAX_AUTO_NUM = 5;
+const isMobile = window.innerWidth < 1200;
+
+
+MAX_AUTO_NUM = isMobile ? 5 : 33;
 MAX_SAMPLES_NUM = 14;
 let requestCount = 0;
 
