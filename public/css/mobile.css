@@ -50,7 +50,7 @@
   }
 
   .info-box h3, .info-box h6 {
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 2 !important;
   }
 
   ul.prompt-output.list-view {
