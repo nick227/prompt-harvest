@@ -1,9 +1,10 @@
-WORD_TYPE_LIMIT = 8;
+
 const isMobile = window.innerWidth < 1200;
 
+const WORD_TYPE_LIMIT = isMobile ? 8 : 33;
 
-MAX_AUTO_NUM = isMobile ? 5 : 33;
-MAX_SAMPLES_NUM = 14;
+const MAX_AUTO_NUM = 3;
+const MAX_SAMPLES_NUM = 14;
 let requestCount = 0;
 
 async function setupTextArea() {
@@ -25,7 +26,7 @@ async function setupTextArea() {
     const updateMatchesDisplay = async matches => {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         dropdownIsOpen = matches.length > 0;
-        if(!dropdownIsOpen){
+        if (!dropdownIsOpen) {
             //matchesEl.innerHTML = matchesEl.innerHTML + await getSampleMatches();
 
         }
@@ -35,37 +36,6 @@ async function setupTextArea() {
         const results = await fetch(`/prompt/clauses?limit=${MAX_SAMPLES_NUM}`).then(res => res.json());
         return results.map(word => `<li class="sample" title="${word}">${word}</li>`).join('');
     }
-
-    const handleInput = async (e) => {
-        const textBeforeCursor = e.target.value.slice(0, e.target.selectionStart).trim();
-        if (!textBeforeCursor || textBeforeCursor.split(/\s+/).pop().length < 2) {
-            //matchesEl.innerHTML = '';
-            //matchesEl.innerHTML = matchesEl.innerHTML + await getSampleMatches();
-            return;
-        }
-
-        let matches = [];
-        const wordsBeforeCursor = textBeforeCursor.split(/\s+/);
-        for (let i = 1; i <= 3; i++) {
-            if (wordsBeforeCursor.length >= i) {
-                lastMatchedWord = wordsBeforeCursor.slice(-i).join(' ');
-                try {
-                    matches = await getMatches(lastMatchedWord);
-                    if (matches.length > 0) break;
-                } catch (error) {
-                    alert(`Error ${error}`);
-                    console.error('An error occurred while getting matches:', error);
-                    return;
-                }
-            }
-        }
-
-        if (matches.length) {
-            matches.push(', ');
-        }
-
-        updateMatchesDisplay(matches);
-    };
 
     async function getMatches(word) {
         return await fetch(`/word/type/${word}?limit=${WORD_TYPE_LIMIT}`).then(res => res.json());
@@ -127,10 +97,70 @@ async function setupTextArea() {
         }
     };
 
+function updateTextAreaHeight(e) {
+    console.log(e.target.style.height);
+    const charsPerLine = 44; 
+    const minHeight = 100; // Set your minimum height here
+    const text = e.target.value;
+    const words = text.split(/\s+/); // Split into words
+    let numberOfLines = 1; // Start with 1 line
+    let charsOnCurrentLine = 0;
+    words.forEach(word => {
+        if (word.length + charsOnCurrentLine > charsPerLine) {
+            numberOfLines++; // Add a new line if the word doesn't fit on the current line
+            charsOnCurrentLine = word.length; // Start a new line with the length of the current word
+        } else {
+            charsOnCurrentLine += word.length; // Add the length of the word to the current line
+        }
+    });
+    const numberOfLineBreaks = (text.match(/\n|\r/g) || []).length; // Count line breaks and carriage returns
+    const estimatedNumberOfLines = numberOfLines + numberOfLineBreaks;
+    const lineHeight = parseInt(window.getComputedStyle(e.target).getPropertyValue('line-height'), 10);
+    const newHeight = Math.max(estimatedNumberOfLines * lineHeight, minHeight);
+    e.target.style.height = `${newHeight}px`;
+    // Check for Enter key and add a new line
+    if (e.key === 'Enter') {
+        e.target.style.height = `${newHeight + lineHeight}px`;
+    }
+    console.log('... ',e.target.style.height);
+}
+
+    const handleInput = async (e) => {
+        const textBeforeCursor = e.target.value.slice(0, e.target.selectionStart).trim();
+        if (!textBeforeCursor || textBeforeCursor.split(/\s+/).pop().length < 2) {
+            //matchesEl.innerHTML = '';
+            //matchesEl.innerHTML = matchesEl.innerHTML + await getSampleMatches();
+            return;
+        }
+
+        let matches = [];
+        const wordsBeforeCursor = textBeforeCursor.split(/\s+/);
+        for (let i = 1; i <= 3; i++) {
+            if (wordsBeforeCursor.length >= i) {
+                lastMatchedWord = wordsBeforeCursor.slice(-i).join(' ');
+                try {
+                    matches = await getMatches(lastMatchedWord);
+                    if (matches.length > 0) break;
+                } catch (error) {
+                    alert(`Error ${error}`);
+                    console.error('An error occurred while getting matches:', error);
+                    return;
+                }
+            }
+        }
+
+        if (matches.length) {
+            matches.push(', ');
+        }
+
+        updateMatchesDisplay(matches);
+    };
+
     setupResizeEventHandler(textArea);
     setupAutoDownload();
     setupMaxNumInput();
     setupProviderClicks();
+    textArea.addEventListener('input', debounce(updateTextAreaHeight, 200));
     textArea.addEventListener('input', debounce(handleInput, 200));
     matchesEl.addEventListener('click', handleMatchListItemClick);
     document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);

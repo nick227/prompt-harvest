@@ -24,35 +24,32 @@
   <button class="top-btn">top</button>
 
 </div>
-    <a class="masthead" href="/">
-      <h6 class="title">Power Prompt</h6>
-    </a>
-    <div class="topbar">
+    <div class="row space-between">
+      <div class="donate-btn">
+        <script
+          type="text/javascript"
+          src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+          data-name="bmc-button"
+          data-slug="nicholasjay"
+          data-color="#FFDD00"
+          data-emoji="☕"
+          data-font="Cookie"
+          data-text="Buy me a coffee"
+          data-outline-color="#000000"
+          data-font-color="#000000"
+          data-coffee-color="#ffffff"
+        ></script>
+      </div>
       <div id="authentication"><a href="/login.html">Login</a> / <a href="/register.html">Register</a></div>
-    </div>
-    <div class="row">
-      image count: <span id="image-count"></span> &nbsp; cost: <span id="image-cost"></span>
-    </div>
-    <div class="row align-right">
-      <script
-        type="text/javascript"
-        src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
-        data-name="bmc-button"
-        data-slug="nicholasjay"
-        data-color="#FFDD00"
-        data-emoji="☕"
-        data-font="Cookie"
-        data-text="Buy me a coffee"
-        data-outline-color="#000000"
-        data-font-color="#000000"
-        data-coffee-color="#ffffff"
-      ></script>
     </div>
     
     <section class="prompt">
       <div class="row">
         <div class="col">
           <h3>Prompt Builder <a class="link help">(?)</a></h3>
+          <div class="row">
+            image count: <span id="image-count"></span> &nbsp; cost: <span id="image-cost"></span>
+          </div>
           <div class="row provider-list">
             <!--
             <label for="dreamshaperLighting"
@@ -309,7 +306,7 @@
             <div class="insert-variable">+ Variable</div>
             <div class="chips-variables"></div>
           </div>
-          <textarea id="prompt-textarea" rows="10"></textarea>
+          <textarea id="prompt-textarea"></textarea>
           <div class="row space-between v-align-center">
           <input
             type="text"

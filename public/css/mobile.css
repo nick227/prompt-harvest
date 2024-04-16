@@ -25,7 +25,7 @@
 
   .fullscreen-controls {
     left: 0px;
-    bottom: 140px;
+    bottom: 0px;
     z-index: 3;
     position: fixed;
     display: flex;
@@ -79,6 +79,16 @@
 
   #multiplier {
     width: 45%;
+  }
+
+  .insert-comma,
+  .prompt-convert,
+  .insert-variable {
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-light);
+    margin: 2px;
+    padding: 3px;
+    cursor: pointer;
   }
 
   .button-row {

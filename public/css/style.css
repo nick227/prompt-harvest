@@ -14,7 +14,7 @@
   --color-button: #202225;
   --color-button-hover: #3e4147;
   --color-green: lime;
-  --color-button-active: #292b2f;
+  --color-button-dark: #292b2f;
   --color-blue: dodgerblue;
   --color-link: #00b0f4;
   --color-orange: orange;
@@ -71,7 +71,6 @@ p {
 .title {
   text-align: center;
   margin: 5px 0;
-  font-size: 1.5em;
   font-family: Courier;
 }
 
@@ -114,7 +113,6 @@ input[type="checkbox"] {
 }
 
 textarea {
-    height: 120px;
     font-size: 16px;
 }
 
@@ -144,7 +142,7 @@ input[name="maxNum"] {
 section {
   width: 100%;
   height: auto;
-  padding: 20px 0 40px 0;
+  padding: 0;
   background-color: var(--color-dark);
   margin: 20px 0;
 }
@@ -241,20 +239,27 @@ button:active {
 }
 
 button.btn-generate {
-  background: var(--color-green);
-  color: var(--color-darker);
+  background: var(--color-accent);
+  color: var(--color-dark);
   width: 100%;
   margin: 20px 0;
+  font-size: 30px;
+  height: 100px;
+  border-radius: 10px;
 }
 
 button.btn-generate:hover {
-  background: var(--color-accent);
+  background: var(--color-link-hover);
   color: var(--color-dark);
 }
 
 button.btn-generate:active {
-  background: var(--color-button-active);
-  color: var(--color-text);
+  background: transparent;
+  color: var(--color-dark);
+}
+
+.prompt {
+  margin-top: 50px;
 }
 
 .prompt .col {
@@ -468,7 +473,6 @@ ul.word-types li {
   white-space: nowrap;
 }
 
-
 .insert-comma,
 .prompt-convert,
 .insert-variable {
@@ -644,12 +648,14 @@ textarea {
 
 #authentication {
   margin-left: 20px;
+  float: right;
+  height: 42px;
 }
 
-.topbar {
-  display: flex;
-  justify-content: flex-end;
+.donate-btn {
+  float: left;
 }
+
 
 .scroll-top-bar{
   position: fixed;
@@ -844,9 +850,10 @@ input:checked + .slider:before {
 }
 
 .provider-list {
+  border-top: 1px solid var(--color-light);
   border-bottom: 1px solid var(--color-light);
-  padding-bottom: 10px;
-  margin-bottom: 10px;
+  padding: 10px 0;
+  margin: 10px 0;
 }
 
 .info-box {

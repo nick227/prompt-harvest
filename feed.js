@@ -6,6 +6,7 @@ import path from 'path';
 import url from 'url';
 import axios from 'axios';
 const DEFAULT_GUIDANCE_VALUE = 10;
+//import uploadBase64ImageToCdn from './lib/uploadBase64ImageToCdn.js';
 dotenv.config();
 
 const __filename = url.fileURLToPath(import.meta.url);
@@ -329,6 +330,8 @@ async function saveB64Image(b64_json, providerName, prompt, req) {
     const imagePath = path.join(baseDir, imageName);
     if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
     fs.writeFileSync(imagePath, buffer);
+    //const imageUrl = await uploadBase64ImageToCdn(b64_json, imageName);
+    //console.log('imageUrl', imageUrl)
     return imageName;
 }
 
