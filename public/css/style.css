@@ -473,6 +473,7 @@ ul.word-types li {
   margin: 10px;
   padding: 6px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .button-row {
@@ -599,7 +600,7 @@ textarea {
 }
 
 #multiplier {
-  width: 67%;
+  width: 100%;
 }
 
 .hidden {
