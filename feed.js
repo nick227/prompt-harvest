@@ -33,7 +33,7 @@ Array.prototype.shuffle = function () {
 let replacementDict = {};
 
 function processCustomVariables(customVariables, customDict) {
-    if (!customVariables) {
+    if (!customVariables || customVariables === 'undefined') {
         return customDict;
     }
 
@@ -300,6 +300,7 @@ async function processQueue(req) {
 
 async function generate(prompt, original, promptId, providers, guidance, req) {
     const providerName = providers[Math.floor(Math.random() * providers.length)];
+    console.log(providerName)
     const dynamicFunction = providerList[providerName];
 
     const b64_json = await dynamicFunction(prompt, guidance, req.user?._id || 'undefined');

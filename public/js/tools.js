@@ -44,8 +44,8 @@ async function handleMakeBtnClick(e) {
 
     if(e.target.closest('.fullscreen-controls')) {
         prompt = document.querySelector('.full-screen-prompt').textContent;
-        const event = new Event('toggleFullScreenThisImage');
-        document.dispatchEvent(event);
+        //const event = new Event('toggleFullScreenThisImage');
+        //document.dispatchEvent(event);
     } else {
         prompt = e.target.closest('li').querySelector('.prompt-text').textContent;
     }

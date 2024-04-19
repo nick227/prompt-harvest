@@ -74,8 +74,8 @@ function toggleProcessingStyle(e = null) {
     if (currentPrompt) {
         currentPrompt.classList.toggle('processing');
         currentPrompt.disabled = !currentPrompt.disabled;
-        const matches = document.querySelector('.matches');
-        matches.classList.toggle('hidden');
+        //const matches = document.querySelector('.matches');
+        //matches.classList.toggle('hidden');
     }
 }
 
