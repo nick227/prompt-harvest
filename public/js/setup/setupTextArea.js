@@ -99,7 +99,6 @@ async function setupTextArea() {
     };
 
     function updateTextAreaHeight(e) {
-        console.log(e.target.style.height);
         const charsPerLine = 44;
         const minHeight = 100; // Set your minimum height here
         const text = e.target.value;
@@ -161,7 +160,7 @@ async function setupTextArea() {
     setupAutoDownload();
     setupMaxNumInput();
     setupProviderClicks();
-    textArea.addEventListener('input', debounce(updateTextAreaHeight, 200));
+    textArea.addEventListener('input', updateTextAreaHeight);
     textArea.addEventListener('input', debounce(handleInput, 200));
     matchesEl.addEventListener('click', handleMatchListItemClick);
     //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);

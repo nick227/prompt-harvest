@@ -424,7 +424,7 @@ async function generateAbsoluteImage(prompt, guidance, userId = null) {
 }
 
 async function generateDreamShaperLighting(prompt, guidance, userId = null) {
-    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl_lightning', 'dreamshaperxl_lightning_102');
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl_lightning', 'dreamshaperxl_lightning_1024px');
 }
 
 async function generateJuggernautImage(prompt, guidance, userId = null) {
