@@ -91,4 +91,12 @@
   .button-row {
     width: 48%;
   }
+
+  ul.prompt-output.image-view {
+    width: 100%;
+  }
+
+  .btn-scroll-top {
+    display: none;
+  }
 }
