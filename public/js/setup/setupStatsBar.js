@@ -10,7 +10,7 @@ async function setupStatsBar() {
     costTarget.textContent = costValue.toLocaleString('en-US', {style: 'currency', currency: 'USD'});
     target.textContent = count;
     //if count is multiple of 10 alert the user how many images they created
-    if(count % 25 === 0 && count > 9){
+    if(count % 26 === 0 && count > 9){
         alert(`You have created ${count} images! These images are not not free. Please consider chipping in a few bucks. Thank You!`);
     }
 }

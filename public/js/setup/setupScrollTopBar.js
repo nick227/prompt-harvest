@@ -1,23 +1,44 @@
 let lastScrollTop = 0;
-WIDE_SCREEN_CLASS_NAME = "wide-screen";
+const WIDE_SCREEN_CLASS_NAME = "wide-screen";
+const TOP_BTN_SELECTOR = 'btn-scroll-top';
+const PROMPT_VIEW_SELECTOR = 'prompt-view-label';
+
 
 function setupScrollTopBar() {
+    
+    const topBtn = document.querySelector(`.${TOP_BTN_SELECTOR}`);
+    console.log('topBtn',topBtn)
+    topBtn.addEventListener('click', handleTopBtnClick);
+
+    setupTopBarScrollListeners();
+
+}
+
+function handleTopBtnClick(event) {
+    event.preventDefault();
+    window.scrollTo(0, 0);
+}
+
+
+
+function setupTopBarScrollListeners(){
+    
     //if is less than 1200 px wide screen return
     if (window.innerWidth < 1200) {
         return;
     }
-    setupTopBarButtons();
-    const scrollbar = document.querySelector('.scroll-top-bar');
+    const scrollbar = document.querySelector(`.${TOP_BTN_SELECTOR}`);
+
     window.addEventListener('scroll', () => {
         let st = window.pageYOffset || document.documentElement.scrollTop;
         if (st > lastScrollTop) {
             // downscroll code
             if (window.scrollY > 300) { // Changed from 200 to 300
-                scrollbar.classList.add('show');
+                scrollbar.classList.add('hidden');
             }
         } else {
             // upscroll code
-            scrollbar.classList.remove('show');
+            scrollbar.classList.remove('hidden');
         }
         lastScrollTop = st <= 0 ? 0 : st; // For Mobile or negative scrolling
     }, false);
@@ -25,25 +46,19 @@ function setupScrollTopBar() {
     //also if user moves mouse to top of screen show the scroll bar
     window.addEventListener('mouseover', (e) => {
         if (e.clientY < 50 && window.scrollY > 300) {
-            scrollbar.classList.add('show');
+            scrollbar.classList.remove('hidden');
         }
     });
-
 }
 
 function setupTopBarButtons() {
-    const topBtn = document.querySelector('.top-btn');
     //const viewBtn = document.querySelector('.view-btn');
-    topBtn.addEventListener('click', handleTopBtnClick);
+    
     //viewBtn.addEventListener('click', handleViewBtnClick);
     const checkView = getLocalStorageView();
     if (checkView) {
-        handleViewBtnClick();
+        //handleViewBtnClick();
     }
-}
-
-function handleTopBtnClick() {
-    window.scrollTo(0, 0);
 }
 
 function handleViewBtnClick() {

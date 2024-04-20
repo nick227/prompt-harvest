@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Power Prompt</title>
+    <title>Dialogica is a power prompt builder and ai art generator</title>
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/mobile.css" />
-    <link rel="icon" href="images/favicon.png" type="image/png" />
+    <link rel="icon" href="/images/favicon.png" type="image/png" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
@@ -20,42 +20,36 @@
     </form>
     <img class="logo" src="images/favicon.png" />
 -->
-<div class="scroll-top-bar">
-  <button class="top-btn">top</button>
-</div>
-    <div class="row space-between">
-      <div class="donate-btn">
-        <script
-          type="text/javascript"
-          src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
-          data-name="bmc-button"
-          data-slug="nicholasjay"
-          data-color="#FFDD00"
-          data-emoji="☕"
-          data-font="Cookie"
-          data-text="Buy me a coffee"
-          data-outline-color="#000000"
-          data-font-color="#000000"
-          data-coffee-color="#ffffff"
-        ></script>
+<div class="topbar">
+
+    <button type="button" class="btn-scroll-top">top</button>
+      
+      <a href="/"><h1 class="title">Dialogica</h1></a>
+      <div class="row">
+        <div id="authentication" class="no-wrap"><a href="/login.html">Login</a> / <a href="/register.html">Register</a></div>
+        <a clas="link" href="/terms.html" target="_blank"><i class="fas fas-book"></i></a>
       </div>
-      <div id="authentication"><a href="/login.html">Login</a> / <a href="/register.html">Register</a></div>
+      
+    <div class="donate-btn ">
+      <a href="https://www.buymeacoffee.com/hatsyshirtsy" target="_blank">Buy me a coffee</a>
     </div>
-    <div class="" style="width:100%;">
-      <a href="/"><h1 class="title">Power Prompt</h1></a>
+
+    
+    <div class="row">
+      <label class="switch">
+        <input type="checkbox" checked class="prompt-view-switch" />
+        <span class="slider round"> </span>
+      </label>
     </div>
     
+    <div>
+    </div>
+
+  </div>
+
     <section class="prompt">
       <div class="row">
         <div class="col">
-          <div>
-            <a class="link help" href="javascript:void(0)">info</a>
-            &nbsp;/&nbsp;
-            <a clas="link" href="/terms.html" target="_blank">terms</a>
-          </div>
-          <div class="row">
-            image count: <span id="image-count"></span> &nbsp; cost: <span id="image-cost"></span>
-          </div>
           <div class="row provider-list">
             <!--
             <label for="dreamshaperLighting"
@@ -66,6 +60,7 @@
                 name="providers"
               />DreamShaper2</label
             >
+            -->
             <label for="dalle"
               ><input
                 type="checkbox"
@@ -74,7 +69,6 @@
                 name="providers"
               />Dalle3</label
             >
-            -->
             <label for="juggernaut"
               ><input
                 type="checkbox"
@@ -323,6 +317,7 @@
             placeholder="Multiplier text - Added between comma clauses"
           />
         </div>
+        <div class="row">image count: <span id="image-count"></span> &nbsp; cost: <span id="image-cost"></span></div>
           <textarea id="prompt-textarea"></textarea>
           <button class="btn-generate">Let's Go!</button>
 
@@ -330,12 +325,6 @@
           <ul id="matches" class="matches"></ul>
         </div>
         <div class="col">
-          <div class="row align-right v-align-center">
-            <label class="switch">
-              <input type="checkbox" checked class="prompt-view-switch" />
-              <span class="slider round"> </span>
-            </label>
-          </div>
           <div class="prompts">
             <ul class="prompt-output"></ul>
           </div>
@@ -359,7 +348,7 @@
     <script src="js/helpers/toggleFullScreenThisImage.js"></script>
     <script src="js/helpers/handleHelpLinkClick.js"></script>
     <script src="js/helpers/addPromptToOutput.js"></script>
-    <script src="js/setup/setupImageTags.js"></script>
+    <script src="js/setup/setupTagging.js"></script>
     <script src="js/setup/setupScrollLoading.js"></script>
     <script src="js/setup/setupScrollTopBar.js"></script>
     <script src="js/setup/setupCustomVariables.js"></script>

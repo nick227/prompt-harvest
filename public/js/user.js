@@ -47,7 +47,7 @@ async function fetchWithCredentials(endpoint) {
 async function checkUser() {
     const response = await fetchWithCredentials('/user');
     if (response.status === 401) {
-        showRegisterLoginFormPopUp();
+        //showRegisterLoginFormPopUp();
         return null;
     }
     user = await response.json();
@@ -64,7 +64,6 @@ function showRegisterLoginFormPopUp() {
         width: '720',
         confirmButtonText: 'later',
       });
-      loadPageElements();
 }
 
 async function fetchData(endpoint, email, password) {
@@ -96,7 +95,7 @@ function isValidEmail(email) {
 function renderUserUI(email) {
     const authentication = document.getElementById('authentication');
     authentication.innerHTML = `
-        <div class="row align-right">
+        <div class="row">
             <h3 class="user">Logged in as: ${email}</h3>
             <button id="logout-button">Logout</button>
         </div>

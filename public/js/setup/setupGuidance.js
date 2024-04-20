@@ -1,7 +1,7 @@
 const DEFAULT_GUIDANCE_TOP_VALUE = 10;
 const DEFAULT_GUIDANCE_BOTTOM_VALUE = 10;
 
-function setupGuidance(){
+function setupGuidanceDropDowns(){
     const top = document.querySelector('select[name="guidance-top"]');
     const bottom = document.querySelector('select[name="guidance-bottom"]');
 

@@ -1,4 +1,5 @@
 const IMAGE_WRAPPER_CLASS_NAME = 'image-wrapper';
+
 function setupToggleView() {
     const viewSwitch = document.querySelector('.prompt-view-switch');
     const isChecked = localStorage.getItem('promptView') === 'true';
@@ -7,27 +8,14 @@ function setupToggleView() {
 
     if(isChecked){
         promptOutput.classList.add('list-view');
+    } else {
+        promptOutput.classList.add('image-view');
     }
 
     viewSwitch.addEventListener('change', (elm) => {
         promptOutput.classList.toggle('list-view');
+        promptOutput.classList.toggle('image-view');
         localStorage.setItem('promptView', elm.target.checked);
-    });
-
-}
-
-function moveImagesToPromptContainer() {
-    const imageWrappers = document.querySelectorAll('.image-wrapper');
-
-    imageWrappers.forEach(wrapper => {
-        const promptText = wrapper.querySelector('img').title;
-        const results = { prompt: promptText };
-        const promptContainer = findPromptPreviewElement(results);
-
-        if (promptContainer) {
-            wrapper.parentNode.removeChild(wrapper);
-            promptContainer.prepend(wrapper);
-        }
     });
 }
 
@@ -36,17 +24,10 @@ function setupToggleImageSize(){
     const localStorageVal = localStorage.getItem('imageSize');
     if(localStorageVal){
         imageSizeElm.value = localStorageVal;
-        updateImageWidths(localStorageVal);
+        document.documentElement.style.setProperty('--image-width', localStorageVal + '%');
     }
     imageSizeElm.addEventListener('change', (e) => {
-        updateImageWidths(e.target.value);
+        document.documentElement.style.setProperty('--image-width', e.target.value + '%');
         localStorage.setItem('imageSize', e.target.value);
-    });
-}
-
-function updateImageWidths(value){
-    const imageWrappers = document.querySelectorAll('.image-wrapper');
-    imageWrappers.forEach(wrapper => {
-        wrapper.style.width = value + '%';
     });
 }

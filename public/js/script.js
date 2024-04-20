@@ -6,13 +6,15 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupStatsBar();
     
-    setupGuidance();
+    setupGuidanceDropDowns();
 
     setupCustomVariables();
 
     setupToggleView();
 
     //setupImageSearch();
+
+    setupTagging();
 
     setupScrollTopBar();
 

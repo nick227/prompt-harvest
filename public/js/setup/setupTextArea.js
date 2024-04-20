@@ -13,21 +13,21 @@ async function setupTextArea() {
     let dropdownIsOpen = false;
     let lastMatchedWord = '';
     const matchesEl = document.getElementById('matches');
-/*
-    insertComma.addEventListener("click", function () {
-        const val = textArea.value;
-        if (val.length > 0 && val.charAt(val.length - 1) === " ") {
-            textArea.value = val.slice(0, val.length - 1);
-        }
-        textArea.value += ", ";
-        textArea.focus();
-    });
-*/
+    /*
+        insertComma.addEventListener("click", function () {
+            const val = textArea.value;
+            if (val.length > 0 && val.charAt(val.length - 1) === " ") {
+                textArea.value = val.slice(0, val.length - 1);
+            }
+            textArea.value += ", ";
+            textArea.focus();
+        });
+    */
     const updateMatchesDisplay = async matches => {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         dropdownIsOpen = matches.length > 0;
         if (dropdownIsOpen) {
-            matchesEl.scrollIntoView({ block: 'nearest', behavior: 'smooth'  });
+            matchesEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
         }
     };
@@ -38,7 +38,8 @@ async function setupTextArea() {
     }
 
     async function getMatches(word) {
-        return await fetch(`/word/type/${word}?limit=${WORD_TYPE_LIMIT}`).then(res => res.json());
+        const encodedWord = encodeURIComponent(word);
+        return await fetch(`/word/type/${encodedWord}?limit=${WORD_TYPE_LIMIT}`).then(res => res.json());
     }
 
     const getReplacement = (innerText) => innerText === ',' ? ', ' : `\${${innerText}} `;
@@ -97,33 +98,33 @@ async function setupTextArea() {
         }
     };
 
-function updateTextAreaHeight(e) {
-    console.log(e.target.style.height);
-    const charsPerLine = 44; 
-    const minHeight = 100; // Set your minimum height here
-    const text = e.target.value;
-    const words = text.split(/\s+/); // Split into words
-    let numberOfLines = 1; // Start with 1 line
-    let charsOnCurrentLine = 0;
-    words.forEach(word => {
-        if (word.length + charsOnCurrentLine > charsPerLine) {
-            numberOfLines++; // Add a new line if the word doesn't fit on the current line
-            charsOnCurrentLine = word.length; // Start a new line with the length of the current word
-        } else {
-            charsOnCurrentLine += word.length; // Add the length of the word to the current line
+    function updateTextAreaHeight(e) {
+        console.log(e.target.style.height);
+        const charsPerLine = 44;
+        const minHeight = 100; // Set your minimum height here
+        const text = e.target.value;
+        const words = text.split(/\s+/); // Split into words
+        let numberOfLines = 1; // Start with 1 line
+        let charsOnCurrentLine = 0;
+        words.forEach(word => {
+            if (word.length + charsOnCurrentLine > charsPerLine) {
+                numberOfLines++; // Add a new line if the word doesn't fit on the current line
+                charsOnCurrentLine = word.length; // Start a new line with the length of the current word
+            } else {
+                charsOnCurrentLine += word.length; // Add the length of the word to the current line
+            }
+        });
+        const numberOfLineBreaks = (text.match(/\n|\r/g) || []).length; // Count line breaks and carriage returns
+        const estimatedNumberOfLines = numberOfLines + numberOfLineBreaks;
+        const lineHeight = parseInt(window.getComputedStyle(e.target).getPropertyValue('line-height'), 10);
+        const newHeight = Math.max(estimatedNumberOfLines * lineHeight, minHeight);
+        e.target.style.height = `${newHeight}px`;
+        // Check for Enter key and add a new line
+        if (e.key === 'Enter') {
+            e.target.style.height = `${newHeight + lineHeight}px`;
         }
-    });
-    const numberOfLineBreaks = (text.match(/\n|\r/g) || []).length; // Count line breaks and carriage returns
-    const estimatedNumberOfLines = numberOfLines + numberOfLineBreaks;
-    const lineHeight = parseInt(window.getComputedStyle(e.target).getPropertyValue('line-height'), 10);
-    const newHeight = Math.max(estimatedNumberOfLines * lineHeight, minHeight);
-    e.target.style.height = `${newHeight}px`;
-    // Check for Enter key and add a new line
-    if (e.key === 'Enter') {
-        e.target.style.height = `${newHeight + lineHeight}px`;
+        console.log('... ', e.target.style.height);
     }
-    console.log('... ',e.target.style.height);
-}
 
     const handleInput = async (e) => {
         const textBeforeCursor = e.target.value.slice(0, e.target.selectionStart).trim();
@@ -166,7 +167,7 @@ function updateTextAreaHeight(e) {
     //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
     document.querySelector('.btn-generate').addEventListener('click', debounce(handleGenerateClick, 200));
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
-    document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
+    //document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
 
 }
 

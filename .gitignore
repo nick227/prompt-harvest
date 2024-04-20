@@ -2,8 +2,6 @@ node_modules/
 .env
 migrate.js
 public/uploads
-images/
-lists/
 data/*.backup
 data/images.db
 data/prompts.db
@@ -11,6 +9,5 @@ data/users.db
 data/likes.db
 data/tags.db
 data/transactions.db
-data/term-prompts.db
 data/prompt-clauses.db
 data/multipliers.db

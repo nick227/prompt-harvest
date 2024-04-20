@@ -74,8 +74,6 @@ function toggleProcessingStyle(e = null) {
     if (currentPrompt) {
         currentPrompt.classList.toggle('processing');
         currentPrompt.disabled = !currentPrompt.disabled;
-        //const matches = document.querySelector('.matches');
-        //matches.classList.toggle('hidden');
     }
 }
 
@@ -111,7 +109,7 @@ function addImageToOutput(results, download = false) {
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                displayImage(img, results, wrapper); // Pass wrapper as a parameter
+                displayImage(img, results, wrapper); 
                 observer.unobserve(entry.target);
             }
         });
@@ -131,7 +129,7 @@ function attachImage(results, wrapper) {
         target.querySelector('.' + IMAGE_OUTPUT_CLASS).prepend(wrapper);
     }
     if (setupFeedComplete) {
-        target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+        target.scrollIntoView({ behavior: "smooth" });
     }
 }
 
@@ -152,11 +150,11 @@ function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
     const downloadBtn = getDownloadButton(img);
     img.parentElement.appendChild(downloadBtn);
     
-    const addTagBtn = getTagButton(img);
-    const addTagList = getTagList(img);
-    img.parentElement.appendChild(addTagBtn);
-    img.parentElement.appendChild(addTagList);
-    updateTagList(img);
+    //const addTagBtn = getTagButton(img);
+    //const addTagList = getTagList(img);
+    //img.parentElement.appendChild(addTagBtn);
+    //img.parentElement.appendChild(addTagList);
+    //updateTagList(img);
 }
 
 function getErrorMessage(results) {
