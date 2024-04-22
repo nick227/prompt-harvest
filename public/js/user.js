@@ -58,7 +58,7 @@ function showRegisterLoginFormPopUp() {
     if (window.location.pathname !== '/') {
         return;
     }
-    const registerLoginForm = `<a href="/register.html" class="link" id="">Register</a> / <a href="/login.html" class="link" id="">Login</a>`;
+    const registerLoginForm = `<a href="/register.html" class="link" id="">register</a> / <a href="/login.html" class="link" id="">login</a>`;
     Swal.fire({
         html: registerLoginForm,
         width: '720',

@@ -18,12 +18,12 @@ function toggleFullScreenThisImage(wrapper) {
 }
 
 function removeFullScreen(wrapper) {
-        removeMouseWheelListeners(wrapper);
-        removeKeyBoardListeners();
-        removeFullScreenControls();
-        removeSwipeListeners(wrapper);
-        removeDragHandlers(wrapper);
-        wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
+    removeMouseWheelListeners(wrapper);
+    removeKeyBoardListeners();
+    removeFullScreenControls();
+    removeSwipeListeners(wrapper);
+    removeDragHandlers(wrapper);
+    wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
 }
 
 function addFullScreen(wrapper) {
@@ -57,7 +57,16 @@ async function addFullScreenControls() {
     document.body.appendChild(controls);
 }
 
-function getMakeButton(){
+function getRatingElment() {
+    const img = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS} img`);
+    const ratingValue = img.dataset.rating === 'undefined' ? '' : img.dataset.rating;
+    const rating = document.createElement('div');
+    rating.className = 'rating';
+    rating.textContent = `Rating: ${ratingValue || ''}`;
+    return rating;
+}
+
+function getMakeButton() {
     const btn = document.createElement('button');
     btn.classList.add('btn-make');
     btn.addEventListener('click', handleMakeBtnClick);
@@ -349,6 +358,7 @@ function wheelHandler(e) {
 }
 
 function getInfoBox() {
+
     const infoBox = document.createElement('div');
     infoBox.className = INFO_BOX_CLASS;
     const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
@@ -379,6 +389,9 @@ function getInfoBox() {
         navigator.clipboard.writeText(h6.innerText);
     });
 
+    const rating = getRatingElment();
+    infoBox.appendChild(rating);
+
     return infoBox;
 }
 
@@ -393,7 +406,7 @@ async function getTagsFromServer() {
 
 }
 
-async function getTagsBox(){
+async function getTagsBox() {
     const tags = document.createElement('div');
     const hasTagList = tags.querySelector('ul');
     const ul = hasTagList ? tags.querySelector('ul') : document.createElement('ul');
@@ -401,7 +414,7 @@ async function getTagsBox(){
     const addTagButton = document.createElement('button');
     addTagButton.classList = 'btn btn-tag';
     addTagButton.innerText = 'Add Tag +';
-    addTagButton.addEventListener('click', function(){
+    addTagButton.addEventListener('click', function () {
         handleAddTagBtnClick(ul);
     });
     tags.appendChild(addTagButton);
@@ -410,23 +423,23 @@ async function getTagsBox(){
 }
 
 async function handleAddTagBtnClick(target) {
-        const tag = prompt('Enter tag');
-        if (tag) {
-            const payload = {
-                tag: tag,
-                imageId: document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`).dataset.imageId
-            };
-            const results = await fetch('image/tag', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-            if (results.ok) {
-                addTagtoHtml(tag, target);
-            }
+    const tag = prompt('Enter tag');
+    if (tag) {
+        const payload = {
+            tag: tag,
+            imageId: document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`).dataset.imageId
+        };
+        const results = await fetch('image/tag', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        if (results.ok) {
+            addTagtoHtml(tag, target);
         }
+    }
 }
 
 function addTagtoHtml(tag, target) {

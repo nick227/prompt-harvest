@@ -13,7 +13,7 @@
   --color-input: #40444b;
   --color-button: #202225;
   --color-button-hover: #3e4147;
-  --color-green: lime;
+  --color-green: rgb(101, 223, 101);
   --color-button-dark: #292b2f;
   --color-blue: dodgerblue;
   --color-link: #00b0f4;
@@ -113,8 +113,8 @@ img.liked + .liked {
     position: fixed;      
     left: 1%;
     width: 20%;
-    top: 16%;
-    height: 85vh;
+    top: 4%;
+    height: 90vh;
   }
   
   .prompt > .row > .col:nth-child(2) {
@@ -176,7 +176,6 @@ section {
 
 .row {
   display: flex;
-  width: 100%;
   flex-wrap: wrap;
 }
 
@@ -390,6 +389,7 @@ ul.prompt-output.image-view {
 
 }
 
+ul.prompt-output.list-view .tag,
 ul.prompt-output.list-view .prompt-text,
 ul.prompt-output.list-view h6,
 ul.prompt-output.list-view button ,
@@ -471,10 +471,6 @@ ul.prompt-output.list-view li {
 
 .wide-screen ul.prompt-output.list-view li {
   height: 500px;
-}
-
-.wide-screen .search {
-  margin-top: 50px;
 }
 
 ul.prompt-output {
@@ -647,6 +643,7 @@ ul.matches li {
   min-width: 15%;
   flex-grow: 1;
   text-decoration: underline;
+  background-color: #0d0b0b;
 }
 
 ul.matches li:hover {
@@ -669,6 +666,10 @@ textarea {
 
 #multiplier {
   width: 100%;
+}
+
+.active {
+  outline: 1px solid var(--color-green);
 }
 
 .hidden {
@@ -780,14 +781,21 @@ textarea {
   position: relative;
   display: inline-block;
   width: 66px;
-  height: 28px;
-  margin-bottom: 10px;
+  height: 33px;
 }
 
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
+}
+
+.slider.round {
+  border-radius: 15px;
+}
+
+.rating-filter {
+  margin-left: 20px;
 }
 
 .slider {
@@ -805,13 +813,14 @@ textarea {
 .slider:before {
   position: absolute;
   content: "";
-  height: 20px;
-  width: 20px;
+  height: 26px;
+  width: 26px;
   left: 7px;
   bottom: 4px;
   background-color: white;
   -webkit-transition: 0.4s;
   transition: 0.4s;
+  border-radius: 15px;
 }
 
 input:checked + .slider {
@@ -826,15 +835,6 @@ input:checked + .slider:before {
   -webkit-transform: translateX(28px);
   -ms-transform: translateX(28px);
   transform: translateX(28px);
-}
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 28px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
 }
 
 .full-screen {
@@ -855,7 +855,7 @@ input:checked + .slider:before {
 .full-screen h3,
 .full-screen h5,
 .full-screen h6,
-.full-screen .tags,
+.full-screen .rating,
 .full-screen button {
   display: none;
 }

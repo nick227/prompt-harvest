@@ -7,7 +7,6 @@ const PROMPT_VIEW_SELECTOR = 'prompt-view-label';
 function setupScrollTopBar() {
     
     const topBtn = document.querySelector(`.${TOP_BTN_SELECTOR}`);
-    console.log('topBtn',topBtn)
     topBtn.addEventListener('click', handleTopBtnClick);
 
     setupTopBarScrollListeners();

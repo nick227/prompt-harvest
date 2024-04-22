@@ -23,6 +23,24 @@ export default routes;
 
 function setup(app) {
 
+    app.put('/api/images/:id/rating', async (req, res) => {
+        const db = new DB('images.db');
+        const id = req.params.id;
+        const rating = req.body.rating;
+
+        try {
+            const result = await db.update({ _id: id }, { $set: { 'data.rating': rating } });
+            console.log(result, id, rating);
+            if (result === 0) {
+                res.status(404).send({ message: 'No image found to update' });
+            } else {
+                res.json({ result, id, rating });
+            }
+        } catch (err) {
+            res.status(500).send(err);
+        }
+    });
+
     app.delete('/like/image/:id', async (req, res) => {
         const db = new DB('likes.db');
         const imageId = req.params.id;

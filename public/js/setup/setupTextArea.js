@@ -27,7 +27,7 @@ async function setupTextArea() {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         dropdownIsOpen = matches.length > 0;
         if (dropdownIsOpen) {
-            matchesEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            //matchesEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
         }
     };
@@ -126,10 +126,17 @@ async function setupTextArea() {
     }
 
     const handleInput = async (e) => {
+        
+        if(e.target.value.length){
+            e.target.classList.add('active');
+        }else{
+            e.target.classList.remove('active');
+        }
+
         const textBeforeCursor = e.target.value.slice(0, e.target.selectionStart).trim();
         if (!textBeforeCursor || textBeforeCursor.split(/\s+/).pop().length < 2) {
             //matchesEl.innerHTML = '';
-            //matchesEl.innerHTML = matchesEl.innerHTML + await getSampleMatches();
+            matchesEl.innerHTML = matchesEl.innerHTML + await getSampleMatches();
             return;
         }
 
@@ -160,7 +167,8 @@ async function setupTextArea() {
     setupAutoDownload();
     setupMaxNumInput();
     setupProviderClicks();
-    textArea.addEventListener('input', updateTextAreaHeight);
+    setupActiveClass();
+    //textArea.addEventListener('input', updateTextAreaHeight);
     textArea.addEventListener('input', debounce(handleInput, 200));
     matchesEl.addEventListener('click', handleMatchListItemClick);
     //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
@@ -168,6 +176,27 @@ async function setupTextArea() {
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     //document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
 
+}
+
+function setupActiveClass(){
+    const multiplier = document.querySelector("#multiplier");
+    
+    if(multiplier.value.length){
+        multiplier.classList.add('active');
+    }
+    const textarea = document.querySelector("textarea#prompt-textarea");
+    
+    if(textarea.value.length){
+        textarea.classList.add('active');
+    }
+    
+    multiplier.addEventListener('input', function(e){
+        if(e.target.value.length){
+            e.target.classList.add('active');
+        }else{
+            e.target.classList.remove('active');
+        }
+    });
 }
 
 function setupResizeEventHandler(textArea) {

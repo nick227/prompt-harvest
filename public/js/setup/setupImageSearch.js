@@ -1,37 +1,28 @@
-const SEARCH_INPUT_SELECTOR = '.search input';
+const SEARCH_INPUT_SELECTOR = 'search input';
+const HIDDEN_CLASS = 'hidden';
+const COL_SELECTOR = '.col';
+const SEARCH_ITEMS_SELECTOR = 'ul.prompt-output > li';
+const RATING_SELECTOR = '.rating';
+const TAGS_SELECTOR = '.tags li';
+const IMG_SELECTOR = 'img';
 
 function setupImageSearch() {
-    const input = document.querySelector(SEARCH_INPUT_SELECTOR);
+    const input = document.querySelector(`.${SEARCH_INPUT_SELECTOR}`);
     input.addEventListener('keyup', handleImageSearch);
 }
 
 function handleImageSearch(event) {
     const searchValue = getSearchValue(event);
-    const liItems = getLiItems(event);
+    const searchItems = getSearchItems(event);
 
     if (searchValue.length === 0) {
-        showAllItems(liItems);
+        showAllItems(searchItems);
         return;
     }
 
-    liItems.forEach(li => {
-        let matchFound = false;
-        const isTagMatch = checkTagMatch(li, searchValue);
-        const imgElement = li.querySelector('img');
-
-        if (isTagMatch) {
-            showItem(li);
-            matchFound = true;
-        }
-
-        if (checkImgMatch(imgElement, searchValue)) {
-            showItem(li);
-            matchFound = true;
-        }
-
-        if (!matchFound) {
-            hideItem(li);
-        }
+    searchItems.forEach(item => {
+        const isMatch = isItemMatch(item, searchValue);
+        isMatch ? showItem(item) : hideItem(item);
     });
 }
 
@@ -40,18 +31,35 @@ function getSearchValue(event) {
     return input.value.toLowerCase();
 }
 
-function getLiItems(event) {
+function getSearchItems(event) {
     const input = event.target;
-    const col = input.closest('.col');
-    return Array.from(col.querySelectorAll('ul.prompt-output > li'));
+    const col = input.closest(COL_SELECTOR);
+    return Array.from(col.querySelectorAll(SEARCH_ITEMS_SELECTOR));
 }
 
-function showAllItems(liItems) {
-    liItems.forEach(li => li.classList.remove('hidden'));
+function showAllItems(searchItems) {
+    searchItems.forEach(item => item.classList.remove(HIDDEN_CLASS));
 }
 
-function checkTagMatch(li, searchValue) {
-    const tags = Array.from(li.querySelectorAll('.tags li'));
+function isItemMatch(item, searchValue) {
+    const imgElement = item.querySelector(IMG_SELECTOR);
+    const isImgMatch = checkImgMatch(imgElement, searchValue);
+
+    return isImgMatch;
+}
+
+function checkRatingMatch(item, searchValue) {
+    const ratingElement = item.querySelector(RATING_SELECTOR);
+    if (ratingElement) {
+        const ratingText = ratingElement.textContent;
+        const numericRating = ratingText.replace(/[^0-9.]/g, ''); 
+        return numericRating.includes(searchValue);
+    }
+    return false;
+}
+
+function checkTagMatch(item, searchValue) {
+    const tags = Array.from(item.querySelectorAll(TAGS_SELECTOR));
     return tags.some(tag => tag.textContent.toLowerCase().includes(searchValue));
 }
 
@@ -64,10 +72,10 @@ function checkImgMatch(imgElement, searchValue) {
     return false;
 }
 
-function showItem(li) {
-    li.classList.remove('hidden');
+function showItem(item) {
+    item.classList.remove(HIDDEN_CLASS);
 }
 
-function hideItem(li) {
-    li.classList.add('hidden');
+function hideItem(item) {
+    item.classList.add(HIDDEN_CLASS);
 }

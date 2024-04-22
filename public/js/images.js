@@ -96,7 +96,6 @@ function addImageToOutput(results, download = false) {
     const img = createImageElement(results);
     const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
     if (download === true && autoDownload) {
-        console.log('img', img)
         img.onload = function() {
             downloadImage(img, results);
         }
@@ -105,7 +104,9 @@ function addImageToOutput(results, download = false) {
     const note = createNoteElement(results);
     wrapper.appendChild(note);
     attachImage(results, wrapper);
+    img.dataset.rating = results.rating;
     wrapper.appendChild(img);
+
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -116,6 +117,16 @@ function addImageToOutput(results, download = false) {
     }, { rootMargin: '0px 0px 100px 0px' });
 
     observer.observe(img);
+}
+
+function createTagElement(results){
+    if(!results.rating){
+        return;
+    }
+    const rating = document.createElement('div');
+    rating.className = 'rating';
+    rating.textContent = `Rating: ${results.rating}`;
+    return rating;
 }
 
 function attachImage(results, wrapper) {

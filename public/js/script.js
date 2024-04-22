@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupToggleView();
 
-    //setupImageSearch();
+    setupImageSearch();
 
     setupTagging();
 
