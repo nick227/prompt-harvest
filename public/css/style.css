@@ -287,7 +287,7 @@ button.btn-generate:active {
 
   .prompt>.row>.col:first-child {
     width: 25%;
-    height: 90vh;
+    height: 99vh;
     position: sticky;
     top: 1%;
   }

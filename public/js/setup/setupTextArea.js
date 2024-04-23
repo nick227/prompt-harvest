@@ -13,16 +13,6 @@ async function setupTextArea() {
     let dropdownIsOpen = false;
     let lastMatchedWord = '';
     const matchesEl = document.getElementById('matches');
-    /*
-        insertComma.addEventListener("click", function () {
-            const val = textArea.value;
-            if (val.length > 0 && val.charAt(val.length - 1) === " ") {
-                textArea.value = val.slice(0, val.length - 1);
-            }
-            textArea.value += ", ";
-            textArea.focus();
-        });
-    */
     const updateMatchesDisplay = async matches => {
         matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         dropdownIsOpen = matches.length > 0;
@@ -126,10 +116,10 @@ async function setupTextArea() {
     }
 
     const handleInput = async (e) => {
-        
-        if(e.target.value.length){
+
+        if (e.target.value.length) {
             e.target.classList.add('active');
-        }else{
+        } else {
             e.target.classList.remove('active');
         }
 
@@ -172,28 +162,31 @@ async function setupTextArea() {
     textArea.addEventListener('input', debounce(handleInput, 200));
     matchesEl.addEventListener('click', handleMatchListItemClick);
     //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
-    document.querySelector('.btn-generate').addEventListener('click', debounce(handleGenerateClick, 200));
+    document.querySelector('.btn-generate').addEventListener('click', debounce(function(){
+        const scrollIntoView = true;
+        handleGenerateClick(scrollIntoView);
+    }, 200));
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     //document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
 
 }
 
-function setupActiveClass(){
+function setupActiveClass() {
     const multiplier = document.querySelector("#multiplier");
-    
-    if(multiplier.value.length){
+
+    if (multiplier.value.length) {
         multiplier.classList.add('active');
     }
     const textarea = document.querySelector("textarea#prompt-textarea");
-    
-    if(textarea.value.length){
+
+    if (textarea.value.length) {
         textarea.classList.add('active');
     }
-    
-    multiplier.addEventListener('input', function(e){
-        if(e.target.value.length){
+
+    multiplier.addEventListener('input', function (e) {
+        if (e.target.value.length) {
             e.target.classList.add('active');
-        }else{
+        } else {
             e.target.classList.remove('active');
         }
     });
@@ -275,7 +268,7 @@ async function fetchData(url) {
     return await response.json();
 }
 
-async function handleGenerateClick() {
+async function handleGenerateClick(scrollToElm = null) {
     const url = convertPromptToUrl();
     if (!url) {
         alert('Invalid Prompt');
@@ -287,14 +280,22 @@ async function handleGenerateClick() {
     }
     try {
         const results = await fetchData(url);
-        addPromptToOutput(results);
-        await generateImage(results);
+        const promptElm = addPromptToOutput(results);
+        if (scrollToElm) {
+            promptElm.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        const img = await generateImage(results);
+        if (scrollToElm) {
+            img.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
         const isAuto = document.querySelector('input[name="auto-generate"]:checked');
         const maxNum = document.querySelector('input[name="maxNum"]');
 
         if (isAuto && (requestCount < (maxNum.value || MAX_AUTO_NUM) - 1)) {
             requestCount++;
-            setTimeout(handleGenerateClick, 100);
+            setTimeout(function(){
+                handleGenerateClick(scrollToElm);
+            }, 100);
         } else {
             requestCount = 0;
         }

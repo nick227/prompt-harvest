@@ -8,7 +8,6 @@ document.addEventListener('toggleFullScreenThisImage', function (e) {
     toggleFullScreenThisImage(wrapper);
 });
 
-
 function toggleFullScreenThisImage(wrapper) {
     if (wrapper.classList.contains(IMAGE_FULLSCREEN_CLASS)) {
         removeFullScreen(wrapper);
@@ -24,6 +23,17 @@ function removeFullScreen(wrapper) {
     removeSwipeListeners(wrapper);
     removeDragHandlers(wrapper);
     wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
+    focusOnWrapper(wrapper);
+}
+
+function focusOnWrapper(wrapper) {
+    const img = wrapper.querySelector('img');
+    img.scrollIntoView({
+        behavior:'smooth',
+        block: 'center',
+        inline: 'center'
+    });
+    img.focus();
 }
 
 function addFullScreen(wrapper) {

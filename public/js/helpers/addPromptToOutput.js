@@ -48,4 +48,5 @@ function addPromptToOutput(result, append = false) {
     if (setupFeedComplete) {
         li.scrollIntoView({ behavior: "smooth" });
     }
+    return li;
 }

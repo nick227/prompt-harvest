@@ -21,7 +21,7 @@ function loadMoreImages(){
 }
 
 function setupScrollLoading() {
-    window.addEventListener('scroll', debounce(handleWindowScroll, 200));
+    window.addEventListener('scroll', handleWindowScroll);
     loadMoreImagesUntilScrollable();
 }
 
@@ -33,15 +33,16 @@ function loadMoreImagesUntilScrollable() {
     }
 }
 
-
 function handleWindowScroll(e) {
     const scrollTop = window.pageYOffset;
     const scrollHeight = document.body.scrollHeight;
     const clientHeight = document.documentElement.clientHeight;
     const scrollPercentage = scrollTop / (scrollHeight - clientHeight);
     const scrollPercentageRounded = Math.round(scrollPercentage * 100);
-    if(scrollTop > scrollCurrentPosition && scrollPercentageRounded > 90){
-        loadMoreImages();
+    if(scrollTop > scrollCurrentPosition && scrollPercentageRounded > 70){
+        loadMoreImages().then(() => {
+            loadMoreImagesUntilScrollable();
+        });
     }
     scrollCurrentPosition = scrollTop;
 }

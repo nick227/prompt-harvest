@@ -49,8 +49,9 @@ async function generateImage(promptObj, e = null) {
     }).then(res => res.json());
 
     setupStatsBar();
-    addImageToOutput(results, true);
+    const img = addImageToOutput(results, true);
     toggleProcessingStyle(e);
+    return img;
 }
 
 function getCustomVariables() {
@@ -115,9 +116,10 @@ function addImageToOutput(results, download = false) {
                 observer.unobserve(entry.target);
             }
         });
-    }, { rootMargin: '0px 0px 100px 0px' });
+    }, { rootMargin: '0px 0px 200px 0px' });
 
     observer.observe(img);
+    return img;
 }
 
 function createTagElement(results){
@@ -149,7 +151,7 @@ function findPromptPreviewElement(results) {
     return document.querySelector('li[data-id="' + results.promptId + '"]');
 }
 
-function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
+function displayImage(img, results, wrapper) {
     img.title = results.prompt;
     img.dataset.id = results.id;
     img.addEventListener("click", function () {
@@ -161,12 +163,6 @@ function displayImage(img, results, wrapper) { // Accept wrapper as a parameter
     img.src = img.dataset.src;
     const downloadBtn = getDownloadButton(img);
     img.parentElement.appendChild(downloadBtn);
-    
-    //const addTagBtn = getTagButton(img);
-    //const addTagList = getTagList(img);
-    //img.parentElement.appendChild(addTagBtn);
-    //img.parentElement.appendChild(addTagList);
-    //updateTagList(img);
 }
 
 function getErrorMessage(results) {

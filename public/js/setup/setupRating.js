@@ -10,10 +10,11 @@ function addNumberTagsKeyBoardListeners() {
             await tagImage(e.keyCode - 48);
         }
     });
-}
+}   
 
 async function tagImage(rating) {
     const wrapper = document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`);
+    if (!wrapper) return;
     const img = wrapper.querySelector('img');
     const id = img.dataset.id;
 

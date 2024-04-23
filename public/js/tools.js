@@ -56,8 +56,10 @@ async function handleMakeBtnClick(e) {
         return;
     }
     const results = await fetchData(url);
-    addPromptToOutput(results);
-    await generateImage(results);
+    const promptElm = addPromptToOutput(results);
+    promptElm.scrollIntoView({ behavior: "smooth", block: "start" });
+    const imgElm = await generateImage(results);
+    imgElm.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 
