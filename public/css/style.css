@@ -30,7 +30,7 @@ body {
   line-height: var(--line-height);
   color: var(--color-text);
   background-color: var(--color-dark);
-  width: 56%;
+  width: 96%;
   height: 100%;
   margin: 10px auto 0 auto;
 }
@@ -98,34 +98,6 @@ img.liked + .liked {
 .no-wrap {
   white-space: nowrap;
   flex-wrap: nowrap;
-}
-
-@media screen and (min-width: 1001px) {
-
-  .topbar{
-    position: fixed;
-    top: 0;
-    left:1%;
-    width: 100%;
-  }
-
-  .prompt > .row > .col:first-child {
-    position: fixed;      
-    left: 1%;
-    width: 20%;
-    top: 9%;
-    height: 90vh;
-  }
-  
-  .prompt > .row > .col:nth-child(2) {
-    position: absolute;
-    width: 71%;
-    left: 25%;
-    top:1%;
-  }
-  
-
-
 }
 
 label {
@@ -297,6 +269,35 @@ button.btn-generate:active {
 .prompt .col:first-child {
   width: 48%;
   padding-right: 2%;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+@media screen and (min-width: 1001px) {
+
+  .topbar{
+    top: 0;
+    left:1%;
+    width: 100%;
+  }
+
+  .prompt > .row > .col:first-child {
+    width: 25%;
+    height: 90vh;
+    position: sticky;
+    top: 1%;
+  }
+  
+  .prompt > .row > .col:nth-child(2) {
+    width: 70%;
+  }
+  
+
+
 }
 
 ul {
@@ -739,32 +740,6 @@ textarea {
   align-items: center;
   display: flex;
   align-items: center;
-}
-
-.col {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.col-4 {
-  width: 40%;
-}
-
-.col-5 {
-  width: 50%;
-}
-
-.col-6 {
-  width: 60%;
-}
-
-.col-3 {
-  width: 30;
-}
-
-.col-1 {
-  width: 10%;
 }
 
 .stats {
