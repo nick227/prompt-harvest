@@ -19,6 +19,7 @@ async function generateImage(promptObj, e = null) {
     }
     toggleProcessingStyle(e);
 
+    ///await new Promise(resolve => setTimeout(resolve, 2400000));
     const guidanceElmTop = document.querySelector('select[name="guidance-top"]');
     const guidanceValTop = guidanceElmTop.value;
     const guidanceElmBottom = document.querySelector('select[name="guidance-bottom"]');

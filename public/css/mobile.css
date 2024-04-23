@@ -99,4 +99,8 @@
   .btn-scroll-top {
     display: none;
   }
+
+textarea#prompt-textarea {
+  min-height: 90px;
+}
 }
