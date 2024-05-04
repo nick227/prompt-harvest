@@ -1,6 +1,7 @@
 node_modules/
 .env
 migrate.js
+transfer.js
 public/uploads
 data/*.backup
 data/images.db

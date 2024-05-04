@@ -24,13 +24,17 @@ export default routes;
 function setup(app) {
 
     app.put('/api/images/:id/rating', async (req, res) => {
-        const db = new DB('images.db');
         const id = req.params.id;
         const rating = req.body.rating;
+        
+        if (!id || !rating) {
+            res.status(400).send({ message: 'id or rating missing' });
+            return;
+        }
 
         try {
+            const db = new DB('images.db');
             const result = await db.update({ _id: id }, { $set: { 'data.rating': rating } });
-            console.log(result, id, rating);
             if (result === 0) {
                 res.status(404).send({ message: 'No image found to update' });
             } else {

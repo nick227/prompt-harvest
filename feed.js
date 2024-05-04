@@ -394,7 +394,8 @@ async function generateNightmareShaper(prompt, guidance, userId = null) {
 }
 
 async function generateRealisticVision(prompt, guidance, userId = null) {
-    const key = ['realistic_vision_5_1', 'realistic_vision_1_3'][Math.floor(Math.random() * 2)];
+    //const key = ['realistic_vision_5_1', 'realistic_vision_1_3'][Math.floor(Math.random() * 2)];
+    const key = 'realistic_vision_5_1';
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'realistic_vision_5_1');
 }
 

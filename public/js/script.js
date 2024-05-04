@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupImageSearch();
 
-    setupTagging();
+    setupRating();
 
     setupScrollTopBar();
 

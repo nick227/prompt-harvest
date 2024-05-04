@@ -3,7 +3,7 @@ const isMobile = window.innerWidth < 1200;
 
 const WORD_TYPE_LIMIT = isMobile ? 8 : 33;
 
-const MAX_AUTO_NUM = 3;
+const MAX_AUTO_NUM = 30;
 const MAX_SAMPLES_NUM = 14;
 let requestCount = 0;
 
@@ -18,7 +18,6 @@ async function setupTextArea() {
         dropdownIsOpen = matches.length > 0;
         if (dropdownIsOpen) {
             //matchesEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-
         }
     };
 
@@ -285,9 +284,9 @@ async function handleGenerateClick(scrollToElm = null) {
             promptElm.scrollIntoView({ behavior: "smooth", block: "start" });
         }
         const img = await generateImage(results);
-        if (scrollToElm) {
-            img.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }
+        //if (scrollToElm) {
+          //  img.scrollIntoView({ behavior: "smooth", block: "start" });
+        //}
         const isAuto = document.querySelector('input[name="auto-generate"]:checked');
         const maxNum = document.querySelector('input[name="maxNum"]');
 

@@ -1,4 +1,4 @@
-function setupTagging() {
+function setupRating() {
     addNumberTagsKeyBoardListeners();
     setupRatingFilter();
 }
@@ -7,10 +7,11 @@ function addNumberTagsKeyBoardListeners() {
     document.addEventListener('keydown', async function (e) {
         const isFullScreen = document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`);
         if (e.keyCode >= 49 && e.keyCode <= 53 && isFullScreen) {
+            console.log('key pressed', e.keyCode); 
             await tagImage(e.keyCode - 48);
         }
     });
-}   
+}
 
 async function tagImage(rating) {
     const wrapper = document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`);
