@@ -312,6 +312,14 @@ ul li {
   margin: 2px 0;
 }
 
+.queue li p {
+  cursor: pointer;
+}
+
+.queue li button {
+  float: right;
+}
+
 .test {
   background: red !important;
   color: red !important;

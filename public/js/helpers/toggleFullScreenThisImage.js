@@ -23,7 +23,6 @@ function removeFullScreen(wrapper) {
     removeSwipeListeners(wrapper);
     removeDragHandlers(wrapper);
     wrapper.classList.toggle(IMAGE_FULLSCREEN_CLASS);
-    focusOnWrapper(wrapper);
 }
 
 function focusOnWrapper(wrapper) {
@@ -54,10 +53,8 @@ async function addFullScreenControls() {
     const downloadBtn = getDownloadButton();
     const navBtns = getNavigateButtons();
     const closeBtn = getCloseButton();
-    //const likeBtn = await getLikeButton();
     const makeBtn = await getMakeButton();
 
-    //controls.appendChild(likeBtn);
     controls.appendChild(makeBtn);
     controls.appendChild(closeBtn);
     controls.appendChild(downloadBtn);
@@ -85,33 +82,11 @@ function getMakeButton() {
     return btn;
 }
 
-async function getLikeButton() {
-    const btn = document.createElement('button');
-    btn.classList.add('btn-like');
-    btn.addEventListener('click', handleLikeClick);
-    btn.innerHTML = LIKE_BTN_HTML;
-    btn.setAttribute('title', 'L');
-    const isLiked = await checkIsLikedReal();
-    if (isLiked) {
-        btn.classList.add('liked');
-    }
-    return btn;
-}
-
 function removeFullScreenControls() {
     removeInfoBox();
     const target = document.querySelector(`.${IMAGE_CONTROLS_CLASS}`);
     if (target) {
         target.remove();
-    }
-}
-
-async function updateLikeButton(btn) {
-    const isLiked = await checkIsLikedReal();
-    if (isLiked) {
-        btn.classList.add('liked');
-    } else {
-        btn.classList.remove('liked');
     }
 }
 
@@ -121,15 +96,6 @@ async function reloadFullScreenControls() {
         const infoBox = document.querySelector(`.${INFO_BOX_CLASS}`);
         updateInfoBox(infoBox);
     }
-}
-
-async function checkIsLikedReal() {
-    const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
-    const img = wrapper.querySelector('img');
-    const imageId = img.dataset.id;
-    const response = await fetch(`/image/${imageId}/liked`);
-    const isLiked = await response.text();
-    return isLiked === 'true';
 }
 
 async function navigateImages(direction, currentImageWrapper) {
@@ -405,60 +371,6 @@ function getInfoBox() {
     return infoBox;
 }
 
-async function getTagsFromServer() {
-    const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
-    const img = wrapper.querySelector('img');
-    const imageId = img.dataset.imageId;
-    const url = `/image/tags/${imageId}`;
-    const response = await fetch(url);
-    const tags = await response.json();
-    return tags;
-
-}
-
-async function getTagsBox() {
-    const tags = document.createElement('div');
-    const hasTagList = tags.querySelector('ul');
-    const ul = hasTagList ? tags.querySelector('ul') : document.createElement('ul');
-    tags.className = TAGS_BOX_CLASS;
-    const addTagButton = document.createElement('button');
-    addTagButton.classList = 'btn btn-tag';
-    addTagButton.innerText = 'Add Tag +';
-    addTagButton.addEventListener('click', function () {
-        handleAddTagBtnClick(ul);
-    });
-    tags.appendChild(addTagButton);
-    tags.appendChild(ul);
-    return tags;
-}
-
-async function handleAddTagBtnClick(target) {
-    const tag = prompt('Enter tag');
-    if (tag) {
-        const payload = {
-            tag: tag,
-            imageId: document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`).dataset.imageId
-        };
-        const results = await fetch('image/tag', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-        if (results.ok) {
-            addTagtoHtml(tag, target);
-        }
-    }
-}
-
-function addTagtoHtml(tag, target) {
-    const li = document.createElement('li');
-    li.dataset.tag = tag;
-    li.innerText = tag;
-    target.appendChild(li);
-
-}
 
 function updateInfoBox() {
     removeInfoBox();
@@ -471,26 +383,6 @@ function removeInfoBox() {
     const infoBox = document.querySelector(`.${INFO_BOX_CLASS}`);
     if (infoBox) {
         infoBox.remove();
-    }
-}
-
-async function handleLikeClick() {
-    const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
-    const img = wrapper.querySelector('img');
-    const imageId = img.dataset.id;
-    const btn = document.querySelector('.btn-like');
-    btn.classList.toggle('liked');
-    img.classList.toggle('liked');
-    if (img.classList.contains('liked')) {
-        const url = `/like/image/${imageId}`;
-        await fetch(url, {
-            method: 'POST',
-        });
-    } else {
-        const url = `/like/image/${imageId}`;
-        await fetch(url, {
-            method: 'DELETE',
-        });
     }
 }
 

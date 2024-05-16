@@ -1,0 +1,32 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.yourdomain.powerprompt
+productName: Power Prompt
+files:
+  - filter:
+      - src/**/*
+      - public/**/*
+      - main.js
+      - package.json
+extraResources:
+  - from: data
+    to: data
+mac:
+  category: public.app-category.utilities
+  target:
+    - dmg
+    - zip
+  icon: build/icon.icns
+win:
+  target:
+    - nsis
+    - zip
+  icon: build/icon.ico
+linux:
+  target:
+    - AppImage
+    - deb
+    - zip
+  icon: build
+electronVersion: 13.6.9

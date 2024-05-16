@@ -54,6 +54,14 @@ async function generateImage(promptObj, e = null) {
     return img;
 }
 
+function disableGenerateBtn(){
+    const generateBtn = document.querySelector('.btn-generate');
+    generateBtn.classList.add('processing');
+    generateBtn.innerText = 'loading...';
+    generateBtn.disabled = true;
+
+}
+
 function getCustomVariables() {
     const variablesString = localStorage.getItem('variables');
     if (variablesString) {
@@ -66,11 +74,21 @@ function getCustomVariables() {
     return '';
 }
 
-function toggleProcessingStyle(e = null) {
+function disableGenerateButton(){
     const generateBtn = document.querySelector('.btn-generate');
-    generateBtn.classList.toggle('processing');
-    generateBtn.innerText = generateBtn.innerText === 'loading...' ? "Let's Go" : 'loading...';
-    generateBtn.disabled = !generateBtn.disabled;
+    generateBtn.classList.add('processing');
+    generateBtn.innerText = 'loading...';
+    generateBtn.disabled = true;
+}
+
+function enableGenerateButton(){
+    const generateBtn = document.querySelector('.btn-generate');
+    generateBtn.classList.remove('processing');
+    generateBtn.innerText = 'Let\'s Go';
+    generateBtn.disabled = false;
+}
+
+function toggleProcessingStyle(e = null) {
 
     const currentPrompt = e || document.querySelector('.prompt-output li:first-child');
     if (currentPrompt) {
@@ -80,9 +98,12 @@ function toggleProcessingStyle(e = null) {
 }
 
 function createImageElement(results) {
+    console.log('!!! results', results);
     const img = document.createElement('img');
     img.dataset.src = `uploads/${results.imageName}`;
-    img.dataset.id = results.id;
+    img.dataset.id = results.imageId;
+    console.log('.......')
+    console.log('createImageElement img', img)
     return img;
 }
 

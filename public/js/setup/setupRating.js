@@ -7,7 +7,6 @@ function addNumberTagsKeyBoardListeners() {
     document.addEventListener('keydown', async function (e) {
         const isFullScreen = document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`);
         if (e.keyCode >= 49 && e.keyCode <= 53 && isFullScreen) {
-            console.log('key pressed', e.keyCode); 
             await tagImage(e.keyCode - 48);
         }
     });
@@ -18,7 +17,8 @@ async function tagImage(rating) {
     if (!wrapper) return;
     const img = wrapper.querySelector('img');
     const id = img.dataset.id;
-
+    console.log('img', img);
+    console.log('tagImage', id, rating);
     const res = await fetch(`/api/images/${id}/rating`, {
         method: 'PUT',
         headers: {

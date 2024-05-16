@@ -5,8 +5,10 @@ import path from 'path';
 //import validateSchema from './validateSchema.js';
 //import schemas from './schemas.js';
 import async from 'async';
+import fs from 'fs';
 
 const DB_PATH = path.join(process.cwd(), './data/');
+
 let instances = {};
 
 export default class DB {
@@ -16,6 +18,10 @@ export default class DB {
         }
 
         //this.validateSchema = validateSchema;
+
+        if (!fs.existsSync(DB_PATH)) {
+            fs.mkdirSync(DB_PATH, { recursive: true });
+        }
         this.db = new Datastore({ filename: path.join(DB_PATH, dbName), autoload: true });
         this.dbName = dbName.split('.')[0];
         this.queue = async.queue((task, callback) => {
@@ -44,51 +50,51 @@ export default class DB {
     }
 
     async _find(query) {
-    let sort = { timestamp: -1 };
-    let limit = null;
-    let projection = {};
-    let page = 0;
+        let sort = { timestamp: -1 };
+        let limit = null;
+        let projection = {};
+        let page = 0;
 
 
-    if (query.projection) {
-        projection = JSON.parse(query.projection) || {};
-        delete query.projection;
+        if (query.projection) {
+            projection = JSON.parse(query.projection) || {};
+            delete query.projection;
+        }
+
+        if (query.sort) {
+            sort = query.sort;
+            delete query.sort;
+        }
+
+        if (query.limit) {
+            limit = Number(query.limit);
+            delete query.limit;
+        }
+
+        if (!isNaN(query.page)) {
+            page = Number(query.page) + 1;
+            delete query.page;
+        }
+
+        let cursor = this.db.find(query, projection);
+
+        if (sort) {
+            cursor = cursor.sort(sort);
+        }
+
+        if (limit) {
+            cursor = cursor.limit(limit);
+        }
+
+        if (page) {
+            cursor = cursor.skip((page - 1) * limit).limit(limit);
+        }
+
+        const execAsync = util.promisify(cursor.exec.bind(cursor));
+        const results = await execAsync();
+
+        return results;
     }
-
-    if (query.sort) {
-        sort = query.sort;
-        delete query.sort;
-    }
-
-    if (query.limit) {
-        limit = Number(query.limit);
-        delete query.limit;
-    }
-
-    if (!isNaN(query.page)) {
-        page = Number(query.page)+1;
-        delete query.page;
-    }
-
-    let cursor = this.db.find(query, projection);
-
-    if (sort) {
-        cursor = cursor.sort(sort);
-    }
-
-    if (limit) {
-        cursor = cursor.limit(limit);
-    }
-
-    if (page) {
-        cursor = cursor.skip((page - 1) * limit).limit(limit);
-    }
-
-    const execAsync = util.promisify(cursor.exec.bind(cursor));
-    const results = await execAsync();
-
-    return results;
-}
 
     async insert(rows) {
         if (Array.isArray(rows)) {

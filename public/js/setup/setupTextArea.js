@@ -165,8 +165,49 @@ async function setupTextArea() {
         const scrollIntoView = true;
         handleGenerateClick(scrollIntoView);
     }, 200));
+    document.querySelector('.btn-queue').addEventListener('click', handleAddToQueueClick);
     document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
     //document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
+
+    const replaceBtn = document.querySelector('.btn-replace');
+    replaceBtn.addEventListener('click', handleReplaceClick);
+    const searchReplaceInput = document.querySelector('#search_term');
+
+}
+
+function handleAddToQueueClick(){
+    const textArea = document.querySelector("textarea#prompt-textarea");
+    const prompt = textArea.value;
+    addQueItem(prompt);
+}
+
+function addQueItem(prompt){
+
+    const item = document.createElement("li");
+    const list = document.querySelector(".queue");
+    const removeItemBtn = document.createElement("button");
+    const promptEl = document.createElement("p");
+    promptEl.textContent = prompt;
+    promptEl.title = prompt;
+    removeItemBtn.textContent = "Remove";
+    promptEl.addEventListener("click", function(){
+        const textArea = document.querySelector("textarea#prompt-textarea");
+        textArea.value = prompt;
+    });
+    removeItemBtn.addEventListener("click", function(){
+        item.remove();
+    });
+    item.appendChild(promptEl);
+    item.appendChild(removeItemBtn);
+    list.appendChild(item);
+}
+
+function handleReplaceClick(e){
+    const needle = document.querySelector("#search_term").value;
+    const replacement = document.querySelector("#replace_term").value;
+    const textArea = document.querySelector("textarea#prompt-textarea");
+    const regex = new RegExp(needle, 'g');
+    textArea.value = textArea.value.replace(regex, replacement);
 
 }
 
@@ -278,12 +319,13 @@ async function handleGenerateClick(scrollToElm = null) {
         return;
     }
     try {
-        const results = await fetchData(url);
-        const promptElm = addPromptToOutput(results);
+        disableGenerateButton();
+        const promptData = await fetchData(url);
+        const promptElm = addPromptToOutput(promptData);
         if (scrollToElm) {
             promptElm.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-        const img = await generateImage(results);
+        const img = await generateImage(promptData);
         //if (scrollToElm) {
           //  img.scrollIntoView({ behavior: "smooth", block: "start" });
         //}
@@ -303,6 +345,8 @@ async function handleGenerateClick(scrollToElm = null) {
         alert(`Error ${error}`);
         location.reload();
 
+    } finally {
+        enableGenerateButton();
     }
 }
 

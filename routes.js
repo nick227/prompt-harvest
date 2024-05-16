@@ -16,12 +16,14 @@ dotenv.config();
 OpenAI.apiKey = process.env.OPENAI_API_KEY;
 
 const routes = {
-    init: setup
+    init: init
 };
 
 export default routes;
 
-function setup(app) {
+function init(app) {
+
+    console.log('hi')
 
     app.put('/api/images/:id/rating', async (req, res) => {
         const id = req.params.id;
@@ -65,6 +67,22 @@ function setup(app) {
         };
         await db.insert(params);
         res.send({ status: 'ok' });
+    });
+
+    app.get('/api/download/:listName/:subject/:word', async (req, res) => {
+        console.log('mkat')
+        const listName = req.params.listName;
+        const subject = req.params.subject;
+        const word = req.params.word;
+        const db = new DB('wordmaps.db');
+        const params = {
+            subject,
+            word
+        };
+        const response = await db.findOne(params);
+        console.log('response', response)
+        const result = response[listName];
+        res.json(result);
     });
 
     app.get('/prompt/clauses', async (req, res) => {

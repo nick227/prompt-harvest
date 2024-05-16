@@ -317,6 +317,7 @@ async function generate(prompt, original, promptId, providers, guidance, req) {
         original
     };
     const results = await saveFeedEvent('image', data, req);
+    results.data.imageId = results._id;
 
     return results.data;
 
