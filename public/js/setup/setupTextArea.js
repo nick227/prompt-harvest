@@ -3,7 +3,7 @@ const isMobile = window.innerWidth < 1200;
 
 const WORD_TYPE_LIMIT = isMobile ? 8 : 33;
 
-const MAX_AUTO_NUM = 30;
+const MAX_AUTO_NUM = 3;
 const MAX_SAMPLES_NUM = 14;
 let requestCount = 0;
 
