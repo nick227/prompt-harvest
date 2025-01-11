@@ -29,9 +29,10 @@ const modifiers = [
     'geometric',
     'dramatic',
     'unique',
-    'beautiful'];
+    'beautiful'
+];
 
-const limit = 60;
+const limit = 6;
 
 async function main() {
     const res = await getWordTypes();
@@ -92,7 +93,7 @@ async function handleType(term) {
     const termString = modifiers.map((mod, i) => { return `${i + 1}: ${mod}` }).join(', \n');
 
     const answer = await askQuestion(rl, getQuestion(termString));
-    
+
 
     if (answer === '') {
         skipProcessing(rl);
@@ -154,7 +155,7 @@ function shuffle(array) {
     return array;
 }
 
-function getRandomTerm(term){
+function getRandomTerm(term) {
     let mod = modifiers[Math.floor(Math.random() * modifiers.length)];
     let res = `${mod.toLowerCase()} ${term.toLowerCase()}`;
     res = shuffle(res.split(' ')).join(' ');
@@ -184,7 +185,7 @@ async function processOpenAIRequest(term) {
     console.log('requesting openai...', term);
     const res = await utils.addAiWordType(term);
     console.log('done', res);
-    
+
     console.log("\n");
     console.log("loading...");
     console.log("\n");

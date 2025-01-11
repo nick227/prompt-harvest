@@ -1,9 +1,8 @@
-
 const isMobile = window.innerWidth < 1200;
 
 const WORD_TYPE_LIMIT = isMobile ? 8 : 33;
 
-const MAX_AUTO_NUM = 60;
+const MAX_AUTO_NUM = 6;
 const MAX_SAMPLES_NUM = 14;
 let requestCount = 0;
 
@@ -114,7 +113,7 @@ async function setupTextArea() {
         console.log('... ', e.target.style.height);
     }
 
-    const handleInput = async (e) => {
+    const handleInput = async(e) => {
 
         if (e.target.value.length) {
             e.target.classList.add('active');
@@ -161,7 +160,7 @@ async function setupTextArea() {
     textArea.addEventListener('input', debounce(handleInput, 200));
     matchesEl.addEventListener('click', handleMatchListItemClick);
     //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
-    document.querySelector('.btn-generate').addEventListener('click', debounce(function(){
+    document.querySelector('.btn-generate').addEventListener('click', debounce(function() {
         const scrollIntoView = false;
         handleGenerateClick(scrollIntoView);
     }, 200));
@@ -175,13 +174,13 @@ async function setupTextArea() {
 
 }
 
-function handleAddToQueueClick(){
+function handleAddToQueueClick() {
     const textArea = document.querySelector("textarea#prompt-textarea");
     const prompt = textArea.value;
     addQueItem(prompt);
 }
 
-function addQueItem(prompt){
+function addQueItem(prompt) {
 
     const item = document.createElement("li");
     const list = document.querySelector(".queue");
@@ -190,11 +189,11 @@ function addQueItem(prompt){
     promptEl.textContent = prompt;
     promptEl.title = prompt;
     removeItemBtn.textContent = "Remove";
-    promptEl.addEventListener("click", function(){
+    promptEl.addEventListener("click", function() {
         const textArea = document.querySelector("textarea#prompt-textarea");
         textArea.value = prompt;
     });
-    removeItemBtn.addEventListener("click", function(){
+    removeItemBtn.addEventListener("click", function() {
         item.remove();
     });
     item.appendChild(promptEl);
@@ -202,7 +201,7 @@ function addQueItem(prompt){
     list.appendChild(item);
 }
 
-function handleReplaceClick(e){
+function handleReplaceClick(e) {
     const needle = document.querySelector("#search_term").value;
     const replacement = document.querySelector("#replace_term").value;
     const textArea = document.querySelector("textarea#prompt-textarea");
@@ -223,7 +222,7 @@ function setupActiveClass() {
         textarea.classList.add('active');
     }
 
-    multiplier.addEventListener('input', function (e) {
+    multiplier.addEventListener('input', function(e) {
         if (e.target.value.length) {
             e.target.classList.add('active');
         } else {
@@ -233,7 +232,7 @@ function setupActiveClass() {
 }
 
 function setupResizeEventHandler(textArea) {
-    textArea.addEventListener('mouseup', function (e) {
+    textArea.addEventListener('mouseup', function(e) {
         localStorage.setItem('textAreaHeight', e.target.style.height);
     });
     const height = localStorage.getItem('textAreaHeight');
@@ -245,7 +244,7 @@ function setupResizeEventHandler(textArea) {
 function handleWordLiClick() {
 
     const wordTypesEl = document.querySelector('ul.word-types');
-    wordTypesEl.addEventListener('click', function (e) {
+    wordTypesEl.addEventListener('click', function(e) {
         if (e.target.tagName === 'LI') {
             const replacement = getReplacement(e.target.innerText);
             textArea.value = textArea.value + ' ' + replacement;
@@ -258,7 +257,7 @@ function setupAutoDownload() {
     let autoDownload = localStorage.getItem('autoDownload');
     autoDownload = autoDownload ? JSON.parse(autoDownload) : false;
     document.querySelector('input[name="autoDownload"]').checked = autoDownload;
-    document.querySelector('input[name="autoDownload"]').addEventListener('change', function (e) {
+    document.querySelector('input[name="autoDownload"]').addEventListener('change', function(e) {
         localStorage.setItem('autoDownload', e.target.checked);
     });
 }
@@ -327,14 +326,14 @@ async function handleGenerateClick(scrollToElm = null) {
         }
         const img = await generateImage(promptData);
         //if (scrollToElm) {
-            //img.scrollIntoView({ behavior: "smooth", block: "start" });
+        //img.scrollIntoView({ behavior: "smooth", block: "start" });
         //}
         const isAuto = document.querySelector('input[name="auto-generate"]:checked');
         const maxNum = document.querySelector('input[name="maxNum"]');
 
         if (isAuto && (requestCount < (maxNum.value || MAX_AUTO_NUM) - 1)) {
             requestCount++;
-            setTimeout(function(){
+            setTimeout(function() {
                 handleGenerateClick(scrollToElm);
             }, 100);
         } else {
@@ -351,11 +350,11 @@ async function handleGenerateClick(scrollToElm = null) {
 }
 
 function setupMaxNumInput() {
-    const localStorageMaxNum = localStorage.getItem('maxNum');
+    //const localStorageMaxNum = localStorage.getItem('maxNum');
     const maxNum = document.querySelector("input[name='maxNum']");
     maxNum.setAttribute('min', 1);
     maxNum.setAttribute('max', MAX_AUTO_NUM);
-    maxNum.value = localStorageMaxNum || MAX_AUTO_NUM;
+    maxNum.value = MAX_AUTO_NUM;
     maxNum.addEventListener('change', () => {
         let value = parseInt(maxNum.value);
         if (value < 1) {
@@ -364,7 +363,7 @@ function setupMaxNumInput() {
             value = MAX_AUTO_NUM;
         }
         maxNum.value = value;
-        localStorage.setItem('maxNum', value);
+        //localStorage.setItem('maxNum', value);
     });
 
     const isAuto = document.querySelector("input[name='auto-generate']");
