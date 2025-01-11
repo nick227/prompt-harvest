@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import url from 'url';
 import axios from 'axios';
+import sharp from 'sharp';
 const DEFAULT_GUIDANCE_VALUE = 10;
 //import uploadBase64ImageToCdn from './lib/uploadBase64ImageToCdn.js';
 dotenv.config();
@@ -254,6 +255,7 @@ const providerList = {
     dalle: generateDalleImage,
     dreamshaperLighting: generateDreamShaperLighting,
     juggernaut: generateJuggernautImage,
+    flux: generateFluxImage,
     absolute: generateAbsoluteImage,
     tshirt: generateTshirtImage,
     lowpoly: generateLowPolyImage,
@@ -325,6 +327,39 @@ async function generate(prompt, original, promptId, providers, guidance, req) {
 }
 
 async function saveB64Image(b64_json, providerName, prompt, req) {
+    const buffer = Buffer.from(b64_json, 'base64');
+    const safePrompt = makeFileNameSafeForWindows(prompt).substring(0, 50); // Truncate to avoid overly long filenames
+    const imageName = `${providerName}-${safePrompt}-${Date.now()}.jpg`;
+    const imagePath = path.join(baseDir, imageName);
+    
+    if (!fs.existsSync(baseDir)) {
+        fs.mkdirSync(baseDir, { recursive: true });
+    }
+
+    // Save the initial image buffer to a temporary path
+    const tempImagePath = path.join(baseDir, `temp-${imageName}`);
+    fs.writeFileSync(tempImagePath, buffer);
+
+    // Verify the file was written
+    if (!fs.existsSync(tempImagePath)) {
+        throw new Error(`Temporary image file was not created: ${tempImagePath}`);
+    }
+
+    // Add a delay to ensure the file system has time to write the file
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Use sharp to re-save the image
+    await sharp(tempImagePath)
+        .toFormat('jpg')
+        .toFile(imagePath);
+
+    // Clean up the temporary image
+    fs.unlinkSync(tempImagePath);
+
+    return imageName;
+}
+
+async function saveB64Image222(b64_json, providerName, prompt, req) {
 
     const buffer = Buffer.from(b64_json, 'base64');
     const imageName = `${providerName}-${makeFileNameSafeForWindows(prompt)}-${Date.now()}.jpg`;
@@ -430,6 +465,10 @@ async function generateDreamShaperLighting(prompt, guidance, userId = null) {
 
 async function generateJuggernautImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'juggernautxl_1024px');
+}
+
+async function generateFluxImage(prompt, guidance, userId = null) {
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'flux_1_schnell');
 }
 
 async function generateDreamshaper(prompt, guidance, userId = null) {

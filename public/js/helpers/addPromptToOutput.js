@@ -46,7 +46,7 @@ function addPromptToOutput(result, append = false) {
         target.prepend(li);
     }
     if (setupFeedComplete) {
-        li.scrollIntoView({ behavior: "smooth" });
+        //li.scrollIntoView({ behavior: "smooth" });
     }
     return li;
 }

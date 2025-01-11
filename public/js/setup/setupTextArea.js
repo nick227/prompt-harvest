@@ -3,7 +3,7 @@ const isMobile = window.innerWidth < 1200;
 
 const WORD_TYPE_LIMIT = isMobile ? 8 : 33;
 
-const MAX_AUTO_NUM = 3;
+const MAX_AUTO_NUM = 60;
 const MAX_SAMPLES_NUM = 14;
 let requestCount = 0;
 
@@ -162,7 +162,7 @@ async function setupTextArea() {
     matchesEl.addEventListener('click', handleMatchListItemClick);
     //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
     document.querySelector('.btn-generate').addEventListener('click', debounce(function(){
-        const scrollIntoView = true;
+        const scrollIntoView = false;
         handleGenerateClick(scrollIntoView);
     }, 200));
     document.querySelector('.btn-queue').addEventListener('click', handleAddToQueueClick);
@@ -327,7 +327,7 @@ async function handleGenerateClick(scrollToElm = null) {
         }
         const img = await generateImage(promptData);
         //if (scrollToElm) {
-          //  img.scrollIntoView({ behavior: "smooth", block: "start" });
+            //img.scrollIntoView({ behavior: "smooth", block: "start" });
         //}
         const isAuto = document.querySelector('input[name="auto-generate"]:checked');
         const maxNum = document.querySelector('input[name="maxNum"]');
