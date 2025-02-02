@@ -417,7 +417,7 @@ let isInitialized = false;
 // Add a ToggleMenuManager class
 class ToggleMenuManager {
     constructor() {
-        this.toggleMenus = document.querySelectorAll(CONFIG.selectors.toggleMenu);
+        this.toggleMenus = document.querySelectorAll('.toggle-menu');
         this.init();
         this.bindEvents();
     }
@@ -425,8 +425,8 @@ class ToggleMenuManager {
     init() {
         // Load saved state for each menu
         this.toggleMenus.forEach(menu => {
-            const id = menu.classList.contains('provider-list') ? 'provider-list' : 'extra-tools';
-            const isExpanded = localStorage.getItem(`toggleMenu_${id}`) === 'true';
+            const menuId = menu.dataset.menuId || menu.id || 'menu'; // Fallback ID
+            const isExpanded = localStorage.getItem(`menu_${menuId}`) === 'true';
             if (isExpanded) {
                 menu.classList.add('active');
             }
@@ -436,7 +436,6 @@ class ToggleMenuManager {
     bindEvents() {
         this.toggleMenus.forEach(menu => {
             menu.addEventListener('click', (e) => {
-                // Only toggle if clicking the menu itself, not its children
                 if (e.target === menu) {
                     this.handleToggle(menu);
                 }
@@ -447,10 +446,8 @@ class ToggleMenuManager {
     handleToggle(menu) {
         menu.classList.toggle('active');
         const isExpanded = menu.classList.contains('active');
-
-        // Save state using unique identifier for each menu
-        const id = menu.classList.contains('provider-list') ? 'provider-list' : 'extra-tools';
-        localStorage.setItem(`toggleMenu_${id}`, isExpanded);
+        const menuId = menu.dataset.menuId || menu.id || 'menu';
+        localStorage.setItem(`menu_${menuId}`, isExpanded);
     }
 }
 
