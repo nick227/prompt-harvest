@@ -10,7 +10,8 @@ const DEFAULT_GUIDANCE_VALUE = 10;
 //import uploadBase64ImageToCdn from './lib/uploadBase64ImageToCdn.js';
 dotenv.config();
 
-const __filename = url.fileURLToPath(import.meta.url);
+const __filename = url.fileURLToPath(
+    import.meta.url);
 const __dirname = path.dirname(__filename);
 const baseDir = path.join(__dirname, '/public/uploads/');
 let queue = [];
@@ -27,7 +28,7 @@ const feed = {
 
 export default feed;
 
-Array.prototype.shuffle = function () {
+Array.prototype.shuffle = function() {
     return this.sort(() => Math.random() - 0.5);
 }
 
@@ -64,7 +65,7 @@ async function buildPrompt(prompt, multiplier, mixup, mashup, customVariables, r
         if (typeof prompt !== 'string' || !prompt) {
             return { error: 'Error generating image' };
         }
-        savePromptComponents(prompt, multiplier, req);
+        //savePromptComponents(prompt, multiplier, req);
         let customDict = {};
         customDict = processCustomVariables(customVariables, customDict);
         replacementDict = {};
@@ -231,19 +232,22 @@ function savePromptComponents(prompt, multiplier, req) {
 }
 
 function saveMultipliers(multiplier, req) {
-    const userId = req.user?._id;
-    const multipliers = new DB('multipliers.db');
-    return multipliers.insert({
-        value: multiplier,
-        userId
-    });
+    /*
+        const userId = req.user?._id;
+        const multipliers = new DB('multipliers.db');
+        return multipliers.insert({
+            value: multiplier,
+            userId
+        });*/
 }
 
 function saveClauses(prompt, req) {
-    const userId = req.user?._id;
-    const clauses = prompt.split(',').map(str => str.trim());
-    const dbName = 'prompt-clauses.db';
-    batchSaveToNedb(clauses, dbName, userId);
+    /*
+        const userId = req.user?._id;
+        const clauses = prompt.split(',').map(str => str.trim());
+        const dbName = 'prompt-clauses.db';
+        batchSaveToNedb(clauses, dbName, userId);
+    */
 }
 
 /***********
@@ -273,6 +277,8 @@ const providerList = {
     realisticvision: generateRealisticVision,
     nightmareshaper: generateNightmareShaper,
     openjourney: generateOpenjourney,
+    juggernautReborn:generateJuggernautReborn,
+    redshift: generateRedShift,
     hasdx: generateHasdxImage
 }
 
@@ -331,7 +337,7 @@ async function saveB64Image(b64_json, providerName, prompt, req) {
     const safePrompt = makeFileNameSafeForWindows(prompt).substring(0, 50); // Truncate to avoid overly long filenames
     const imageName = `${providerName}-${safePrompt}-${Date.now()}.jpg`;
     const imagePath = path.join(baseDir, imageName);
-    
+
     if (!fs.existsSync(baseDir)) {
         fs.mkdirSync(baseDir, { recursive: true });
     }
@@ -381,7 +387,12 @@ async function generateDalleImage(prompt, guidance, userId = null) {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     try {
         const response = await openai.images.generate({
-            prompt, n: 1, size: "1024x1024", response_format: "b64_json", model: "dall-e-3", user: userId
+            prompt,
+            n: 1,
+            size: "1024x1024",
+            response_format: "b64_json",
+            model: "dall-e-3",
+            user: userId
         });
         if (!response.data || !response.data[0] || !response.data[0].b64_json) {
             console.error('Invalid response', response);
@@ -395,6 +406,14 @@ async function generateDalleImage(prompt, guidance, userId = null) {
         }
         return { error: 'Error generating image', details: error };
     }
+}
+
+async function generateRedShift(prompt, guidance, userId = null) {
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'redshift_diffusion_768px');
+}
+
+async function generateJuggernautReborn(prompt, guidance, userId = null) {
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'juggernaut_reborn');
 }
 
 async function generatePortraitPlus(prompt, guidance, userId = null) {
@@ -467,10 +486,6 @@ async function generateJuggernautImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'juggernautxl_1024px');
 }
 
-async function generateFluxImage(prompt, guidance, userId = null) {
-    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image', 'flux_1_schnell');
-}
-
 async function generateDreamshaper(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'dreamshaperxl_1024px');
 }
@@ -483,8 +498,15 @@ async function generateTshirtImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_sdxl', 'tshirtdesignredmond_1024px');
 }
 
+async function generateFluxImage(prompt, guidance, userId = null) {
+    return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_flux', 'flux_1_schnell');
+}
+
 async function generateDezgoImage(prompt, guidance, url, model) {
-    const params = { prompt, negative_prompt: "", guidance: guidance || DEFAULT_GUIDANCE_VALUE, seed: generateRandomNineCharNumber(), model };
+    const params = { prompt, /*negative_prompt: "", guidance: guidance || DEFAULT_GUIDANCE_VALUE,*/ seed: generateRandomNineCharNumber(), model };
+    if(model !== 'flux_1_schnell'){
+        params.guidance = guidance || DEFAULT_GUIDANCE_VALUE;
+    }
     const options = {
         method: 'POST',
         url,
@@ -493,7 +515,6 @@ async function generateDezgoImage(prompt, guidance, url, model) {
         data: new URLSearchParams(params).toString(),
         responseType: 'arraybuffer'
     };
-
     try {
         const response = await axios.request(options);
         if (response.status !== 200) {

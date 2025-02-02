@@ -1,130 +1,191 @@
-const isMobile = window.innerWidth < 1200;
+// Constants
+const CONFIG = {
+    isMobile: window.innerWidth < 1200,
+    limits: {
+        wordType: window.innerWidth < 1200 ? 8 : 33,
+        maxAuto: 6,
+        maxSamples: 14
+    },
+    selectors: {
+        textArea: '#prompt-textarea',
+        matches: '#matches',
+        multiplier: '#multiplier',
+        searchTerm: '#search_term',
+        replaceTerm: '#replace_term',
+        generateBtn: '.btn-generate',
+        providers: 'input[name="providers"]',
+        allProviders: '.all-providers',
+        autoDownload: 'input[name="autoDownload"]',
+        queue: '.queue',
+        btnQueue: '.btn-queue',
+        toggleMenu: '.toggle-menu'
+    },
+    api: {
+        wordType: '/word/type',
+        promptBuild: '/prompt/build',
+        clauses: '/prompt/clauses'
+    },
+    timeouts: {
+        debounce: 200,
+        autoGenerate: 100
+    },
+    classes: {
+        active: 'active',
+        sample: 'sample'
+    }
+};
 
-const WORD_TYPE_LIMIT = isMobile ? 8 : 33;
+// Add a state manager
+const StateManager = {
+    state: {
+        requestCount: 0,
+        isGenerating: false,
+        dropdownIsOpen: false,
+        lastMatchedWord: ''
+    },
 
-const MAX_AUTO_NUM = 6;
-const MAX_SAMPLES_NUM = 14;
-let requestCount = 0;
+    update(key, value) {
+        this.state[key] = value;
+        this.notify(key);
+    },
 
-async function setupTextArea() {
-    const textArea = document.getElementById('prompt-textarea');
-    const insertComma = document.querySelector('.insert-comma');
-    let dropdownIsOpen = false;
-    let lastMatchedWord = '';
-    const matchesEl = document.getElementById('matches');
-    const updateMatchesDisplay = async matches => {
-        matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
-        dropdownIsOpen = matches.length > 0;
-        if (dropdownIsOpen) {
-            //matchesEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    notify(key) {
+        // Add observers if needed
+    }
+};
+
+// DOM Element Cache
+const elements = {
+    cache: new Map(),
+
+    get(selector) {
+        if (!this.cache.has(selector)) {
+            const element = document.querySelector(selector);
+            if (element) {
+                this.cache.set(selector, element);
+            }
         }
-    };
+        return this.cache.get(selector);
+    },
 
-    async function getSampleMatches() {
-        const results = await fetch(`/prompt/clauses?limit=${MAX_SAMPLES_NUM}`).then(res => res.json());
+    init() {
+        Object.values(CONFIG.selectors).forEach(selector => {
+            this.get(selector);
+        });
+        return this;
+    }
+};
+
+// Utility Functions
+const utils = {
+    debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    },
+
+    async fetchJson(url) {
+        const response = await fetch(url);
+        return await response.json();
+    },
+
+    removeExtraWhiteSpace(str) {
+        return str.replace(/\s+/g, ' ').trim();
+    },
+
+    updateElementClass(element, condition, className = 'active') {
+        element.classList[condition ? 'add' : 'remove'](className);
+    },
+
+    // Add memoization for expensive operations
+    memoize(fn) {
+        const cache = new Map();
+        return (...args) => {
+            const key = JSON.stringify(args);
+            if (!cache.has(key)) {
+                cache.set(key, fn(...args));
+            }
+            return cache.get(key);
+        };
+    },
+
+    // Add throttle function
+    throttle(func, limit) {
+        let inThrottle;
+        return function(...args) {
+            if (!inThrottle) {
+                func.apply(this, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
+    }
+};
+
+// Add a dedicated error handler
+const errorHandler = {
+    show(message, type = 'error') {
+        console.error(message);
+        alert(message); // Replace with better UI notification
+    },
+
+    handle(error, context) {
+        const message = `Error in ${context}: ${error.message}`;
+        this.show(message);
+        return null;
+    }
+};
+
+// Text Area Manager
+class TextAreaManager {
+    constructor() {
+        this.init();
+        this.bindEvents();
+    }
+
+    init() {
+        this.textArea = elements.get(CONFIG.selectors.textArea);
+        this.matchesEl = elements.get(CONFIG.selectors.matches);
+
+        // Load saved height on initialization
+        const savedHeight = localStorage.getItem('textAreaHeight');
+        if (savedHeight) {
+            this.textArea.style.height = savedHeight;
+        }
+    }
+
+    bindEvents() {
+        this.textArea.addEventListener('input',
+            utils.debounce(this.handleInput.bind(this), CONFIG.timeouts.debounce)
+        );
+
+        // Single resize handler
+        this.textArea.addEventListener('mouseup', this.handleResize.bind(this));
+
+        this.matchesEl.addEventListener('click', this.handleMatchListItemClick.bind(this));
+    }
+
+    async handleInput(e) {
+        utils.updateElementClass(e.target, e.target.value.length);
+        await this.updateMatches(e.target.value, e.target.selectionStart);
+    }
+
+    async getSampleMatches() {
+        const results = await utils.fetchJson(`/prompt/clauses?limit=${CONFIG.limits.maxSamples}`);
         return results.map(word => `<li class="sample" title="${word}">${word}</li>`).join('');
     }
 
-    async function getMatches(word) {
+    async getMatches(word) {
         const encodedWord = encodeURIComponent(word);
-        return await fetch(`/word/type/${encodedWord}?limit=${WORD_TYPE_LIMIT}`).then(res => res.json());
+        return await utils.fetchJson(`/word/type/${encodedWord}?limit=${CONFIG.limits.wordType}`);
     }
 
-    const getReplacement = (innerText) => innerText === ',' ? ', ' : `\${${innerText}} `;
-
-    const getNumWordsToReplace = (dropdownIsOpen, replacement, lastMatchedWord) =>
-        dropdownIsOpen && replacement !== ', ' ? (lastMatchedWord.match(/\s/g) || []).length + 1 : 0;
-
-    const getWords = (textBeforeCursor) => textBeforeCursor.split(/\s+/);
-
-    const replaceWords = (words, numWordsToReplace, replacement) => {
-        if (replacement.trim() !== ',') {
-            words.splice(-numWordsToReplace, numWordsToReplace, replacement.trim());
-        }
-        return words;
-    };
-
-    const appendReplacement = (replacement, newTextBeforeCursor) => {
-        if (newTextBeforeCursor !== '' || replacement.trim() !== ',') {
-            return replacement === ', ' ? newTextBeforeCursor.trim() + replacement : newTextBeforeCursor + ' ';
-        }
-        return newTextBeforeCursor;
-    };
-
-    const getNewTextBeforeCursor = (replacement, newTextBeforeCursor) => {
-        return appendReplacement(replacement, newTextBeforeCursor);
-    };
-
-    const updateTextArea = (textArea, newTextBeforeCursor, textAfterCursor) => {
-        textArea.value = newTextBeforeCursor + textAfterCursor;
-        textArea.selectionStart = newTextBeforeCursor.length;
-        textArea.selectionEnd = newTextBeforeCursor.length;
-        if (window.innerWidth > 1200) {
-            textArea.focus();
-        }
-    };
-
-    const handleMatchListItemClick = e => {
-        if (e.target.tagName === 'LI') {
-            const replacement = e.target.classList.contains('sample') ? e.target.innerText : getReplacement(e.target.innerText);
-            let numWordsToReplace = getNumWordsToReplace(dropdownIsOpen, replacement, lastMatchedWord);
-
-            if (replacement === ', ') {
-                numWordsToReplace = 0;
-            }
-
-            const cursorPosition = textArea.selectionStart;
-            const textBeforeCursor = textArea.value.slice(0, cursorPosition);
-            const textAfterCursor = textArea.value.slice(cursorPosition);
-
-            let words = getWords(textBeforeCursor);
-            words = replaceWords(words, numWordsToReplace, replacement);
-            let newTextBeforeCursor = words.join(' ');
-
-            newTextBeforeCursor = getNewTextBeforeCursor(replacement, newTextBeforeCursor);
-            updateTextArea(textArea, newTextBeforeCursor, textAfterCursor);
-        }
-    };
-
-    function updateTextAreaHeight(e) {
-        const charsPerLine = 44;
-        const minHeight = 100; // Set your minimum height here
-        const text = e.target.value;
-        const words = text.split(/\s+/); // Split into words
-        let numberOfLines = 1; // Start with 1 line
-        let charsOnCurrentLine = 0;
-        words.forEach(word => {
-            if (word.length + charsOnCurrentLine > charsPerLine) {
-                numberOfLines++; // Add a new line if the word doesn't fit on the current line
-                charsOnCurrentLine = word.length; // Start a new line with the length of the current word
-            } else {
-                charsOnCurrentLine += word.length; // Add the length of the word to the current line
-            }
-        });
-        const numberOfLineBreaks = (text.match(/\n|\r/g) || []).length; // Count line breaks and carriage returns
-        const estimatedNumberOfLines = numberOfLines + numberOfLineBreaks;
-        const lineHeight = parseInt(window.getComputedStyle(e.target).getPropertyValue('line-height'), 10);
-        const newHeight = Math.max(estimatedNumberOfLines * lineHeight, minHeight);
-        e.target.style.height = `${newHeight}px`;
-        // Check for Enter key and add a new line
-        if (e.key === 'Enter') {
-            e.target.style.height = `${newHeight + lineHeight}px`;
-        }
-        console.log('... ', e.target.style.height);
-    }
-
-    const handleInput = async(e) => {
-
-        if (e.target.value.length) {
-            e.target.classList.add('active');
-        } else {
-            e.target.classList.remove('active');
-        }
-
-        const textBeforeCursor = e.target.value.slice(0, e.target.selectionStart).trim();
+    async updateMatches(value, cursorPosition) {
+        const textBeforeCursor = value.slice(0, cursorPosition).trim();
         if (!textBeforeCursor || textBeforeCursor.split(/\s+/).pop().length < 2) {
-            //matchesEl.innerHTML = '';
-            matchesEl.innerHTML = matchesEl.innerHTML + await getSampleMatches();
+            this.matchesEl.innerHTML = await this.getSampleMatches();
             return;
         }
 
@@ -132,14 +193,12 @@ async function setupTextArea() {
         const wordsBeforeCursor = textBeforeCursor.split(/\s+/);
         for (let i = 1; i <= 3; i++) {
             if (wordsBeforeCursor.length >= i) {
-                lastMatchedWord = wordsBeforeCursor.slice(-i).join(' ');
+                this.lastMatchedWord = wordsBeforeCursor.slice(-i).join(' ');
                 try {
-                    matches = await getMatches(lastMatchedWord);
+                    matches = await this.getMatches(this.lastMatchedWord);
                     if (matches.length > 0) break;
                 } catch (error) {
-                    alert(`Error ${error}`);
-                    console.error('An error occurred while getting matches:', error);
-                    return;
+                    console.error('Match error:', error);
                 }
             }
         }
@@ -148,58 +207,293 @@ async function setupTextArea() {
             matches.push(', ');
         }
 
-        updateMatchesDisplay(matches);
-    };
+        this.updateMatchesDisplay(matches);
+    }
 
-    setupResizeEventHandler(textArea);
+    updateMatchesDisplay(matches) {
+        this.matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
+        this.dropdownIsOpen = matches.length > 0;
+    }
+
+    handleMatchListItemClick(e) {
+        if (e.target.tagName === 'LI') {
+            const replacement = e.target.classList.contains('sample') ?
+                e.target.innerText :
+                (e.target.innerText === ',' ? ', ' : `\${${e.target.innerText}} `);
+
+            const numWordsToReplace = this.dropdownIsOpen && replacement !== ', ' ?
+                (this.lastMatchedWord.match(/\s/g) || []).length + 1 : 0;
+
+            this.updateTextAreaContent(replacement, numWordsToReplace);
+        }
+    }
+
+    updateTextAreaContent(replacement, numWordsToReplace) {
+        const cursorPosition = this.textArea.selectionStart;
+        const textBeforeCursor = this.textArea.value.slice(0, cursorPosition);
+        const textAfterCursor = this.textArea.value.slice(cursorPosition);
+
+        let words = textBeforeCursor.split(/\s+/);
+        if (replacement.trim() !== ',') {
+            words.splice(-numWordsToReplace, numWordsToReplace, replacement.trim());
+        }
+
+        let newTextBeforeCursor = words.join(' ');
+        newTextBeforeCursor = replacement === ', ' ?
+            newTextBeforeCursor.trim() + replacement :
+            newTextBeforeCursor + ' ';
+
+        this.textArea.value = newTextBeforeCursor + textAfterCursor;
+        this.textArea.selectionStart = newTextBeforeCursor.length;
+        this.textArea.selectionEnd = newTextBeforeCursor.length;
+
+        if (!CONFIG.isMobile) {
+            this.textArea.focus();
+        }
+    }
+
+    handleResize(e) {
+        const newHeight = e.target.style.height;
+        if (newHeight) {
+            localStorage.setItem('textAreaHeight', newHeight);
+        }
+    }
+
+    destroy() {
+        // Remove event listeners
+        this.textArea.removeEventListener('input', this.handleInput);
+        this.textArea.removeEventListener('mouseup', this.handleResize);
+        this.matchesEl.removeEventListener('click', this.handleMatchListItemClick);
+    }
+
+    // Add updateHeight method
+    updateHeight(e) {
+        const charsPerLine = 44;
+        const minHeight = 100;
+        const text = e.target.value;
+        const words = text.split(/\s+/);
+        let numberOfLines = 1;
+        let charsOnCurrentLine = 0;
+
+        words.forEach(word => {
+            if (word.length + charsOnCurrentLine > charsPerLine) {
+                numberOfLines++;
+                charsOnCurrentLine = word.length;
+            } else {
+                charsOnCurrentLine += word.length;
+            }
+        });
+
+        const numberOfLineBreaks = (text.match(/\n|\r/g) || []).length;
+        const estimatedNumberOfLines = numberOfLines + numberOfLineBreaks;
+        const lineHeight = parseInt(window.getComputedStyle(e.target).getPropertyValue('line-height'), 10);
+        const newHeight = Math.max(estimatedNumberOfLines * lineHeight, minHeight);
+
+        e.target.style.height = `${newHeight}px`;
+
+        if (e.key === 'Enter') {
+            e.target.style.height = `${newHeight + lineHeight}px`;
+        }
+
+        // Save the new height
+        localStorage.setItem('textAreaHeight', e.target.style.height);
+    }
+}
+
+// Queue Manager
+class QueueManager {
+    constructor() {
+        this.queueList = document.querySelector(CONFIG.selectors.queue);
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        const queueBtn = document.querySelector(CONFIG.selectors.btnQueue);
+        if (queueBtn) {
+            queueBtn.addEventListener('click', this.handleAddToQueue.bind(this));
+        }
+    }
+
+    handleAddToQueue() {
+        const textArea = document.querySelector(CONFIG.selectors.textArea);
+        this.addQueueItem(textArea.value);
+    }
+
+    addQueueItem(prompt) {
+        const item = document.createElement("li");
+        const removeItemBtn = document.createElement("button");
+        const promptEl = document.createElement("p");
+
+        promptEl.textContent = prompt;
+        promptEl.title = prompt;
+        removeItemBtn.textContent = "Remove";
+
+        promptEl.addEventListener("click", () => {
+            const textArea = document.querySelector(CONFIG.selectors.textArea);
+            textArea.value = prompt;
+        });
+
+        removeItemBtn.addEventListener("click", () => item.remove());
+
+        item.appendChild(promptEl);
+        item.appendChild(removeItemBtn);
+        this.queueList.appendChild(item);
+    }
+}
+
+// Provider Manager
+class ProviderManager {
+    constructor() {
+        this.providers = new Set();
+        this.init();
+    }
+
+    init() {
+        this.loadProviders();
+        this.bindEvents();
+    }
+
+    loadProviders() {
+        const savedProviders = localStorage.getItem('selectedProviders');
+        if (savedProviders) {
+            this.providers = new Set(JSON.parse(savedProviders));
+        }
+        this.updateUI();
+    }
+
+    updateUI() {
+        document.querySelectorAll(CONFIG.selectors.providers).forEach(checkbox => {
+            checkbox.checked = this.providers.has(checkbox.value);
+        });
+    }
+
+    bindEvents() {
+        const providers = document.querySelectorAll(CONFIG.selectors.providers);
+        providers.forEach(provider => {
+            provider.addEventListener('change', this.handleProviderChange.bind(this));
+        });
+
+        const allProvidersCheckbox = document.querySelector(CONFIG.selectors.allProviders);
+        if (allProvidersCheckbox) {
+            allProvidersCheckbox.addEventListener('change', this.handleAllProvidersToggle.bind(this));
+        }
+    }
+
+    handleProviderChange() {
+        const providers = document.querySelectorAll(CONFIG.selectors.providers);
+        const checkedCount = Array.from(providers).filter(p => p.checked).length;
+        const allProvidersCheckbox = document.querySelector(CONFIG.selectors.allProviders);
+
+        if (allProvidersCheckbox) {
+            allProvidersCheckbox.checked = checkedCount === providers.length;
+        }
+    }
+
+    handleAllProvidersToggle(e) {
+        const providers = document.querySelectorAll(CONFIG.selectors.providers);
+        providers.forEach(provider => provider.checked = e.target.checked);
+    }
+}
+
+// Storage Manager
+class StorageManager {
+    static get(key, defaultValue = null) {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : defaultValue;
+    }
+
+    static set(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+    }
+}
+
+// First, let's add these constants back at the top
+const WORD_TYPE_LIMIT = CONFIG.isMobile ? 8 : 33;
+const MAX_AUTO_NUM = 6;
+const MAX_SAMPLES_NUM = 14;
+
+let isInitialized = false;
+
+// Add a ToggleMenuManager class
+class ToggleMenuManager {
+    constructor() {
+        this.toggleMenus = document.querySelectorAll(CONFIG.selectors.toggleMenu);
+        this.init();
+        this.bindEvents();
+    }
+
+    init() {
+        // Load saved state for each menu
+        this.toggleMenus.forEach(menu => {
+            const id = menu.classList.contains('provider-list') ? 'provider-list' : 'extra-tools';
+            const isExpanded = localStorage.getItem(`toggleMenu_${id}`) === 'true';
+            if (isExpanded) {
+                menu.classList.add('active');
+            }
+        });
+    }
+
+    bindEvents() {
+        this.toggleMenus.forEach(menu => {
+            menu.addEventListener('click', (e) => {
+                // Only toggle if clicking the menu itself, not its children
+                if (e.target === menu) {
+                    this.handleToggle(menu);
+                }
+            });
+        });
+    }
+
+    handleToggle(menu) {
+        menu.classList.toggle('active');
+        const isExpanded = menu.classList.contains('active');
+
+        // Save state using unique identifier for each menu
+        const id = menu.classList.contains('provider-list') ? 'provider-list' : 'extra-tools';
+        localStorage.setItem(`toggleMenu_${id}`, isExpanded);
+    }
+}
+
+async function setupTextArea() {
+    if (isInitialized) {
+        return;
+    }
+    isInitialized = true;
+
+    elements.init();
+
+    const textAreaManager = new TextAreaManager();
+    const providerManager = new ProviderManager();
+    const queueManager = new QueueManager();
+    const toggleMenuManager = new ToggleMenuManager();
+
     setupAutoDownload();
     setupMaxNumInput();
-    setupProviderClicks();
     setupActiveClass();
-    //textArea.addEventListener('input', updateTextAreaHeight);
-    textArea.addEventListener('input', debounce(handleInput, 200));
-    matchesEl.addEventListener('click', handleMatchListItemClick);
-    //document.querySelector('.prompt-convert').addEventListener('click', handleConvertClick);
-    document.querySelector('.btn-generate').addEventListener('click', debounce(function() {
-        const scrollIntoView = false;
-        handleGenerateClick(scrollIntoView);
-    }, 200));
-    document.querySelector('.btn-queue').addEventListener('click', handleAddToQueueClick);
-    document.querySelector('.all-providers').addEventListener('click', toggleAllProviders);
-    //document.querySelector('.help').addEventListener('click', handleHelpLinkClick);
+    setupProviderClicks();
+
+    // Fix the generate button click handler
+    document.querySelector('.btn-generate').addEventListener(
+        'click',
+        utils.debounce(function() {
+            const scrollIntoView = false;
+            handleGenerateClick(scrollIntoView);
+        }, 200)
+    );
+
+    document.querySelector('.all-providers').addEventListener(
+        'click',
+        toggleAllProviders
+    );
 
     const replaceBtn = document.querySelector('.btn-replace');
-    replaceBtn.addEventListener('click', handleReplaceClick);
-    const searchReplaceInput = document.querySelector('#search_term');
-
+    if (replaceBtn) {
+        replaceBtn.addEventListener('click', handleReplaceClick);
+    }
 }
 
-function handleAddToQueueClick() {
-    const textArea = document.querySelector("textarea#prompt-textarea");
-    const prompt = textArea.value;
-    addQueItem(prompt);
-}
-
-function addQueItem(prompt) {
-
-    const item = document.createElement("li");
-    const list = document.querySelector(".queue");
-    const removeItemBtn = document.createElement("button");
-    const promptEl = document.createElement("p");
-    promptEl.textContent = prompt;
-    promptEl.title = prompt;
-    removeItemBtn.textContent = "Remove";
-    promptEl.addEventListener("click", function() {
-        const textArea = document.querySelector("textarea#prompt-textarea");
-        textArea.value = prompt;
-    });
-    removeItemBtn.addEventListener("click", function() {
-        item.remove();
-    });
-    item.appendChild(promptEl);
-    item.appendChild(removeItemBtn);
-    list.appendChild(item);
-}
+// Initialize
+document.addEventListener('DOMContentLoaded', setupTextArea);
 
 function handleReplaceClick(e) {
     const needle = document.querySelector("#search_term").value;
@@ -207,7 +501,6 @@ function handleReplaceClick(e) {
     const textArea = document.querySelector("textarea#prompt-textarea");
     const regex = new RegExp(needle, 'g');
     textArea.value = textArea.value.replace(regex, replacement);
-
 }
 
 function setupActiveClass() {
@@ -227,28 +520,6 @@ function setupActiveClass() {
             e.target.classList.add('active');
         } else {
             e.target.classList.remove('active');
-        }
-    });
-}
-
-function setupResizeEventHandler(textArea) {
-    textArea.addEventListener('mouseup', function(e) {
-        localStorage.setItem('textAreaHeight', e.target.style.height);
-    });
-    const height = localStorage.getItem('textAreaHeight');
-    if (height) {
-        textArea.style.height = height;
-    }
-}
-
-function handleWordLiClick() {
-
-    const wordTypesEl = document.querySelector('ul.word-types');
-    wordTypesEl.addEventListener('click', function(e) {
-        if (e.target.tagName === 'LI') {
-            const replacement = getReplacement(e.target.innerText);
-            textArea.value = textArea.value + ' ' + replacement;
-
         }
     });
 }
@@ -283,7 +554,7 @@ function toggleAllProviders(e) {
 
 function convertPromptToUrl(prompt = null) {
     const textArea = document.getElementById('prompt-textarea');
-    prompt = prompt ? prompt : encodeURIComponent(removeExtraWhiteSpace(textArea.value.trim()));
+    prompt = prompt ? prompt : encodeURIComponent(utils.removeExtraWhiteSpace(textArea.value.trim()));
     if (!prompt) {
         return false;
     }
@@ -296,10 +567,6 @@ function convertPromptToUrl(prompt = null) {
     const customVariables = getCustomVariables();
 
     return `${API_PROMPT_BUILD}?prompt=${prompt}${multiplierPair}${mixupPair}${customVariables}${mashupPair}`;
-}
-
-function removeExtraWhiteSpace(str) {
-    return str.replace(/\s+/g, ' ').trim();
 }
 
 async function fetchData(url) {
@@ -325,25 +592,19 @@ async function handleGenerateClick(scrollToElm = null) {
             promptElm.scrollIntoView({ behavior: "smooth", block: "start" });
         }
         const img = await generateImage(promptData);
-        //if (scrollToElm) {
-        //img.scrollIntoView({ behavior: "smooth", block: "start" });
-        //}
+
         const isAuto = document.querySelector('input[name="auto-generate"]:checked');
         const maxNum = document.querySelector('input[name="maxNum"]');
 
-        if (isAuto && (requestCount < (maxNum.value || MAX_AUTO_NUM) - 1)) {
-            requestCount++;
-            setTimeout(function() {
-                handleGenerateClick(scrollToElm);
-            }, 100);
+        if (isAuto && (StateManager.state.requestCount < (maxNum.value || MAX_AUTO_NUM) - 1)) {
+            StateManager.update('requestCount', StateManager.state.requestCount + 1);
+            setTimeout(() => handleGenerateClick(scrollToElm), 100);
         } else {
-            requestCount = 0;
+            StateManager.update('requestCount', 0);
         }
 
     } catch (error) {
-        alert(`Error ${error}`);
-        location.reload();
-
+        errorHandler.handle(error, 'handleGenerateClick');
     } finally {
         enableGenerateButton();
     }
@@ -387,3 +648,26 @@ async function handleConvertClick() {
         console.error('An error occurred while fetching the data.', error);
     }
 }
+
+// Make sure these functions are available
+function disableGenerateButton() {
+    const btn = document.querySelector('.btn-generate');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Generating...';
+    }
+}
+
+function enableGenerateButton() {
+    const btn = document.querySelector('.btn-generate');
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'START';
+    }
+}
+
+function isProviderSelected() {
+    return document.querySelectorAll('input[name="providers"]:checked').length > 0;
+}
+
+export { setupTextArea };

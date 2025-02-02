@@ -1,11 +1,12 @@
-document.addEventListener('DOMContentLoaded', (event) => {
+import { setupTextArea } from './setup/setupTextArea.js';
 
+document.addEventListener('DOMContentLoaded', (event) => {
     setupTextArea();
 
     setupFeed();
 
     setupStatsBar();
-    
+
     setupGuidanceDropDowns();
 
     setupCustomVariables();
@@ -26,5 +27,5 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
         }
     });
-   
+
 });

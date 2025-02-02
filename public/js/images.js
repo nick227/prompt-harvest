@@ -11,7 +11,7 @@ const NEXT_ICON_HTML = '<i class="fas fa-arrow-right"></i>';
 async function generateImage(promptObj, e = null) {
     if (!isProviderSelected()) {
         alert("Must select at least one provider");
-    } 
+    }
     const text = promptObj.prompt;
     if (!text.length) {
         alert("Invalid Prompt");
@@ -54,7 +54,7 @@ async function generateImage(promptObj, e = null) {
     return img;
 }
 
-function disableGenerateBtn(){
+function disableGenerateBtn() {
     const generateBtn = document.querySelector('.btn-generate');
     generateBtn.classList.add('processing');
     generateBtn.innerText = 'loading...';
@@ -74,14 +74,14 @@ function getCustomVariables() {
     return '';
 }
 
-function disableGenerateButton(){
+function disableGenerateButton() {
     const generateBtn = document.querySelector('.btn-generate');
     generateBtn.classList.add('processing');
     generateBtn.innerText = 'loading...';
     generateBtn.disabled = true;
 }
 
-function enableGenerateButton(){
+function enableGenerateButton() {
     const generateBtn = document.querySelector('.btn-generate');
     generateBtn.classList.remove('processing');
     generateBtn.innerText = 'Let\'s Go';
@@ -98,12 +98,9 @@ function toggleProcessingStyle(e = null) {
 }
 
 function createImageElement(results) {
-    console.log('!!! results', results);
     const img = document.createElement('img');
     img.dataset.src = `uploads/${results.imageName}`;
     img.dataset.id = results.imageId;
-    console.log('.......')
-    console.log('createImageElement img', img)
     return img;
 }
 
@@ -133,7 +130,7 @@ function addImageToOutput(results, download = false) {
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                displayImage(img, results, wrapper); 
+                displayImage(img, results, wrapper);
                 observer.unobserve(entry.target);
             }
         });
@@ -143,8 +140,8 @@ function addImageToOutput(results, download = false) {
     return img;
 }
 
-function createTagElement(results){
-    if(!results.rating){
+function createTagElement(results) {
+    if (!results.rating) {
         return;
     }
     const rating = document.createElement('div');
@@ -175,7 +172,7 @@ function findPromptPreviewElement(results) {
 function displayImage(img, results, wrapper) {
     img.title = results.prompt;
     img.dataset.id = results.id;
-    img.addEventListener("click", function () {
+    img.addEventListener("click", function() {
         if (!isDragging) {
             toggleFullScreenThisImage(wrapper);
         }
@@ -201,4 +198,4 @@ function createNoteElement(results) {
     const note = document.createElement('h5');
     note.textContent = results.providerName + `, ${results.guidance}`;
     return note;
-} 
+}
