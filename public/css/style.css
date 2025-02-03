@@ -430,7 +430,7 @@ ul li {
 ul.prompt-output.list-view .processing .prompt-text {
     display: none;
     display: -webkit-box;
-    -webkit-line-clamp: 4;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -677,7 +677,7 @@ ul.matches li:active {
 }
 
 .extra-tools.active {
-    height: 175px;
+    height: 150px;
 }
 
 .toggle-menu {

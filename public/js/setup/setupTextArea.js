@@ -265,39 +265,6 @@ class TextAreaManager {
         this.textArea.removeEventListener('mouseup', this.handleResize);
         this.matchesEl.removeEventListener('click', this.handleMatchListItemClick);
     }
-
-    // Add updateHeight method
-    updateHeight(e) {
-        const charsPerLine = 44;
-        const minHeight = 100;
-        const text = e.target.value;
-        const words = text.split(/\s+/);
-        let numberOfLines = 1;
-        let charsOnCurrentLine = 0;
-
-        words.forEach(word => {
-            if (word.length + charsOnCurrentLine > charsPerLine) {
-                numberOfLines++;
-                charsOnCurrentLine = word.length;
-            } else {
-                charsOnCurrentLine += word.length;
-            }
-        });
-
-        const numberOfLineBreaks = (text.match(/\n|\r/g) || []).length;
-        const estimatedNumberOfLines = numberOfLines + numberOfLineBreaks;
-        const lineHeight = parseInt(window.getComputedStyle(e.target).getPropertyValue('line-height'), 10);
-        const newHeight = Math.max(estimatedNumberOfLines * lineHeight, minHeight);
-
-        e.target.style.height = `${newHeight}px`;
-
-        if (e.key === 'Enter') {
-            e.target.style.height = `${newHeight + lineHeight}px`;
-        }
-
-        // Save the new height
-        localStorage.setItem('textAreaHeight', e.target.style.height);
-    }
 }
 
 // Queue Manager
@@ -365,12 +332,27 @@ class ProviderManager {
         document.querySelectorAll(CONFIG.selectors.providers).forEach(checkbox => {
             checkbox.checked = this.providers.has(checkbox.value);
         });
+        // Update "all" checkbox state
+        const providers = document.querySelectorAll(CONFIG.selectors.providers);
+        const allChecked = Array.from(providers).every(p => p.checked);
+        const allProvidersCheckbox = document.querySelector(CONFIG.selectors.allProviders);
+        if (allProvidersCheckbox) {
+            allProvidersCheckbox.checked = allChecked;
+        }
     }
 
     bindEvents() {
         const providers = document.querySelectorAll(CONFIG.selectors.providers);
         providers.forEach(provider => {
-            provider.addEventListener('change', this.handleProviderChange.bind(this));
+            provider.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.providers.add(e.target.value);
+                } else {
+                    this.providers.delete(e.target.value);
+                }
+                localStorage.setItem('selectedProviders', JSON.stringify(Array.from(this.providers)));
+                this.handleProviderChange();
+            });
         });
 
         const allProvidersCheckbox = document.querySelector(CONFIG.selectors.allProviders);
@@ -391,7 +373,15 @@ class ProviderManager {
 
     handleAllProvidersToggle(e) {
         const providers = document.querySelectorAll(CONFIG.selectors.providers);
-        providers.forEach(provider => provider.checked = e.target.checked);
+        providers.forEach(provider => {
+            provider.checked = e.target.checked;
+            if (e.target.checked) {
+                this.providers.add(provider.value);
+            } else {
+                this.providers.delete(provider.value);
+            }
+        });
+        localStorage.setItem('selectedProviders', JSON.stringify(Array.from(this.providers)));
     }
 }
 
