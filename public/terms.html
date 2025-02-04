@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
 </head>
 
 <body>
-<!--
+    <!--
     <script src="https://js.stripe.com/v3/"></script>
     <form action="/create-checkout-session" method="POST">
       <button type="submit" id="checkout-button">Checkout</button>
@@ -19,27 +20,18 @@
     -->
 
     <div class="row space-between">
-      <div class="donate-btn">
-        <script
-          type="text/javascript"
-          src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
-          data-name="bmc-button"
-          data-slug="nicholasjay"
-          data-color="#FFDD00"
-          data-emoji="☕"
-          data-font="Cookie"
-          data-text="Buy me a coffee"
-          data-outline-color="#000000"
-          data-font-color="#000000"
-          data-coffee-color="#ffffff"
-        ></script>
-      </div>
-      <div id="authentication"><a href="/login.html">Login</a> / <a href="/register.html">Register</a></div>
+        <div class="donate-btn">
+            <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="nicholasjay" data-color="#FFDD00" data-emoji="☕" data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000"
+                data-font-color="#000000" data-coffee-color="#ffffff"></script>
+        </div>
+        <div id="authentication"><a href="/login.html">Login</a> / <a href="/register.html">Register</a></div>
     </div>
     <div class="" style="width:100%;">
-      <a href="/"><h1 class="title">Dialogica</h1></a>
+        <a href="/">
+            <h2 class="title">Home</h2>
+        </a>
     </div>
-      
+
     <section class="term-results">
         <h3>Search Terms</h3>
         <div class="">
@@ -68,12 +60,12 @@
         setupStatsBar();
         setupWordTypeSection();
 
-checkUser().then(user => {
-    if (user) {
-        renderUserUI(user.email);
+        checkUser().then(user => {
+            if (user) {
+                renderUserUI(user.email);
 
-    }
-});
+            }
+        });
     </script>
 </body>
 

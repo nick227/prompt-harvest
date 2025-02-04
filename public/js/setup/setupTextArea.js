@@ -598,7 +598,7 @@ async function handleGenerateClick(scrollToElm = null) {
 }
 
 function setupMaxNumInput() {
-    //const localStorageMaxNum = localStorage.getItem('maxNum');
+    const localStorageMaxNum = localStorage.getItem('maxNum');
     const maxNum = document.querySelector("input[name='maxNum']");
     maxNum.setAttribute('min', 1);
     maxNum.setAttribute('max', MAX_AUTO_NUM);
@@ -611,7 +611,7 @@ function setupMaxNumInput() {
             value = MAX_AUTO_NUM;
         }
         maxNum.value = value;
-        //localStorage.setItem('maxNum', value);
+        localStorage.setItem('maxNum', value);
     });
 
     const isAuto = document.querySelector("input[name='auto-generate']");

@@ -25,7 +25,7 @@
         <div class="row">
             <div class="col">
                 <div class="topbar">
-                    <div class="row">
+                    <div class="row full-width">
                         <div id="authentication" class="no-wrap"><a href="/login.html">login</a> / <a href="/register.html">register</a>
                         </div>
                         &nbsp;/&nbsp; <a class="link" href="/terms.html" target="_blank">library</a> &nbsp;/&nbsp;
@@ -33,6 +33,64 @@
                     </div>
                 </div>
                 <div class="row provider-list toggle-menu">
+                    <div class="row full-width">
+
+                        <input type="number" name="maxNum" style="width: 35px" placeholder="max" />&nbsp;
+                        <label>
+                            <input type="checkbox" name="auto-generate" /> auto
+                        </label> &nbsp;
+                        <label>
+                            <select style="width: 55px" name="guidance-bottom">
+                                <option>bottom</option>
+
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20</option>
+                            </select>
+                        </label>
+                        <label>
+                            <select style="width: 55px" name="guidance-top">
+                                <option>top</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20</option>
+                            </select>
+                        </label>
+                    </div>
                     <label for="flux"><input type="checkbox" value="flux"
                                 id="flux"
                                 name="providers" />Flux</label>
@@ -106,103 +164,51 @@
                                 id="ink" name="providers" />Ink Punk</label>
                     <label for="all"><input type="checkbox" id="all"
                                 class="all-providers" />all</label>
-                    <input type="number" name="maxNum" style="width: 35px" placeholder="max" />&nbsp;
-                    <label>
-                                    <input type="checkbox" name="auto-generate" /> auto
-                                </label> &nbsp;
-                    <label>
-                                    <select style="width: 55px" name="guidance-bottom">
-                                        <option>bottom</option>
-        
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5</option>
-                                        <option value="6">6</option>
-                                        <option value="7">7</option>
-                                        <option value="8">8</option>
-                                        <option value="9">9</option>
-                                        <option value="10">10</option>
-                                        <option value="11">11</option>
-                                        <option value="12">12</option>
-                                        <option value="13">13</option>
-                                        <option value="14">14</option>
-                                        <option value="15">15</option>
-                                        <option value="16">16</option>
-                                        <option value="17">17</option>
-                                        <option value="18">18</option>
-                                        <option value="19">19</option>
-                                        <option value="20">20</option>
-                                    </select>
-                                </label>
-                    <label>
-                                    <select style="width: 55px" name="guidance-top">
-                                        <option>top</option>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5</option>
-                                        <option value="6">6</option>
-                                        <option value="7">7</option>
-                                        <option value="8">8</option>
-                                        <option value="9">9</option>
-                                        <option value="10">10</option>
-                                        <option value="11">11</option>
-                                        <option value="12">12</option>
-                                        <option value="13">13</option>
-                                        <option value="14">14</option>
-                                        <option value="15">15</option>
-                                        <option value="16">16</option>
-                                        <option value="17">17</option>
-                                        <option value="18">18</option>
-                                        <option value="19">19</option>
-                                        <option value="20">20</option>
-                                    </select>
-                                </label>
 
                 </div>
                 <div class="toggle-menu extra-tools">
-
                     <div class="row v-align-center">
-                        <div class="insert-variable">+ Variable</div>
-                        <div class="chips-variables row"></div>
                         <label><input type="checkbox" name="autoDownload" />
-                            download</label> &nbsp;
+                                download</label> &nbsp;
                         <label> <input type="checkbox" name="mixup" /> mixup
-                        </label> &nbsp;
-                        <label> <input type="checkbox" name="mashup" /> mashup
-                        </label>
+                            </label> &nbsp;
+                        <label> <input type="checkbox" name="mashup" />
+                                mashup
+                            </label>
                     </div>
-
                     <div class="row full-width">
                         <input type="text" id="multiplier" placeholder="Multiplier text - Added between comma clauses" />
+                    </div>
+
+                    <div class="row full-width v-align-center">
                         <input type="text" placeholder="search term" name="search_term" id="search_term" style="margin-right: 10px;" />
                         <input type="text" placeholder="replace term" name="replace_term" id="replace_term" style="margin-right: 10px;" />
                         <button class="btn-replace">Replace</button>
                     </div>
+                    <div class="row v-align-center">
+                        <div class="insert-variable">+ Variable</div>
+                        <div class="chips-variables row"></div>
+                    </div>
                 </div>
                 <textarea id="prompt-textarea"></textarea>
-
-
-                <div style="margin-bottom: 10px;" class="row full-width">
-                    <label class="">
-                            <input type="checkbox" checked
-                                class="prompt-view-switch" />
-                            grid
-                        </label>
-                    <div class="search">
-                        <input type="text" name="image-search" placeholder="search" />
-                    </div>
+                <div class="row full-width">
                     <button class="btn-generate">START</button>
                 </div>
-
                 <ul id="matches" class="matches"></ul>
             </div>
             <div class="col">
 
                 <div class="prompts">
+                    <div class="row full-width toggle-menu image-tools">
+                        <label class>
+                                <input type="checkbox" checked
+                                    class="prompt-view-switch" />
+                                grid
+                            </label>
+                        <div class="search">
+                            <input type="text" name="image-search" placeholder="search" />
+                        </div>
+                    </div>
                     <ul class="prompt-output"></ul>
                 </div>
             </div>
