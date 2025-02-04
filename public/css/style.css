@@ -722,6 +722,10 @@ ul.matches li:active {
     transform: rotate(180deg);
 }
 
+.topbar {
+    padding-left: 10px;
+}
+
 .sample {
     border-color: var(--color-blue);
 }
