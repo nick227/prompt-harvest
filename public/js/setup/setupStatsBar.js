@@ -1,5 +1,4 @@
 async function setupStatsBar() {
-    return false;
     const multiplier = 50;
     const response = await fetch('/images/count');
     const results = await response.json();

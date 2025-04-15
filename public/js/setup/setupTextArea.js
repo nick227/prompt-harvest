@@ -657,4 +657,4 @@ function isProviderSelected() {
     return document.querySelectorAll('input[name="providers"]:checked').length > 0;
 }
 
-export { setupTextArea };
+//export { setupTextArea };
