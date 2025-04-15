@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupFeed();
 
-    setupStatsBar();
+    //setupStatsBar();
 
     setupGuidanceDropDowns();
 

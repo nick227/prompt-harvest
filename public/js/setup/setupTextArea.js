@@ -399,7 +399,7 @@ class StorageManager {
 
 // First, let's add these constants back at the top
 const WORD_TYPE_LIMIT = CONFIG.isMobile ? 8 : 33;
-const MAX_AUTO_NUM = 6;
+const MAX_AUTO_NUM = window.location.hostname.includes('localhost') ? 60 : 5;
 const MAX_SAMPLES_NUM = 14;
 
 let isInitialized = false;
@@ -602,7 +602,7 @@ function setupMaxNumInput() {
     const maxNum = document.querySelector("input[name='maxNum']");
     maxNum.setAttribute('min', 1);
     maxNum.setAttribute('max', MAX_AUTO_NUM);
-    maxNum.value = MAX_AUTO_NUM;
+    maxNum.value = localStorageMaxNum ? localStorageMaxNum : 3;
     maxNum.addEventListener('change', () => {
         let value = parseInt(maxNum.value);
         if (value < 1) {

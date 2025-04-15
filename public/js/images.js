@@ -48,7 +48,7 @@ async function generateImage(promptObj, e = null) {
         body: JSON.stringify(data)
     }).then(res => res.json());
 
-    setupStatsBar();
+    //setupStatsBar();
     const img = addImageToOutput(results, true);
     toggleProcessingStyle(e);
     return img;
