@@ -1,9 +1,8 @@
-
 const INFO_BOX_CLASS = 'info-box';
 const TAGS_BOX_CLASS = 'tags-box';
 const LIKE_BTN_HTML = '<i class="fas fa-heart"></i>';
 
-document.addEventListener('toggleFullScreenThisImage', function (e) {
+document.addEventListener('toggleFullScreenThisImage', function(e) {
     const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
     toggleFullScreenThisImage(wrapper);
 });
@@ -28,7 +27,7 @@ function removeFullScreen(wrapper) {
 function focusOnWrapper(wrapper) {
     const img = wrapper.querySelector('img');
     img.scrollIntoView({
-        behavior:'smooth',
+        behavior: 'smooth',
         block: 'center',
         inline: 'center'
     });
@@ -135,20 +134,20 @@ function addSwipeListeners(wrapper) {
     if (wrapper.classList.contains(IMAGE_FULLSCREEN_CLASS)) {
         const img = wrapper.querySelector('img');
         var hammerHandler = new Hammer(wrapper, {
-            touchAction: 'none'  // Prevents default browser pinch action
+            touchAction: 'none' // Prevents default browser pinch action
         });
 
-        hammerHandler.get('pinch').set({ enable: true });  // Enable pinch event
+        hammerHandler.get('pinch').set({ enable: true }); // Enable pinch event
 
-        hammerHandler.on('swipeleft', function () {
+        hammerHandler.on('swipeleft', function() {
             navigateImages('next', wrapper);
         });
 
-        hammerHandler.on('swiperight', function () {
+        hammerHandler.on('swiperight', function() {
             navigateImages('prev', wrapper);
         });
 
-        hammerHandler.on('pinch', function (ev) {
+        hammerHandler.on('pinch', function(ev) {
             // You can access scale factor through ev.scale
             // Use this to adjust the zoom level of your image
             img.style.transform = `scale(${ev.scale})`;
@@ -200,7 +199,7 @@ function addDragHandlers(wrapper) {
 
     let lastDeltaY = 0;
 
-    hammerHandler.on('panmove', function (event) {
+    hammerHandler.on('panmove', function(event) {
         var target = event.target,
             y = (parseFloat(target.getAttribute('data-y')) || 0) + event.deltaY - lastDeltaY;
         updateElementTransformValue(target, 'translateY(' + y + 'px)');
@@ -208,11 +207,11 @@ function addDragHandlers(wrapper) {
         lastDeltaY = event.deltaY;
     });
 
-    hammerHandler.on('pinch', function (event) {
+    hammerHandler.on('pinch', function(event) {
         updateElementTransformValue(event.target, 'scale(' + event.scale + ')');
     });
 
-    hammerHandler.on('panend', function () {
+    hammerHandler.on('panend', function() {
         lastDeltaY = 0;
     });
 
@@ -357,11 +356,11 @@ function getInfoBox() {
     h62.innerText = note;
     infoBox.appendChild(h62);
 
-    h3.addEventListener('click', function () {
+    h3.addEventListener('click', function() {
         navigator.clipboard.writeText(h3.innerText);
     });
 
-    h6.addEventListener('click', function () {
+    h6.addEventListener('click', function() {
         navigator.clipboard.writeText(h6.innerText);
     });
 
@@ -390,7 +389,7 @@ function getCloseButton() {
     const btn = document.createElement('button');
     btn.innerHTML = CLOSE_ICON_HTML;
     btn.setAttribute('title', 'Esc');
-    btn.addEventListener('click', function () {
+    btn.addEventListener('click', function() {
         const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
         toggleFullScreenThisImage(wrapper);
     });
@@ -403,14 +402,14 @@ function getNavigateButtons() {
     nextBtn.className = 'next-btn';
     nextBtn.innerHTML = NEXT_ICON_HTML;
     nextBtn.setAttribute('title', 'Right Arrow');
-    nextBtn.addEventListener('click', function () {
+    nextBtn.addEventListener('click', function() {
         const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
         navigateImages('next', wrapper);
     });
     const prevBtn = document.createElement('button');
     prevBtn.innerHTML = PREV_ICON_HTML;
     prevBtn.setAttribute('title', 'Left Arrow');
-    prevBtn.addEventListener('click', function () {
+    prevBtn.addEventListener('click', function() {
         const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
         navigateImages('prev', wrapper);
     });
@@ -420,7 +419,7 @@ function getNavigateButtons() {
     return container;
 }
 
-function keyupHandler(e) {
+async function keyupHandler(e) {
     if (e.key === 'ArrowRight') {
         navigateImages('next', document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
     } else if (e.key === 'ArrowLeft') {
@@ -428,10 +427,11 @@ function keyupHandler(e) {
     }
     if (e.key === 'Escape') {
         toggleFullScreenThisImage(document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
-    }/*
-    if (e.key === 'l') {
-        handleLikeClick();
-    }*/
+    }
+    /*
+        if (e.key === 'l') {
+            handleLikeClick();
+        }*/
     if (e.key === '+') {
         zoomImage();
     }
@@ -451,5 +451,26 @@ function keyupHandler(e) {
     }
     if (e.key === 'ArrowDown') {
         moveImgDown();
+    }
+    if (e.key === 'c') {
+        await deleteImage();
+    }
+
+    async function deleteImage() {
+        const wrapper = document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`);
+        if (!wrapper) return;
+        const img = wrapper.querySelector('img');
+        const imgId = img.dataset.id;
+        const res = await fetch(`/api/images/${imgId}`, {
+            method: 'DELETE'
+        });
+        if (res.ok) {
+            navigateImages('next', document.querySelector(`.${IMAGE_FULLSCREEN_CLASS}`));
+            // Remove the parent li of this img
+            const li = img.closest('li');
+            if (li) li.remove();
+        } else {
+            alert('error deleting image');
+        }
     }
 }

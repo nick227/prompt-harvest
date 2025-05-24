@@ -25,10 +25,10 @@ function init(app) {
 
     console.log('hi')
 
-    app.put('/api/images/:id/rating', async (req, res) => {
+    app.put('/api/images/:id/rating', async(req, res) => {
         const id = req.params.id;
         const rating = req.body.rating;
-        
+
         if (!id || !rating) {
             res.status(400).send({ message: 'id or rating missing' });
             return;
@@ -47,30 +47,36 @@ function init(app) {
         }
     });
 
-    app.delete('/like/image/:id', async (req, res) => {
+    app.delete('/like/image/:id', async(req, res) => {
         const db = new DB('likes.db');
         const imageId = req.params.id;
         const params = {
-            userId: req.user?._id || 'undefined',
+            userId: req.user._id || 'undefined',
             imageId
         };
         await db.remove(params);
         res.send({ status: 'ok' });
     });
 
-    app.post('/like/image/:id', async (req, res) => {
+    app.post('/like/image/:id', async(req, res) => {
         const db = new DB('likes.db');
         const imageId = req.params.id;
         const params = {
-            userId: req.user?._id || 'undefined',
+            userId: req.user._id || 'undefined',
             imageId
         };
         await db.insert(params);
         res.send({ status: 'ok' });
     });
 
-    app.get('/api/download/:listName/:subject/:word', async (req, res) => {
-        console.log('mkat')
+    app.delete('/api/images/:id', async(req, res) => {
+        const db = new DB('images.db');
+        const imageId = req.params.id;
+        await db.remove({ _id: imageId });
+        res.send({ status: 'ok' });
+    });
+
+    app.get('/api/download/:listName/:subject/:word', async(req, res) => {
         const listName = req.params.listName;
         const subject = req.params.subject;
         const word = req.params.word;
@@ -85,11 +91,11 @@ function init(app) {
         res.json(result);
     });
 
-    app.get('/prompt/clauses', async (req, res) => {
+    app.get('/prompt/clauses', async(req, res) => {
         const db = new DB('prompt-clauses.db');
         const limit = req.query.limit || 5;
         const params = {
-            userId: req.user?._id || 'undefined',
+            userId: req.user && req.user._id ? req.user._id : 'undefined',
             limit
         };
         const results = await db.find(params);
@@ -97,18 +103,18 @@ function init(app) {
         res.send(uniqueResults);
     });
 
-    app.get('/image/:id/liked', async (req, res) => {
+    app.get('/image/:id/liked', async(req, res) => {
         const db = new DB('likes.db');
         const imageId = req.params.id;
         const params = {
-            userId: req.user?._id || 'undefined',
+            userId: req.user._id || 'undefined',
             imageId
         };
         const results = await db.findOne(params);
         res.send(String(!!results));
     });
 
-    app.get('/feed', async (req, res) => {
+    app.get('/feed', async(req, res) => {
         const images_db = new DB('images.db');
         const limit = req.query.limit || 8;
         let page = req.query.page;
@@ -118,7 +124,7 @@ function init(app) {
             page = Number(page);
         }
         const params = {
-            userId: req.user?._id || 'undefined',
+            userId: req.user && req.user._id ? req.user._id : 'undefined',
             limit,
             page
         };
@@ -134,8 +140,8 @@ function init(app) {
 
     });
 
-    app.get('/images', async (req, res) => {
-        const userId = req.user?._id;
+    app.get('/images', async(req, res) => {
+        const userId = req.user && req.user._id ? req.user._id : 'undefined';
         const db = new DB('images.db');
         const likesDb = new DB('likes.db');
         const limit = req.query.limit || 8;
@@ -159,8 +165,8 @@ function init(app) {
         }));
     });
 
-    app.get('/prompts', async (req, res) => {
-        const userId = req.user?._id;
+    app.get('/prompts', async(req, res) => {
+        const userId = req.user._id;
         const limit = req.query.limit || 8;
         let page = req.query.page;
         if (isNaN(page)) {
@@ -178,8 +184,8 @@ function init(app) {
         res.send(response.map(doc => doc.data));
     });
 
-    app.get('/images/count', async (req, res) => {
-        const userId = req.user?._id;
+    app.get('/images/count', async(req, res) => {
+        const userId = req.user._id;
         const db = new DB('images.db');
         const params = {
             userId: userId || 'undefined'
@@ -188,7 +194,7 @@ function init(app) {
         res.send({ count: response });
     });
 
-    app.get('/prompt/build', async (req, res) => {
+    app.get('/prompt/build', async(req, res) => {
         const prompt = decodeURIComponent(req.query.prompt);
         const multiplier = req.query.multiplier ? decodeURIComponent(req.query.multiplier) : false;
         const mixup = req.query.mixup ? decodeURIComponent(req.query.mixup) : false;
@@ -198,11 +204,11 @@ function init(app) {
         res.send(response);
     });
 
-    app.delete('/images/tags', async (req, res) => {
+    app.delete('/images/tags', async(req, res) => {
         const db = new DB('tags.db');
         const imageId = req.body.imageId;
         const tag = req.body.tag;
-        const userId = req.user?._id || 'undefined';
+        const userId = req.user._id || 'undefined';
         const params = {
             imageId,
             tag,
@@ -212,11 +218,11 @@ function init(app) {
         res.send({ status: 'ok' });
     });
 
-    app.post('/images/tags', async (req, res) => {
+    app.post('/images/tags', async(req, res) => {
         const db = new DB('tags.db');
         const imageId = req.body.imageId;
         const tag = req.body.tag;
-        const userId = req.user?._id || 'undefined';
+        const userId = req.user._id || 'undefined';
         const params = {
             imageId,
             tag,
@@ -231,18 +237,18 @@ function init(app) {
         res.send({ status: 'ok' });
     });
 
-    app.get('/images/:imageId/tags', async (req, res) => {
+    app.get('/images/:imageId/tags', async(req, res) => {
         const db = new DB('tags.db');
         const imageId = req.params.imageId;
         const params = {
-            userId: req.user?._id || 'undefined',
+            userId: req.user._id || 'undefined',
             imageId
         };
         const results = await db.find(params);
         res.send(results.map(obj => obj.tag));
     });
 
-    app.post('/image/generate', async (req, res) => {
+    app.post('/image/generate', async(req, res) => {
         const prompt = decodeURIComponent(req.body.prompt);
         const providers = decodeURIComponent(req.body.providers).split(',');
         const guidance = isNaN(req.body.guidance) ? false : parseInt(req.body.guidance);
@@ -252,28 +258,28 @@ function init(app) {
         res.send(response);
     });
 
-    app.get('/word/type/:word', async (req, res) => {
+    app.get('/word/type/:word', async(req, res) => {
         const word = decodeURIComponent(req.params.word).toLowerCase();
         const limit = req.query.limit || 8;
         const response = await getWordType(word, parseInt(limit));
         res.send(response);
     });
 
-    app.get('/word/examples/:word', async (req, res) => {
+    app.get('/word/examples/:word', async(req, res) => {
         const limit = req.query.limit || 8;
         const word = decodeURIComponent(req.params.word).toLowerCase();
         const response = await getWordExamplesList(word, parseInt(limit));
         res.send(response);
     });
 
-    app.get('/word/types/:word', async (req, res) => {
+    app.get('/word/types/:word', async(req, res) => {
         const limit = req.query.limit || 8;
         const word = decodeURIComponent(req.params.word).toLowerCase();
         const response = await getWordTypesList(word, parseInt(limit));
         res.send(response);
     });
 
-    app.get('/words', async (req, res) => {
+    app.get('/words', async(req, res) => {
         const db = new DB('word-types.db');
         let response = await db.find({ projection: JSON.stringify({ word: 1 }) });
         response = response.map(doc => doc.word);
@@ -281,7 +287,7 @@ function init(app) {
         res.send(response);
     });
 
-    app.get('/ai/word/add/:word', async (req, res) => {
+    app.get('/ai/word/add/:word', async(req, res) => {
         const word = decodeURIComponent(req.params.word).toLowerCase();
         const response = await addAiWordType(word);
         res.send(response);
@@ -296,7 +302,7 @@ async function getWordExamplesList(word, limit = 8) {
             { word: word }
         ]
     });
-    let examples = docs[0]?.examples || [];
+    let examples = docs[0].examples || [];
     examples.sort();
     return examples;
 }
@@ -309,7 +315,7 @@ async function getWordTypesList(word, limit = 8) {
             { word: word }
         ]
     });
-    let types = docs[0]?.types || [];
+    let types = docs[0].types || [];
     types.sort();
     return types;
 }
@@ -347,9 +353,9 @@ function extractOpenAiResponse(response) {
     }
     const firstToolCall = firstChoice.message.tool_calls[0];
     if (firstToolCall.function && firstToolCall.function.arguments) {
-        return typeof firstToolCall.function.arguments === 'object'
-            ? firstToolCall.function.arguments
-            : safeJsonParse(firstToolCall.function.arguments);
+        return typeof firstToolCall.function.arguments === 'object' ?
+            firstToolCall.function.arguments :
+            safeJsonParse(firstToolCall.function.arguments);
     }
     return null;
 }

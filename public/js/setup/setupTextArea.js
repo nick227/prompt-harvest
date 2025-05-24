@@ -1,143 +1,3 @@
-// Constants
-const CONFIG = {
-    isMobile: window.innerWidth < 1200,
-    limits: {
-        wordType: window.innerWidth < 1200 ? 8 : 33,
-        maxAuto: 6,
-        maxSamples: 14
-    },
-    selectors: {
-        textArea: '#prompt-textarea',
-        matches: '#matches',
-        multiplier: '#multiplier',
-        searchTerm: '#search_term',
-        replaceTerm: '#replace_term',
-        generateBtn: '.btn-generate',
-        providers: 'input[name="providers"]',
-        allProviders: '.all-providers',
-        autoDownload: 'input[name="autoDownload"]',
-        queue: '.queue',
-        btnQueue: '.btn-queue',
-        toggleMenu: '.toggle-menu'
-    },
-    api: {
-        wordType: '/word/type',
-        promptBuild: '/prompt/build',
-        clauses: '/prompt/clauses'
-    },
-    timeouts: {
-        debounce: 200,
-        autoGenerate: 100
-    },
-    classes: {
-        active: 'active',
-        sample: 'sample'
-    }
-};
-
-// Add a state manager
-const StateManager = {
-    state: {
-        requestCount: 0,
-        isGenerating: false,
-        dropdownIsOpen: false,
-        lastMatchedWord: ''
-    },
-
-    update(key, value) {
-        this.state[key] = value;
-        this.notify(key);
-    },
-
-    notify(key) {
-        // Add observers if needed
-    }
-};
-
-// DOM Element Cache
-const elements = {
-    cache: new Map(),
-
-    get(selector) {
-        if (!this.cache.has(selector)) {
-            const element = document.querySelector(selector);
-            if (element) {
-                this.cache.set(selector, element);
-            }
-        }
-        return this.cache.get(selector);
-    },
-
-    init() {
-        Object.values(CONFIG.selectors).forEach(selector => {
-            this.get(selector);
-        });
-        return this;
-    }
-};
-
-// Utility Functions
-const utils = {
-    debounce(func, wait) {
-        let timeout;
-        return function(...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-    },
-
-    async fetchJson(url) {
-        const response = await fetch(url);
-        return await response.json();
-    },
-
-    removeExtraWhiteSpace(str) {
-        return str.replace(/\s+/g, ' ').trim();
-    },
-
-    updateElementClass(element, condition, className = 'active') {
-        element.classList[condition ? 'add' : 'remove'](className);
-    },
-
-    // Add memoization for expensive operations
-    memoize(fn) {
-        const cache = new Map();
-        return (...args) => {
-            const key = JSON.stringify(args);
-            if (!cache.has(key)) {
-                cache.set(key, fn(...args));
-            }
-            return cache.get(key);
-        };
-    },
-
-    // Add throttle function
-    throttle(func, limit) {
-        let inThrottle;
-        return function(...args) {
-            if (!inThrottle) {
-                func.apply(this, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    }
-};
-
-// Add a dedicated error handler
-const errorHandler = {
-    show(message, type = 'error') {
-        console.error(message);
-        alert(message); // Replace with better UI notification
-    },
-
-    handle(error, context) {
-        const message = `Error in ${context}: ${error.message}`;
-        this.show(message);
-        return null;
-    }
-};
-
 // Text Area Manager
 class TextAreaManager {
     constructor() {
@@ -146,8 +6,8 @@ class TextAreaManager {
     }
 
     init() {
-        this.textArea = elements.get(CONFIG.selectors.textArea);
-        this.matchesEl = elements.get(CONFIG.selectors.matches);
+        this.textArea = textarea_cache.get(TEXTAREA_CONFIG.selectors.textArea);
+        this.matchesEl = textarea_cache.get(TEXTAREA_CONFIG.selectors.matches);
 
         // Load saved height on initialization
         const savedHeight = localStorage.getItem('textAreaHeight');
@@ -158,7 +18,7 @@ class TextAreaManager {
 
     bindEvents() {
         this.textArea.addEventListener('input',
-            utils.debounce(this.handleInput.bind(this), CONFIG.timeouts.debounce)
+            textarea_utils.debounce(this.handleInput.bind(this), TEXTAREA_CONFIG.timeouts.debounce)
         );
 
         // Single resize handler
@@ -168,18 +28,18 @@ class TextAreaManager {
     }
 
     async handleInput(e) {
-        utils.updateElementClass(e.target, e.target.value.length);
+        textarea_utils.updateElementClass(e.target, e.target.value.length);
         await this.updateMatches(e.target.value, e.target.selectionStart);
     }
 
     async getSampleMatches() {
-        const results = await utils.fetchJson(`/prompt/clauses?limit=${CONFIG.limits.maxSamples}`);
+        const results = await textarea_utils.fetchJson(`/prompt/clauses?limit=${TEXTAREA_CONFIG.limits.maxSamples}`);
         return results.map(word => `<li class="sample" title="${word}">${word}</li>`).join('');
     }
 
     async getMatches(word) {
         const encodedWord = encodeURIComponent(word);
-        return await utils.fetchJson(`/word/type/${encodedWord}?limit=${CONFIG.limits.wordType}`);
+        return await textarea_utils.fetchJson(`/word/type/${encodedWord}?limit=${TEXTAREA_CONFIG.limits.wordType}`);
     }
 
     async updateMatches(value, cursorPosition) {
@@ -247,7 +107,7 @@ class TextAreaManager {
         this.textArea.selectionStart = newTextBeforeCursor.length;
         this.textArea.selectionEnd = newTextBeforeCursor.length;
 
-        if (!CONFIG.isMobile) {
+        if (!TEXTAREA_CONFIG.isMobile) {
             this.textArea.focus();
         }
     }
@@ -270,19 +130,19 @@ class TextAreaManager {
 // Queue Manager
 class QueueManager {
     constructor() {
-        this.queueList = document.querySelector(CONFIG.selectors.queue);
+        this.queueList = document.querySelector(TEXTAREA_CONFIG.selectors.queue);
         this.setupEventListeners();
     }
 
     setupEventListeners() {
-        const queueBtn = document.querySelector(CONFIG.selectors.btnQueue);
+        const queueBtn = document.querySelector(TEXTAREA_CONFIG.selectors.btnQueue);
         if (queueBtn) {
             queueBtn.addEventListener('click', this.handleAddToQueue.bind(this));
         }
     }
 
     handleAddToQueue() {
-        const textArea = document.querySelector(CONFIG.selectors.textArea);
+        const textArea = document.querySelector(TEXTAREA_CONFIG.selectors.textArea);
         this.addQueueItem(textArea.value);
     }
 
@@ -296,7 +156,7 @@ class QueueManager {
         removeItemBtn.textContent = "Remove";
 
         promptEl.addEventListener("click", () => {
-            const textArea = document.querySelector(CONFIG.selectors.textArea);
+            const textArea = document.querySelector(TEXTAREA_CONFIG.selectors.textArea);
             textArea.value = prompt;
         });
 
@@ -329,20 +189,20 @@ class ProviderManager {
     }
 
     updateUI() {
-        document.querySelectorAll(CONFIG.selectors.providers).forEach(checkbox => {
+        document.querySelectorAll(TEXTAREA_CONFIG.selectors.providers).forEach(checkbox => {
             checkbox.checked = this.providers.has(checkbox.value);
         });
         // Update "all" checkbox state
-        const providers = document.querySelectorAll(CONFIG.selectors.providers);
+        const providers = document.querySelectorAll(TEXTAREA_CONFIG.selectors.providers);
         const allChecked = Array.from(providers).every(p => p.checked);
-        const allProvidersCheckbox = document.querySelector(CONFIG.selectors.allProviders);
+        const allProvidersCheckbox = document.querySelector(TEXTAREA_CONFIG.selectors.allProviders);
         if (allProvidersCheckbox) {
             allProvidersCheckbox.checked = allChecked;
         }
     }
 
     bindEvents() {
-        const providers = document.querySelectorAll(CONFIG.selectors.providers);
+        const providers = document.querySelectorAll(TEXTAREA_CONFIG.selectors.providers);
         providers.forEach(provider => {
             provider.addEventListener('change', (e) => {
                 if (e.target.checked) {
@@ -355,16 +215,16 @@ class ProviderManager {
             });
         });
 
-        const allProvidersCheckbox = document.querySelector(CONFIG.selectors.allProviders);
+        const allProvidersCheckbox = document.querySelector(TEXTAREA_CONFIG.selectors.allProviders);
         if (allProvidersCheckbox) {
             allProvidersCheckbox.addEventListener('change', this.handleAllProvidersToggle.bind(this));
         }
     }
 
     handleProviderChange() {
-        const providers = document.querySelectorAll(CONFIG.selectors.providers);
+        const providers = document.querySelectorAll(TEXTAREA_CONFIG.selectors.providers);
         const checkedCount = Array.from(providers).filter(p => p.checked).length;
-        const allProvidersCheckbox = document.querySelector(CONFIG.selectors.allProviders);
+        const allProvidersCheckbox = document.querySelector(TEXTAREA_CONFIG.selectors.allProviders);
 
         if (allProvidersCheckbox) {
             allProvidersCheckbox.checked = checkedCount === providers.length;
@@ -372,7 +232,7 @@ class ProviderManager {
     }
 
     handleAllProvidersToggle(e) {
-        const providers = document.querySelectorAll(CONFIG.selectors.providers);
+        const providers = document.querySelectorAll(TEXTAREA_CONFIG.selectors.providers);
         providers.forEach(provider => {
             provider.checked = e.target.checked;
             if (e.target.checked) {
@@ -398,7 +258,7 @@ class StorageManager {
 }
 
 // First, let's add these constants back at the top
-const WORD_TYPE_LIMIT = CONFIG.isMobile ? 8 : 33;
+const WORD_TYPE_LIMIT = TEXTAREA_CONFIG.isMobile ? 8 : 33;
 const MAX_AUTO_NUM = window.location.hostname.includes('localhost') ? 60 : 5;
 const MAX_SAMPLES_NUM = 14;
 
@@ -447,7 +307,7 @@ async function setupTextArea() {
     }
     isInitialized = true;
 
-    elements.init();
+    textarea_cache.init();
 
     const textAreaManager = new TextAreaManager();
     const providerManager = new ProviderManager();
@@ -462,7 +322,7 @@ async function setupTextArea() {
     // Fix the generate button click handler
     document.querySelector('.btn-generate').addEventListener(
         'click',
-        utils.debounce(function() {
+        textarea_utils.debounce(function() {
             const scrollIntoView = false;
             handleGenerateClick(scrollIntoView);
         }, 200)
@@ -541,7 +401,7 @@ function toggleAllProviders(e) {
 
 function convertPromptToUrl(prompt = null) {
     const textArea = document.getElementById('prompt-textarea');
-    prompt = prompt ? prompt : encodeURIComponent(utils.removeExtraWhiteSpace(textArea.value.trim()));
+    prompt = prompt ? prompt : encodeURIComponent(textarea_utils.removeExtraWhiteSpace(textArea.value.trim()));
     if (!prompt) {
         return false;
     }
@@ -656,5 +516,3 @@ function enableGenerateButton() {
 function isProviderSelected() {
     return document.querySelectorAll('input[name="providers"]:checked').length > 0;
 }
-
-//export { setupTextArea };
