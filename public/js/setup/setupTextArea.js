@@ -434,6 +434,8 @@ async function handleGenerateClick(scrollToElm = null) {
     try {
         disableGenerateButton();
         const promptData = await fetchData(url);
+        console.log('url', url)
+        console.log('promptData', promptData)
         const promptElm = addPromptToOutput(promptData);
         if (scrollToElm) {
             promptElm.scrollIntoView({ behavior: "smooth", block: "start" });

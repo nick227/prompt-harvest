@@ -23,8 +23,6 @@ export default routes;
 
 function init(app) {
 
-    console.log('hi')
-
     app.put('/api/images/:id/rating', async(req, res) => {
         const id = req.params.id;
         const rating = req.body.rating;
@@ -185,13 +183,17 @@ function init(app) {
     });
 
     app.get('/images/count', async(req, res) => {
-        const userId = req.user._id;
-        const db = new DB('images.db');
-        const params = {
-            userId: userId || 'undefined'
-        };
-        const response = await db.count(params);
-        res.send({ count: response });
+        if (!req.user) {
+            res.send({ count: 0 });
+        } else {
+            const userId = req.user._id;
+            const db = new DB('images.db');
+            const params = {
+                userId: userId || 'undefined'
+            };
+            const response = await db.count(params);
+            res.send({ count: response });
+        }
     });
 
     app.get('/prompt/build', async(req, res) => {

@@ -11,10 +11,10 @@
     --color-hover: #b3b3b3;
     --color-border: #4f545c;
     --color-input: #40444b;
-    --color-button: #202225;
+    --color-button: #5493f0;
     --color-button-hover: #3e4147;
     --color-green: rgb(101, 223, 101);
-    --color-button-dark: #292b2f;
+    --color-button-dark: #165ae1;
     --color-blue: dodgerblue;
     --color-link: #00b0f4;
     --color-orange: orange;
@@ -30,9 +30,9 @@ body {
     line-height: var(--line-height);
     color: var(--color-text);
     background-color: var(--color-dark);
-    width: 96%;
+    width: 90%;
     height: 100%;
-    margin: 10px auto 0 auto;
+    padding: 0 5%;
 }
 
 a {
@@ -100,6 +100,10 @@ img.liked+.liked {
     flex-wrap: nowrap;
 }
 
+.w-full {
+    width: 100%;
+}
+
 label {
     display: flex;
     flex-wrap: nowrap;
@@ -125,6 +129,7 @@ textarea {
 
 textarea#prompt-textarea {
     min-height: 60px;
+    color: black;
 }
 
 textarea,
@@ -163,6 +168,7 @@ section {
 .row {
     display: flex;
     flex-wrap: wrap;
+    padding-bottom: 10px;
 }
 
 .term-container {
@@ -260,11 +266,6 @@ button.btn-generate {
 
 button.btn-generate:hover {
     background: var(--color-link-hover);
-    color: var(--color-dark);
-}
-
-button.btn-generate:active {
-    background: transparent;
     color: var(--color-dark);
 }
 

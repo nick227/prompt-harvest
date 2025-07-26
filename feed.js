@@ -277,7 +277,7 @@ const providerList = {
     realisticvision: generateRealisticVision,
     nightmareshaper: generateNightmareShaper,
     openjourney: generateOpenjourney,
-    juggernautReborn:generateJuggernautReborn,
+    juggernautReborn: generateJuggernautReborn,
     redshift: generateRedShift,
     hasdx: generateHasdxImage
 }
@@ -310,7 +310,7 @@ async function generate(prompt, original, promptId, providers, guidance, req) {
     const providerName = providers[Math.floor(Math.random() * providers.length)];
     const dynamicFunction = providerList[providerName];
 
-    const b64_json = await dynamicFunction(prompt, guidance, req.user?._id || 'undefined');
+    const b64_json = await dynamicFunction(prompt, guidance, req?.user?._id || 'undefined');
     if (b64_json.error) {
         console.error(`Error in saveB64Image: ${b64_json.error}`);
         return b64_json;
@@ -379,7 +379,7 @@ async function saveB64Image222(b64_json, providerName, prompt, req) {
 
 async function saveFeedEvent(type, data, req) {
     const db = type === 'image' ? new DB('images.db') : new DB('prompts.db');
-    const payload = { data, userId: req.user?._id || 'undefined' };
+    const payload = { data, userId: req?.user?._id || 'undefined' };
     return await db.insert(payload);
 }
 
@@ -502,9 +502,9 @@ async function generateFluxImage(prompt, guidance, userId = null) {
     return generateDezgoImage(prompt, guidance, 'https://api.dezgo.com/text2image_flux', 'flux_1_schnell');
 }
 
-async function generateDezgoImage(prompt, guidance, url, model) {
+async function generateDezgoImage(prompt, guidance, url, model = 'flux_1_schnell') {
     const params = { prompt, /*negative_prompt: "", guidance: guidance || DEFAULT_GUIDANCE_VALUE,*/ seed: generateRandomNineCharNumber(), model };
-    if(model !== 'flux_1_schnell'){
+    if (model !== 'flux_1_schnell') {
         params.guidance = guidance || DEFAULT_GUIDANCE_VALUE;
     }
     const options = {

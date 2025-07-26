@@ -1,31 +1,33 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-    if (isAuth()) {
-        setupTextArea();
+    //if (isAuth()) {
+    setupTextArea();
 
-        setupFeed();
+    setupFeed();
 
-        setupGuidanceDropDowns();
+    setupGuidanceDropDowns();
 
-        setupCustomVariables();
+    setupCustomVariables();
 
-        setupToggleView();
+    setupToggleView();
 
-        setupImageSearch();
+    setupImageSearch();
 
-        setupRating();
+    setupRating();
 
-        setupScrollTopBar();
+    setupScrollTopBar();
 
-        setupScrollLoading();
+    setupScrollLoading();
 
+    // Check user authentication after all other setup is complete
+    setTimeout(() => {
         checkUser().then(user => {
+            console.log(user);
             if (user) {
-                // renderUserUI(user.email);
-
+                renderUserUI(user.email);
             }
         });
+    }, 100);
 
-
-    }
+    //}
 
 });

@@ -20,18 +20,24 @@ export default class User {
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: false }));
         this.app.use(session({
-            secret: process.env.SESSION_SECRET,
+            secret: process.env.SESSION_SECRET || 'fallback-secret-key-change-in-production',
             resave: false,
-            saveUninitialized: false
+            saveUninitialized: false,
+            cookie: {
+                secure: process.env.NODE_ENV === 'production', // Set to true in production with HTTPS
+                httpOnly: true,
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
+                sameSite: 'lax'
+            }
         }));
         this.app.use(passport.initialize());
         this.app.use(passport.session());
 
         passport.use(new LocalStrategy({
-            usernameField: 'email',
-            passwordField: 'password'
-          },
-            async (email, password, done) => {
+                usernameField: 'email',
+                passwordField: 'password'
+            },
+            async(email, password, done) => {
                 console.log(email, password);
                 try {
                     let user = await db.findOne({ email: email });
@@ -49,9 +55,13 @@ export default class User {
             done(null, user._id);
         });
 
-        passport.deserializeUser(async (id, done) => {
-            let user = await db.findOne({ _id: id });
-            done(null, user);
+        passport.deserializeUser(async(id, done) => {
+            try {
+                let user = await db.findOne({ _id: id });
+                done(null, user);
+            } catch (err) {
+                done(err, null);
+            }
         });
     }
 
@@ -93,19 +103,13 @@ export default class User {
         let hashedPassword = bcrypt.hashSync(password, 10);
         let user = await db.insert({ email: email, password: hashedPassword });
 
-        req.login(user, function (err) {
+        req.login(user, function(err) {
             if (err) { return next(err); }
             return res.send(user);
         });
     }
 
-    login(req, res) {
-        console.log('login')
-        if (!req.user) {
-            return res.status(400).send({ error: 'Invalid email or password' });
-        }
-        res.send(req.user);
-    }
+    // Removed unused login method - login is handled in setupRoutes
 
     logout(req, res) {
         req.logout(() => {
