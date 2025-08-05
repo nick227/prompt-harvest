@@ -1,12 +1,10 @@
-const IMAGE_WRAPPER_CLASS_NAME = 'image-wrapper';
-
 function setupToggleView() {
     const viewSwitch = document.querySelector('.prompt-view-switch');
     const isChecked = localStorage.getItem('promptView') === 'true';
     const promptOutput = document.querySelector('.prompt-output');
     viewSwitch.checked = isChecked;
 
-    if(isChecked){
+    if (isChecked) {
         promptOutput.classList.add('list-view');
     } else {
         promptOutput.classList.add('image-view');
@@ -19,10 +17,10 @@ function setupToggleView() {
     });
 }
 
-function setupToggleImageSize(){
+function setupToggleImageSize() {
     const imageSizeElm = document.querySelector('.image-size');
     const localStorageVal = localStorage.getItem('imageSize');
-    if(localStorageVal){
+    if (localStorageVal) {
         imageSizeElm.value = localStorageVal;
         document.documentElement.style.setProperty('--image-width', localStorageVal + '%');
     }

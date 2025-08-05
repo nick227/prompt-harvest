@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/mobile.css" />
     <link rel="icon" href="/images/favicon.png" type="image/png" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -20,7 +21,6 @@
             },
         }
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
 
@@ -190,22 +190,21 @@
                         <button class="btn-replace">Replace</button>
                     </div>
                     <div class="row v-align-center">
-                        <div class="insert-variable">+ Variable</div>
+                        <a class="mr-4" href="/terms.html" target="_blank"><i class="fa-solid fa-book"></i></a>
+                        <button class="insert-variable mr-4">+ Variable</button>
                         <div class="chips-variables row"></div>
                     </div>
                 </div>
                 <textarea id="prompt-textarea"></textarea>
                 <div class="row full-width">
-                    <button class="btn-generate">START</button>
+                    <button class="btn-generate mt-4">START</button>
                 </div>
                 <ul id="matches" class="matches"></ul>
-
-                <div class="row full-width"><a class="link" href="/terms.html" target="_blank">library</a></div>
             </div>
             <div class="col">
 
                 <div class="prompts">
-                    <div class="row full-width toggle-menu image-tools">
+                    <div class="row w-full">
                         <label class>
                                 <input type="checkbox" checked
                                     class="prompt-view-switch" />

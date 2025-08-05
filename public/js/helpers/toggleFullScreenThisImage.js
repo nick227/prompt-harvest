@@ -339,7 +339,9 @@ function getInfoBox() {
     const wrapper = document.querySelector(`.${IMAGE_WRAPPER_CLASS}.${IMAGE_FULLSCREEN_CLASS}`);
     const img = wrapper.querySelector('img');
     const title = img.title;
-    const note = wrapper.querySelector('h5').innerText;
+    // Fix: check for h5 existence
+    const h5 = wrapper.querySelector('h5');
+    const note = h5 ? h5.innerText : '';
 
     const h3 = document.createElement('h3');
     h3.classList.add('full-screen-prompt', 'link');

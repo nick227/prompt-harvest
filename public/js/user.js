@@ -76,23 +76,19 @@ async function fetchWithCredentials(endpoint) {
 
 async function checkUser() {
     try {
-        showAuthLoading();
         const response = await fetchWithCredentials('/user');
         console.log(response);
         if (response.status === 401) {
-            showLoginLink();
             return null;
         }
         if (!response.ok) {
             console.error('Error checking user:', response.status);
-            showLoginLink();
             return null;
         }
         user = await response.json();
         return user;
     } catch (error) {
         console.error('Error checking user:', error);
-        showLoginLink();
         return null;
     }
 }
@@ -113,8 +109,7 @@ async function fetchData(endpoint, email, password) {
     const payload = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include'
+        body: JSON.stringify({ email, password })
     };
     return await fetchAndHandleResponse(endpoint, payload);
 }
@@ -153,9 +148,10 @@ function renderUserUI(email) {
 
     authentication.innerHTML = `
         <div class="row">
-            ${email} <a href="/logout" class="ml-8">Logout</a>
+            ${email} <button id="logout-button">Logout</button>
         </div>
     `;
+    document.getElementById('logout-button').addEventListener('click', logoutUser);
 }
 
 function showAuthLoading() {
@@ -169,25 +165,10 @@ function showAuthLoading() {
     `;
 }
 
-function showLoginLink() {
-    const authentication = document.getElementById('authentication');
-    if (!authentication) return;
-
-    authentication.innerHTML = `
-        <div class="row">
-            <a href="/login.html">login</a>
-        </div>
-    `;
-}
-
 async function logoutUser() {
-    const data = await fetchAndHandleResponse('/logout', {
-        method: 'GET',
-        credentials: 'include'
-    });
+    const data = await fetchAndHandleResponse('/logout');
     if (data && data.message === 'Logged out') {
-        user = null;
-        showLoginLink();
+        window.location.href = '/';
     }
 }
 

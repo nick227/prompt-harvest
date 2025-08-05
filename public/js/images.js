@@ -121,8 +121,8 @@ function addImageToOutput(results, download = false) {
         }
     }
     const wrapper = createWrapperElement();
-    const note = createNoteElement(results);
-    wrapper.appendChild(note);
+    //const note = createNoteElement(results);
+    //wrapper.appendChild(note);
     attachImage(results, wrapper);
     img.dataset.rating = results.rating;
     wrapper.appendChild(img);
