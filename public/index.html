@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Image Generator</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <title>AutoImage - AI Image Generator</title>
+    <link rel="stylesheet" href="css/optimized.css" />
     <link rel="stylesheet" href="css/mobile.css" />
     <link rel="icon" href="/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -24,29 +24,29 @@
 
 </head>
 
-<body>
-    <button type="button" class="btn-scroll-top">top</button>
+<body class="bg-gray-800 text-gray-200 w-full min-h-screen">
+    <!-- Scroll to Top Button -->
+    <button type="button" class="fixed bottom-4 right-4 bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors z-50" aria-label="Scroll to top">top</button>
 
-    <section class="prompt">
-        <div class="row">
-            <div class="col">
-                <div class="topbar">
-                    <div class="row full-width">
-                        <div id="authentication" class="no-wrap"><a href="/login.html">login</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="row provider-list toggle-menu">
-                    <div class="row full-width">
+    <main class="flex-col gap-4 h-full max-w-[1020px] mx-auto">
+        <!-- Controls -->
+        <div class="w-full mb-4 flex flex-col gap-4 min-w-0">
 
-                        <input type="number" name="maxNum" style="width: 35px" placeholder="max" />&nbsp;
-                        <label>
-                            <input type="checkbox" name="auto-generate" /> auto
-                        </label> &nbsp;
-                        <label>
-                            <select style="width: 55px" name="guidance-bottom">
-                                <option>bottom</option>
+            <!-- Settings Row -->
+            <div class="flex items-center gap-2 text-sm flex-wrap">
+                <div class="w-full flex items-center gap-2">
+                    <label class="flex items-center gap-1 cursor-pointer auto-label">
+                            <input type="checkbox" name="auto-generate" />
+                            <span>Auto</span>
+                        </label>
+                    <input type="number" name="maxNum" class="w-24 bg-white text-gray-800 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="max" min="1" max="10" value="3" />
 
+                    <h6 class="ml-8">guidance</h6>
+                    <label class="flex items-center gap-1">
+                            <select
+                                class="w-14 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="guidance-bottom">
+                                <option value>bottom</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">3</option>
@@ -69,9 +69,11 @@
                                 <option value="20">20</option>
                             </select>
                         </label>
-                        <label>
-                            <select style="width: 55px" name="guidance-top">
-                                <option>top</option>
+                    <label class="flex items-center gap-1">
+                            <select
+                                class="w-14 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                name="guidance-top">
+                                <option value>top</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">3</option>
@@ -94,158 +96,110 @@
                                 <option value="20">20</option>
                             </select>
                         </label>
-                    </div>
-                    <label for="flux"><input type="checkbox" value="flux"
-                                id="flux"
-                                name="providers" />Flux</label>
-                    <label for="dalle"><input
-                                type="checkbox"
-                                value="dalle"
-                                id="dalle"
-                                name="providers" />Dalle3</label>
-                    <label for="juggernaut"><input type="checkbox"
-                                value="juggernaut" id="juggernaut"
-                                name="providers" />Juggernaut</label>
-                    <label for="juggernautReborn"><input type="checkbox"
-                                value="juggernautReborn" id="juggernautReborn"
-                                name="providers" />Juggernaut Reborn</label>
-                    <label for="redshift"><input type="checkbox"
-                                value="redshift" id="redshift"
-                                name="providers" />Red Shift</label>
-                    <label for="absolute"><input type="checkbox"
-                                value="absolute" id="absolute"
-                                name="providers" />Absolute
-                            Reality</label>
-                    <label for="realisticvision"><input type="checkbox"
-                                value="realisticvision" id="realisticvision"
-                                name="providers" />Realistic Vision</label>
-                    <label for="icbinp"><input type="checkbox"
-                                value="icbinp" id="icbinp"
-                                name="providers" />Icbinp</label>
-                    <label for="icbinp_seco"><input type="checkbox"
-                                value="icbinp_seco" id="icbinp_seco"
-                                name="providers" />Icbinp2</label>
-                    <label for="hasdx"><input type="checkbox" value="hasdx"
-                                id="hasdx" name="providers" />Hasdx</label>
-                    <label for="dreamshaper"><input type="checkbox"
-                                value="dreamshaper" id="dreamshaper"
-                                name="providers" />Dreamshaper</label>
-                    <label for="nightmareshaper"><input type="checkbox"
-                                value="nightmareshaper" id="nightmareshaper"
-                                name="providers" />Nightmare Shaper</label>
-                    <label for="openjourney"><input type="checkbox"
-                                value="openjourney" id="openjourney"
-                                name="providers" />Open
-                            Journey</label>
-                    <label for="analogmadness"><input type="checkbox"
-                                value="analogmadness" id="analogmadness"
-                                name="providers" />Analog Madeness</label>
-                    <label for="portraitplus"><input type="checkbox"
-                                value="portraitplus" id="portraitplus"
-                                name="providers" />Portrait Plus</label>
-                    <label for="tshirt"><input type="checkbox"
-                                value="tshirt" id="tshirt"
-                                name="providers" />Tshirt Design</label>
-                    <label for="abyssorange"><input type="checkbox"
-                                value="abyssorange" id="abyssorange"
-                                name="providers" />Abyss
-                            Orange</label>
-                    <label for="cyber"><input type="checkbox" value="cyber"
-                                id="cyber" name="providers" />Cyber Real</label>
-                    <label for="disco"><input type="checkbox" value="disco"
-                                id="disco" name="providers" />Disco</label>
-                    <label for="synthwave"><input type="checkbox"
-                                value="synthwave" id="synthwave"
-                                name="providers" />Synthwave</label>
-                    <label for="lowpoly"><input type="checkbox"
-                                value="lowpoly" id="lowpoly"
-                                name="providers" />Low Poly</label>
-                    <label for="bluepencil"><input type="checkbox"
-                                value="bluepencil" id="bluepencil"
-                                name="providers" />Blue
-                            Pencil</label>
-                    <label for="ink"><input type="checkbox" value="ink"
-                                id="ink" name="providers" />Ink Punk</label>
-                    <label for="all"><input type="checkbox" id="all"
-                                class="all-providers" />all</label>
+
+                    <label class="flex items-center gap-1 cursor-pointer ml-8">
+                            <input type="checkbox" name="autoDownload" />
+                            <span>download</span>
+                        </label>
+                    <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" name="mixup" />
+                            <span>mixup</span>
+                        </label>
+                    <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" name="mashup" />
+                            <span>mashup</span>
+                        </label>
+
+                    <input type="text" id="multiplier" placeholder="Multiplier" class="w-24 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+                    <input type="text" placeholder="search" name="search_term" id="search_term" class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input type="text" placeholder="replace" name="replace_term" id="replace_term" class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button class="btn-replace bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap">Replace</button>
 
                 </div>
-                <div class="toggle-menu extra-tools">
-                    <div class="row v-align-center">
-                        <label><input type="checkbox" name="autoDownload" />
-                                download</label> &nbsp;
-                        <label> <input type="checkbox" name="mixup" /> mixup
-                            </label> &nbsp;
-                        <label> <input type="checkbox" name="mashup" />
-                                mashup
-                            </label>
-                    </div>
-                    <div class="row full-width">
-                        <input type="text" id="multiplier" placeholder="Multiplier text - Added between comma clauses" class="w-full" />
-                    </div>
-
-                    <div class="row full-width v-align-center">
-                        <input type="text" placeholder="search term" name="search_term" id="search_term" class="w-1/3 mr-2" />
-                        <input type="text" placeholder="replace term" name="replace_term" id="replace_term" class="w-1/3 mr-2" />
-                        <button class="btn-replace">Replace</button>
-                    </div>
-                    <div class="row v-align-center">
-                        <a class="mr-4" href="/terms.html" target="_blank"><i class="fa-solid fa-book"></i></a>
-                        <button class="insert-variable mr-4">+ Variable</button>
-                        <div class="chips-variables row"></div>
-                    </div>
-                </div>
-                <textarea id="prompt-textarea"></textarea>
-                <div class="row full-width">
-                    <button class="btn-generate mt-4">START</button>
-                </div>
-                <ul id="matches" class="matches"></ul>
             </div>
-            <div class="col">
 
-                <div class="prompts">
-                    <div class="row w-full">
-                        <label class>
-                                <input type="checkbox" checked
-                                    class="prompt-view-switch" />
-                                grid
-                            </label>
-                        <div class="search">
-                            <input type="text" name="image-search" placeholder="search" />
-                        </div>
+            <!-- Provider List -->
+            <div id="provider-list" class="flex gap-2 text-sm max-h-48 overflow-y-auto pt-2 pb-4">
+                <!-- Providers will be populated by JavaScript -->
+            </div>
+
+            <!-- Tools Section -->
+            <div class="flex items-center gap-3 text-sm flex-wrap"> </div>
+
+            <!-- Prompt Textarea -->
+            <textarea id="prompt-textarea" class="w-full bg-white text-gray-800 px-3 py-2 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" rows="6" placeholder="Enter your prompt here..."></textarea>
+
+            <!-- Generate Button -->
+            <div class="w-full">
+                <button class="btn-generate w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">START</button>
+            </div>
+
+            <!-- Matches -->
+            <ul id="matches" class="matches flex flex-wrap gap-2 max-h-32 overflow-y-auto"></ul>
+        </div>
+
+        <!-- Image Display -->
+        <div class="w-full flex flex-col min-w-0">
+            <div class="flex flex-col h-full">
+                <!-- Controls Bar -->
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-4">
+                    <div class="search flex-1 max-w-xs">
+                        <input type="text" name="image-search" placeholder="search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
-                    <ul class="prompt-output"></ul>
+
+                    <div class="rating-filter flex items-center gap-2 flex-wrap">
+                        <span class="text-sm">Filter:</span>
+                        <button class="rating-btn bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="all">All</button>
+                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="1">★</button>
+                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="2">★★</button>
+                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="3">★★★</button>
+                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="4">★★★★</button>
+                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="5">★★★★★</button>
+                        <span class="rating-help text-blue-400 cursor-help" title="Press 1-5 keys in fullscreen to rate images">ⓘ</span>
+                    </div>
                 </div>
+
+                <!-- Image Grid -->
+                <ul class="prompt-output flex flex-wrap gap-2 pb-16 h-full overflow-y-auto"></ul>
             </div>
         </div>
-    </section>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.0.2/interact.min.js" integrity="sha512-Ipef/NhGC7SlCer4041clfWKsriVhnGMcS15cVrl9j/NFtNmqeK28tbfOFwASlSfy4j8XjcpVw4HXvTvzgA8rA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 
-    <script src=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.all.min.js "></script>
-    <link href=" https://cdn.jsdelivr.net/npm/sweetalert2@11.10.6/dist/sweetalert2.min.css " rel="stylesheet" />
+    <!-- Header Component -->
+    <script src="js/components/header-component.js"></script>
 
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
+    <!-- Core modules -->
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/utils.js"></script>
+
+    <!-- Component modules -->
+    <script src="js/components/image-component.js"></script>
+
+    <!-- Feature modules -->
+    <script src="js/modules/textarea.js"></script>
+    <script src="js/modules/ui.js"></script>
+    <script src="js/modules/search.js"></script>
+    <script src="js/modules/feed/feed-manager.js"></script>
+    <script src="js/modules/guidance/guidance-manager.js"></script>
+    <script src="js/modules/rating/rating-manager.js"></script>
+    <script src="js/modules/stats/stats-manager.js"></script>
+    <script src="js/modules/providers/provider-manager.js"></script>
+
+    <!-- Legacy modules (to be consolidated) -->
     <script src="js/user.js"></script>
     <script src="js/tools.js"></script>
-    <script src="js/helpers/toggleFullScreenThisImage.js"></script>
-    <script src="js/helpers/handleHelpLinkClick.js"></script>
     <script src="js/helpers/addPromptToOutput.js"></script>
-    <script src="js/setup/setupRating.js"></script>
-    <script src="js/setup/setupScrollLoading.js"></script>
-    <script src="js/setup/setupScrollTopBar.js"></script>
-    <script src="js/setup/setupCustomVariables.js"></script>
-    <script src="js/setup/textAreaHelpers.js"></script>
-    <script src="js/setup/setupTextArea.js"></script>
-    <script src="js/setup/setupGuidance.js"></script>
-    <script src="js/setup/setupImageSearch.js"></script>
-    <script src="js/setup/setupToggleView.js"></script>
-    <script src="js/setup/setupFeed.js"></script>
-    <script src="js/images.js"></script>
-    <script type="module" src="js/script.js"></script>
+    <script src="js/modules/images.js"></script>
+    <script src="js/script.js"></script>
+
+    <!-- Main application loader -->
+    <script src="js/app.js"></script>
+
+    <!-- Payload testing script -->
+    <script src="js/test-payload.js"></script>
 
 </body>
 

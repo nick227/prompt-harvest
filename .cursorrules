@@ -1,0 +1,144 @@
+# Cursor Rules for Image Harvest Project
+
+## JavaScript Formatting Rules
+
+### 1. Optional Chaining Operator
+- **NEVER** add spaces between `?` and `.` in optional chaining
+- **Correct**: `obj?.property`
+- **Incorrect**: `obj ? .property`
+
+### 2. Arrow Function Parentheses
+- Use parentheses only when needed for single parameters
+- **Correct**: `param => expression`
+- **Correct**: `(param1, param2) => expression`
+- **Incorrect**: `(param) => expression` (unnecessary parentheses)
+
+### 3. Ternary Operators
+- Place `?` and `:` at the beginning of lines for multi-line ternaries
+- **Correct**:
+  ```javascript
+  condition
+    ? value1
+    : value2
+  ```
+
+### 4. Function Spacing
+- No space before function parentheses
+- **Correct**: `function() {}`
+- **Incorrect**: `function () {}`
+
+### 5. Object Property Shorthand
+- Use property shorthand when variable name matches property name
+- **Correct**: `{ name, value }`
+- **Incorrect**: `{ name: name, value: value }`
+
+### 6. Template Literals
+- Use template literals instead of string concatenation
+- **Correct**: `${variable} text`
+- **Incorrect**: `variable + ' text'`
+
+### 7. Const vs Let
+- Use `const` by default, `let` only when reassignment is needed
+- **Correct**: `const [key, value] = entries`
+- **Incorrect**: `let [key, value] = entries` (when not reassigned)
+
+### 8. Import/Export Formatting
+- Use ES6 import/export syntax
+- Group imports logically (core, third-party, local)
+
+### 9. Comment Style
+- Use `//` for single-line comments
+- Use `/* */` for multi-line comments
+- Start comments with lowercase unless it's a sentence
+
+### 10. Code Organization
+- Keep functions under 50 lines
+- Keep methods under 20 statements
+- Use early returns to reduce nesting
+- Group related functionality together
+
+## CSS Formatting Rules
+
+### 1. Property Order
+- Layout properties first (display, position, etc.)
+- Box model properties (width, height, margin, padding)
+- Typography properties
+- Visual properties (background, border, etc.)
+
+### 2. Selector Specificity
+- Use classes over IDs when possible
+- Avoid overly specific selectors
+- Use BEM-like naming conventions
+
+### 3. Media Queries
+- Mobile-first approach
+- Use logical breakpoints (768px, 1024px, 1400px)
+
+## File Organization Rules
+
+### 1. Module Structure
+- One class per file
+- Export functions at the bottom
+- Initialize instances immediately after class definition
+
+### 2. Naming Conventions
+- Use camelCase for variables and functions
+- Use PascalCase for classes
+- Use kebab-case for CSS classes
+- Use UPPER_SNAKE_CASE for constants
+
+### 3. Error Handling
+- Use try-catch blocks for async operations
+- Provide meaningful error messages
+- Log errors to console for debugging
+
+## Auto-Formatting Prevention
+
+### 1. Optional Chaining
+- **NEVER** format `obj?.prop` as `obj ? .prop`
+- This breaks JavaScript syntax
+
+### 2. Template Literals
+- **NEVER** add spaces inside `${}` expressions
+- **Correct**: `${variable}`
+- **Incorrect**: `${ variable }`
+
+### 3. Arrow Functions
+- **NEVER** add unnecessary parentheses around single parameters
+- **Correct**: `param => expression`
+- **Incorrect**: `(param) => expression`
+
+### 4. Object Destructuring
+- **NEVER** add spaces around destructuring operators
+- **Correct**: `const {name, value} = obj`
+- **Incorrect**: `const { name, value } = obj`
+
+## Performance Rules
+
+### 1. DOM Queries
+- Cache DOM queries in variables
+- Use `querySelector` over `getElementById` when possible
+- Avoid querying DOM in loops
+
+### 2. Event Listeners
+- Use event delegation when possible
+- Remove event listeners when components are destroyed
+- Use `addEventListener` over inline event handlers
+
+### 3. Async Operations
+- Use `async/await` over `.then()` chains
+- Handle errors properly in async functions
+- Use Promise.all() for parallel operations
+
+## Testing Rules
+
+### 1. Test Structure
+- One test file per module
+- Use descriptive test names
+- Test both success and error cases
+- Mock external dependencies
+
+### 2. Coverage
+- Aim for 80%+ code coverage
+- Test edge cases and error conditions
+- Test user interactions and UI updates

@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const db = new DB('users.db');
+
 export default class User {
     constructor(app) {
         this.app = app;
@@ -34,22 +35,27 @@ export default class User {
         this.app.use(passport.session());
 
         passport.use(new LocalStrategy({
-                usernameField: 'email',
-                passwordField: 'password'
-            },
-            async(email, password, done) => {
-                console.log(email, password);
-                try {
-                    let user = await db.findOne({ email: email });
-                    console.log(user);
-                    if (!user) { return done(null, false); }
-                    if (!bcrypt.compareSync(password, user.password)) { return done(null, false); }
-                    return done(null, user);
-                } catch (err) {
-                    return done(err);
+            usernameField: 'email',
+            passwordField: 'password'
+        },
+        async(email, password, done) => {
+            console.log(email, password);
+            try {
+                const user = await db.findOne({ email });
+
+                console.log(user);
+                if (!user) {
+                    return done(null, false);
                 }
+                if (!bcrypt.compareSync(password, user.password)) {
+                    return done(null, false);
+                }
+
+                return done(null, user);
+            } catch (err) {
+                return done(err);
             }
-        ));
+        }));
 
         passport.serializeUser((user, done) => {
             done(null, user._id);
@@ -57,7 +63,8 @@ export default class User {
 
         passport.deserializeUser(async(id, done) => {
             try {
-                let user = await db.findOne({ _id: id });
+                const user = await db.findOne({ _id: id });
+
                 done(null, user);
             } catch (err) {
                 done(err, null);
@@ -73,12 +80,14 @@ export default class User {
                 }
                 if (!user) {
                     console.log('login');
+
                     return res.status(400).send({ error: 'Invalid email or password' });
                 }
-                req.logIn(user, (err) => {
+                req.logIn(user, err => {
                     if (err) {
                         return next(err);
                     }
+
                     return res.send(user);
                 });
             })(req, res, next);
@@ -91,20 +100,24 @@ export default class User {
     }
 
     async register(req, res, next) {
-        let { email, password } = req.body;
-        let existingUser = await db.findOne({ email });
-        console.log('existingUser', existingUser)
+        const { email, password } = req.body;
+        const existingUser = await db.findOne({ email });
+
+        console.log('existingUser', existingUser);
         if (existingUser) {
             return res.status(400).send({ error: 'Email is already in use' });
         }
         if (!password) {
             return res.status(400).send({ error: 'Password is required' });
         }
-        let hashedPassword = bcrypt.hashSync(password, 10);
-        let user = await db.insert({ email: email, password: hashedPassword });
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        const user = await db.insert({ email, password: hashedPassword });
 
-        req.login(user, function(err) {
-            if (err) { return next(err); }
+        req.login(user, err => {
+            if (err) {
+                return next(err);
+            }
+
             return res.send(user);
         });
     }
@@ -118,13 +131,16 @@ export default class User {
     }
 
     async resetPassword(req, res) {
-        let { email, newPassword } = req.body;
-        let user = await db.findOne({ email });
+        const { email, newPassword } = req.body;
+        const user = await db.findOne({ email });
+
         if (!user) {
             res.status(404).send('User not found');
+
             return;
         }
-        let hashedPassword = bcrypt.hashSync(newPassword, 10);
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
         await db.update({ email }, { $set: { password: hashedPassword } });
         res.send({ message: 'Password reset' });
     }
@@ -132,10 +148,12 @@ export default class User {
     async getUser(req, res) {
         if (!req.user) {
             res.status(401).send('Not logged in');
+
             return;
         }
 
-        let user = await db.findOne({ _id: req.user._id });
+        const user = await db.findOne({ _id: req.user._id });
+
         if (user) {
             res.json(user);
         } else {
@@ -146,11 +164,14 @@ export default class User {
     async deleteUser(req, res) {
         if (!req.user) {
             res.status(401).send('Not logged in');
+
             return;
         }
-        let user = await db.findOne({ _id: req.user._id });
+        const user = await db.findOne({ _id: req.user._id });
+
         if (!user) {
             res.status(404).send('User not found');
+
             return;
         }
         await db.remove({ _id: req.user._id });

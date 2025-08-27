@@ -1,123 +1,118 @@
+// eslint-disable-next-line no-unused-vars
 const authSection = document.getElementById('authWidget');
 let user = null;
-
 
 /*
  * register
  */
 
-async function registerUser(e) {
+const registerUser = async(e) => {
     e.preventDefault();
     const email = document.getElementById('registerEmail').value;
     const password = document.getElementById('registerPassword').value;
 
     if (!email || !password) {
         alert('Please enter both email and password');
+
         return;
     }
 
     if (!isValidEmail(email)) {
         alert('Please enter a valid email address');
+
         return;
     }
 
     if (password.length < 6) {
         alert('Password must be at least 6 characters long');
+
         return;
     }
 
     const data = await fetchData('/register', email, password);
+
     if (data && data.email) {
-        // Store user data locally for immediate UI update
+        // store user data locally for immediate UI update
         user = data;
         renderUserUI(user.email);
         window.location.href = '/';
     } else {
-        console.log('error', data)
+        // error: data
     }
-}
+};
 
 /*
  * login
  */
 
-async function loginUser(e) {
+const loginUser = async(e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
     if (!email || !password) {
         alert('Please enter both email and password');
+
         return;
     }
 
     if (!isValidEmail(email)) {
         alert('Please enter a valid email address');
+
         return;
     }
 
     const data = await fetchData('/login', email, password);
+
     if (!data) {
         return;
     }
-    // Store user data locally for immediate UI update
+    // store user data locally for immediate UI update
     user = data;
     renderUserUI(user.email);
     window.location.href = '/';
-}
+};
 
 /*
  * misc
  */
 
-async function fetchWithCredentials(endpoint) {
-    return await fetch(endpoint, { credentials: 'include' });
-}
+const fetchWithCredentials = async endpoint => await fetch(endpoint, { credentials: 'include' });
 
-async function checkUser() {
+// eslint-disable-next-line no-unused-vars
+const checkUser = async() => {
     try {
         const response = await fetchWithCredentials('/user');
-        console.log(response);
+
         if (response.status === 401) {
             return null;
         }
         if (!response.ok) {
-            console.error('Error checking user:', response.status);
             return null;
         }
         user = await response.json();
+
         return user;
     } catch (error) {
-        console.error('Error checking user:', error);
         return null;
     }
-}
+};
 
-function showRegisterLoginFormPopUp() {
-    if (window.location.pathname !== '/') {
-        return;
-    }
-    const registerLoginForm = `<img src="https://picsum.photos/400/400" /><a href="/register.html" class="link" id="">register</a> / <a href="/login.html" class="link" id="">login</a>`;
-    Swal.fire({
-        html: registerLoginForm,
-        width: '420',
-        confirmButtonText: 'later',
-    });
-}
-
-async function fetchData(endpoint, email, password) {
+const fetchData = async(endpoint, email, password) => {
     const payload = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
     };
-    return await fetchAndHandleResponse(endpoint, payload);
-}
 
-async function fetchAndHandleResponse(endpoint, options) {
+    return await fetchAndHandleResponse(endpoint, payload);
+};
+
+const fetchAndHandleResponse = async(endpoint, options) => {
     try {
         const response = await fetch(endpoint, options);
         let data;
+
         if (response.body) {
             data = await response.json();
         }
@@ -127,52 +122,71 @@ async function fetchAndHandleResponse(endpoint, options) {
             } else {
                 alert('An error occurred. Please try again.');
             }
+
             return null;
         }
+
         return data;
     } catch (error) {
-        console.error('Network error:', error);
         alert('Network error. Please check your connection.');
+
         return null;
     }
-}
+};
 
-function isValidEmail(email) {
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const isValidEmail = email => {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
     return re.test(String(email).toLowerCase());
-}
+};
 
-function renderUserUI(email) {
+const renderUserUI = email => {
+    // Update the header component if it exists
+    if (window.headerComponent) {
+        window.headerComponent.updateAuthentication({ email });
+    }
+
+    // Fallback for old authentication element
     const authentication = document.getElementById('authentication');
-    if (!authentication) return;
 
-    authentication.innerHTML = `
-        <div class="row">
-            ${email} <button id="logout-button">Logout</button>
-        </div>
-    `;
-    document.getElementById('logout-button').addEventListener('click', logoutUser);
-}
+    if (authentication) {
+        authentication.innerHTML = `
+            <div class="row">
+                ${email} <button id="logout-button">Logout</button>
+            </div>
+        `;
+        const logoutButton = document.getElementById('logout-button');
 
-function showAuthLoading() {
+        if (logoutButton) {
+            logoutButton.addEventListener('click', logoutUser);
+        }
+    }
+};
+
+// eslint-disable-next-line no-unused-vars
+const showAuthLoading = () => {
     const authentication = document.getElementById('authentication');
-    if (!authentication) return;
+
+    if (!authentication) {
+        return;
+    }
 
     authentication.innerHTML = `
         <div class="row">
             <span>Loading...</span>
         </div>
     `;
-}
+};
 
-async function logoutUser() {
+const logoutUser = async() => {
     const data = await fetchAndHandleResponse('/logout');
+
     if (data && data.message === 'Logged out') {
         window.location.href = '/';
     }
-}
+};
 
-function loadPageElements() {
+const loadPageElements = () => {
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
 
@@ -183,6 +197,6 @@ function loadPageElements() {
     if (registerForm) {
         registerForm.querySelector('button[type="submit"]').addEventListener('click', registerUser);
     }
-}
+};
 
 document.addEventListener('DOMContentLoaded', loadPageElements);

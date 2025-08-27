@@ -1,5 +1,4 @@
-document.addEventListener('DOMContentLoaded', (event) => {
-    //if (isAuth()) {
+document.addEventListener('DOMContentLoaded', () => {
     setupTextArea();
 
     setupFeed();
@@ -7,8 +6,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     setupGuidanceDropDowns();
 
     setupCustomVariables();
-
-    setupToggleView();
 
     setupImageSearch();
 
@@ -18,16 +15,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     setupScrollLoading();
 
-    // Check user authentication after all other setup is complete
+    // check user authentication after all other setup is complete
     setTimeout(() => {
         checkUser().then(user => {
-            console.log(user);
             if (user) {
                 renderUserUI(user.email);
             }
         });
     }, 100);
-
-    //}
-
 });

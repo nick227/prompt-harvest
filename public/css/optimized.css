@@ -1,0 +1,446 @@
+    /* ==========================================================================
+   OPTIMIZED CSS - Essential Custom Styles Only
+   ========================================================================== */
+    /* Custom CSS Variables for consistent theming */
+
+     :root {
+        --color-primary: #5493f0;
+        --color-success: rgb(101, 223, 101);
+        --color-warning: orange;
+        --color-danger: red;
+        --color-accent: #40076b;
+        --color-rating: #ffd700;
+    }
+    /* ==========================================================================
+   ESSENTIAL CUSTOM STYLES
+   ========================================================================== */
+    /* Header */
+
+    header {
+        position: relative;
+        z-index: 987892;
+        width: 100%;
+    }
+
+    .auto-label {
+        background-color: var(--color-accent);
+        border-radius: 8px;
+        padding: 6px 12px;
+    }
+
+    .auto-label span {
+        font-size: 26px;
+        padding: 0 3px;
+        font-weight: 700;
+    }
+    /* Matches Items - Rounded Minimal Buttons */
+
+    #matches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        max-height: 8rem;
+        overflow-y: auto;
+        padding: 0.5rem 0;
+    }
+
+    #matches li {
+        background-color: #4b5563;
+        color: #e5e7eb;
+        padding: 0.375rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        user-select: none;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #matches li:hover {
+        background-color: #6b7280;
+        color: #f9fafb;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #matches li:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    #matches li:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+        background-color: #6b7280;
+        color: #f9fafb;
+    }
+    /* Selected state for matches */
+
+    #matches li.selected {
+        background-color: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
+    }
+
+    #matches li.selected:hover {
+        background-color: #3b82f6;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    }
+    /* Empty state */
+
+    #matches:empty {
+        display: none;
+    }
+    /* Scrollbar styling for matches container */
+
+    #matches::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #matches::-webkit-scrollbar-track {
+        background: #374151;
+        border-radius: 3px;
+    }
+
+    #matches::-webkit-scrollbar-thumb {
+        background: #6b7280;
+        border-radius: 3px;
+    }
+
+    #matches::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+    /* Image Grid Layout - Custom grid that Tailwind can't handle easily */
+
+    .prompt-output.grid-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-auto-rows: minmax(150px, auto);
+        grid-gap: 5px;
+        grid-auto-flow: dense;
+    }
+
+    .prompt-output.grid-view li {
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+    }
+    /* Ensure grid items don't overflow */
+
+    .prompt-output.grid-view li img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
+    }
+    /* Image Wrapper - Essential for image display */
+
+    .image-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s ease;
+    }
+
+    .image-wrapper:hover {
+        outline: rgba(59, 130, 246, 0.3);
+    }
+
+    .image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    /* Ensure images are accessible */
+
+    .image-wrapper img:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+    /* Rating Display */
+
+    .rating {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(0, 0, 0, 0.7);
+        color: var(--color-rating);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 10;
+        pointer-events: none;
+    }
+    /* Fullscreen Styles */
+
+    .full-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    /* Ensure fullscreen is accessible */
+
+    .full-screen:focus {
+        outline: none;
+    }
+
+    .full-screen img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    /* Processing Animation */
+
+    .processing {
+        border: 2px solid transparent;
+        background-color: #36393f;
+        position: relative;
+        animation: processing 3s linear infinite;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .processing::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: var(--color-success);
+        width: 0;
+        animation: progress 8s linear infinite;
+        border-radius: 0 0 10px 10px;
+    }
+    /* Ensure processing state is accessible */
+
+    .processing:focus {
+        outline: 2px solid var(--color-success);
+        outline-offset: 2px;
+    }
+    /* Loading Spinner */
+
+    .loading-spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid var(--color-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    /* Ensure spinner is accessible */
+
+    .loading-spinner:focus {
+        outline: none;
+    }
+    /* Status Messages */
+
+    .status-message {
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 5px;
+        border: 1px solid transparent;
+    }
+
+    .status-success {
+        background-color: rgba(101, 223, 101, 0.2);
+        color: var(--color-success);
+        border-color: var(--color-success);
+    }
+
+    .status-error {
+        background-color: rgba(255, 0, 0, 0.2);
+        color: var(--color-danger);
+        border-color: var(--color-danger);
+    }
+    /* Ensure status messages are accessible */
+
+    .status-message:focus {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+    }
+    /* Rating Filter Active State */
+
+    .rating-btn.active {
+        background-color: var(--color-primary) !important;
+        color: white !important;
+        box-shadow: 0 0 0 2px rgba(84, 147, 240, 0.5);
+    }
+    /* Ensure rating buttons are accessible */
+
+    .rating-btn:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+    /* ==========================================================================
+   ANIMATIONS
+   ========================================================================== */
+
+    @keyframes progress {
+        0% {
+            width: 0;
+        }
+        100% {
+            width: 100%;
+        }
+    }
+
+    @keyframes processing {
+        0% {
+            border-color: var(--color-success);
+            border-style: dotted;
+            background-color: #36393f;
+        }
+        50% {
+            border-color: transparent;
+            border: 2px dashed #000;
+            color: var(--color-accent);
+            background-color: #2f3136;
+        }
+        100% {
+            border-color: var(--color-success);
+            border-style: dotted;
+            background-color: #36393f;
+        }
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    /* ==========================================================================
+   RESPONSIVE ADJUSTMENTS
+   ========================================================================== */
+
+    @media screen and (max-width: 1400px) {
+        .prompt-output.grid-view {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-auto-rows: minmax(190px, 190px);
+        }
+        .prompt-output.grid-view li {
+            height: 190px;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .prompt-output.grid-view {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-auto-rows: minmax(150px, 150px);
+        }
+        .prompt-output.grid-view li {
+            height: 150px;
+        }
+        /* Adjust matches for mobile */
+        #matches li {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        .prompt-output.grid-view {
+            grid-template-columns: 1fr;
+            grid-auto-rows: minmax(120px, 120px);
+        }
+        .prompt-output.grid-view li {
+            height: 120px;
+        }
+        /* Further adjust matches for small mobile */
+        #matches li {
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+        }
+    }
+    /* ==========================================================================
+   PRINT STYLES
+   ========================================================================== */
+
+    @media print {
+        .full-screen,
+        .rating-filter,
+        .extra-tools {
+            display: none !important;
+        }
+        body {
+            background: white;
+            color: black;
+        }
+        .image-wrapper img {
+            max-width: 100%;
+            page-break-inside: avoid;
+        }
+    }
+    /* ==========================================================================
+   ACCESSIBILITY IMPROVEMENTS
+   ========================================================================== */
+    /* Ensure focus is visible for all interactive elements */
+
+    button:focus,
+    input:focus,
+    select:focus,
+    textarea:focus,
+    a:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+    /* Improve contrast for better accessibility */
+
+    @media (prefers-contrast: high) {
+         :root {
+            --color-primary: #2563eb;
+            --color-success: #059669;
+            --color-warning: #d97706;
+            --color-danger: #dc2626;
+            --color-rating: #fbbf24;
+        }
+    }
+    /* Reduce motion for users who prefer it */
+
+    @media (prefers-reduced-motion: reduce) {
+        .image-wrapper,
+        .processing,
+        .loading-spinner {
+            animation: none;
+            transition: none;
+        }
+        .image-wrapper:hover {
+            transform: none;
+        }
+        #matches li {
+            transition: none;
+        }
+        #matches li:hover {
+            transform: none;
+        }
+    }

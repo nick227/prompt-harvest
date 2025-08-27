@@ -1,0 +1,38 @@
+{
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact"
+    ],
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prettier.requireConfig": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "javascript.format.enable": false,
+    "typescript.format.enable": false,
+    "eslint.workingDirectories": ["."],
+    "eslint.format.enable": true,
+    "prettier.arrowParens": "as-needed",
+    "prettier.bracketSpacing": true,
+    "prettier.singleQuote": true,
+    "prettier.semi": true,
+    "prettier.trailingComma": "none",
+    "prettier.printWidth": 120,
+    "prettier.tabWidth": 4,
+    "prettier.useTabs": false,
+    "prettier.endOfLine": "lf",
+    "prettier.quoteProps": "as-needed",
+    "prettier.jsxSingleQuote": false,
+    "prettier.bracketSameLine": false,
+    "prettier.proseWrap": "preserve",
+    "[javascript]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    }
+}
