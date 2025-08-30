@@ -12,3 +12,4 @@ data/tags.db
 data/transactions.db
 data/prompt-clauses.db
 data/multipliers.db
+/src/generated/prisma

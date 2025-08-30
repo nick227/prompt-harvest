@@ -320,15 +320,47 @@ window.PayloadTester = PayloadTester;
 
 // Auto-run tests when DOM is ready
 document.addEventListener('DOMContentLoaded', async() => {
-    // Wait a bit for all modules to load
+    // Wait for provider manager to be initialized
+    const waitForProviderManager = () => {
+        return new Promise((resolve) => {
+            const check = () => {
+                if (window.providerManager && typeof window.providerManager.getSelectedProviders === 'function') {
+                    resolve();
+                } else {
+                    setTimeout(check, 100);
+                }
+            };
+            check();
+        });
+    };
+
+    await waitForProviderManager();
+
+    // Wait a bit more for all modules to load
     setTimeout(async() => {
         const tester = new PayloadTester();
         await tester.runAllTests();
-    }, 1000);
+    }, 500);
 });
 
 // Also provide a manual trigger
 window.runPayloadTests = async() => {
+    // Wait for provider manager to be initialized
+    const waitForProviderManager = () => {
+        return new Promise((resolve) => {
+            const check = () => {
+                if (window.providerManager && typeof window.providerManager.getSelectedProviders === 'function') {
+                    resolve();
+                } else {
+                    setTimeout(check, 100);
+                }
+            };
+            check();
+        });
+    };
+
+    await waitForProviderManager();
+
     const tester = new PayloadTester();
     await tester.runAllTests();
 };

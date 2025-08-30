@@ -1,25 +1,37 @@
 // image Component - Handles image rendering, fullscreen viewing, and image management
 class ImageComponent {
     constructor() {
-        this.config = IMAGE_CONFIG || {
-            classes: {
-                image: 'generated-image',
-                imageWrapper: 'image-wrapper',
-                rating: 'image-rating',
-                fullscreenContainer: 'fullscreen-container'
-            },
-            selectors: {
-                fullscreenContainer: '.fullscreen-container'
-            }
-        };
+        this.config = null;
         this.isInitialized = false;
         this.imageCache = new Map();
         this.fullscreenContainer = null;
         this.currentFullscreenImage = null;
+        this.cachedImageOrder = null;
+        this.currentKeyHandler = null;
+        this.currentClickHandler = null;
+    }
+
+    getConfig() {
+        if (!this.config) {
+            this.config = window.IMAGE_CONFIG || {
+                classes: {
+                    image: 'generated-image',
+                    imageWrapper: 'image-wrapper',
+                    rating: 'image-rating',
+                    fullscreenContainer: 'fullscreen-container'
+                },
+                selectors: {
+                    fullscreenContainer: '.fullscreen-container'
+                }
+            };
+        }
+
+        return this.config;
     }
 
     init() {
         console.log('🔧 ImageComponent initializing...');
+
         this.setupFullscreenContainer();
         this.setupEventDelegation();
         this.isInitialized = true;
@@ -34,9 +46,11 @@ class ImageComponent {
 
     setupFullscreenContainer() {
         // create fullscreen container if it doesn't exist
-        this.fullscreenContainer = Utils.dom.get(this.config.selectors.fullscreenContainer);
+        const config = this.getConfig();
+
+        this.fullscreenContainer = Utils.dom.get(config.selectors.fullscreenContainer);
         if (!this.fullscreenContainer) {
-            this.fullscreenContainer = Utils.dom.createElement('div', this.config.classes.fullscreenContainer);
+            this.fullscreenContainer = Utils.dom.createElement('div', config.classes.fullscreenContainer);
             this.fullscreenContainer.style.display = 'none';
             this.fullscreenContainer.style.position = 'fixed';
             this.fullscreenContainer.style.top = '0';
@@ -119,7 +133,8 @@ class ImageComponent {
 
     // image Creation Methods
     createImageElement(imageData) {
-        const img = Utils.dom.createElement('img', this.config.classes.image);
+        const config = this.getConfig();
+        const img = Utils.dom.createElement('img', config.classes.image);
 
         img.src = imageData.url;
         img.alt = imageData.title || 'Generated Image';
@@ -147,7 +162,8 @@ class ImageComponent {
     }
 
     createImageWrapper(imageData) {
-        const wrapper = Utils.dom.createElement('div', this.config.classes.imageWrapper);
+        const config = this.getConfig();
+        const wrapper = Utils.dom.createElement('div', config.classes.imageWrapper);
 
         const img = this.createImageElement(imageData);
 
@@ -155,7 +171,7 @@ class ImageComponent {
 
         // add rating display
         if (imageData.rating && imageData.rating > 0) {
-            const ratingElement = Utils.dom.createElement('div', this.config.classes.rating);
+            const ratingElement = Utils.dom.createElement('div', config.classes.rating);
 
             ratingElement.textContent = `★ ${imageData.rating}`;
             wrapper.appendChild(ratingElement);
@@ -691,7 +707,8 @@ class ImageComponent {
             cached.element.dataset.rating = rating.toString();
 
             // update rating display
-            const ratingElement = cached.element.querySelector(`.${this.config.classes.rating}`);
+            const config = this.getConfig();
+            const ratingElement = cached.element.querySelector(`.${config.classes.rating}`);
 
             if (ratingElement) {
                 ratingElement.textContent = `★ ${rating}`;
@@ -706,56 +723,46 @@ class ImageComponent {
     async rateImageInFullscreen(rating) {
         if (!this.currentFullscreenImage || !this.currentFullscreenImage.id) {
             console.error('No image data available for rating');
-
             return;
         }
 
         try {
             console.log(`Rating image ${this.currentFullscreenImage.id} with rating ${rating}`);
 
-            // Call the rating API
-            const response = await fetch(`/api/images/${this.currentFullscreenImage.id}/rating`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ rating })
-            });
+            // Call the rating API using centralized service
+            await imageApi.rateImage(this.currentFullscreenImage.id, rating);
 
-            if (response.ok) {
-                // Update the image data
-                this.currentFullscreenImage.rating = rating;
+            // Update the image data
+            this.currentFullscreenImage.rating = rating;
 
-                // Update the rating display in navigation
-                const ratingDisplay = this.fullscreenContainer.querySelector('.rating-display-nav');
+            // Update the rating display in navigation
+            const ratingDisplay = this.fullscreenContainer.querySelector('.rating-display-nav');
 
-                if (ratingDisplay) {
-                    ratingDisplay.textContent = rating > 0 ? `★ ${rating}` : '—';
-                }
-
-                // Update the info panel rating
-                const infoBox = this.fullscreenContainer.querySelector('.info-box');
-
-                if (infoBox) {
-                    const ratingText = infoBox.querySelector('div:first-child');
-
-                    if (ratingText && ratingText.innerHTML.includes('Rating:')) {
-                        ratingText.innerHTML = `<strong>Rating:</strong> ${rating > 0 ? `★ ${rating}` : '—'}`;
-                    }
-                }
-
-                // Update the grid view
-                this.updateImageRating(this.currentFullscreenImage.id, rating);
-
-                // Show feedback
-                this.showRatingFeedback(rating);
-
-                console.log('Rating updated successfully');
-            } else {
-                console.error('Failed to update rating:', response.status, response.statusText);
+            if (ratingDisplay) {
+                ratingDisplay.textContent = rating > 0 ? `★ ${rating}` : '—';
             }
+
+            // Update the info panel rating
+            const infoBox = this.fullscreenContainer.querySelector('.info-box');
+
+            if (infoBox) {
+                const ratingText = infoBox.querySelector('div:first-child');
+
+                if (ratingText && ratingText.innerHTML.includes('Rating:')) {
+                    ratingText.innerHTML = `<strong>Rating:</strong> ${rating > 0 ? `★ ${rating}` : '—'}`;
+                }
+            }
+
+            // Update the grid view
+            this.updateImageRating(this.currentFullscreenImage.id, rating);
+
+            // Show feedback
+            this.showRatingFeedback(rating);
+
+            console.log('Rating updated successfully');
         } catch (error) {
             console.error('Error updating rating:', error);
+            this.showError(`Rating failed: ${error.message}`);
         }
     }
 

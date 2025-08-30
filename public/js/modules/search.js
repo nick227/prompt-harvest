@@ -229,7 +229,7 @@ class SearchManager {
             return;
         }
 
-        suggestions.forEach((suggestion) => {
+        suggestions.forEach(suggestion => {
             const suggestionElement = document.createElement('div');
 
             suggestionElement.className = 'search-suggestion';

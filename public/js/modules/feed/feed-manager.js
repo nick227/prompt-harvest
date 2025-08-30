@@ -8,6 +8,62 @@ class FeedManager {
         this.hasMoreData = true;
         this.intersectionObserver = null;
         this.lastImageElement = null;
+        this.currentOwnerFilter = 'site'; // Default to site (all public images)
+    }
+
+    init() {
+        // Initialize feed manager
+        this.setupFeed();
+        this.setupOwnerFilter();
+        return this;
+    }
+
+        setupOwnerFilter() {
+        const ownerButtons = document.querySelectorAll('input[name="owner"]');
+
+        ownerButtons.forEach(button => {
+            button.addEventListener('change', (e) => {
+                this.currentOwnerFilter = e.target.value;
+                this.resetAndReload();
+            });
+        });
+
+        // Set default selection
+        const siteButton = document.querySelector('input[name="owner"][value="site"]');
+        if (siteButton) {
+            siteButton.checked = true;
+        }
+
+        // Listen for authentication state changes
+        window.addEventListener('authStateChanged', (event) => {
+            const user = event.detail;
+            if (!user && this.currentOwnerFilter === 'user') {
+                // User logged out while viewing "Mine" filter, switch to "Site"
+                console.log('🔧 User logged out, switching to site filter');
+                this.currentOwnerFilter = 'site';
+                const siteButton = document.querySelector('input[name="owner"][value="site"]');
+                if (siteButton) {
+                    siteButton.checked = true;
+                }
+                this.resetAndReload();
+            }
+        });
+    }
+
+    resetAndReload() {
+        // Clear current images
+        const promptOutput = document.querySelector(this.config.promptOutputSelector);
+        if (promptOutput) {
+            promptOutput.innerHTML = '';
+        }
+
+        // Reset pagination
+        this.currentPageCount = 0;
+        this.hasMoreData = true;
+        this.isLoading = false;
+
+        // Reload with new filter
+        this.setupFeedPromptsNew();
     }
 
     async setupFeed() {
@@ -29,7 +85,30 @@ class FeedManager {
 
         this.isLoading = true;
         try {
-            const url = `${API_ENDPOINTS.FEED}?limit=${this.config.requestLimit}&page=${this.currentPageCount}`;
+            // Build query parameters based on owner filter
+            const params = new URLSearchParams({
+                limit: this.config.requestLimit,
+                page: this.currentPageCount
+            });
+
+            // Add owner filter
+            if (this.currentOwnerFilter === 'user') {
+                // For user filter, we need to get the current user ID
+                const userInfo = this.getCurrentUserInfo();
+                if (userInfo && userInfo.id) {
+                    params.append('userId', userInfo.id);
+                } else {
+                    // If no user logged in, show empty state with login prompt
+                    console.log('No user logged in for user filter');
+                    this.showLoginPrompt();
+                    this.hasMoreData = false;
+                    return;
+                }
+            }
+            // For 'site' filter, don't add userId parameter (shows all public images)
+
+            const url = `${API_ENDPOINTS.FEED}?${params.toString()}`;
+            console.log('🔧 Loading feed with owner filter:', this.currentOwnerFilter, 'URL:', url);
 
             const response = await fetch(url);
             const results = await response.json();
@@ -42,9 +121,9 @@ class FeedManager {
                 return;
             }
 
-            // process results in database order (newest first from timestamp: -1)
+            // process results - new API returns array of image objects directly
             for (let i = 0; i < results.length; i++) {
-                this.addPromptToOutput(results[i]);
+                // Only add image, not prompt (since each image has its own prompt)
                 this.addImageToOutput(results[i]);
             }
 
@@ -59,7 +138,7 @@ class FeedManager {
                 window.imageComponent.clearImageOrderCache();
             }
         } catch (error) {
-            // feed fetch error
+            console.error('Feed fetch error:', error);
         } finally {
             this.isLoading = false;
         }
@@ -82,7 +161,7 @@ class FeedManager {
     }
 
     addImageToOutput(result, isNewlyGenerated = false) {
-        if (!result || (!result.image && !result.imageName)) {
+        if (!result || (!result.imageUrl && !result.image && !result.imageName)) {
             return;
         }
 
@@ -98,7 +177,7 @@ class FeedManager {
     tryImageComponent(result, isNewlyGenerated = false) {
         // ImageComponent should be available since it's loaded first
         if (!window.imageComponent) {
-            console.log('ImageComponent not available, using fallback');
+            console.warn('ImageComponent not available, using fallback');
 
             return false;
         }
@@ -119,10 +198,8 @@ class FeedManager {
             // Newly generated images go at the top, infinite scroll images go at the bottom
             if (isNewlyGenerated) {
                 container.insertBefore(li, container.firstChild);
-                console.log('📌 Newly generated image added to TOP');
             } else {
                 container.appendChild(li);
-                console.log('📌 Infinite scroll image added to BOTTOM');
             }
 
             return true;
@@ -149,17 +226,15 @@ class FeedManager {
         // Newly generated images go at the top, infinite scroll images go at the bottom
         if (isNewlyGenerated) {
             container.insertBefore(li, container.firstChild);
-            console.log('📌 Newly generated image added to TOP (basic)');
         } else {
             container.appendChild(li);
-            console.log('📌 Infinite scroll image added to BOTTOM (basic)');
         }
     }
 
     createImageData(result) {
         const imageData = {
             id: result.id || result.imageId || 'unknown',
-            url: result.image || result.url || `uploads/${result.imageName}`,
+            url: result.imageUrl || result.image || result.url || `uploads/${result.imageName}`,
             title: result.prompt || 'Image',
             prompt: result.prompt || '',
             original: result.original || '',
@@ -167,8 +242,6 @@ class FeedManager {
             guidance: result.guidance || '',
             rating: result.rating || ''
         };
-
-        console.log('📋 Feed manager createImageData:', imageData);
 
         return imageData;
     }
@@ -203,7 +276,7 @@ class FeedManager {
     }
 
     setupImageProperties(img, result) {
-        img.src = result.image || result.url || `uploads/${result.imageName}`;
+        img.src = result.imageUrl || result.image || result.url || `uploads/${result.imageName}`;
         img.alt = result.prompt || '';
         img.title = result.prompt || '';
         img.style.width = '100%';
@@ -216,7 +289,6 @@ class FeedManager {
     }
 
     addImageDataset(img, result) {
-        console.log('🔍 Adding dataset to image:', result);
 
         if (result.id || result.imageId) {
             img.dataset.id = result.id || result.imageId;
@@ -229,7 +301,6 @@ class FeedManager {
         }
         if (result.provider || result.providerName) {
             img.dataset.provider = result.provider || result.providerName;
-            console.log('🔍 Setting provider dataset:', result.provider || result.providerName);
         }
         if (result.guidance) {
             img.dataset.guidance = result.guidance;
@@ -237,15 +308,6 @@ class FeedManager {
         if (result.rating) {
             img.dataset.rating = result.rating;
         }
-
-        console.log('🔍 Final dataset:', {
-            id: img.dataset.id,
-            provider: img.dataset.provider,
-            prompt: img.dataset.prompt,
-            original: img.dataset.original,
-            guidance: img.dataset.guidance,
-            rating: img.dataset.rating
-        });
     }
 
     handleImageClick(result) {
@@ -273,11 +335,9 @@ class FeedManager {
         }
 
         if (window.ImageComponent) {
-            console.log('Initializing ImageComponent...');
             try {
                 window.imageComponent = new window.ImageComponent();
                 window.imageComponent.init();
-                console.log('ImageComponent initialized:', !!window.imageComponent);
             } catch (error) {
                 console.error('Failed to initialize ImageComponent:', error);
             }
@@ -292,18 +352,15 @@ class FeedManager {
 
     setupLazyLoading() {
         if (!this.config.lazyLoading.enabled) {
-            console.log('⚠️ Lazy loading is disabled in config');
+            console.warn('⚠️ Lazy loading is disabled in config');
 
             return;
         }
-
-        console.log('🔄 Setting up lazy loading intersection observer');
 
         this.intersectionObserver = new IntersectionObserver(
             entries => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting && this.hasMoreData && !this.isLoading) {
-                        console.log('🎯 Lazy loading trigger: intersection detected');
                         this.setupFeedPromptsNew();
                     }
                 });
@@ -313,13 +370,12 @@ class FeedManager {
             }
         );
 
-        console.log('✅ Intersection observer created');
         this.updateLazyLoadingTarget();
     }
 
     updateLazyLoadingTarget() {
         if (!this.intersectionObserver) {
-            console.log('⚠️ No intersection observer available for lazy loading target update');
+            console.warn('⚠️ No intersection observer available for lazy loading target update');
 
             return;
         }
@@ -327,20 +383,16 @@ class FeedManager {
         // remove previous target
         if (this.lastImageElement) {
             this.intersectionObserver.unobserve(this.lastImageElement);
-            console.log('🔍 Unobserved previous target:', this.lastImageElement);
         }
 
         // find the last image element - ONLY from the grid, not fullscreen
         const gridImages = document.querySelectorAll('.prompt-output .image-wrapper img, .prompt-output li.image-item img');
 
-        console.log(`🔍 Found ${gridImages.length} grid images for lazy loading targets`);
-
         if (gridImages.length > 0) {
             this.lastImageElement = gridImages[gridImages.length - 1];
             this.intersectionObserver.observe(this.lastImageElement);
-            console.log('✅ New lazy loading target set (grid image):', this.lastImageElement);
         } else {
-            console.log('⚠️ No grid images found for lazy loading target');
+            console.warn('⚠️ No grid images found for lazy loading target');
         }
     }
 
@@ -460,7 +512,58 @@ class FeedManager {
         // force grid layout
         this.forceGridLayout();
 
-        console.log('Feed refresh complete');
+    }
+
+    getCurrentUserInfo() {
+        // Try to get user info from auth component
+        if (window.authComponent && window.authComponent.getUser) {
+            const user = window.authComponent.getUser();
+            if (user && user.id) {
+                return user;
+            }
+        }
+
+        // Fallback to localStorage
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+            try {
+                const parsed = JSON.parse(userData);
+                // Handle different response structures
+                if (parsed.data?.user?.id) {
+                    return parsed.data.user;
+                } else if (parsed.user?.id) {
+                    return parsed.user;
+                } else if (parsed.id) {
+                    return parsed;
+                }
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+            }
+        }
+
+        return null;
+    }
+
+    showLoginPrompt() {
+        const promptOutput = document.querySelector(this.config.promptOutputSelector);
+        if (promptOutput) {
+            promptOutput.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-8 text-center">
+                    <div class="text-gray-400 text-lg mb-4">
+                        <i class="fas fa-lock text-2xl mb-2"></i>
+                        <p>Please log in to view your images</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <a href="/login.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                            Login
+                        </a>
+                        <a href="/register.html" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors">
+                            Register
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
     }
 }
 

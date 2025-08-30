@@ -57,7 +57,7 @@ class TextAreaManager {
             `${TEXTAREA_CONFIG.api.clauses}?limit=${TEXTAREA_CONFIG.limits.maxSamples}`
         );
 
-        return results.map((word) => `<li class="sample" title="${word}">${word}</li>`).join('');
+        return results.map(word => `<li class="sample" title="${word}">${word}</li>`).join('');
     }
 
     async getMatches(word) {
@@ -74,6 +74,7 @@ class TextAreaManager {
         if (textBeforeCursor.split(/\s+/).pop().length < 2) {
             this.matchesEl.innerHTML = await this.getSampleMatches();
             this.hasReplacedTrigger = false; // Reset flag when starting new search
+
             return;
         }
 
@@ -102,7 +103,7 @@ class TextAreaManager {
     }
 
     updateMatchesDisplay(matches) {
-        this.matchesEl.innerHTML = matches.map((word) => `<li title="${word}">${word}</li>`).join('');
+        this.matchesEl.innerHTML = matches.map(word => `<li title="${word}">${word}</li>`).join('');
         StateManager.update('dropdownIsOpen', matches.length > 0);
     }
 

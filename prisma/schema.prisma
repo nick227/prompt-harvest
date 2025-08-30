@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid()) @db.VarChar(25)
+  email      String   @db.VarChar(255)
+  username   String   @db.VarChar(100)
+  password   String   @db.VarChar(255)
+  resetToken String?  @db.VarChar(500)
+  isAdmin    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Image {
+  id        String   @id @default(cuid()) @db.VarChar(25)
+  userId    String   @db.VarChar(25)
+  prompt    String   @db.Text
+  original  String   @db.Text
+  imageUrl  String   @db.VarChar(500)
+  provider  String   @db.VarChar(50)
+  guidance  Int      @default(10)
+  model     String?  @db.VarChar(100)
+  rating    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId], map: "userId")
+  @@map("images")
+}
+
+model categories {
+  id          String   @id @db.VarChar(25)
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model likes {
+  id        String   @id @db.VarChar(25)
+  userId    String   @db.VarChar(25)
+  imageId   String   @db.VarChar(25)
+  createdAt DateTime @default(now())
+
+  @@index([imageId], map: "imageId")
+  @@index([userId], map: "userId")
+}
+
+model multipliers {
+  id        String   @id @db.VarChar(25)
+  name      String   @db.VarChar(100)
+  value     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model prompt_clauses {
+  id        String   @id @db.VarChar(25)
+  clause    String   @db.VarChar(255)
+  category  String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model prompts {
+  id        String   @id @db.VarChar(25)
+  userId    String   @db.VarChar(25)
+  prompt    String   @db.Text
+  original  String   @db.Text
+  provider  String   @db.VarChar(50)
+  guidance  Int      @default(10)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  @@index([userId], map: "userId")
+}
+
+model tags {
+  id        String   @id @db.VarChar(25)
+  userId    String   @db.VarChar(25)
+  imageId   String   @db.VarChar(25)
+  tag       String   @db.VarChar(100)
+  createdAt DateTime @default(now())
+
+  @@index([imageId], map: "imageId")
+  @@index([userId], map: "userId")
+}
+
+model word_types {
+  id        String   @id @db.VarChar(25)
+  word      String   @db.VarChar(100)
+  types     Json
+  examples  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}

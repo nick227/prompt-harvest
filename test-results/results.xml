@@ -1,2 +1,257 @@
-<testsuites id="" name="" tests="0" failures="0" skipped="0" errors="0" time="0.07071600000000001">
+<testsuites id="" name="" tests="15" failures="5" skipped="0" errors="0" time="18.630557">
+<testsuite name="specs\simple.spec.js" timestamp="2025-08-28T09:59:36.048Z" hostname="chromium" tests="3" failures="1" skipped="0" time="18.034" errors="0">
+<testcase name="Simple E2E Tests › should load home page" classname="specs\simple.spec.js" time="11.337">
+<failure message="simple.spec.js:4:5 should load home page" type="FAILURE">
+<![CDATA[  [chromium] › specs\simple.spec.js:4:5 › Simple E2E Tests › should load home page ─────────────────
+
+    Error: expect(page).toHaveTitle(expected) failed
+
+    Expected pattern: /Image Harvest/
+    Received string:  "AutoImage - AI Image Generator"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveTitle" with timeout 5000ms
+        8 × unexpected value "AutoImage - AI Image Generator"
+
+
+      4 |     test('should load home page', async ({ page }) => {
+      5 |         await page.goto('http://localhost:3200/');
+    > 6 |         await expect(page).toHaveTitle(/Image Harvest/);
+        |                            ^
+      7 |     });
+      8 |
+      9 |     test('should have basic elements', async ({ page }) => {
+        at C:\wamp64\www\image-harvest\tests\e2e\specs\simple.spec.js:6:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-chromium\video.webm]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple E2E Tests › should have basic elements" classname="specs\simple.spec.js" time="5.874">
+</testcase>
+<testcase name="Simple E2E Tests › should handle API endpoints" classname="specs\simple.spec.js" time="0.823">
+</testcase>
+</testsuite>
+<testsuite name="specs\simple.spec.js" timestamp="2025-08-28T09:59:36.048Z" hostname="firefox" tests="3" failures="1" skipped="0" time="12.108" errors="0">
+<testcase name="Simple E2E Tests › should load home page" classname="specs\simple.spec.js" time="7.772">
+<failure message="simple.spec.js:4:5 should load home page" type="FAILURE">
+<![CDATA[  [firefox] › specs\simple.spec.js:4:5 › Simple E2E Tests › should load home page ──────────────────
+
+    Error: expect(page).toHaveTitle(expected) failed
+
+    Expected pattern: /Image Harvest/
+    Received string:  "AutoImage - AI Image Generator"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveTitle" with timeout 5000ms
+        8 × unexpected value "AutoImage - AI Image Generator"
+
+
+      4 |     test('should load home page', async ({ page }) => {
+      5 |         await page.goto('http://localhost:3200/');
+    > 6 |         await expect(page).toHaveTitle(/Image Harvest/);
+        |                            ^
+      7 |     });
+      8 |
+      9 |     test('should have basic elements', async ({ page }) => {
+        at C:\wamp64\www\image-harvest\tests\e2e\specs\simple.spec.js:6:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-firefox\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-firefox\video.webm]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-firefox\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple E2E Tests › should have basic elements" classname="specs\simple.spec.js" time="2.674">
+</testcase>
+<testcase name="Simple E2E Tests › should handle API endpoints" classname="specs\simple.spec.js" time="1.662">
+</testcase>
+</testsuite>
+<testsuite name="specs\simple.spec.js" timestamp="2025-08-28T09:59:36.048Z" hostname="webkit" tests="3" failures="1" skipped="0" time="10.014" errors="0">
+<testcase name="Simple E2E Tests › should load home page" classname="specs\simple.spec.js" time="7.042">
+<failure message="simple.spec.js:4:5 should load home page" type="FAILURE">
+<![CDATA[  [webkit] › specs\simple.spec.js:4:5 › Simple E2E Tests › should load home page ───────────────────
+
+    Error: expect(page).toHaveTitle(expected) failed
+
+    Expected pattern: /Image Harvest/
+    Received string:  "AutoImage - AI Image Generator"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveTitle" with timeout 5000ms
+        8 × unexpected value "AutoImage - AI Image Generator"
+
+
+      4 |     test('should load home page', async ({ page }) => {
+      5 |         await page.goto('http://localhost:3200/');
+    > 6 |         await expect(page).toHaveTitle(/Image Harvest/);
+        |                            ^
+      7 |     });
+      8 |
+      9 |     test('should have basic elements', async ({ page }) => {
+        at C:\wamp64\www\image-harvest\tests\e2e\specs\simple.spec.js:6:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-webkit\video.webm]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple E2E Tests › should have basic elements" classname="specs\simple.spec.js" time="1.833">
+</testcase>
+<testcase name="Simple E2E Tests › should handle API endpoints" classname="specs\simple.spec.js" time="1.139">
+</testcase>
+</testsuite>
+<testsuite name="specs\simple.spec.js" timestamp="2025-08-28T09:59:36.048Z" hostname="Mobile Chrome" tests="3" failures="1" skipped="0" time="16.202" errors="0">
+<testcase name="Simple E2E Tests › should load home page" classname="specs\simple.spec.js" time="9.319">
+<failure message="simple.spec.js:4:5 should load home page" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › specs\simple.spec.js:4:5 › Simple E2E Tests › should load home page ────────────
+
+    Error: expect(page).toHaveTitle(expected) failed
+
+    Expected pattern: /Image Harvest/
+    Received string:  "AutoImage - AI Image Generator"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveTitle" with timeout 5000ms
+        8 × unexpected value "AutoImage - AI Image Generator"
+
+
+      4 |     test('should load home page', async ({ page }) => {
+      5 |         await page.goto('http://localhost:3200/');
+    > 6 |         await expect(page).toHaveTitle(/Image Harvest/);
+        |                            ^
+      7 |     });
+      8 |
+      9 |     test('should have basic elements', async ({ page }) => {
+        at C:\wamp64\www\image-harvest\tests\e2e\specs\simple.spec.js:6:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple E2E Tests › should have basic elements" classname="specs\simple.spec.js" time="6.244">
+</testcase>
+<testcase name="Simple E2E Tests › should handle API endpoints" classname="specs\simple.spec.js" time="0.639">
+</testcase>
+</testsuite>
+<testsuite name="specs\simple.spec.js" timestamp="2025-08-28T09:59:36.048Z" hostname="Mobile Safari" tests="3" failures="1" skipped="0" time="7.756" errors="0">
+<testcase name="Simple E2E Tests › should load home page" classname="specs\simple.spec.js" time="6.117">
+<failure message="simple.spec.js:4:5 should load home page" type="FAILURE">
+<![CDATA[  [Mobile Safari] › specs\simple.spec.js:4:5 › Simple E2E Tests › should load home page ────────────
+
+    Error: expect(page).toHaveTitle(expected) failed
+
+    Expected pattern: /Image Harvest/
+    Received string:  "AutoImage - AI Image Generator"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveTitle" with timeout 5000ms
+        9 × unexpected value "AutoImage - AI Image Generator"
+
+
+      4 |     test('should load home page', async ({ page }) => {
+      5 |         await page.goto('http://localhost:3200/');
+    > 6 |         await expect(page).toHaveTitle(/Image Harvest/);
+        |                            ^
+      7 |     });
+      8 |
+      9 |     test('should have basic elements', async ({ page }) => {
+        at C:\wamp64\www\image-harvest\tests\e2e\specs\simple.spec.js:6:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|specs-simple-Simple-E2E-Tests-should-load-home-page-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Simple E2E Tests › should have basic elements" classname="specs\simple.spec.js" time="1.134">
+</testcase>
+<testcase name="Simple E2E Tests › should handle API endpoints" classname="specs\simple.spec.js" time="0.505">
+</testcase>
+</testsuite>
 </testsuites>

@@ -29,6 +29,36 @@
 
     <body class="bg-gray-800 text-gray-200 min-h-screen">
 
+        <!-- Header -->
+        <header class="bg-gray-900 border-b border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <!-- Logo and Navigation -->
+                    <div class="flex items-center space-x-8">
+                        <a href="/" class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <span class="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">AutoImage</span>
+                        </a>
+                        <nav class="hidden md:flex space-x-6">
+                            <a href="/" class="text-gray-300 hover:text-white transition-colors duration-200">Home</a>
+                            <a href="/terms.html" class="text-purple-400 font-medium">Terms</a>
+                        </nav>
+                    </div>
+
+                    <!-- Authentication -->
+                    <div id="authentication" class="flex items-center space-x-2 text-sm">
+                        <a href="/login.html" class="text-gray-300 hover:text-purple-400 transition-colors duration-200">Login</a>
+                        <span class="text-gray-500">/</span>
+                        <a href="/register.html" class="text-gray-300 hover:text-purple-400 transition-colors duration-200">Register</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
         <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Page Header -->
@@ -51,11 +81,11 @@
                             class="block text-sm font-medium text-gray-300 mb-2">Term</label>
                         <input type="text" id="newTerm"
                             placeholder="e.g., cat, dog, landscape"
-                            class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     </div>
                     <div class="flex items-end">
                         <button id="addTerm"
-                            class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
+                            class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition-colors font-medium">
                             Add Term
                         </button>
                     </div>
@@ -72,10 +102,10 @@
                     <div class="flex-1">
                         <input type="text" id="searchInput"
                             placeholder="Search terms..."
-                            class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     </div>
                     <button id="searchBtn"
-                        class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
+                        class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition-colors font-medium">
                         Search
                     </button>
                     <button id="clearSearch"
@@ -192,30 +222,35 @@
         <!-- Core Scripts -->
         <script src="js/core/constants.js"></script>
         <script src="js/core/utils.js"></script>
-        <script src="js/user.js"></script>
+        <script src="js/core/api-service.js"></script>
 
         <!-- Header Component -->
         <script src="js/components/header-component.js"></script>
+
+        <!-- Authentication Component -->
+        <script src="js/components/auth-component.js"></script>
+
+        <!-- User Management -->
+        <script src="js/user.js"></script>
 
         <!-- Terms Page Specific Script -->
         <script src="js/terms-manager.js"></script>
 
         <script>
-        // Initialize user authentication
-        checkUser().then(user => {
-            if (user) {
-                renderUserUI(user.email);
-            }
-        });
-
         // Debug: Check if components are loaded
         window.addEventListener('load', () => {
-            console.log('Page loaded, checking components...');
+            console.log('Terms page loaded, checking components...');
 
             if (window.headerComponent) {
                 console.log('Header component found:', window.headerComponent);
             } else {
                 console.error('Header component not found!');
+            }
+
+            if (window.authComponent) {
+                console.log('Auth component found:', window.authComponent);
+            } else {
+                console.error('Auth component not found!');
             }
 
             if (window.termsManager) {
@@ -230,6 +265,14 @@
                 console.log('Header element found:', header);
             } else {
                 console.error('Header element not found!');
+            }
+
+            // Check if authentication element exists
+            const auth = document.getElementById('authentication');
+            if (auth) {
+                console.log('Authentication element found:', auth);
+            } else {
+                console.error('Authentication element not found!');
             }
         });
     </script>

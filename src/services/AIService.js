@@ -1,0 +1,160 @@
+import OpenAI from 'openai';
+import getWordType from '../../lib/getWordType.js';
+import wordTypeManager from '../../lib/word-type-manager.js';
+import { WordRepository } from '../repositories/WordRepository.js';
+import configManager from '../config/ConfigManager.js';
+
+export class AIService {
+    constructor() {
+        const aiConfig = configManager.ai;
+
+        if (!aiConfig.openaiApiKey) {
+            throw new Error('OpenAI API key is required for AIService');
+        }
+
+        this.openai = new OpenAI({
+            apiKey: aiConfig.openaiApiKey
+        });
+        this.maxTokens = aiConfig.maxTokens;
+        this.openAiModel = aiConfig.openAiModel;
+        this.maxTokens4 = aiConfig.maxTokens4;
+        this.openAiModel4 = aiConfig.openAiModel4;
+        this.temperature = aiConfig.temperature;
+        this.wordRepository = new WordRepository();
+    }
+
+    // Word Type Operations
+    async getWordType(word, limit = 8) {
+        const decodedWord = decodeURIComponent(word).toLowerCase();
+
+        return await getWordType(decodedWord, parseInt(limit));
+    }
+
+    async getWordExamples(word, limit = 8) {
+        const decodedWord = decodeURIComponent(word).toLowerCase();
+
+        return await this.wordRepository.findExamplesByWord(decodedWord, parseInt(limit));
+    }
+
+    async getWordTypes(word, limit = 8) {
+        const decodedWord = decodeURIComponent(word).toLowerCase();
+
+        return await this.wordRepository.findByWord(decodedWord, parseInt(limit));
+    }
+
+    async addWordType(word) {
+        const decodedWord = decodeURIComponent(word).toLowerCase();
+
+        return await this._addAiWordType(decodedWord);
+    }
+
+    // Cache Management
+    getCacheStats() {
+        return wordTypeManager.getCacheStats();
+    }
+
+    clearCache() {
+        wordTypeManager.clearCache();
+
+        return { message: 'Cache cleared successfully' };
+    }
+
+    // Prompt Processing
+    async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', req = null) {
+        // This will be implemented when we extract the prompt service
+        // For now, we'll import the feed module directly
+        const feed = await import('../../src/feed.js');
+
+        return await feed.default.prompt.build(
+            prompt,
+            multiplier,
+            mixup,
+            mashup,
+            customVariables,
+            req
+        );
+    }
+
+
+    async _addAiWordType(word) {
+        try {
+            const options = this._createAddWordAIOptions(word);
+            const res = await this.openai.chat.completions.create(options);
+            const resObj = this._extractOpenAiResponse(res);
+
+            if (resObj && typeof resObj.types === 'object') {
+                const { types } = resObj;
+
+                await this.wordRepository.addWordType(word, types);
+            }
+
+            return res;
+        } catch (error) {
+            console.error(error);
+
+            return { error: error.message };
+        }
+    }
+
+    _extractOpenAiResponse(response) {
+        if (!response || !response.choices || response.choices.length === 0) {
+            return null;
+        }
+
+        const [firstChoice] = response.choices;
+
+        if (!firstChoice.message || !firstChoice.message.tool_calls || firstChoice.message.tool_calls.length === 0) {
+            return null;
+        }
+
+        const [firstToolCall] = firstChoice.message.tool_calls;
+
+        if (firstToolCall.function && firstToolCall.function.arguments) {
+            return typeof firstToolCall.function.arguments === 'object' ?
+                firstToolCall.function.arguments :
+                this._safeJsonParse(firstToolCall.function.arguments);
+        }
+
+        return null;
+    }
+
+    _safeJsonParse(str) {
+        try {
+            return JSON.parse(str);
+        } catch (error) {
+            return str;
+        }
+    }
+
+    _createAddWordAIOptions(word) {
+        return {
+            model: this.openAiModel4,
+            messages: [
+                { role: 'user', content: `Attempt to generate at least 75 unique examples of "${word}".` }
+            ],
+            max_tokens: this.maxTokens4,
+            tool_choice: { type: 'function', function: { name: 'get_word_types' } },
+            tools: [{
+                type: 'function',
+                function: {
+                    name: 'get_word_types',
+                    description: `Gets types of "${word}"`,
+                    parameters: {
+                        type: 'object',
+                        properties: {
+                            types: {
+                                type: 'array',
+                                description: 'Examples or types of the user prompt, attempt 75 unique examples.',
+                                items: {
+                                    type: 'string',
+                                    description: `A type of ${word}.`
+                                }
+                            }
+                        },
+                        required: ['types']
+                    }
+                }
+            }]
+        };
+    }
+}

@@ -11,11 +11,9 @@ class ImagesManager {
     }
 
     setupEventListeners() {
-        const generateBtn = Utils.dom.get(this.config.selectors.generateBtn);
-
-        if (generateBtn && typeof generateBtn.addEventListener === 'function') {
-            generateBtn.addEventListener('click', e => this.handleGenerateClick(e));
-        }
+        // Note: Event listener is handled by enhanced-image-generation.js
+        // This prevents duplicate event listeners on the same button
+        console.log('🔧 ImagesManager: Skipping event listener setup - handled by enhanced-image-generation.js');
     }
 
     async generateImage(prompt, providers = []) {

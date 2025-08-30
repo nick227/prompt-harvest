@@ -368,5 +368,4 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
     window.PromptsManager = PromptsManager;
     window.promptsManager = new PromptsManager();
-} 
- 
+}

@@ -1,9 +1,9 @@
 import express from 'express';
-import User from './User.js';
-import routes from './routes.js';
+import User from './auth/User.js';
+import { setupRoutes } from './src/routes/index.js';
+import { authenticateToken } from './src/middleware/authMiddleware.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import wordTypeManager from './lib/word-type-manager.js';
 
 dotenv.config();
 
@@ -20,22 +20,22 @@ new User(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Apply JWT authentication middleware globally
+app.use(authenticateToken);
 
-routes.init(app);
+// Serve static files BEFORE setting up routes
 app.use(express.static('public'));
 
 const port = process.env.PORT || 3200;
 
-app.listen(port, async() => {
-    console.log(`Prompt app listening on port ${port}!`);
-
-    // Warm up the word type cache for better performance
-    try {
-        await wordTypeManager.warmupCache();
-        console.log('✅ Word type cache warmed up successfully');
-    } catch (error) {
-        console.warn('⚠️ Failed to warm up word type cache:', error.message);
-    }
+// Setup routes and start server
+setupRoutes(app).then(() => {
+    app.listen(port, () => {
+        console.log(`Prompt app listening on port ${port}!`);
+    });
+}).catch(error => {
+    console.error('Failed to setup routes:', error);
+    process.exit(1);
 });
 
 export default app;

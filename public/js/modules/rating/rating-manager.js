@@ -6,16 +6,26 @@ class RatingManager {
     }
 
     init() {
+        console.log('🔧 RatingManager init() called');
+
         if (this.isInitialized) {
+            console.log('⚠️ RatingManager already initialized, skipping');
+
             return;
         }
+
+        console.log('🔧 Setting up keyboard listeners...');
         this.setupKeyboardListeners();
+
+        console.log('🔧 Setting up rating filter...');
         this.setupRatingFilter();
+
         this.isInitialized = true;
+        console.log('✅ RatingManager initialization complete');
     }
 
     setupKeyboardListeners() {
-        document.addEventListener('keydown', async(e) => {
+        document.addEventListener('keydown', async e => {
             // Check if we're in fullscreen mode
             const fullscreenContainer = document.querySelector('.full-screen');
             const isFullScreen = fullscreenContainer && fullscreenContainer.style.display === 'flex';
@@ -24,6 +34,7 @@ class RatingManager {
                 // Handle number keys 1-5 for rating
                 if (e.key >= '1' && e.key <= '5') {
                     const rating = parseInt(e.key);
+
                     e.preventDefault(); // Prevent default behavior
                     await this.tagImage(rating);
                 }
@@ -32,29 +43,51 @@ class RatingManager {
     }
 
     setupRatingFilter() {
-        const filterContainer = Utils.dom.get(this.config.selectors.filter);
+        // Add a small delay to ensure DOM is ready
+        setTimeout(() => {
+            const dropdownContainer = document.getElementById('rating-dropdown');
 
-        if (filterContainer) {
-            filterContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('rating-btn')) {
-                    const rating = e.target.dataset.rating;
+            if (!dropdownContainer) {
+                console.error('Rating dropdown container not found');
 
-                    // Update active state
-                    filterContainer.querySelectorAll('.rating-btn').forEach(btn => {
-                        btn.classList.remove('active');
-                    });
-                    e.target.classList.add('active');
-
-                    this.filterByRatings(rating);
-                }
-            });
-
-            // Set "All" as default active
-            const allBtn = filterContainer.querySelector('[data-rating="all"]');
-            if (allBtn) {
-                allBtn.classList.add('active');
+                return;
             }
-        }
+
+            this.createRatingDropdown(dropdownContainer);
+        }, 100);
+    }
+
+    createRatingDropdown(container) {
+
+        // Create rating options for the dropdown
+        const ratingOptions = [
+            { id: 'all', label: 'All Ratings', rating: null },
+            { id: 'unrated', label: 'Unrated', rating: null },
+            { id: '1', label: '1 Star', rating: 1 },
+            { id: '2', label: '2 Stars', rating: 2 },
+            { id: '3', label: '3 Stars', rating: 3 },
+            { id: '4', label: '4 Stars', rating: 4 },
+            { id: '5', label: '5 Stars', rating: 5 }
+        ];
+
+        // Initialize the multiselect dropdown
+        this.ratingDropdown = new window.MultiSelectDropdown('rating-dropdown', {
+            placeholder: 'Filter by rating...',
+            allowMultiple: true, // Multiple selection for rating filter
+            showSelectedCount: true,
+            onSelectionChange: selectedItems => {
+                this.filterByMultipleRatings(selectedItems);
+            }
+        });
+
+        // Set the items
+        this.ratingDropdown.setItems(ratingOptions);
+
+        // Set default selection to "All"
+        this.ratingDropdown.setSelectedItems(['all']);
+
+        // Trigger initial filter
+        this.filterByMultipleRatings(['all']);
     }
 
     async tagImage(rating) {
@@ -63,6 +96,7 @@ class RatingManager {
 
             if (!fullscreenContainer || fullscreenContainer.style.display !== 'flex') {
                 console.log('Not in fullscreen mode');
+
                 return;
             }
 
@@ -70,11 +104,12 @@ class RatingManager {
 
             if (!img) {
                 console.log('No image found in fullscreen');
+
                 return;
             }
 
             // Get image ID from dataset or src
-            let id = img.dataset.id;
+            let { id } = img.dataset;
 
             // If no dataset id, try to extract from src or use a fallback
             if (!id) {
@@ -85,6 +120,7 @@ class RatingManager {
 
                 if (!id) {
                     console.warn('No image ID found for rating');
+
                     return;
                 }
             }
@@ -105,15 +141,18 @@ class RatingManager {
 
                 // Update rating display in fullscreen info box
                 const infoBox = fullscreenContainer.querySelector('.info-box');
+
                 if (infoBox) {
                     // Remove existing rating display
                     const existingRating = infoBox.querySelector('.rating-display');
+
                     if (existingRating) {
                         existingRating.remove();
                     }
 
                     // Add new rating display
                     const ratingElement = document.createElement('p');
+
                     ratingElement.className = 'rating-display';
                     ratingElement.textContent = `★ ${rating}`;
                     ratingElement.style.marginBottom = '15px';
@@ -148,7 +187,7 @@ class RatingManager {
     filterByRatings(rating) {
         const items = document.querySelectorAll('ul.prompt-output > li');
 
-        items.forEach((item) => {
+        items.forEach(item => {
             const image = item.querySelector('img');
 
             if (rating === 'all') {
@@ -161,9 +200,55 @@ class RatingManager {
         });
     }
 
+    filterByMultipleRatings(selectedRatings) {
+        // Try multiple selectors to find the image items
+        let items = document.querySelectorAll('ul.prompt-output > li');
+
+        if (items.length === 0) {
+            items = document.querySelectorAll('.prompt-output > li');
+        }
+        if (items.length === 0) {
+            items = document.querySelectorAll('.image-wrapper');
+        }
+        if (items.length === 0) {
+            items = document.querySelectorAll('[data-id]');
+        }
+
+        items.forEach(item => {
+            const image = item.querySelector('img');
+            let shouldShow = false;
+
+            // If no ratings selected or "all" is selected, show everything
+            if (selectedRatings.length === 0 || selectedRatings.includes('all')) {
+                shouldShow = true;
+            } else {
+                // Get image rating or treat as unrated
+                const imageRating = image?.dataset?.rating;
+                const isUnrated = !imageRating || imageRating === '0' || imageRating === '';
+
+                if (isUnrated) {
+                    shouldShow = selectedRatings.includes('unrated');
+                } else {
+                    shouldShow = selectedRatings.includes(imageRating);
+                }
+            }
+
+            if (shouldShow) {
+                item.style.display = '';
+                item.style.visibility = 'visible';
+                item.classList.remove('rating-filtered');
+            } else {
+                item.style.display = 'none';
+                item.style.visibility = 'hidden';
+                item.classList.add('rating-filtered');
+            }
+        });
+    }
+
     showRatingFeedback(rating) {
         // Create a temporary feedback element
         const feedback = document.createElement('div');
+
         feedback.textContent = `Rated: ${'★'.repeat(rating)}`;
         feedback.style.cssText = `
             position: fixed;
@@ -200,9 +285,11 @@ class RatingManager {
 
                 // Find or create rating display in the wrapper
                 const wrapper = img.closest('.image-wrapper');
+
                 if (wrapper) {
                     // Remove existing rating display
                     const existingRating = wrapper.querySelector('.rating');
+
                     if (existingRating) {
                         existingRating.remove();
                     }
@@ -210,6 +297,7 @@ class RatingManager {
                     // Add new rating display if rating > 0
                     if (rating > 0) {
                         const ratingElement = document.createElement('div');
+
                         ratingElement.className = 'rating';
                         ratingElement.textContent = `★ ${rating}`;
                         ratingElement.style.position = 'absolute';
@@ -231,22 +319,26 @@ class RatingManager {
 
     // utility methods for external access
     getCurrentFilter() {
-        const filterContainer = Utils.dom.get(this.config.selectors.filter);
+        if (this.ratingDropdown) {
+            const selectedItems = this.ratingDropdown.getSelectedItems();
 
-        if (filterContainer) {
-            const activeBtn = filterContainer.querySelector('.rating-btn.active');
-            return activeBtn ? activeBtn.dataset.rating : 'all';
+            return selectedItems.length > 0 ? selectedItems : ['all'];
         }
 
-        return 'all';
+        return ['all'];
     }
 
-    setFilter(rating) {
-        this.filterByRatings(rating);
+    setFilter(ratings) {
+        if (this.ratingDropdown) {
+            const ratingArray = Array.isArray(ratings) ? ratings : [ratings];
+
+            this.ratingDropdown.setSelectedItems(ratingArray);
+        }
+        this.filterByMultipleRatings(Array.isArray(ratings) ? ratings : [ratings]);
     }
 
     clearFilter() {
-        this.filterByRatings('all');
+        this.filterByMultipleRatings(['all']);
     }
 
     validateRating(rating) {
@@ -258,7 +350,7 @@ class RatingManager {
     getRatingCount(rating) {
         const items = document.querySelectorAll('ul.prompt-output > li');
 
-        return Array.from(items).filter((item) => {
+        return Array.from(items).filter(item => {
             const image = item.querySelector('img');
 
             return image && image.dataset.rating === rating.toString();
@@ -270,7 +362,7 @@ class RatingManager {
         let totalRating = 0;
         let ratedCount = 0;
 
-        items.forEach((item) => {
+        items.forEach(item => {
             const image = item.querySelector('img');
 
             if (image && image.dataset.rating) {
@@ -296,3 +388,4 @@ class RatingManager {
 window.RatingManager = RatingManager;
 window.ratingManager = new RatingManager();
 window.setupRating = () => ratingManager.init();
+

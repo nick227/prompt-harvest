@@ -1,10 +1,8 @@
 // setup generate button functionality - defined early for script.js compatibility
+// Note: Event listener is now handled by enhanced-image-generation.js
 window.setupGenerate = () => {
-    const generateBtn = document.querySelector('.btn-generate');
-
-    if (generateBtn) {
-        generateBtn.addEventListener('click', handleGenerateClick);
-    }
+    console.log('🔧 setupGenerate() called - but skipping event listener setup');
+    console.log('🔧 Enhanced image generation handles the button click');
 };
 
 // central Application Loader
@@ -55,7 +53,7 @@ class AppLoader {
     async loadCore() {
         // core modules are loaded via script tags in HTML
         // this ensures they're available before we initialize
-        await this.waitForDependencies(['Utils', 'StateManager', 'API_ENDPOINTS']);
+        await this.waitForDependencies(['Utils', 'StateManager', 'API_ENDPOINTS', 'apiService', 'userApi', 'imageApi']);
     }
 
     // load feature modules
@@ -162,11 +160,8 @@ class AppLoader {
 
     // initialize all managers
     initializeManagers() {
-        console.log('🔧 Initializing managers...');
-
         try {
             this.initializeCoreManagers();
-            console.log('🔧 Setting up auto-generation...');
             this.setupAutoGeneration();
             this.initializeComponents();
             this.setupGridView();
@@ -217,11 +212,30 @@ class AppLoader {
             console.error('ImageComponent not found!');
         }
 
-        if (window.providerManager) {
-            // providerManager is auto-initialized in its constructor
-            console.log('ProviderManager initialized in app.js');
-        } else {
-            console.error('ProviderManager not found!');
+        // Initialize ProviderManager if not already done
+        this.initializeProviderManager();
+    }
+
+    // Initialize ProviderManager
+    initializeProviderManager() {
+        if (!window.providerManager) {
+            try {
+                // ProviderManager should already be available since it's loaded via script tag
+                if (window.ProviderManager) {
+                    // Ensure DOM is ready before initializing
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', () => {
+                            window.providerManager = new window.ProviderManager();
+                        });
+                    } else {
+                        window.providerManager = new window.ProviderManager();
+                    }
+                } else {
+                    console.error('❌ ProviderManager class not found');
+                }
+            } catch (error) {
+                console.error('❌ Error initializing ProviderManager:', error);
+            }
         }
     }
 
@@ -466,11 +480,21 @@ window.setupScrollTopBar = function() {
 
 // Shared validation function for image generation
 const validateImageGeneration = () => {
+    console.log('🔍 validateImageGeneration() called');
+
     const textArea = document.querySelector('#prompt-textarea');
+
+    console.log('🔍 Textarea element:', textArea);
+    console.log('🔍 Textarea value:', textArea?.value);
+
     const selectedProviders = window.providerManager ? window.providerManager.getSelectedProviders() : [];
+
+    console.log('🔍 Provider manager exists:', !!window.providerManager);
+    console.log('🔍 Selected providers:', selectedProviders);
 
     // Check prompt
     if (!textArea || !textArea.value.trim()) {
+        console.log('❌ Validation failed: No prompt entered');
         alert('Please enter a prompt');
 
         return { valid: false };
@@ -478,10 +502,15 @@ const validateImageGeneration = () => {
 
     // Check providers - REQUIRED, no defaults
     if (selectedProviders.length === 0) {
+        console.log('❌ Validation failed: No providers selected');
         alert('Please select at least one provider');
 
         return { valid: false };
     }
+
+    console.log('✅ Validation passed!');
+    console.log('🔍 Valid prompt:', textArea.value.trim());
+    console.log('🔍 Valid providers:', selectedProviders);
 
     return {
         valid: true,
@@ -493,14 +522,36 @@ const validateImageGeneration = () => {
 const handleGenerateClick = e => {
     e.preventDefault();
 
-    console.log('Generate button clicked');
+    console.log('🚀 START button clicked!');
+    console.log('🔍 Event details:', e);
 
-    // Validate inputs
-    const validation = validateImageGeneration();
+    // Check if button is already processing
+    const generateBtn = document.querySelector('.btn-generate');
 
-    if (!validation.valid) {
+    if (generateBtn && generateBtn.disabled) {
+        console.log('⚠️ Button already processing, ignoring click');
+
         return;
     }
+
+    console.log('🔍 Checking button state...');
+    console.log('🔍 Button element:', generateBtn);
+    console.log('🔍 Button disabled:', generateBtn?.disabled);
+    console.log('🔍 Button text:', generateBtn?.textContent);
+
+    // Validate inputs
+    console.log('🔍 Starting input validation...');
+    const validation = validateImageGeneration();
+
+    console.log('🔍 Validation result:', validation);
+
+    if (!validation.valid) {
+        console.log('❌ Validation failed, returning early');
+
+        return;
+    }
+
+    console.log('✅ Validation passed!');
 
     // create prompt object
     const promptObj = {
@@ -509,24 +560,63 @@ const handleGenerateClick = e => {
         original: validation.prompt
     };
 
+    console.log('🔍 Created prompt object:', promptObj);
+
     // call the generateImage function
+    console.log('🔍 Checking for generateImage function...');
+    console.log('🔍 window.generateImage type:', typeof window.generateImage);
+    console.log('🔍 window.generateImage value:', window.generateImage);
+
     if (typeof window.generateImage === 'function') {
-        console.log('Calling generateImage function');
-        console.log('Selected providers:', validation.providers);
+        console.log('✅ generateImage function found!');
+        console.log('🔍 Calling generateImage with:', {
+            prompt: promptObj.prompt,
+            providers: validation.providers
+        });
+
+        // Switch button to processing state
+        if (generateBtn) {
+            console.log('🔍 Switching button to processing state...');
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'PROCESSING...';
+            generateBtn.style.cursor = 'not-allowed';
+            generateBtn.style.backgroundColor = '#6b7280'; // gray
+        }
 
         // call generateImage with correct parameters
         window.generateImage(promptObj.prompt, validation.providers).then(result => {
-            console.log('GenerateImage result:', result);
+            console.log('✅ GenerateImage completed successfully!');
+            console.log('🔍 GenerateImage result:', result);
+
+            // Reset button state
+            if (generateBtn) {
+                console.log('🔍 Resetting button state...');
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'START';
+                generateBtn.style.cursor = 'pointer';
+                generateBtn.style.backgroundColor = '#2563eb'; // blue
+            }
 
             // Check if auto-generation should continue
             if (window.app) {
+                console.log('🔍 Checking auto-generation...');
                 window.app.checkAutoGenerationContinue();
             }
         }).catch(error => {
-            console.error('GenerateImage error:', error);
+            console.error('❌ GenerateImage error:', error);
+
+            // Reset button state on error
+            if (generateBtn) {
+                console.log('🔍 Resetting button state after error...');
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'START';
+                generateBtn.style.cursor = 'pointer';
+                generateBtn.style.backgroundColor = '#2563eb'; // blue
+            }
         });
     } else {
-        console.error('generateImage function not found');
+        console.error('❌ generateImage function not found!');
+        console.log('🔍 Available window functions:', Object.keys(window).filter(key => typeof window[key] === 'function'));
         alert('Image generation not available');
     }
 };
@@ -546,6 +636,8 @@ window.convertPromptToUrl = function(prompt) {
 
 // initialize the application when DOM is ready
 document.addEventListener('DOMContentLoaded', async() => {
+    console.log('🚀 DOMContentLoaded fired - starting app initialization');
+
     const app = new AppLoader();
 
     await app.init();
@@ -557,10 +649,18 @@ document.addEventListener('DOMContentLoaded', async() => {
         ImagesManager: typeof window.ImagesManager
     });
 
+    // Test button detection
+    console.log('🔍 Testing button detection...');
+    const testBtn = document.querySelector('.btn-generate');
+
+    console.log('🔍 Button found by querySelector:', testBtn);
+    console.log('🔍 Button text:', testBtn?.textContent);
+    console.log('🔍 Button classes:', testBtn?.className);
+    console.log('🔍 All buttons on page:', document.querySelectorAll('button').length);
+
     // setup generate button after all modules are loaded
-    if (typeof window.setupGenerate === 'function') {
-        window.setupGenerate();
-    }
+    // Note: Enhanced image generation already handles the button, so we don't need to set up another listener
+    console.log('🔧 Skipping setupGenerate - Enhanced image generation handles the button');
 
     // make app available globally for debugging
     window.app = app;
@@ -576,6 +676,41 @@ document.addEventListener('DOMContentLoaded', async() => {
 
         if (window.app) {
             window.app.checkAutoGenerationContinue();
+        }
+    };
+
+    // Debug function for testing button click
+    window.testButtonClick = () => {
+        console.log('🧪 Testing button click manually...');
+        const btn = document.querySelector('.btn-generate');
+
+        if (btn) {
+            console.log('🔍 Found button, triggering click...');
+            console.log('🔍 Button element:', btn);
+            console.log('🔍 Button text:', btn.textContent);
+            console.log('🔍 Button disabled:', btn.disabled);
+            btn.click();
+        } else {
+            console.error('❌ Button not found for manual test');
+            console.log('🔍 All buttons on page:', document.querySelectorAll('button'));
+            console.log('🔍 Buttons with "generate" in class:', document.querySelectorAll('[class*="generate"]'));
+        }
+    };
+
+    // Debug function to check all event listeners
+    window.checkEventListeners = () => {
+        console.log('🧪 Checking event listeners...');
+        const btn = document.querySelector('.btn-generate');
+
+        if (btn) {
+            console.log('🔍 Button found, checking for event listeners...');
+            // Note: We can't directly inspect event listeners in JavaScript
+            // But we can test if the button is clickable
+            console.log('🔍 Button clickable:', !btn.disabled);
+            console.log('🔍 Button style cursor:', btn.style.cursor);
+            console.log('🔍 Button computed cursor:', window.getComputedStyle(btn).cursor);
+        } else {
+            console.error('❌ Button not found');
         }
     };
 });

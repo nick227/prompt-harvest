@@ -148,15 +148,15 @@
                         <input type="text" name="image-search" placeholder="search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
 
-                    <div class="rating-filter flex items-center gap-2 flex-wrap">
-                        <span class="text-sm">Filter:</span>
-                        <button class="rating-btn bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="all">All</button>
-                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="1">★</button>
-                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="2">★★</button>
-                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="3">★★★</button>
-                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="4">★★★★</button>
-                        <button class="rating-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-rating="5">★★★★★</button>
-                        <span class="rating-help text-blue-400 cursor-help" title="Press 1-5 keys in fullscreen to rate images">ⓘ</span>
+                    <div class="owner-filter flex items-center gap-2 flex-wrap">
+                        <!-- Owner Filter -->
+                        <label class="owner-btn bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-owner="site">
+                            <input type="radio" name="owner" value="site"> Site</label>
+                        <label class="owner-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-owner="1">
+                            <input type="radio" name="owner" value="user"> Mine</label>
+                        <!-- Rating Filter -->
+                        <span class="text-sm">Rating:</span>
+                        <div id="rating-dropdown"></div>
                     </div>
                 </div>
 
@@ -171,12 +171,17 @@
     <!-- Header Component -->
     <script src="js/components/header-component.js"></script>
 
+    <!-- Authentication Component -->
+    <script src="js/components/auth-component.js"></script>
+
     <!-- Core modules -->
     <script src="js/core/constants.js"></script>
     <script src="js/core/utils.js"></script>
+    <script src="js/core/api-service.js"></script>
 
     <!-- Component modules -->
     <script src="js/components/image-component.js"></script>
+    <script src="js/components/multiselect-dropdown.js"></script>
 
     <!-- Feature modules -->
     <script src="js/modules/textarea.js"></script>
@@ -195,11 +200,21 @@
     <script src="js/modules/images.js"></script>
     <script src="js/script.js"></script>
 
+    <!-- Enhanced image generation with circuit breakers -->
+    <script src="js/enhanced-image-generation.js"></script>
+
     <!-- Main application loader -->
     <script src="js/app.js"></script>
 
     <!-- Payload testing script -->
     <script src="js/test-payload.js"></script>
+
+        <script>
+        // Authentication state is now handled by the AuthComponent
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🔍 Main page loaded');
+        });
+        </script>
 
 </body>
 

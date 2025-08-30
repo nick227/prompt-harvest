@@ -1,23 +1,24 @@
 {
-    "semi": true,
-    "trailingComma": "none",
-    "singleQuote": true,
-    "printWidth": 120,
-    "tabWidth": 4,
-    "useTabs": false,
-    "bracketSpacing": true,
-    "arrowParens": "as-needed",
-    "endOfLine": "lf",
-    "quoteProps": "as-needed",
-    "jsxSingleQuote": false,
-    "bracketSameLine": false,
-    "proseWrap": "preserve",
-    "overrides": [
-        {
-            "files": "*.js",
-            "options": {
-                "arrowParens": "as-needed"
-            }
-        }
-    ]
+  "semi": true,
+  "trailingComma": "none",
+  "singleQuote": true,
+  "printWidth": 120,
+  "tabWidth": 4,
+  "useTabs": false,
+  "bracketSpacing": true,
+  "arrowParens": "avoid",
+  "endOfLine": "lf",
+  "quoteProps": "as-needed",
+  "jsxSingleQuote": false,
+  "proseWrap": "preserve",
+  "htmlWhitespaceSensitivity": "css",
+  "embeddedLanguageFormatting": "auto",
+  "overrides": [
+    {
+      "files": "*.js",
+      "options": {
+        "parser": "babel"
+      }
+    }
+  ]
 }
