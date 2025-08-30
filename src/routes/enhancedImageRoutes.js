@@ -4,6 +4,7 @@ import {
     validateAuthentication
 } from '../middleware/enhancedValidation.js';
 import { sanitizeInput } from '../middleware/validation.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
     // Health check endpoint
@@ -13,6 +14,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
 
     // Image generation with enhanced validation and rate limiting
     app.post('/api/image/generate',
+        authenticateToken, // Add authentication middleware
         sanitizeInput,
         enhancedRateLimit({
             windowMs: 15 * 60 * 1000, // 15 minutes
@@ -93,7 +95,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
 
             const { circuitBreakerManager } = require('../utils/CircuitBreaker.js');
             const health = circuitBreakerManager.getHealth();
-            
+
             res.json({
                 success: true,
                 data: health,

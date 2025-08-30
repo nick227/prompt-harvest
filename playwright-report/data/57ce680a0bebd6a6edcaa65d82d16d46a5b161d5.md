@@ -1,0 +1,224 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e4]:
+      - link "AutoImage AI Image Generation" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8] [cursor=pointer]
+        - generic [ref=e10] [cursor=pointer]:
+          - heading "AutoImage" [level=1] [ref=e11] [cursor=pointer]
+          - paragraph [ref=e12] [cursor=pointer]: AI Image Generation
+      - generic [ref=e13]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: 
+          - generic [ref=e17]: Stats
+        - generic [ref=e19]:
+          - link "Login" [ref=e20] [cursor=pointer]:
+            - /url: /login.html
+          - generic [ref=e21]: /
+          - link "Register" [ref=e22] [cursor=pointer]:
+            - /url: /register.html
+        - link "" [ref=e23] [cursor=pointer]:
+          - /url: /terms.html
+          - generic [ref=e24] [cursor=pointer]: 
+  - button "Scroll to top" [ref=e25] [cursor=pointer]: top
+  - main [ref=e26]:
+    - generic [ref=e27]:
+      - generic [ref=e29]:
+        - generic [ref=e30] [cursor=pointer]:
+          - checkbox "Auto" [ref=e31]
+          - generic [ref=e32] [cursor=pointer]: Auto
+        - spinbutton [ref=e33]: "3"
+        - heading "guidance" [level=6] [ref=e34]
+        - combobox [ref=e36]:
+          - option "bottom"
+          - option "1"
+          - option "2"
+          - option "3"
+          - option "4"
+          - option "5"
+          - option "6"
+          - option "7"
+          - option "8"
+          - option "9"
+          - option "10" [selected]
+          - option "11"
+          - option "12"
+          - option "13"
+          - option "14"
+          - option "15"
+          - option "16"
+          - option "17"
+          - option "18"
+          - option "19"
+          - option "20"
+        - combobox [ref=e38]:
+          - option "top"
+          - option "1"
+          - option "2"
+          - option "3"
+          - option "4"
+          - option "5"
+          - option "6"
+          - option "7"
+          - option "8"
+          - option "9"
+          - option "10" [selected]
+          - option "11"
+          - option "12"
+          - option "13"
+          - option "14"
+          - option "15"
+          - option "16"
+          - option "17"
+          - option "18"
+          - option "19"
+          - option "20"
+        - generic [ref=e39] [cursor=pointer]:
+          - checkbox "download" [ref=e40]
+          - generic [ref=e41] [cursor=pointer]: download
+        - generic [ref=e42] [cursor=pointer]:
+          - checkbox "mixup" [ref=e43]
+          - generic [ref=e44] [cursor=pointer]: mixup
+        - generic [ref=e45] [cursor=pointer]:
+          - checkbox "mashup" [ref=e46]
+          - generic [ref=e47] [cursor=pointer]: mashup
+        - textbox "Multiplier" [ref=e48]
+        - textbox "search" [ref=e49]
+        - textbox "replace" [ref=e50]
+        - button "Replace" [ref=e51] [cursor=pointer]
+      - generic [ref=e52]:
+        - generic [ref=e53] [cursor=pointer]:
+          - checkbox "Flux" [ref=e54]
+          - generic [ref=e55] [cursor=pointer]: Flux
+        - generic [ref=e56] [cursor=pointer]:
+          - checkbox "Dalle3" [ref=e57]
+          - generic [ref=e58] [cursor=pointer]: Dalle3
+        - generic [ref=e59] [cursor=pointer]:
+          - checkbox "Juggernaut" [ref=e60]
+          - generic [ref=e61] [cursor=pointer]: Juggernaut
+        - generic [ref=e62] [cursor=pointer]:
+          - checkbox "Juggernaut Reborn" [ref=e63]
+          - generic [ref=e64] [cursor=pointer]: Juggernaut Reborn
+        - generic [ref=e65] [cursor=pointer]:
+          - checkbox "Red Shift" [ref=e66]
+          - generic [ref=e67] [cursor=pointer]: Red Shift
+        - generic [ref=e68] [cursor=pointer]:
+          - checkbox "Absolute Reality" [ref=e69]
+          - generic [ref=e70] [cursor=pointer]: Absolute Reality
+        - generic [ref=e71] [cursor=pointer]:
+          - checkbox "Realistic Vision" [ref=e72]
+          - generic [ref=e73] [cursor=pointer]: Realistic Vision
+        - generic [ref=e74] [cursor=pointer]:
+          - checkbox "Icbinp" [ref=e75]
+          - generic [ref=e76] [cursor=pointer]: Icbinp
+        - generic [ref=e77] [cursor=pointer]:
+          - checkbox "Icbinp2" [ref=e78]
+          - generic [ref=e79] [cursor=pointer]: Icbinp2
+        - generic [ref=e80] [cursor=pointer]:
+          - checkbox "Hasdx" [ref=e81]
+          - generic [ref=e82] [cursor=pointer]: Hasdx
+        - generic [ref=e83] [cursor=pointer]:
+          - checkbox "Dreamshaper" [ref=e84]
+          - generic [ref=e85] [cursor=pointer]: Dreamshaper
+        - generic [ref=e86] [cursor=pointer]:
+          - checkbox "Nightmare Shaper" [ref=e87]
+          - generic [ref=e88] [cursor=pointer]: Nightmare Shaper
+        - generic [ref=e89] [cursor=pointer]:
+          - checkbox "Open Journey" [ref=e90]
+          - generic [ref=e91] [cursor=pointer]: Open Journey
+        - generic [ref=e92] [cursor=pointer]:
+          - checkbox "Analog Madness" [ref=e93]
+          - generic [ref=e94] [cursor=pointer]: Analog Madness
+        - generic [ref=e95] [cursor=pointer]:
+          - checkbox "Portrait Plus" [ref=e96]
+          - generic [ref=e97] [cursor=pointer]: Portrait Plus
+        - generic [ref=e98] [cursor=pointer]:
+          - checkbox "Tshirt Design" [ref=e99]
+          - generic [ref=e100] [cursor=pointer]: Tshirt Design
+        - generic [ref=e101] [cursor=pointer]:
+          - checkbox "Abyss Orange" [ref=e102]
+          - generic [ref=e103] [cursor=pointer]: Abyss Orange
+        - generic [ref=e104] [cursor=pointer]:
+          - checkbox "Cyber Real" [ref=e105]
+          - generic [ref=e106] [cursor=pointer]: Cyber Real
+        - generic [ref=e107] [cursor=pointer]:
+          - checkbox "Disco" [ref=e108]
+          - generic [ref=e109] [cursor=pointer]: Disco
+        - generic [ref=e110] [cursor=pointer]:
+          - checkbox "Synthwave" [ref=e111]
+          - generic [ref=e112] [cursor=pointer]: Synthwave
+        - generic [ref=e113] [cursor=pointer]:
+          - checkbox "Low Poly" [ref=e114]
+          - generic [ref=e115] [cursor=pointer]: Low Poly
+        - generic [ref=e116] [cursor=pointer]:
+          - checkbox "Blue Pencil" [ref=e117]
+          - generic [ref=e118] [cursor=pointer]: Blue Pencil
+        - generic [ref=e119] [cursor=pointer]:
+          - checkbox "Ink Punk" [ref=e120]
+          - generic [ref=e121] [cursor=pointer]: Ink Punk
+        - generic [ref=e122] [cursor=pointer]:
+          - checkbox "all" [ref=e123]
+          - generic [ref=e124] [cursor=pointer]: all
+      - textbox "Enter your prompt here..." [ref=e125]
+      - button "START" [disabled] [ref=e127]
+    - generic [ref=e129]:
+      - generic [ref=e130]:
+        - textbox "search" [ref=e132]
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - radio "Site" [checked] [ref=e135]
+            - text: Site
+          - generic [ref=e136]:
+            - radio "Mine" [ref=e137]
+            - text: Mine
+          - generic [ref=e138]: "Rating:"
+          - button "1 selected" [ref=e140] [cursor=pointer]:
+            - generic [ref=e141] [cursor=pointer]: 1 selected
+            - img [ref=e142] [cursor=pointer]
+      - list [ref=e143]:
+        - listitem [ref=e144]:
+          - img "cars" [ref=e146] [cursor=pointer]
+        - listitem [ref=e147]:
+          - img "cats" [ref=e149] [cursor=pointer]
+        - listitem [ref=e150]:
+          - img "cats" [ref=e152] [cursor=pointer]
+        - listitem [ref=e153]:
+          - img "test cats" [ref=e155] [cursor=pointer]
+        - listitem [ref=e156]:
+          - img "simple minimal 8-bit running man character" [ref=e158] [cursor=pointer]
+        - listitem [ref=e159]:
+          - img "simple minimal 8-bit running man character" [ref=e161] [cursor=pointer]
+        - listitem [ref=e162]:
+          - img "simple minimal 8-bit running man character" [ref=e164] [cursor=pointer]
+        - listitem [ref=e165]:
+          - img "simple minimal 8-bit running man character" [ref=e167] [cursor=pointer]
+        - listitem [ref=e168]:
+          - img "simple minimal 8-bit running man character" [ref=e170] [cursor=pointer]
+        - listitem [ref=e171]:
+          - img "s8-bit running man character" [ref=e173] [cursor=pointer]
+        - listitem [ref=e174]:
+          - img "8-bit running man character" [ref=e176] [cursor=pointer]
+        - listitem [ref=e177]:
+          - img "8-bit running man character" [ref=e179] [cursor=pointer]
+        - listitem [ref=e180]:
+          - img "green fedora hat" [ref=e182] [cursor=pointer]
+        - listitem [ref=e183]:
+          - img "test bat" [ref=e185] [cursor=pointer]
+        - listitem [ref=e186]:
+          - img "test" [ref=e188] [cursor=pointer]
+        - listitem [ref=e189]:
+          - img "test cats 34" [ref=e191] [cursor=pointer]
+        - listitem [ref=e192]:
+          - img "test cats 34" [ref=e194] [cursor=pointer]
+        - listitem [ref=e195]:
+          - generic [ref=e196]:
+            - img "test cats" [ref=e197] [cursor=pointer]
+            - generic [ref=e198]: ★ 3
+        - listitem [ref=e199]:
+          - img "test cats" [ref=e201] [cursor=pointer]
+        - listitem [ref=e202]:
+          - img "test cats" [ref=e204] [cursor=pointer]
+```

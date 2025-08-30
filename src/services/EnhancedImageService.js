@@ -8,6 +8,7 @@ import {
     DatabaseTransactionError
 } from '../errors/CircuitBreakerErrors.js';
 import { circuitBreakerManager } from '../utils/CircuitBreaker.js';
+import { TransactionService } from './TransactionService.js';
 import databaseClient from '../database/PrismaClient.js';
 
 export class EnhancedImageService {
@@ -15,6 +16,7 @@ export class EnhancedImageService {
         this.imageRepository = imageRepository;
         this.aiService = aiService;
         this.prisma = databaseClient.getClient();
+        this.transactionService = new TransactionService();
 
         // Circuit breaker configurations - more conservative
         this.breakerConfigs = {
@@ -62,6 +64,17 @@ export class EnhancedImageService {
                 provider: imageData.provider,
                 prompt: imageData.prompt.substring(0, 30) + '...'
             });
+
+            // Log transaction for cost tracking
+            if (userId && userId !== 'anonymous') {
+                try {
+                    await this.transactionService.logTransaction(userId, providers[0], 1);
+                    console.log(`💰 Transaction logged for user ${userId}: ${providers[0]}`);
+                } catch (transactionError) {
+                    console.error('❌ Failed to log transaction:', transactionError);
+                    // Don't fail the image generation for transaction logging errors
+                }
+            }
 
             return imageData;
 
@@ -230,7 +243,7 @@ export class EnhancedImageService {
 
             // Create proper req object with validated userId
             const req = {
-                user: { _id: validUserId }
+                user: { id: validUserId }
             };
 
             const generationPromise = feed.default.image.generate(
@@ -469,6 +482,7 @@ export class EnhancedImageService {
 
         return images.map(image => ({
             id: image.id,
+            userId: image.userId, // ✅ Added userId for client-side filtering
             prompt: image.prompt,
             original: image.original,
             imageUrl: image.imageUrl,

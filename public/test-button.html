@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>START Button Test</title>
+    <link rel="stylesheet" href="css/optimized.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-800 text-gray-200 w-full min-h-screen">
+    <main class="flex-col gap-4 h-full max-w-[1020px] mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">START Button Test</h1>
+
+        <div class="bg-gray-700 p-4 rounded-lg mb-4">
+            <h2 class="text-lg font-semibold mb-2">Button Test</h2>
+            <p class="text-sm text-gray-400 mb-4">Testing the START button functionality.</p>
+
+            <!-- Test the actual button structure -->
+            <button class="btn-generate w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+                START
+            </button>
+        </div>
+
+        <div class="bg-gray-700 p-4 rounded-lg">
+            <h2 class="text-lg font-semibold mb-2">Test Controls</h2>
+            <div class="space-y-2">
+                <button id="testButton" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    Test Button Click
+                </button>
+                <button id="checkButton" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                    Check Button State
+                </button>
+                <button id="testEnhanced" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                    Test Enhanced Generator
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-gray-700 p-4 rounded-lg">
+            <h2 class="text-lg font-semibold mb-2">Console Output</h2>
+            <div id="console-output" class="bg-black text-green-400 p-4 rounded text-sm font-mono h-64 overflow-y-auto">
+                <!-- Console output will appear here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Core modules -->
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/api-service.js"></script>
+
+    <!-- Enhanced Image Generation -->
+    <script src="js/enhanced-image-generation.js"></script>
+
+    <script>
+        // Override console.log to show output in the page
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function addToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : type === 'warn' ? 'text-yellow-400' : 'text-green-400';
+            consoleOutput.innerHTML += `<div class="${color}">[${timestamp}] ${message}</div>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToConsole(args.join(' '), 'warn');
+        };
+
+        // Test controls
+        document.getElementById('testButton').addEventListener('click', () => {
+            console.log('🧪 Manual button test clicked');
+            const btn = document.querySelector('.btn-generate');
+            if (btn) {
+                btn.click();
+            } else {
+                console.error('❌ Button not found');
+            }
+        });
+
+        document.getElementById('checkButton').addEventListener('click', () => {
+            console.log('🔍 Checking button state...');
+            const btn = document.querySelector('.btn-generate');
+            if (btn) {
+                console.log('✅ Button found:', {
+                    text: btn.textContent,
+                    disabled: btn.disabled,
+                    className: btn.className,
+                    id: btn.id
+                });
+            } else {
+                console.error('❌ Button not found');
+            }
+        });
+
+        document.getElementById('testEnhanced').addEventListener('click', () => {
+            console.log('🧪 Testing enhanced generator...');
+            if (window.testButtonFunctionality) {
+                window.testButtonFunctionality();
+            } else {
+                console.error('❌ testButtonFunctionality not available');
+            }
+        });
+
+        // Log when page loads
+        console.log('🚀 Test page loaded');
+        console.log('🔍 Checking for enhanced image generator...');
+
+        setTimeout(() => {
+            if (window.enhancedImageGenerator) {
+                console.log('✅ Enhanced image generator found');
+            } else {
+                console.error('❌ Enhanced image generator not found');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

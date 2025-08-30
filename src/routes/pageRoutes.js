@@ -25,6 +25,26 @@ export const setupPageRoutes = (app) => {
         res.sendFile(path.join(__dirname, '../../public/terms.html'));
     });
 
+    // Serve test widget page
+    app.get('/test-widget', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../public/test-widget.html'));
+    });
+
+    // Serve test button page
+    app.get('/test-button', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../public/test-button.html'));
+    });
+
+    // Serve test generation page
+    app.get('/test-generation', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../public/test-generation.html'));
+    });
+
+    // Serve button isolation test page
+    app.get('/test-button-isolated', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../public/test-button-isolated.html'));
+    });
+
     // Serve favicon
     app.get('/favicon.ico', (req, res) => {
         res.sendFile(path.join(__dirname, '../../public/images/favicon.png'));

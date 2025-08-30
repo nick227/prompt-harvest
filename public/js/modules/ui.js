@@ -19,11 +19,11 @@ class UIManager {
         if (viewMode === 'grid') {
             promptOutput.classList.remove('river-view', 'list-view');
             promptOutput.classList.add('grid-view');
-            console.log('Applied grid view mode');
+
         } else {
             promptOutput.classList.remove('grid-view', 'list-view');
             promptOutput.classList.add('river-view');
-            console.log('Applied river view mode');
+
         }
 
         // force a reflow to ensure CSS is applied
@@ -40,7 +40,7 @@ class UIManager {
         const images = document.querySelectorAll('.image-wrapper img');
         const isGrid = document.querySelector('.prompt-output').classList.contains('grid-view');
 
-        images.forEach((img) => {
+        images.forEach(img => {
             if (isGrid) {
                 img.style.maxWidth = '300px';
                 img.style.maxHeight = '300px';

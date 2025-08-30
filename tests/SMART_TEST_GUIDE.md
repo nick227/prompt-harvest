@@ -151,7 +151,7 @@ You can modify the test configuration by editing `tests/smart-image-generation-s
 ```
 **Solution**:
 1. Check MySQL is running
-2. Verify `.env` DATABASE_URL
+2. Verify `.env` MYSQL_URL
 3. Run `npm run db:setup`
 
 #### File System Issues

@@ -9,12 +9,14 @@ import { setupFeedRoutes } from './feedRoutes.js';
 import { setupMonitoringRoutes } from './monitoringRoutes.js';
 import { setupAuthRoutes } from './authRoutes.js';
 import { setupImageRatingRoutes } from './imageRatingRoutes.js';
+import { setupTransactionRoutes } from './transactionRoutes.js';
 import { ImageController } from '../controllers/ImageController.js';
 import { EnhancedImageController } from '../controllers/EnhancedImageController.js';
 import { AIController } from '../controllers/AIController.js';
 import { ConfigController } from '../controllers/ConfigController.js';
 import { LikeController } from '../controllers/LikeController.js';
 import { TagController } from '../controllers/TagController.js';
+import { TransactionController } from '../controllers/TransactionController.js';
 import { ImageService } from '../services/ImageService.js';
 import { EnhancedImageService } from '../services/EnhancedImageService.js';
 import { AIService } from '../services/AIService.js';
@@ -69,6 +71,7 @@ export const setupRoutes = async app => {
     let configController;
     let likeController;
     let tagController;
+    let transactionController;
 
     try {
         aiController = new AIController(aiService);
@@ -77,6 +80,7 @@ export const setupRoutes = async app => {
         configController = new ConfigController();
         likeController = new LikeController(likeService);
         tagController = new TagController(tagService);
+        transactionController = new TransactionController();
     } catch (error) {
         console.error('❌ Failed to initialize controllers:', error.message);
         process.exit(1);
@@ -94,6 +98,7 @@ export const setupRoutes = async app => {
     setupAuthRoutes(app); // Authentication routes
     setupImageRatingRoutes(app); // Image rating routes
     setupMonitoringRoutes(app); // System monitoring routes
+    setupTransactionRoutes(app, transactionController); // Transaction accounting routes
 
     // Additional route setups will be added here as we refactor other domains
     // setupPromptRoutes(app, promptController);

@@ -7,11 +7,11 @@ class TermsManager {
     }
 
     init() {
-        console.log('TermsManager initializing...');
+
         this.loadTerms();
         this.setupEventListeners();
         this.isInitialized = true;
-        console.log('TermsManager initialized');
+
     }
 
     setupEventListeners() {
@@ -85,7 +85,6 @@ class TermsManager {
     async loadTerms() {
         try {
             this.showLoading();
-            console.log('Loading terms from API...');
 
             // Load terms from /words endpoint
             const response = await fetch('/words', {
@@ -96,16 +95,11 @@ class TermsManager {
                 }
             });
 
-            console.log('Response status:', response.status);
-
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             this.terms = await response.json();
-            console.log('Loaded terms:', this.terms.length, 'terms');
-            console.log('First few terms:', this.terms.slice(0, 5));
-
             this.renderTerms();
             this.updateTermCount();
 
@@ -149,10 +143,10 @@ class TermsManager {
 
             // Add term using AI endpoint
             const response = await fetch(`/ai/word/add/${encodeURIComponent(term)}`);
-            const result = await response.json();
+            const _result = await response.json();
 
-            if (result.error) {
-                this.showError(`Failed to add term: ${result.error}`);
+            if (_result.error) {
+                this.showError(`Failed to add term: ${_result.error}`);
 
                 return;
             }
@@ -213,7 +207,7 @@ class TermsManager {
         }
     }
 
-    displaySearchResults(results, searchTerm) {
+    displaySearchResults(_results, searchTerm) {
         const resultsContainer = document.getElementById('searchResults');
         const contentContainer = document.getElementById('searchResultsContent');
 
@@ -221,7 +215,7 @@ class TermsManager {
             return;
         }
 
-        if (results.length === 0) {
+        if (_results.length === 0) {
             contentContainer.innerHTML = `
                 <div class="text-center py-4">
                     <p class="text-blue-300">No terms found matching "${searchTerm}"</p>
@@ -229,7 +223,7 @@ class TermsManager {
                 </div>
             `;
         } else {
-            const resultsHtml = results.map(term => `
+            const resultsHtml = _results.map(term => `
                 <div class="mb-3 p-3 bg-blue-800 rounded-md cursor-pointer hover:bg-blue-700 transition-colors" onclick="termsManager.showTermDetails('${term}')">
                     <div class="font-medium text-blue-200">${term}</div>
                     <div class="text-blue-300 text-sm mt-1">Click to view details</div>
@@ -238,7 +232,7 @@ class TermsManager {
 
             contentContainer.innerHTML = `
                 <div class="mb-2">
-                    <p class="text-blue-200 text-sm">Found ${results.length} matching term${results.length === 1 ? '' : 's'}</p>
+                    <p class="text-blue-200 text-sm">Found ${_results.length} matching term${_results.length === 1 ? '' : 's'}</p>
                 </div>
                 ${resultsHtml}
             `;
@@ -290,7 +284,6 @@ class TermsManager {
         }
 
         modalTitle.textContent = `Term: ${term}`;
-
         if (types && types.length > 0) {
             const typesHtml = types.map(type => `
                 <span class="inline-block bg-blue-600 text-white text-sm px-3 py-1 rounded-full mr-2 mb-2">
@@ -333,17 +326,17 @@ class TermsManager {
     }
 
     renderTerms() {
-        console.log('Rendering terms...', this.terms.length, 'terms');
-        const container = document.getElementById('termsList');
 
-        if (!container) {
+        const _container = document.getElementById('termsList');
+
+        if (!_container) {
             console.error('Terms container not found!');
 
             return;
         }
 
         if (this.terms.length === 0) {
-            container.innerHTML = `
+            _container.innerHTML = `
                 <div class="text-center text-gray-400 py-8">
                     <p class="mt-2">No terms found</p>
                     <p class="text-sm">Add your first term above to get started</p>
@@ -353,15 +346,14 @@ class TermsManager {
             return;
         }
 
-        const termsHtml = this.terms
-            .filter(term => typeof term === 'string' && term) // Filter out non-string and empty values
+        const termsHtml = this.terms.filter(term => typeof term === 'string' && term) // Filter out non-string and empty values
             .map(term => `
                 <div class="bg-gray-600 rounded-lg p-4 cursor-pointer whitespace-nowrap" onclick="termsManager.showTermDetails('${term}')">
                     <h3 class="text-lg font-medium text-gray-200">${term}</h3>
                 </div>
             `).join('');
 
-        container.innerHTML = termsHtml;
+        _container.innerHTML = termsHtml;
     }
 
     updateTermCount() {
@@ -398,7 +390,6 @@ class TermsManager {
         if (toast && messageEl) {
             messageEl.textContent = message;
             toast.classList.remove('translate-x-full');
-
             setTimeout(() => {
                 toast.classList.add('translate-x-full');
             }, 3000);
@@ -412,7 +403,6 @@ class TermsManager {
         if (toast && messageEl) {
             messageEl.textContent = message;
             toast.classList.remove('translate-x-full');
-
             setTimeout(() => {
                 toast.classList.add('translate-x-full');
             }, 3000);

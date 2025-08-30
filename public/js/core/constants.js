@@ -15,13 +15,9 @@ const API_ENDPOINTS = {
     AUTH_FORGOT_PASSWORD: '/api/auth/forgot-password',
     AUTH_RESET_PASSWORD: '/api/auth/reset-password',
 
-    // Legacy endpoints (for backward compatibility)
-    PROMPT_BUILD: '/prompt/build',
-    FEED: '/api/images',
-    CATEGORIES: '/categories',
-    IMAGE_TAGS: '/images/tags'
+    // Feed endpoint
+    FEED: '/api/images'
 };
-
 const CSS_CLASSES = {
     IMAGE_WRAPPER: 'image-wrapper',
     IMAGE_FULLSCREEN: 'full-screen',
@@ -40,12 +36,11 @@ const HTML_ICONS = {
     DOWNLOAD: '<i class="fas fa-download"></i>',
     LIKE: '<i class="fas fa-heart"></i>'
 };
-
 const CONFIG = {
     IMAGE_MIME_TYPE: 'image/jpeg',
     MAX_TITLE_CHARS: 124,
     MAX_FILENAME_LENGTH: 100,
-    ILLEGAL_CHARS: /[\x00-\x1F<>:"/\\|?*.,;(){}[\]!@#$%^&+=`~]/g, // eslint-disable-line no-control-regex
+    ILLEGAL_CHARS: /[\x00-\x1F<>:"/\\|?*.,;(){ /* Empty block */ }[\]!@#$%^&+=`~]/g, // eslint-disable-line no-control-regex
     RESERVED_NAMES: ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']
 };
 
@@ -88,7 +83,7 @@ const TEXTAREA_CONFIG = {
 
 // feed configuration
 const FEED_CONFIG = {
-    requestLimit: 10, // smaller batches for better performance
+    requestLimit: 20, // balanced batch size for good filtering without overload
     imageLimit: 30,
     defaultPrompt: '',
     imagesSelector: 'section.images',

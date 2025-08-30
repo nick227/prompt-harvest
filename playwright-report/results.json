@@ -1,0 +1,2456 @@
+{
+  "config": {
+    "configFile": "C:\\wamp64\\www\\image-harvest\\playwright.config.js",
+    "rootDir": "C:/wamp64/www/image-harvest/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 12
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "playwright-report/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "playwright-report/results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/wamp64/www/image-harvest/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/wamp64/www/image-harvest/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/wamp64/www/image-harvest/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/wamp64/www/image-harvest/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/wamp64/www/image-harvest/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "C:/wamp64/www/image-harvest/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/wamp64/www/image-harvest/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "C:/wamp64/www/image-harvest/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/wamp64/www/image-harvest/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "C:/wamp64/www/image-harvest/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/wamp64/www/image-harvest/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "Microsoft Edge",
+        "name": "Microsoft Edge",
+        "testDir": "C:/wamp64/www/image-harvest/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/wamp64/www/image-harvest/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 12
+        },
+        "id": "Google Chrome",
+        "name": "Google Chrome",
+        "testDir": "C:/wamp64/www/image-harvest/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 12,
+    "webServer": {
+      "command": "npm start",
+      "url": "http://localhost:3200",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "javascript-errors.spec.js",
+      "file": "javascript-errors.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "JavaScript Runtime Error Detection",
+          "file": "javascript-errors.spec.js",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load homepage without JavaScript errors",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 8289,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35",
+                        "location": {
+                          "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                          "column": 35,
+                          "line": 86
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                            "column": 35,
+                            "line": 86
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.803Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                        "column": 35,
+                        "line": 86
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-7038b0f57335aff1d479",
+              "file": "javascript-errors.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should load authentication pages without JavaScript errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 8120,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.811Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-f0b69cb3da1c9cded30b",
+              "file": "javascript-errors.spec.js",
+              "line": 92,
+              "column": 3
+            },
+            {
+              "title": "should handle feed loading without variable reference errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 6670,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.833Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-208d869975dc3ca31312",
+              "file": "javascript-errors.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "should handle authentication flow without variable errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 8428,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n🚨 JavaScript Errors Detected:\n"
+                        },
+                        {
+                          "text": "Console Errors: [\n  {\n    \"type\": \"console.error\",\n    \"text\": \"❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function\\n    at HTMLFormElement.registerUser (http://localhost:3200/js/user.js:79:32)\",\n    \"location\": {\n      \"url\": \"http://localhost:3200/js/user.js\",\n      \"lineNumber\": 125,\n      \"columnNumber\": 16\n    },\n    \"timestamp\": \"2025-08-30T11:09:10.767Z\"\n  }\n]\n"
+                        },
+                        {
+                          "text": "Uncaught Exceptions: [\n  {\n    \"type\": \"uncaught_exception\",\n    \"name\": \"TypeError\",\n    \"message\": \"window.apiService.isValidEmail is not a function\",\n    \"stack\": \"TypeError: window.apiService.isValidEmail is not a function\\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\\n    at HTMLInputElement.<anonymous> (http://localhost:3200/js/user.js:509:17)\",\n    \"timestamp\": \"2025-08-30T11:09:10.533Z\"\n  }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.889Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-d317700460d0de511daa",
+              "file": "javascript-errors.spec.js",
+              "line": 136,
+              "column": 3
+            },
+            {
+              "title": "should detect string literal syntax errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 6250,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.892Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-d67ed23e4da5ff119c7a",
+              "file": "javascript-errors.spec.js",
+              "line": 161,
+              "column": 3
+            },
+            {
+              "title": "should validate all manager initializations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 9866,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.916Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-b6aed6c2c029d8016c6d",
+              "file": "javascript-errors.spec.js",
+              "line": 175,
+              "column": 3
+            },
+            {
+              "title": "should catch constants loading errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 5694,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.870Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-ddcd979c60e3f0f23a53",
+              "file": "javascript-errors.spec.js",
+              "line": 216,
+              "column": 3
+            },
+            {
+              "title": "should load homepage without JavaScript errors",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 8,
+                      "status": "failed",
+                      "duration": 7127,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35",
+                        "location": {
+                          "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                          "column": 35,
+                          "line": 86
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                            "column": 35,
+                            "line": 86
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.852Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-firefox\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-firefox\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                        "column": 35,
+                        "line": 86
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-dfd5168ccc724c06029f",
+              "file": "javascript-errors.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should load authentication pages without JavaScript errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 9,
+                      "status": "passed",
+                      "duration": 8133,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.997Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-13e909a10ad6af735cc7",
+              "file": "javascript-errors.spec.js",
+              "line": 92,
+              "column": 3
+            },
+            {
+              "title": "should handle feed loading without variable reference errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 10,
+                      "status": "passed",
+                      "duration": 7881,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.989Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-0d4e839e9599e435fbc9",
+              "file": "javascript-errors.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "should handle authentication flow without variable errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 11,
+                      "status": "passed",
+                      "duration": 7303,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n🚨 JavaScript Errors Detected:\n"
+                        },
+                        {
+                          "text": "Console Errors: [\n  {\n    \"type\": \"console.error\",\n    \"text\": \"❌ Registration failed: Error\",\n    \"location\": {\n      \"url\": \"http://localhost:3200/js/user.js\",\n      \"lineNumber\": 125,\n      \"columnNumber\": 16\n    },\n    \"timestamp\": \"2025-08-30T11:09:16.037Z\"\n  }\n]\n"
+                        },
+                        {
+                          "text": "Uncaught Exceptions: [\n  {\n    \"type\": \"uncaught_exception\",\n    \"name\": \"TypeError\",\n    \"message\": \"window.apiService.isValidEmail is not a function\",\n    \"stack\": \"TypeError: window.apiService.isValidEmail is not a function\\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\\n    at loadPageElements/< (http://localhost:3200/js/user.js:509:38)\\n    at _insertText (chrome://juggler/content/content/PageAgent.js:569:32)\\n    at _onMessageInternal (chrome://juggler/content/SimpleChannel.js:237:37)\\n    at _onMessage (chrome://juggler/content/SimpleChannel.js:194:12)\\n    at bindToActor/actor.receiveMessage (chrome://juggler/content/SimpleChannel.js:39:44)\",\n    \"timestamp\": \"2025-08-30T11:09:15.789Z\"\n  }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.973Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-22a3c4783989217c50fe",
+              "file": "javascript-errors.spec.js",
+              "line": 136,
+              "column": 3
+            },
+            {
+              "title": "should detect string literal syntax errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 7485,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:18.702Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-8251267d5ae2394aadbf",
+              "file": "javascript-errors.spec.js",
+              "line": 161,
+              "column": 3
+            },
+            {
+              "title": "should validate all manager initializations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 8723,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:18.449Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-a46dab74514bca0ff836",
+              "file": "javascript-errors.spec.js",
+              "line": 175,
+              "column": 3
+            },
+            {
+              "title": "should catch constants loading errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 7265,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:18.432Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-fd91c20dc202cef93aa9",
+              "file": "javascript-errors.spec.js",
+              "line": 216,
+              "column": 3
+            },
+            {
+              "title": "should load homepage without JavaScript errors",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 6403,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35",
+                        "location": {
+                          "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                          "column": 35,
+                          "line": 86
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                            "column": 35,
+                            "line": 86
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:18.440Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-webkit\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-webkit\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-webkit\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                        "column": 35,
+                        "line": 86
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-10827971a4aaa1ce10fa",
+              "file": "javascript-errors.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should load authentication pages without JavaScript errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 6775,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:18.680Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-6ec3777e1d589767ca52",
+              "file": "javascript-errors.spec.js",
+              "line": 92,
+              "column": 3
+            },
+            {
+              "title": "should handle feed loading without variable reference errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 8,
+                      "status": "passed",
+                      "duration": 7140,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:18.091Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-4264056a9488e6662cfd",
+              "file": "javascript-errors.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "should handle authentication flow without variable errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8521,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n🚨 JavaScript Errors Detected:\n"
+                        },
+                        {
+                          "text": "Console Errors: [\n  {\n    \"type\": \"console.error\",\n    \"text\": \"❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)\",\n    \"location\": {\n      \"url\": \"http://localhost:3200/js/user.js\",\n      \"lineNumber\": 125,\n      \"columnNumber\": 21\n    },\n    \"timestamp\": \"2025-08-30T11:09:23.032Z\"\n  }\n]\n"
+                        },
+                        {
+                          "text": "Uncaught Exceptions: [\n  {\n    \"type\": \"uncaught_exception\",\n    \"name\": \"TypeError\",\n    \"message\": \"window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)\",\n    \"stack\": \"TypeError: window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)\\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:40)\\n    at unknown (http://localhost:3200/js/user.js:509:38)\",\n    \"timestamp\": \"2025-08-30T11:09:21.232Z\"\n  }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:18.417Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-de424c1a5358538f0279",
+              "file": "javascript-errors.spec.js",
+              "line": 136,
+              "column": 3
+            },
+            {
+              "title": "should detect string literal syntax errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 6450,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:19.395Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-4bc5feb37f66ed3c0e67",
+              "file": "javascript-errors.spec.js",
+              "line": 161,
+              "column": 3
+            },
+            {
+              "title": "should validate all manager initializations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 21,
+                      "parallelIndex": 9,
+                      "status": "passed",
+                      "duration": 7555,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:20.776Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-5262d3959e9905785970",
+              "file": "javascript-errors.spec.js",
+              "line": 175,
+              "column": 3
+            },
+            {
+              "title": "should catch constants loading errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 22,
+                      "parallelIndex": 10,
+                      "status": "passed",
+                      "duration": 3755,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:21.256Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-cb8b743d528fa1f0523c",
+              "file": "javascript-errors.spec.js",
+              "line": 216,
+              "column": 3
+            },
+            {
+              "title": "should load homepage without JavaScript errors",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 24,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 4927,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35",
+                        "location": {
+                          "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                          "column": 35,
+                          "line": 86
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                            "column": 35,
+                            "line": 86
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:28.413Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                        "column": 35,
+                        "line": 86
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-2f8cfec794fc29310463",
+              "file": "javascript-errors.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should load authentication pages without JavaScript errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 25,
+                      "parallelIndex": 10,
+                      "status": "passed",
+                      "duration": 8187,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:28.663Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-bb52f8acd3b0aca6a2f6",
+              "file": "javascript-errors.spec.js",
+              "line": 92,
+              "column": 3
+            },
+            {
+              "title": "should handle feed loading without variable reference errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 26,
+                      "parallelIndex": 8,
+                      "status": "passed",
+                      "duration": 6978,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:28.776Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-f21b6030e581223ff6f7",
+              "file": "javascript-errors.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "should handle authentication flow without variable errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 27,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 5800,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n🚨 JavaScript Errors Detected:\n"
+                        },
+                        {
+                          "text": "Console Errors: [\n  {\n    \"type\": \"console.error\",\n    \"text\": \"❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function\\n    at HTMLFormElement.registerUser (http://localhost:3200/js/user.js:79:32)\",\n    \"location\": {\n      \"url\": \"http://localhost:3200/js/user.js\",\n      \"lineNumber\": 125,\n      \"columnNumber\": 16\n    },\n    \"timestamp\": \"2025-08-30T11:09:31.123Z\"\n  }\n]\n"
+                        },
+                        {
+                          "text": "Uncaught Exceptions: [\n  {\n    \"type\": \"uncaught_exception\",\n    \"name\": \"TypeError\",\n    \"message\": \"window.apiService.isValidEmail is not a function\",\n    \"stack\": \"TypeError: window.apiService.isValidEmail is not a function\\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\\n    at HTMLInputElement.<anonymous> (http://localhost:3200/js/user.js:509:17)\",\n    \"timestamp\": \"2025-08-30T11:09:30.923Z\"\n  }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:29.157Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-dad225851b06dadadc52",
+              "file": "javascript-errors.spec.js",
+              "line": 136,
+              "column": 3
+            },
+            {
+              "title": "should detect string literal syntax errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 28,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 4371,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:29.566Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-01cbe1dea6bb1e6012a7",
+              "file": "javascript-errors.spec.js",
+              "line": 161,
+              "column": 3
+            },
+            {
+              "title": "should validate all manager initializations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 29,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5421,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:30.585Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-f6bde275d1602f61893b",
+              "file": "javascript-errors.spec.js",
+              "line": 175,
+              "column": 3
+            },
+            {
+              "title": "should catch constants loading errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 32,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3393,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:35.544Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-0165ad36b1d60267cf81",
+              "file": "javascript-errors.spec.js",
+              "line": 216,
+              "column": 3
+            },
+            {
+              "title": "should load homepage without JavaScript errors",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 31,
+                      "parallelIndex": 11,
+                      "status": "failed",
+                      "duration": 5186,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35",
+                        "location": {
+                          "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                          "column": 35,
+                          "line": 86
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                            "column": 35,
+                            "line": 86
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:33.330Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Safari\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Safari\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Safari\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                        "column": 35,
+                        "line": 86
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-90edc3b3cf21521a2d01",
+              "file": "javascript-errors.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should load authentication pages without JavaScript errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 33,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 5931,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:35.954Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-38806097561c7c10099a",
+              "file": "javascript-errors.spec.js",
+              "line": 92,
+              "column": 3
+            },
+            {
+              "title": "should handle feed loading without variable reference errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 34,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 5582,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:36.015Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-c0c1169746e390420815",
+              "file": "javascript-errors.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "should handle authentication flow without variable errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 36,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 8566,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n🚨 JavaScript Errors Detected:\n"
+                        },
+                        {
+                          "text": "Console Errors: [\n  {\n    \"type\": \"console.error\",\n    \"text\": \"❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)\",\n    \"location\": {\n      \"url\": \"http://localhost:3200/js/user.js\",\n      \"lineNumber\": 125,\n      \"columnNumber\": 21\n    },\n    \"timestamp\": \"2025-08-30T11:09:42.635Z\"\n  }\n]\n"
+                        },
+                        {
+                          "text": "Uncaught Exceptions: [\n  {\n    \"type\": \"uncaught_exception\",\n    \"name\": \"TypeError\",\n    \"message\": \"window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)\",\n    \"stack\": \"TypeError: window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)\\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:40)\\n    at unknown (http://localhost:3200/js/user.js:509:38)\",\n    \"timestamp\": \"2025-08-30T11:09:40.678Z\"\n  }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:38.068Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-8f2756b6aace9c9d69b6",
+              "file": "javascript-errors.spec.js",
+              "line": 136,
+              "column": 3
+            },
+            {
+              "title": "should detect string literal syntax errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 40,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 6977,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:39.241Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-19d1a30b4ed77384f44b",
+              "file": "javascript-errors.spec.js",
+              "line": 161,
+              "column": 3
+            },
+            {
+              "title": "should validate all manager initializations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 37,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 7546,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:39.199Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-050ab3f4e996088f224b",
+              "file": "javascript-errors.spec.js",
+              "line": 175,
+              "column": 3
+            },
+            {
+              "title": "should catch constants loading errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 35,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4980,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:38.026Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-f16a87131855d3f396ce",
+              "file": "javascript-errors.spec.js",
+              "line": 216,
+              "column": 3
+            },
+            {
+              "title": "should load homepage without JavaScript errors",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Microsoft Edge",
+                  "projectName": "Microsoft Edge",
+                  "results": [
+                    {
+                      "workerIndex": 39,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5265,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35",
+                        "location": {
+                          "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                          "column": 35,
+                          "line": 86
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                            "column": 35,
+                            "line": 86
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:39.192Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Microsoft-Edge\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Microsoft-Edge\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Microsoft-Edge\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                        "column": 35,
+                        "line": 86
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-85b7ef596879af216edf",
+              "file": "javascript-errors.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should load authentication pages without JavaScript errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Microsoft Edge",
+                  "projectName": "Microsoft Edge",
+                  "results": [
+                    {
+                      "workerIndex": 42,
+                      "parallelIndex": 10,
+                      "status": "passed",
+                      "duration": 5648,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:42.978Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-a2df301d00e74dd93031",
+              "file": "javascript-errors.spec.js",
+              "line": 92,
+              "column": 3
+            },
+            {
+              "title": "should handle feed loading without variable reference errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Microsoft Edge",
+                  "projectName": "Microsoft Edge",
+                  "results": [
+                    {
+                      "workerIndex": 43,
+                      "parallelIndex": 9,
+                      "status": "passed",
+                      "duration": 5035,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:42.962Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-3ea0bbdace7f6e8fa9b5",
+              "file": "javascript-errors.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "should handle authentication flow without variable errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Microsoft Edge",
+                  "projectName": "Microsoft Edge",
+                  "results": [
+                    {
+                      "workerIndex": 41,
+                      "parallelIndex": 11,
+                      "status": "passed",
+                      "duration": 6630,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n🚨 JavaScript Errors Detected:\n"
+                        },
+                        {
+                          "text": "Console Errors: [\n  {\n    \"type\": \"console.error\",\n    \"text\": \"❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function\\n    at HTMLFormElement.registerUser (http://localhost:3200/js/user.js:79:32)\",\n    \"location\": {\n      \"url\": \"http://localhost:3200/js/user.js\",\n      \"lineNumber\": 125,\n      \"columnNumber\": 16\n    },\n    \"timestamp\": \"2025-08-30T11:09:44.824Z\"\n  }\n]\n"
+                        },
+                        {
+                          "text": "Uncaught Exceptions: [\n  {\n    \"type\": \"uncaught_exception\",\n    \"name\": \"TypeError\",\n    \"message\": \"window.apiService.isValidEmail is not a function\",\n    \"stack\": \"TypeError: window.apiService.isValidEmail is not a function\\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\\n    at HTMLInputElement.<anonymous> (http://localhost:3200/js/user.js:509:17)\",\n    \"timestamp\": \"2025-08-30T11:09:44.515Z\"\n  }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:41.553Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-7ab985a8848219f8b9be",
+              "file": "javascript-errors.spec.js",
+              "line": 136,
+              "column": 3
+            },
+            {
+              "title": "should detect string literal syntax errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Microsoft Edge",
+                  "projectName": "Microsoft Edge",
+                  "results": [
+                    {
+                      "workerIndex": 44,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 5470,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:43.144Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-0e8d5f7a80f73759e699",
+              "file": "javascript-errors.spec.js",
+              "line": 161,
+              "column": 3
+            },
+            {
+              "title": "should validate all manager initializations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Microsoft Edge",
+                  "projectName": "Microsoft Edge",
+                  "results": [
+                    {
+                      "workerIndex": 45,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 5939,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:46.447Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-d521fdcf8ceb90163840",
+              "file": "javascript-errors.spec.js",
+              "line": 175,
+              "column": 3
+            },
+            {
+              "title": "should catch constants loading errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Microsoft Edge",
+                  "projectName": "Microsoft Edge",
+                  "results": [
+                    {
+                      "workerIndex": 46,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 3644,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:46.763Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-efc646e8417ae4074840",
+              "file": "javascript-errors.spec.js",
+              "line": 216,
+              "column": 3
+            },
+            {
+              "title": "should load homepage without JavaScript errors",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 48,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 4953,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35",
+                        "location": {
+                          "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                          "column": 35,
+                          "line": 86
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                            "column": 35,
+                            "line": 86
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n\u001b[0m \u001b[90m 84 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39m\u001b[33mUtils\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 85 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapiService)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 86 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mapp)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 87 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mTEXTAREA_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 88 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mFEED_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 89 |\u001b[39m     expect(coreModulesLoaded\u001b[33m.\u001b[39mconfigs\u001b[33m.\u001b[39m\u001b[33mIMAGE_CONFIG\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js:86:35\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:49.810Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Google-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Google-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\wamp64\\www\\image-harvest\\test-results\\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Google-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\javascript-errors.spec.js",
+                        "column": 35,
+                        "line": 86
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-406f2a054f8584389feb",
+              "file": "javascript-errors.spec.js",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should load authentication pages without JavaScript errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 49,
+                      "parallelIndex": 8,
+                      "status": "passed",
+                      "duration": 4579,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:50.279Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-97422e4b82e2b58304ec",
+              "file": "javascript-errors.spec.js",
+              "line": 92,
+              "column": 3
+            },
+            {
+              "title": "should handle feed loading without variable reference errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 51,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 4526,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:50.579Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-018a3d96edfe176cb1d4",
+              "file": "javascript-errors.spec.js",
+              "line": 108,
+              "column": 3
+            },
+            {
+              "title": "should handle authentication flow without variable errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 50,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 5552,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "\n🚨 JavaScript Errors Detected:\n"
+                        },
+                        {
+                          "text": "Console Errors: [\n  {\n    \"type\": \"console.error\",\n    \"text\": \"❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function\\n    at HTMLFormElement.registerUser (http://localhost:3200/js/user.js:79:32)\",\n    \"location\": {\n      \"url\": \"http://localhost:3200/js/user.js\",\n      \"lineNumber\": 125,\n      \"columnNumber\": 16\n    },\n    \"timestamp\": \"2025-08-30T11:09:52.936Z\"\n  }\n]\n"
+                        },
+                        {
+                          "text": "Uncaught Exceptions: [\n  {\n    \"type\": \"uncaught_exception\",\n    \"name\": \"TypeError\",\n    \"message\": \"window.apiService.isValidEmail is not a function\",\n    \"stack\": \"TypeError: window.apiService.isValidEmail is not a function\\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\\n    at HTMLInputElement.<anonymous> (http://localhost:3200/js/user.js:509:17)\",\n    \"timestamp\": \"2025-08-30T11:09:52.430Z\"\n  }\n]\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:50.350Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-4b722709fb5067d5d610",
+              "file": "javascript-errors.spec.js",
+              "line": 136,
+              "column": 3
+            },
+            {
+              "title": "should detect string literal syntax errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 55,
+                      "parallelIndex": 9,
+                      "status": "passed",
+                      "duration": 4832,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:54.744Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-ddd747fdc6e6245588da",
+              "file": "javascript-errors.spec.js",
+              "line": 161,
+              "column": 3
+            },
+            {
+              "title": "should validate all manager initializations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 52,
+                      "parallelIndex": 11,
+                      "status": "passed",
+                      "duration": 5393,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:54.122Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-cd46aa001801fe84e28d",
+              "file": "javascript-errors.spec.js",
+              "line": 175,
+              "column": 3
+            },
+            {
+              "title": "should catch constants loading errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 53,
+                      "parallelIndex": 10,
+                      "status": "passed",
+                      "duration": 3176,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:54.742Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-494f112a76da64e2e1e4",
+              "file": "javascript-errors.spec.js",
+              "line": 216,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Specific Bug Regression Tests",
+          "file": "javascript-errors.spec.js",
+          "line": 259,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should not have the original variable reference bugs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 7554,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:05.868Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-d5acf2016470339fcd44",
+              "file": "javascript-errors.spec.js",
+              "line": 260,
+              "column": 3
+            },
+            {
+              "title": "should not have the original variable reference bugs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 9496,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:18.431Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-214c9c8c95017f5feecb",
+              "file": "javascript-errors.spec.js",
+              "line": 260,
+              "column": 3
+            },
+            {
+              "title": "should not have the original variable reference bugs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 23,
+                      "parallelIndex": 11,
+                      "status": "passed",
+                      "duration": 5994,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:24.748Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-799f6eb675a092992fc3",
+              "file": "javascript-errors.spec.js",
+              "line": 260,
+              "column": 3
+            },
+            {
+              "title": "should not have the original variable reference bugs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 30,
+                      "parallelIndex": 9,
+                      "status": "passed",
+                      "duration": 5877,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:31.487Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-8d3485076eda7f26f4ab",
+              "file": "javascript-errors.spec.js",
+              "line": 260,
+              "column": 3
+            },
+            {
+              "title": "should not have the original variable reference bugs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 38,
+                      "parallelIndex": 8,
+                      "status": "passed",
+                      "duration": 7327,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:39.175Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-87ac1d00ba11d197c03b",
+              "file": "javascript-errors.spec.js",
+              "line": 260,
+              "column": 3
+            },
+            {
+              "title": "should not have the original variable reference bugs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Microsoft Edge",
+                  "projectName": "Microsoft Edge",
+                  "results": [
+                    {
+                      "workerIndex": 47,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5906,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:48.310Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-703efec9c83e0bb9a433",
+              "file": "javascript-errors.spec.js",
+              "line": 260,
+              "column": 3
+            },
+            {
+              "title": "should not have the original variable reference bugs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 54,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 5350,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-30T11:09:54.742Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0e29b173b228fde5c947-efa18b6cad45795c272c",
+              "file": "javascript-errors.spec.js",
+              "line": 260,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-30T11:09:03.754Z",
+    "duration": 56948.931,
+    "expected": 49,
+    "skipped": 0,
+    "unexpected": 7,
+    "flaky": 0
+  }
+}

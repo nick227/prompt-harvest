@@ -53,19 +53,38 @@ class TextAreaManager {
     }
 
     async getSampleMatches() {
-        const results = await Utils.async.fetchJson(
-            `${TEXTAREA_CONFIG.api.clauses}?limit=${TEXTAREA_CONFIG.limits.maxSamples}`
-        );
+        try {
+            const _results = await Utils.async.fetchJson(
+                `${TEXTAREA_CONFIG.api.clauses}?limit=${TEXTAREA_CONFIG.limits.maxSamples}`
+            );
 
-        return results.map(word => `<li class="sample" title="${word}">${word}</li>`).join('');
+            return _results.map(word => `<li class="sample" title="${word}">${word}</li>`).join('');
+        } catch (error) {
+            console.warn('⚠️ Sample matches endpoint not available, using fallback:', error.message);
+
+            // Fallback sample matches
+            const fallbackSamples = [
+                'beautiful', 'detailed', 'high quality', 'professional',
+                'artistic', 'creative', 'stunning', 'amazing',
+                'photorealistic', 'cinematic', 'dramatic', 'vibrant'
+            ];
+
+            return fallbackSamples.map(word => `<li class="sample" title="${word}">${word}</li>`).join('');
+        }
     }
 
     async getMatches(word) {
-        const encodedWord = encodeURIComponent(word);
+        try {
+            const encodedWord = encodeURIComponent(word);
 
-        return await Utils.async.fetchJson(
-            `${TEXTAREA_CONFIG.api.wordType}/${encodedWord}?limit=${TEXTAREA_CONFIG.limits.wordType}`
-        );
+            return await Utils.async.fetchJson(
+                `${TEXTAREA_CONFIG.api.wordType}/${encodedWord}?limit=${TEXTAREA_CONFIG.limits.wordType}`
+            );
+        } catch (error) {
+            console.warn('⚠️ Word type endpoint not available for:', word, error.message);
+
+            return []; // Return empty array to trigger fallback
+        }
     }
 
     async updateMatches(value, cursorPosition) {
@@ -81,7 +100,8 @@ class TextAreaManager {
         let matches = [];
         const wordsBeforeCursor = textBeforeCursor.split(/\s+/);
 
-        for (let i = 1; i <= 3; i++) {
+        for (let i = 1;
+            i <= 3; i++) {
             if (wordsBeforeCursor.length >= i) {
                 this.lastMatchedWord = wordsBeforeCursor.slice(-i).join(' ');
                 try {
@@ -120,7 +140,6 @@ class TextAreaManager {
                 // regular matches should be inserted as template literals
                 replacement = `\${${e.target.innerText}} `;
             }
-            console.log('Replacing with template literal:', replacement);
 
             // Set flag to prevent matches from being cleared
             this.isMatchClick = true;
@@ -168,7 +187,6 @@ class TextAreaManager {
             const beforeWord = value.substring(0, lastMatchedWordIndex);
             const afterWord = value.substring(lastMatchedWordIndex + this.lastMatchedWord.length);
 
-            console.log('Replacing word:', this.lastMatchedWord, 'at position:', lastMatchedWordIndex, 'with:', replacement);
             this.textArea.value = beforeWord + replacement + afterWord;
             this.textArea.selectionStart = lastMatchedWordIndex + replacement.length;
             this.textArea.selectionEnd = lastMatchedWordIndex + replacement.length;
@@ -178,7 +196,7 @@ class TextAreaManager {
             this.textArea.dispatchEvent(new Event('input', { bubbles: true }));
         } else {
             // fallback to simple insertion if we can't find the word
-            console.log('Word not found, falling back to insertion');
+
             this.insertText(replacement);
         }
     }
@@ -221,9 +239,8 @@ class TextAreaManager {
 
     handleReplaceInput(e) {
         // this can be used for live preview or other functionality
-        const replaceTerm = e.target.value;
+        const _replaceTerm = e.target.value;
 
-        console.log('Replace term changed:', replaceTerm);
     }
 
     handleSearchKeydown(e) {
@@ -273,10 +290,9 @@ class TextAreaManager {
         }
 
         const searchTerm = searchInput.value.trim();
-        const replaceTerm = replaceInput.value;
+        const _replaceTerm = replaceInput.value;
 
         if (!searchTerm) {
-            console.log('No search term provided');
 
             return;
         }
@@ -288,23 +304,19 @@ class TextAreaManager {
         const { value } = this.textArea;
         const regex = new RegExp(this.escapeRegex(searchTerm), 'g');
         const matches = value.match(regex);
-        const newValue = value.replace(regex, replaceTerm);
+        const newValue = value.replace(regex, _replaceTerm);
 
         if (newValue !== value) {
             this.textArea.value = newValue;
-            const matchCount = matches ? matches.length : 0;
-
-            console.log(`Replaced ${matchCount} instance(s) of "${searchTerm}" with "${replaceTerm}"`);
+            const _matchCount = matches ? matches.length : 0;
 
             // trigger input event to update matches
             this.textArea.dispatchEvent(new Event('input', { bubbles: true }));
-        } else {
-            console.log(`No instances of "${searchTerm}" found to replace`);
-        }
+        } else { /* Empty block */ }
     }
 
     escapeRegex(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return string.replace(/[.*+/* TODO: Refactor nested ternary */ ?^${ /* Empty block */ }()|[\]\\]/g, '\\$&');
     }
 
     // utility methods for external access
@@ -395,7 +407,8 @@ class TextAreaManager {
         const words = value.split(/\s+/);
         let currentPos = 0;
 
-        for (let i = 0; i < words.length; i++) {
+        for (let i = 0;
+            i < words.length; i++) {
             const word = words[i];
             const wordStart = currentPos;
             const wordEnd = currentPos + word.length;
@@ -444,7 +457,6 @@ class TextAreaManager {
         const start = this.textArea.selectionStart;
         const end = this.textArea.selectionEnd;
         const { value } = this.textArea;
-
         const newValue = value.substring(0, start) + text + value.substring(end);
 
         this.setValue(newValue);
@@ -495,7 +507,7 @@ class TextAreaManager {
 
         let history = Utils.storage.get('textAreaHistory') || [];
 
-        history = history.filter((item) => item !== value);
+        history = history.filter(item => item !== value);
         history.unshift(value);
         history = history.slice(0, 10); // keep only last 10 entries
 
@@ -518,13 +530,8 @@ class TextAreaManager {
         Utils.storage.remove('textAreaHistory');
     }
 
-    // legacy method names for backward compatibility
-    setupTextArea() {
-        return this.init();
-    }
 }
 
-// global exports for backward compatibility
+// Export for global access
 window.TextAreaManager = TextAreaManager;
 window.textAreaManager = new TextAreaManager();
-window.setupTextArea = () => textAreaManager.setupTextArea();

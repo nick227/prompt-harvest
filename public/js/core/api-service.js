@@ -1,3 +1,4 @@
+
 /**
  * Centralized API Service for frontend
  * Handles all API requests with proper error handling, validation, and authentication
@@ -8,7 +9,7 @@ class ApiService {
         this.baseUrl = window.location.origin;
         this.defaultHeaders = {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            Accept: 'application/json'
         };
 
         // Request timeout in milliseconds
@@ -39,6 +40,7 @@ class ApiService {
 
         // Add any authentication tokens if available
         const token = this.getAuthToken();
+
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
@@ -78,12 +80,16 @@ class ApiService {
     isCircuitBreakerOpen() {
         if (this.circuitBreaker.state === 'OPEN') {
             const timeSinceLastFailure = Date.now() - this.circuitBreaker.lastFailure;
+
             if (timeSinceLastFailure > this.circuitBreaker.timeout) {
                 this.circuitBreaker.state = 'HALF_OPEN';
+
                 return false;
             }
+
             return true;
         }
+
         return false;
     }
 
@@ -93,7 +99,6 @@ class ApiService {
     recordFailure() {
         this.circuitBreaker.failures++;
         this.circuitBreaker.lastFailure = Date.now();
-
         if (this.circuitBreaker.failures >= this.circuitBreaker.threshold) {
             this.circuitBreaker.state = 'OPEN';
         }
@@ -139,8 +144,7 @@ class ApiService {
             }
 
             // Wait before retry
-            await new Promise(resolve =>
-                setTimeout(resolve, this.retryConfig.retryDelay * Math.pow(2, retryCount))
+            await new Promise(resolve => setTimeout(resolve, this.retryConfig.retryDelay * Math.pow(2, retryCount))
             );
 
             return this.retryRequest(requestFn, retryCount + 1);
@@ -150,7 +154,7 @@ class ApiService {
     /**
      * Make HTTP request with full error handling
      */
-    async request(method, endpoint, data = null, options = {}) {
+    async request(method, endpoint, data = null, options = { /* Empty block */ }) {
         // Check circuit breaker
         if (this.isCircuitBreakerOpen()) {
             throw new Error('Service temporarily unavailable. Please try again later.');
@@ -196,6 +200,7 @@ class ApiService {
             // Handle rate limiting
             if (response.status === 429) {
                 const retryAfter = response.headers.get('retry-after');
+
                 throw new Error(`Rate limit exceeded. Please wait ${retryAfter || 60} seconds.`);
             }
 
@@ -204,13 +209,14 @@ class ApiService {
                 console.error('🔍 API Error Response Debug:', {
                     status: response.status,
                     statusText: response.statusText,
-                    contentType: contentType,
-                    responseData: responseData,
-                    url: url
+                    contentType,
+                    responseData,
+                    url
                 });
-
+                // TODO: Refactor nested ternary
                 const errorMessage = responseData?.error || responseData?.message || `HTTP ${response.status}`;
                 const error = new Error(errorMessage);
+
                 error.status = response.status;
                 error.data = responseData;
                 error.response = response;
@@ -221,9 +227,11 @@ class ApiService {
         };
 
         try {
-            const result = await this.retryRequest(requestFn);
+            const _result = await this.retryRequest(requestFn);
+
             this.recordSuccess();
-            return result;
+
+            return _result;
         } catch (error) {
             this.recordFailure();
             throw error;
@@ -231,23 +239,23 @@ class ApiService {
     }
 
     // Convenience methods
-    async get(endpoint, options = {}) {
+    async get(endpoint, options = { /* Empty block */ }) {
         return this.request('GET', endpoint, null, options);
     }
 
-    async post(endpoint, data = null, options = {}) {
+    async post(endpoint, data = null, options = { /* Empty block */ }) {
         return this.request('POST', endpoint, data, options);
     }
 
-    async put(endpoint, data = null, options = {}) {
+    async put(endpoint, data = null, options = { /* Empty block */ }) {
         return this.request('PUT', endpoint, data, options);
     }
 
-    async delete(endpoint, options = {}) {
+    async delete(endpoint, options = { /* Empty block */ }) {
         return this.request('DELETE', endpoint, null, options);
     }
 
-    async patch(endpoint, data = null, options = {}) {
+    async patch(endpoint, data = null, options = { /* Empty block */ }) {
         return this.request('PATCH', endpoint, data, options);
     }
 }
@@ -279,6 +287,7 @@ class UserApiService extends ApiService {
 
         // Store token from the correct location in response
         const token = data.data?.token || data.token;
+
         if (token) {
             this.setAuthToken(token, true);
         }
@@ -290,6 +299,8 @@ class UserApiService extends ApiService {
      * Login user
      */
     async login(email, password) {
+        console.log('🌐 API: login() called');
+
         // Client-side validation
         if (!email || !password) {
             throw new Error('Email and password are required');
@@ -299,10 +310,14 @@ class UserApiService extends ApiService {
             throw new Error('Please enter a valid email address');
         }
 
+        console.log('🌐 API: Sending login request to /api/auth/login');
         const data = await this.post('/api/auth/login', { email, password });
+
+        console.log('🌐 API: Login response received', data);
 
         // Store token from the correct location in response
         const token = data.data?.token || data.token;
+
         if (token) {
             this.setAuthToken(token, true);
         }
@@ -381,6 +396,7 @@ class UserApiService extends ApiService {
      */
     isValidEmail(email) {
         const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
         return re.test(String(email).toLowerCase());
     }
 
@@ -397,7 +413,7 @@ class ImageApiService extends ApiService {
     /**
      * Generate image
      */
-    async generateImage(prompt, providers, guidance = 10, options = {}) {
+    async generateImage(prompt, providers, guidance = 10, options = { /* Empty block */ }) {
         if (!prompt || prompt.trim().length === 0) {
             throw new Error('Prompt is required');
         }
@@ -423,7 +439,7 @@ class ImageApiService extends ApiService {
     /**
      * Get images with pagination
      */
-    async getImages(page = 1, limit = 20, filters = {}) {
+    async getImages(page = 1, limit = 20, filters = { /* Empty block */ }) {
         const params = new URLSearchParams({
             page: page.toString(),
             limit: limit.toString(),

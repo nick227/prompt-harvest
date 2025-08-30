@@ -36,4 +36,9 @@ export const setupAIRoutes = (app, aiController) => {
         sanitizeInput,
         aiController.processPrompt.bind(aiController)
     );
+
+    // Sample Clauses for Textarea Autocomplete
+    app.get('/prompt/clauses',
+        aiController.getSampleClauses.bind(aiController)
+    );
 };

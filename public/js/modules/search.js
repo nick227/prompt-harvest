@@ -20,12 +20,12 @@ class SearchManager {
         }
 
         // Add keyup event for immediate filtering
-        searchInput.addEventListener('keyup', (event) => {
+        searchInput.addEventListener('keyup', event => {
             this.handleImageSearch(event);
         });
 
         // Keep debounced input for performance on rapid typing
-        searchInput.addEventListener('input', Utils.async.debounce((event) => {
+        searchInput.addEventListener('input', Utils.async.debounce(event => {
             this.handleImageSearch(event);
         }, 300));
     }
@@ -40,7 +40,7 @@ class SearchManager {
             return;
         }
 
-        searchItems.forEach((item) => {
+        searchItems.forEach(item => {
             if (this.isItemMatch(item, searchValue)) {
                 this.showItem(item);
             } else {
@@ -58,14 +58,11 @@ class SearchManager {
         // look for image list items in the prompt output
         const imageItems = Array.from(document.querySelectorAll('ul.prompt-output li'));
 
-        return imageItems.filter(item => {
-            // Only include items that have images
-            return item.querySelector('img') !== null;
-        });
+        return imageItems.filter(item => item.querySelector('img') !== null);
     }
 
     showAllItems(searchItems) {
-        searchItems.forEach((item) => this.showItem(item));
+        searchItems.forEach(item => this.showItem(item));
     }
 
     isItemMatch(item, searchValue) {
@@ -91,7 +88,7 @@ class SearchManager {
     checkTagMatch(item, searchValue) {
         const tagElements = item.querySelectorAll('.tag');
 
-        return Array.from(tagElements).some((tag) => tag.textContent.toLowerCase().includes(searchValue));
+        return Array.from(tagElements).some(tag => tag.textContent.toLowerCase().includes(searchValue));
     }
 
     checkImgMatch(imgElement, searchValue) {
@@ -158,8 +155,6 @@ class SearchManager {
         item.style.opacity = '0';
     }
 
-
-
     // search Term Management
     setupSearchTerm() {
         const searchInput = document.querySelector('input[name="search_term"]');
@@ -168,14 +163,12 @@ class SearchManager {
             return;
         }
 
-        searchInput.addEventListener('input', Utils.async.debounce((event) => {
+        searchInput.addEventListener('input', Utils.async.debounce(event => {
             this.handleSearchTerm(event);
         }, 300));
-
         searchInput.addEventListener('focus', () => {
             this.showSearchSuggestions();
         });
-
         searchInput.addEventListener('blur', () => {
             setTimeout(() => {
                 this.hideSearchSuggestions();
@@ -187,7 +180,6 @@ class SearchManager {
         const searchValue = event.target.value.toLowerCase();
 
         this.currentSearchTerm = searchValue;
-
         if (!searchValue) {
             this.hideSearchSuggestions();
 
@@ -202,7 +194,7 @@ class SearchManager {
     getSearchSuggestions(searchValue) {
         const allTerms = this.getAllSearchTerms();
 
-        return allTerms.filter((term) => term.toLowerCase().includes(searchValue)).slice(0, 10);
+        return allTerms.filter(term => term.toLowerCase().includes(searchValue)).slice(0, 10);
     }
 
     getAllSearchTerms() {
@@ -222,7 +214,6 @@ class SearchManager {
         const suggestionsContainer = this.getOrCreateSuggestionsContainer();
 
         suggestionsContainer.innerHTML = '';
-
         if (suggestions.length === 0) {
             suggestionsContainer.innerHTML = '<div class="no-suggestions">No suggestions found</div>';
 
@@ -242,32 +233,32 @@ class SearchManager {
     }
 
     getOrCreateSuggestionsContainer() {
-        let container = document.querySelector('.search-suggestions');
+        let _container = document.querySelector('.search-suggestions');
 
-        if (!container) {
-            container = document.createElement('div');
-            container.className = 'search-suggestions';
+        if (!_container) {
+            _container = document.createElement('div');
+            _container.className = 'search-suggestions';
             const searchInput = document.querySelector('input[name="search_term"]');
 
             if (searchInput && searchInput.parentNode) {
-                searchInput.parentNode.appendChild(container);
+                searchInput.parentNode.appendChild(_container);
             }
         }
 
-        return container;
+        return _container;
     }
 
     showSearchSuggestions() {
-        const container = this.getOrCreateSuggestionsContainer();
+        const _container = this.getOrCreateSuggestionsContainer();
 
-        container.style.display = 'block';
+        _container.style.display = 'block';
     }
 
     hideSearchSuggestions() {
-        const container = document.querySelector('.search-suggestions');
+        const _container = document.querySelector('.search-suggestions');
 
-        if (container) {
-            container.style.display = 'none';
+        if (_container) {
+            _container.style.display = 'none';
         }
     }
 
@@ -333,7 +324,7 @@ class SearchManager {
 
         let history = this.getSearchHistory();
 
-        history = history.filter((term) => term !== searchTerm);
+        history = history.filter(term => term !== searchTerm);
         history.unshift(searchTerm);
         history = history.slice(0, 20); // keep only last 20 searches
 
@@ -356,16 +347,16 @@ class SearchManager {
 
     // advanced search features
     performAdvancedSearch(criteria) {
-        const searchItems = this.getSearchItems({});
-        const results = [];
+        const searchItems = this.getSearchItems({ /* Empty block */ });
+        const _results = [];
 
-        searchItems.forEach((item) => {
+        searchItems.forEach(item => {
             if (this.matchesAdvancedCriteria(item, criteria)) {
-                results.push(item);
+                _results.push(item);
             }
         });
 
-        return results;
+        return _results;
     }
 
     matchesAdvancedCriteria(item, criteria) {
@@ -391,7 +382,7 @@ class SearchManager {
         if (criteria.tags && criteria.tags.length > 0) {
             const itemTags = this.getItemTags(item);
 
-            if (!criteria.tags.some((tag) => itemTags.includes(tag))) {
+            if (!criteria.tags.some(tag => itemTags.includes(tag))) {
                 return false;
             }
         }
@@ -424,7 +415,7 @@ class SearchManager {
     getItemTags(item) {
         const tagElements = item.querySelectorAll('.tag');
 
-        return Array.from(tagElements).map((tag) => tag.textContent.toLowerCase());
+        return Array.from(tagElements).map(tag => tag.textContent.toLowerCase());
     }
 
     isDateInRange(date, range) {
@@ -446,19 +437,10 @@ class SearchManager {
         }
     }
 
-    // legacy method names for backward compatibility
-    setupImageSearchLegacy() {
-        return this.init();
-    }
-
-    setupSearchTermLegacy() {
-        return this.init();
-    }
-
     getSearchStats() {
-        const searchItems = this.getSearchItems({});
-        const visibleItems = searchItems.filter((item) => item.style.display !== 'none');
-        const hiddenItems = searchItems.filter((item) => item.style.display === 'none');
+        const searchItems = this.getSearchItems({ /* Empty block */ });
+        const visibleItems = searchItems.filter(item => item.style.display !== 'none');
+        const hiddenItems = searchItems.filter(item => item.style.display === 'none');
 
         return {
             total: searchItems.length,
@@ -470,10 +452,10 @@ class SearchManager {
 
     // method to export search results
     exportSearchResults() {
-        const searchItems = this.getSearchItems({});
-        const visibleItems = searchItems.filter((item) => item.style.display !== 'none');
+        const searchItems = this.getSearchItems({ /* Empty block */ });
+        const visibleItems = searchItems.filter(item => item.style.display !== 'none');
 
-        return visibleItems.map((item) => {
+        return visibleItems.map(item => {
             const img = item.querySelector('img');
 
             return {
@@ -489,8 +471,6 @@ class SearchManager {
     }
 }
 
-// global exports for backward compatibility
+// Export for global access
 window.SearchManager = SearchManager;
 window.searchManager = new SearchManager();
-window.setupImageSearch = () => searchManager.setupImageSearch();
-window.setupSearchTerm = () => searchManager.setupSearchTerm();

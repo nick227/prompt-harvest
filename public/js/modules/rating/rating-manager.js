@@ -6,22 +6,17 @@ class RatingManager {
     }
 
     init() {
-        console.log('🔧 RatingManager init() called');
 
         if (this.isInitialized) {
-            console.log('⚠️ RatingManager already initialized, skipping');
 
             return;
         }
 
-        console.log('🔧 Setting up keyboard listeners...');
         this.setupKeyboardListeners();
-
-        console.log('🔧 Setting up rating filter...');
         this.setupRatingFilter();
 
         this.isInitialized = true;
-        console.log('✅ RatingManager initialization complete');
+
     }
 
     setupKeyboardListeners() {
@@ -57,7 +52,7 @@ class RatingManager {
         }, 100);
     }
 
-    createRatingDropdown(container) {
+    createRatingDropdown(_container) {
 
         // Create rating options for the dropdown
         const ratingOptions = [
@@ -95,7 +90,6 @@ class RatingManager {
             const fullscreenContainer = document.querySelector('.full-screen');
 
             if (!fullscreenContainer || fullscreenContainer.style.display !== 'flex') {
-                console.log('Not in fullscreen mode');
 
                 return;
             }
@@ -103,7 +97,6 @@ class RatingManager {
             const img = fullscreenContainer.querySelector('img');
 
             if (!img) {
-                console.log('No image found in fullscreen');
 
                 return;
             }
@@ -115,7 +108,9 @@ class RatingManager {
             if (!id) {
                 // Try to get ID from the image component's current fullscreen image
                 if (window.imageComponent && window.imageComponent.currentFullscreenImage) {
-                    id = window.imageComponent.currentFullscreenImage.id;
+                    const { id: imageId } = window.imageComponent.currentFullscreenImage;
+
+                    id = imageId;
                 }
 
                 if (!id) {
@@ -124,8 +119,6 @@ class RatingManager {
                     return;
                 }
             }
-
-            console.log('Rating image with ID:', id, 'Rating:', rating);
 
             const response = await fetch(`${this.config.api.rating}/${id}/rating`, {
                 method: 'PUT',
@@ -175,7 +168,6 @@ class RatingManager {
                 // Show success feedback
                 this.showRatingFeedback(rating);
 
-                console.log('Rating updated successfully');
             } else {
                 console.error('Failed to update rating:', response.status, response.statusText);
             }
@@ -223,6 +215,7 @@ class RatingManager {
                 shouldShow = true;
             } else {
                 // Get image rating or treat as unrated
+                // TODO: Refactor nested ternary
                 const imageRating = image?.dataset?.rating;
                 const isUnrated = !imageRating || imageRating === '0' || imageRating === '';
 
@@ -252,18 +245,17 @@ class RatingManager {
         feedback.textContent = `Rated: ${'★'.repeat(rating)}`;
         feedback.style.cssText = `
             position: fixed;
-            top: 50%;
+        top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.8);
-            color: #ffd700;
+        color: #ffd700;
             padding: 10px 20px;
-            border-radius: 5px;
+        border-radius: 5px;
             z-index: 10001;
-            font-size: 16px;
+        font-size: 16px;
             font-weight: bold;
         `;
-
         document.body.appendChild(feedback);
 
         // Remove after 2 seconds
@@ -374,18 +366,14 @@ class RatingManager {
         return ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : 0;
     }
 
-    // legacy method names for backward compatibility
-    setupRatingFilterLegacy() {
-        return this.init();
-    }
-
-    setupKeyboardListenersLegacy() {
-        return this.init();
-    }
 }
 
-// global exports for backward compatibility
+// Export for global access
 window.RatingManager = RatingManager;
 window.ratingManager = new RatingManager();
-window.setupRating = () => ratingManager.init();
+
+// Export for module testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = RatingManager;
+}
 

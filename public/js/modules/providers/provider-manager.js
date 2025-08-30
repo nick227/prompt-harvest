@@ -26,14 +26,12 @@ class ProviderManager {
             { value: 'bluepencil', label: 'Blue Pencil' },
             { value: 'ink', label: 'Ink Punk' }
         ];
-
         this.init();
         this.bindEvents();
     }
 
     init() {
         this.providerList = document.getElementById('provider-list');
-
         if (this.providerList) {
             this.populateProviders();
         } else {
@@ -53,9 +51,6 @@ class ProviderManager {
     }
 
     populateProviders() {
-        console.log('🔍 populateProviders() called');
-        console.log('🔍 Provider list element:', !!this.providerList);
-        console.log('🔍 Providers array length:', this.providers.length);
 
         if (!this.providerList) {
             console.warn('Provider list container not found');
@@ -84,7 +79,6 @@ class ProviderManager {
 
             span.style.whiteSpace = 'nowrap';
             span.textContent = provider.label;
-
             label.appendChild(checkbox);
             label.appendChild(span);
             this.providerList.appendChild(label);

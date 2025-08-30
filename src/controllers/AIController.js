@@ -104,4 +104,37 @@ export class AIController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    // Sample Clauses for Textarea Autocomplete
+    async getSampleClauses(req, res) {
+        try {
+            const limit = parseInt(req.query.limit) || 14;
+
+            // Sample clauses for image generation prompts
+            const sampleClauses = [
+                'beautiful', 'detailed', 'high quality', 'professional',
+                'artistic', 'creative', 'stunning', 'amazing',
+                'photorealistic', 'cinematic', 'dramatic', 'vibrant',
+                'masterpiece', 'award winning', 'trending', 'popular',
+                'realistic', 'hyperrealistic', '8k', '4k',
+                'sharp focus', 'soft lighting', 'studio lighting',
+                'natural lighting', 'dramatic lighting', 'golden hour',
+                'sunset', 'sunrise', 'night', 'day',
+                'indoor', 'outdoor', 'landscape', 'portrait',
+                'close up', 'wide shot', 'medium shot', 'full body',
+                'head shot', 'profile', 'three quarter view',
+                'front view', 'side view', 'back view', 'top view',
+                'bottom view', 'aerial view', 'bird eye view',
+                'worm eye view', 'macro', 'microscopic', 'telescopic'
+            ];
+
+            // Return limited number of clauses
+            const limitedClauses = sampleClauses.slice(0, limit);
+
+            res.json(limitedClauses);
+        } catch (error) {
+            console.error('❌ Get sample clauses error:', error);
+            res.status(500).json({ error: error.message });
+        }
+    }
 }

@@ -51,13 +51,11 @@ describe('FeedManager', () => {
         // Mock window.scrollTo
         global.window.scrollTo = jest.fn();
 
-        // Mock DOM elements
-        global.document.body = {
-            innerHTML: `
-                <section class="images"></section>
-                <div class="prompt-output"></div>
-            `
-        };
+        // Create proper DOM elements using JSDOM
+        document.body.innerHTML = `
+            <section class="images"></section>
+            <div class="prompt-output"></div>
+        `;
 
         // Mock querySelector to return actual elements
         global.document.querySelector = jest.fn((selector) => {

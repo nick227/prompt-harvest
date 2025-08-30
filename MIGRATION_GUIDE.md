@@ -28,7 +28,7 @@ This guide outlines the systematic migration from NeDB to MySQL using Prisma ORM
 
 2. **Configure Database URL:**
    ```env
-   DATABASE_URL="mysql://username:password@localhost:3306/image_harvest"
+   MYSQL_URL="mysql://username:password@localhost:3306/image_harvest"
    ```
 
 3. **Initialize Prisma:**
@@ -276,7 +276,7 @@ src/
 #### **Connection Errors:**
 ```bash
 # Check database URL
-echo $DATABASE_URL
+echo $MYSQL_URL
 
 # Test connection
 npx prisma db pull

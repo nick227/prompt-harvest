@@ -173,11 +173,11 @@ npm run test:e2e:debug
   run: |
     npm run test:e2e
   env:
-    DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    MYSQL_URL: ${{ secrets.MYSQL_URL }}
 ```
 
 ### Environment Variables
-- `DATABASE_URL`: MySQL connection string
+- `MYSQL_URL`: MySQL connection string
 - `NODE_ENV`: Set to `test` for test environment
 - `CI`: Set to `true` in CI environment
 
@@ -194,7 +194,7 @@ npm run test:e2e:debug
 
 ### Database Connection
 - Ensure MySQL is running
-- Check `DATABASE_URL` environment variable
+- Check `MYSQL_URL` environment variable
 - Verify database permissions
 
 ### Server Issues

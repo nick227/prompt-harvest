@@ -1,38 +1,80 @@
+/* global userApi */
 // User management module using centralized API service
-let user = null;
+let _user = null;
+
+// Note: Email validation now handled by apiService.isValidEmail()
 
 /**
- * Validate email format (matches backend validation)
+ * Fallback email validation function
  */
-const isValidEmail = (email) => {
+const isValidEmailFallback = email => {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
     return re.test(String(email).toLowerCase());
+};
+
+/**
+ * Safe email validation with fallback
+ */
+const validateEmail = email => {
+    if (window.apiService && typeof window.apiService.isValidEmail === 'function') {
+        return window.apiService.isValidEmail(email);
+    }
+    console.warn('⚠️ apiService.isValidEmail not available, using fallback validation');
+
+    return isValidEmailFallback(email);
 };
 
 /**
  * Check password strength
  */
-const checkPasswordStrength = (password) => {
+const checkPasswordStrength = password => {
     let score = 0;
-    let feedback = [];
+    const feedback = [];
 
-    if (password.length >= 8) score++;
-    else feedback.push('At least 8 characters');
+    if (password.length >= 8) {
+        score++;
+    } else {
+        feedback.push('At least 8 characters');
+    }
 
-    if (/[a-z]/.test(password)) score++;
-    else feedback.push('Lowercase letter');
+    if ((/[a-z]/).test(password)) {
+        score++;
+    } else {
+        feedback.push('Lowercase letter');
+    }
 
-    if (/[A-Z]/.test(password)) score++;
-    else feedback.push('Uppercase letter');
+    if ((/[A-Z]/).test(password)) {
+        score++;
+    } else {
+        feedback.push('Uppercase letter');
+    }
 
-    if (/[0-9]/.test(password)) score++;
-    else feedback.push('Number');
+    if ((/[0-9]/).test(password)) {
+        score++;
+    } else {
+        feedback.push('Number');
+    }
 
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-    else feedback.push('Special character');
+    if ((/[^A-Za-z0-9]/).test(password)) {
+        score++;
+    } else {
+        feedback.push('Special character');
+    }
 
-    const strength = score < 2 ? 'weak' : score < 4 ? 'medium' : 'strong';
-    const color = score < 2 ? 'red' : score < 4 ? 'yellow' : 'green';
+    let strength;
+    let color;
+
+    if (score < 2) {
+        strength = 'weak';
+        color = 'red';
+    } else if (score < 4) {
+        strength = 'medium';
+        color = 'yellow';
+    } else {
+        strength = 'strong';
+        color = 'green';
+    }
 
     return { score, strength, color, feedback };
 };
@@ -40,13 +82,12 @@ const checkPasswordStrength = (password) => {
 /**
  * Register new user
  */
-const registerUser = async(e) => {
+const registerUser = async e => {
     e.preventDefault();
-
     try {
         const email = document.getElementById('registerEmail').value.trim();
         const password = document.getElementById('registerPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword')?.value || password;
+        const confirmPassword = document.getElementById('confirmPassword')/* TODO: Refactor nested ternary */?.value || password;
 
         // Clear previous messages
         hideMessages();
@@ -57,7 +98,7 @@ const registerUser = async(e) => {
         }
 
         // Basic email validation
-        if (!isValidEmail(email)) {
+        if (!validateEmail(email)) {
             throw new Error('Please enter a valid email address');
         }
 
@@ -75,44 +116,23 @@ const registerUser = async(e) => {
 
         // Show loading state
         showAuthLoading('register');
-
-        console.log('🔧 Attempting registration with:', { email, password: '***' });
-
         const data = await userApi.register(email, password, confirmPassword);
-
-        console.log('✅ Registration successful:', data);
-        console.log('🔍 Registration response structure:', {
-            hasSuccess: !!data.success,
-            hasData: !!data.data,
-            hasEmail: !!(data.data && data.data.email),
-            dataKeys: data.data ? Object.keys(data.data) : 'no data',
-            topLevelKeys: Object.keys(data)
-        });
 
         // Extract user data from the correct response structure
         const userData = data.data?.user || data.user || data;
 
-        console.log('🔍 Processing registration response:', {
-            success: data.success,
-            hasToken: !!data.data?.token || !!data.token,
-            userData: userData,
-            userEmail: userData?.email || email
-        });
-
         if (data.success && userData) {
             // Set the user data
-            user = userData;
+            _user = userData;
 
             // Check if we have a token (should be handled by UserApiService)
-            if (data.data?.token || data.token) {
-                console.log('✅ Token received and stored by UserApiService');
-            }
+            if (data.data?.token || data.token) { /* Empty block */ }
 
             // Update the authentication component
-            console.log('🔧 Updating authentication component with:', { email: userData.email || email });
+
             if (window.authComponent) {
                 window.authComponent.setUser(userData);
-                console.log('✅ Authentication component updated');
+
             } else {
                 console.warn('⚠️ Authentication component not available');
             }
@@ -135,12 +155,15 @@ const registerUser = async(e) => {
 /**
  * Login user
  */
-const loginUser = async(e) => {
+const loginUser = async e => {
+    console.log('🔐 LOGIN: Form submitted');
     e.preventDefault();
 
     try {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
+
+        console.log('🔐 LOGIN: Extracted credentials', { email: email ? 'PROVIDED' : 'EMPTY', password: password ? 'PROVIDED' : 'EMPTY' });
 
         // Clear previous messages
         hideMessages();
@@ -151,7 +174,7 @@ const loginUser = async(e) => {
         }
 
         // Basic email validation
-        if (!isValidEmail(email)) {
+        if (!validateEmail(email)) {
             throw new Error('Please enter a valid email address');
         }
 
@@ -161,16 +184,16 @@ const loginUser = async(e) => {
 
         // Show loading state
         showAuthLoading('login');
-
+        console.log('🔐 LOGIN: Calling userApi.login...');
         const data = await userApi.login(email, password);
 
-        console.log('✅ Login successful:', data);
+        console.log('🔐 LOGIN: Received response', data);
 
         // Extract user data from the correct response structure
         const userData = data.data?.user || data.user || data;
 
         if (data.success && userData) {
-            user = userData;
+            _user = userData;
 
             // Update the authentication component
             if (window.authComponent) {
@@ -195,7 +218,7 @@ const loginUser = async(e) => {
 /**
  * Check if user is authenticated
  */
-const checkUser = async() => {
+const _checkUser = async() => {
     try {
         if (!userApi.isAuthenticated()) {
             return null;
@@ -204,12 +227,14 @@ const checkUser = async() => {
         const userData = await userApi.getProfile();
 
         // Extract user data from response structure
-        const user = userData.data?.user || userData.user || userData;
-        window.user = user;
+        const _user = userData.data?.user || userData.user || userData;
 
-        return user;
+        window.user = _user;
+
+        return _user;
     } catch (error) {
         console.warn('User check failed:', error.message);
+
         return null;
     }
 };
@@ -219,14 +244,14 @@ const checkUser = async() => {
  */
 const logoutUser = async() => {
     try {
-        console.log('🔧 Logging out user...');
+
         await userApi.logout();
-        user = null;
+        _user = null;
 
         // Update authentication component
         if (window.authComponent) {
             window.authComponent.setUser(null);
-            console.log('✅ Authentication component updated after logout');
+
         }
 
         showSuccessMessage('Logged out successfully');
@@ -235,20 +260,23 @@ const logoutUser = async() => {
         }, 1000);
     } catch (error) {
         console.error('❌ Logout failed:', error);
-        showErrorMessage('Logout failed: ' + error.message);
+        showErrorMessage(`Logout failed: ${error.message}`);
     }
 };
 
 /**
  * Show authentication loading state
  */
-const showAuthLoading = (type) => {
+const showAuthLoading = type => {
     const form = document.getElementById(`${type}Form`);
+
     if (form) {
         const submitBtn = form.querySelector('button[type="submit"]');
+
         if (submitBtn) {
             submitBtn.disabled = true;
             const buttonText = type === 'login' ? 'Signing In...' : 'Creating Account...';
+
             submitBtn.innerHTML = `
                 <span class="absolute left-0 inset-y-0 flex items-center pl-3">
                     <svg class="animate-spin h-5 w-5 text-purple-300" fill="none" viewBox="0 0 24 24">
@@ -261,6 +289,7 @@ const showAuthLoading = (type) => {
 
             // Disable all form inputs during loading
             const inputs = form.querySelectorAll('input');
+
             inputs.forEach(input => {
                 input.disabled = true;
             });
@@ -271,13 +300,16 @@ const showAuthLoading = (type) => {
 /**
  * Hide authentication loading state
  */
-const hideAuthLoading = (type) => {
+const hideAuthLoading = type => {
     const form = document.getElementById(`${type}Form`);
+
     if (form) {
         const submitBtn = form.querySelector('button[type="submit"]');
+
         if (submitBtn) {
             submitBtn.disabled = false;
             const buttonText = type === 'login' ? 'Sign In' : 'Create Account';
+
             submitBtn.innerHTML = `
                 <span class="absolute left-0 inset-y-0 flex items-center pl-3">
                     <svg class="h-5 w-5 text-purple-300 group-hover:text-purple-200 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -289,6 +321,7 @@ const hideAuthLoading = (type) => {
 
             // Re-enable all form inputs
             const inputs = form.querySelectorAll('input');
+
             inputs.forEach(input => {
                 input.disabled = false;
             });
@@ -299,8 +332,9 @@ const hideAuthLoading = (type) => {
 /**
  * Show success message
  */
-const showSuccessMessage = (message) => {
+const showSuccessMessage = message => {
     const successEl = document.getElementById('authSuccess');
+
     if (successEl) {
         successEl.textContent = message;
         successEl.classList.remove('hidden');
@@ -315,8 +349,9 @@ const showSuccessMessage = (message) => {
 /**
  * Show error message
  */
-const showErrorMessage = (message) => {
+const showErrorMessage = message => {
     const errorEl = document.getElementById('authError');
+
     if (errorEl) {
         errorEl.textContent = message;
         errorEl.classList.remove('hidden');
@@ -335,17 +370,22 @@ const hideMessages = () => {
     const successEl = document.getElementById('authSuccess');
     const errorEl = document.getElementById('authError');
 
-    if (successEl) successEl.classList.add('hidden');
-    if (errorEl) errorEl.classList.add('hidden');
+    if (successEl) {
+        successEl.classList.add('hidden');
+    }
+    if (errorEl) {
+        errorEl.classList.add('hidden');
+    }
 };
 
 /**
  * Render user UI
  */
-const renderUserUI = email => {
+const _renderUserUI = email => {
     // Update the auth component if it exists (preferred method)
     if (window.authComponent) {
         window.authComponent.setUser({ email });
+
         return;
     }
 
@@ -373,14 +413,17 @@ const updateEmailValidation = (email, formType = 'login') => {
     const validationIndicator = document.getElementById('emailValidation');
     const validationText = document.getElementById('emailValidationText');
 
-    if (!validationIndicator || !validationText) return;
-
-    if (!email) {
-        validationIndicator.classList.add('hidden');
+    if (!validationIndicator || !validationText) {
         return;
     }
 
-    if (!isValidEmail(email)) {
+    if (!email) {
+        validationIndicator.classList.add('hidden');
+
+        return;
+    }
+
+    if (!validateEmail(email)) {
         validationIndicator.classList.remove('hidden');
         validationText.textContent = 'Please enter a valid email address';
         validationText.className = 'text-xs text-red-400';
@@ -392,15 +435,18 @@ const updateEmailValidation = (email, formType = 'login') => {
 /**
  * Update password strength indicator
  */
-const updatePasswordStrength = (password) => {
+const updatePasswordStrength = password => {
     const strengthIndicator = document.getElementById('passwordStrength');
     const strengthBars = strengthIndicator?.querySelectorAll('.h-1');
     const strengthText = document.getElementById('passwordStrengthText');
 
-    if (!strengthIndicator || !strengthBars || !strengthText) return;
+    if (!strengthIndicator || !strengthBars || !strengthText) {
+        return;
+    }
 
     if (!password) {
         strengthIndicator.classList.add('hidden');
+
         return;
     }
 
@@ -426,8 +472,9 @@ const updatePasswordStrength = (password) => {
 /**
  * Toggle password visibility
  */
-const togglePasswordVisibility = (inputId) => {
+const _togglePasswordVisibility = inputId => {
     const input = document.getElementById(inputId);
+
     if (input) {
         input.type = input.type === 'password' ? 'text' : 'password';
     }
@@ -445,16 +492,18 @@ const loadPageElements = () => {
 
         // Add email validation for login form
         const loginEmailInput = document.getElementById('loginEmail');
+
         if (loginEmailInput) {
-            loginEmailInput.addEventListener('input', (e) => {
+            loginEmailInput.addEventListener('input', e => {
                 updateEmailValidation(e.target.value, 'login');
             });
         }
 
         // Add password visibility toggle for login
         const loginPasswordInput = document.getElementById('loginPassword');
+
         if (loginPasswordInput) {
-            loginPasswordInput.addEventListener('keyup', (e) => {
+            loginPasswordInput.addEventListener('keyup', e => {
                 if (e.key === 'Enter') {
                     loginForm.dispatchEvent(new Event('submit'));
                 }
@@ -467,31 +516,33 @@ const loadPageElements = () => {
 
         // Add password strength checker
         const passwordInput = document.getElementById('registerPassword');
+
         if (passwordInput) {
-            passwordInput.addEventListener('input', (e) => {
+            passwordInput.addEventListener('input', e => {
                 updatePasswordStrength(e.target.value);
             });
         }
 
         // Add email validation for register form
         const registerEmailInput = document.getElementById('registerEmail');
+
         if (registerEmailInput) {
-            registerEmailInput.addEventListener('input', (e) => {
+            registerEmailInput.addEventListener('input', e => {
                 updateEmailValidation(e.target.value, 'register');
             });
         }
 
         // Add Enter key support for register form
         const confirmPasswordInput = document.getElementById('confirmPassword');
+
         if (confirmPasswordInput) {
-            confirmPasswordInput.addEventListener('keyup', (e) => {
+            confirmPasswordInput.addEventListener('keyup', e => {
                 if (e.key === 'Enter') {
                     registerForm.dispatchEvent(new Event('submit'));
                 }
             });
         }
 
-        console.log('✅ Registration form wired up');
     }
 };
 

@@ -1,0 +1,569 @@
+<testsuites id="" name="" tests="56" failures="7" skipped="0" errors="0" time="56.948930999999995">
+<testsuite name="javascript-errors.spec.js" timestamp="2025-08-30T11:09:03.822Z" hostname="chromium" tests="8" failures="1" skipped="0" time="60.871" errors="0">
+<testcase name="JavaScript Runtime Error Detection › should load homepage without JavaScript errors" classname="javascript-errors.spec.js" time="8.289">
+<failure message="javascript-errors.spec.js:54:3 should load homepage without JavaScript errors" type="FAILURE">
+<![CDATA[  [chromium] › javascript-errors.spec.js:54:3 › JavaScript Runtime Error Detection › should load homepage without JavaScript errors 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      84 |     expect(coreModulesLoaded.Utils).toBe(true);
+      85 |     expect(coreModulesLoaded.apiService).toBe(true);
+    > 86 |     expect(coreModulesLoaded.app).toBe(true);
+         |                                   ^
+      87 |     expect(coreModulesLoaded.configs.TEXTAREA_CONFIG).toBe(true);
+      88 |     expect(coreModulesLoaded.configs.FEED_CONFIG).toBe(true);
+      89 |     expect(coreModulesLoaded.configs.IMAGE_CONFIG).toBe(true);
+        at C:\wamp64\www\image-harvest\tests\e2e\javascript-errors.spec.js:86:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-chromium\video.webm]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should load authentication pages without JavaScript errors" classname="javascript-errors.spec.js" time="8.12">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle feed loading without variable reference errors" classname="javascript-errors.spec.js" time="6.67">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle authentication flow without variable errors" classname="javascript-errors.spec.js" time="8.428">
+<system-out>
+<![CDATA[
+🚨 JavaScript Errors Detected:
+Console Errors: [
+  {
+    "type": "console.error",
+    "text": "❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function\n    at HTMLFormElement.registerUser (http://localhost:3200/js/user.js:79:32)",
+    "location": {
+      "url": "http://localhost:3200/js/user.js",
+      "lineNumber": 125,
+      "columnNumber": 16
+    },
+    "timestamp": "2025-08-30T11:09:10.767Z"
+  }
+]
+Uncaught Exceptions: [
+  {
+    "type": "uncaught_exception",
+    "name": "TypeError",
+    "message": "window.apiService.isValidEmail is not a function",
+    "stack": "TypeError: window.apiService.isValidEmail is not a function\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\n    at HTMLInputElement.<anonymous> (http://localhost:3200/js/user.js:509:17)",
+    "timestamp": "2025-08-30T11:09:10.533Z"
+  }
+]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should detect string literal syntax errors" classname="javascript-errors.spec.js" time="6.25">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should validate all manager initializations" classname="javascript-errors.spec.js" time="9.866">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should catch constants loading errors" classname="javascript-errors.spec.js" time="5.694">
+</testcase>
+<testcase name="Specific Bug Regression Tests › should not have the original variable reference bugs" classname="javascript-errors.spec.js" time="7.554">
+</testcase>
+</testsuite>
+<testsuite name="javascript-errors.spec.js" timestamp="2025-08-30T11:09:03.822Z" hostname="firefox" tests="8" failures="1" skipped="0" time="63.413" errors="0">
+<testcase name="JavaScript Runtime Error Detection › should load homepage without JavaScript errors" classname="javascript-errors.spec.js" time="7.127">
+<failure message="javascript-errors.spec.js:54:3 should load homepage without JavaScript errors" type="FAILURE">
+<![CDATA[  [firefox] › javascript-errors.spec.js:54:3 › JavaScript Runtime Error Detection › should load homepage without JavaScript errors 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      84 |     expect(coreModulesLoaded.Utils).toBe(true);
+      85 |     expect(coreModulesLoaded.apiService).toBe(true);
+    > 86 |     expect(coreModulesLoaded.app).toBe(true);
+         |                                   ^
+      87 |     expect(coreModulesLoaded.configs.TEXTAREA_CONFIG).toBe(true);
+      88 |     expect(coreModulesLoaded.configs.FEED_CONFIG).toBe(true);
+      89 |     expect(coreModulesLoaded.configs.IMAGE_CONFIG).toBe(true);
+        at C:\wamp64\www\image-harvest\tests\e2e\javascript-errors.spec.js:86:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-firefox\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-firefox\video.webm]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-firefox\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should load authentication pages without JavaScript errors" classname="javascript-errors.spec.js" time="8.133">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle feed loading without variable reference errors" classname="javascript-errors.spec.js" time="7.881">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle authentication flow without variable errors" classname="javascript-errors.spec.js" time="7.303">
+<system-out>
+<![CDATA[
+🚨 JavaScript Errors Detected:
+Console Errors: [
+  {
+    "type": "console.error",
+    "text": "❌ Registration failed: Error",
+    "location": {
+      "url": "http://localhost:3200/js/user.js",
+      "lineNumber": 125,
+      "columnNumber": 16
+    },
+    "timestamp": "2025-08-30T11:09:16.037Z"
+  }
+]
+Uncaught Exceptions: [
+  {
+    "type": "uncaught_exception",
+    "name": "TypeError",
+    "message": "window.apiService.isValidEmail is not a function",
+    "stack": "TypeError: window.apiService.isValidEmail is not a function\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\n    at loadPageElements/< (http://localhost:3200/js/user.js:509:38)\n    at _insertText (chrome://juggler/content/content/PageAgent.js:569:32)\n    at _onMessageInternal (chrome://juggler/content/SimpleChannel.js:237:37)\n    at _onMessage (chrome://juggler/content/SimpleChannel.js:194:12)\n    at bindToActor/actor.receiveMessage (chrome://juggler/content/SimpleChannel.js:39:44)",
+    "timestamp": "2025-08-30T11:09:15.789Z"
+  }
+]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should detect string literal syntax errors" classname="javascript-errors.spec.js" time="7.485">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should validate all manager initializations" classname="javascript-errors.spec.js" time="8.723">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should catch constants loading errors" classname="javascript-errors.spec.js" time="7.265">
+</testcase>
+<testcase name="Specific Bug Regression Tests › should not have the original variable reference bugs" classname="javascript-errors.spec.js" time="9.496">
+</testcase>
+</testsuite>
+<testsuite name="javascript-errors.spec.js" timestamp="2025-08-30T11:09:03.822Z" hostname="webkit" tests="8" failures="1" skipped="0" time="52.593" errors="0">
+<testcase name="JavaScript Runtime Error Detection › should load homepage without JavaScript errors" classname="javascript-errors.spec.js" time="6.403">
+<failure message="javascript-errors.spec.js:54:3 should load homepage without JavaScript errors" type="FAILURE">
+<![CDATA[  [webkit] › javascript-errors.spec.js:54:3 › JavaScript Runtime Error Detection › should load homepage without JavaScript errors 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      84 |     expect(coreModulesLoaded.Utils).toBe(true);
+      85 |     expect(coreModulesLoaded.apiService).toBe(true);
+    > 86 |     expect(coreModulesLoaded.app).toBe(true);
+         |                                   ^
+      87 |     expect(coreModulesLoaded.configs.TEXTAREA_CONFIG).toBe(true);
+      88 |     expect(coreModulesLoaded.configs.FEED_CONFIG).toBe(true);
+      89 |     expect(coreModulesLoaded.configs.IMAGE_CONFIG).toBe(true);
+        at C:\wamp64\www\image-harvest\tests\e2e\javascript-errors.spec.js:86:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should load authentication pages without JavaScript errors" classname="javascript-errors.spec.js" time="6.775">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle feed loading without variable reference errors" classname="javascript-errors.spec.js" time="7.14">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle authentication flow without variable errors" classname="javascript-errors.spec.js" time="8.521">
+<system-out>
+<![CDATA[
+🚨 JavaScript Errors Detected:
+Console Errors: [
+  {
+    "type": "console.error",
+    "text": "❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)",
+    "location": {
+      "url": "http://localhost:3200/js/user.js",
+      "lineNumber": 125,
+      "columnNumber": 21
+    },
+    "timestamp": "2025-08-30T11:09:23.032Z"
+  }
+]
+Uncaught Exceptions: [
+  {
+    "type": "uncaught_exception",
+    "name": "TypeError",
+    "message": "window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)",
+    "stack": "TypeError: window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:40)\n    at unknown (http://localhost:3200/js/user.js:509:38)",
+    "timestamp": "2025-08-30T11:09:21.232Z"
+  }
+]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should detect string literal syntax errors" classname="javascript-errors.spec.js" time="6.45">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should validate all manager initializations" classname="javascript-errors.spec.js" time="7.555">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should catch constants loading errors" classname="javascript-errors.spec.js" time="3.755">
+</testcase>
+<testcase name="Specific Bug Regression Tests › should not have the original variable reference bugs" classname="javascript-errors.spec.js" time="5.994">
+</testcase>
+</testsuite>
+<testsuite name="javascript-errors.spec.js" timestamp="2025-08-30T11:09:03.822Z" hostname="Mobile Chrome" tests="8" failures="1" skipped="0" time="44.954" errors="0">
+<testcase name="JavaScript Runtime Error Detection › should load homepage without JavaScript errors" classname="javascript-errors.spec.js" time="4.927">
+<failure message="javascript-errors.spec.js:54:3 should load homepage without JavaScript errors" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › javascript-errors.spec.js:54:3 › JavaScript Runtime Error Detection › should load homepage without JavaScript errors 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      84 |     expect(coreModulesLoaded.Utils).toBe(true);
+      85 |     expect(coreModulesLoaded.apiService).toBe(true);
+    > 86 |     expect(coreModulesLoaded.app).toBe(true);
+         |                                   ^
+      87 |     expect(coreModulesLoaded.configs.TEXTAREA_CONFIG).toBe(true);
+      88 |     expect(coreModulesLoaded.configs.FEED_CONFIG).toBe(true);
+      89 |     expect(coreModulesLoaded.configs.IMAGE_CONFIG).toBe(true);
+        at C:\wamp64\www\image-harvest\tests\e2e\javascript-errors.spec.js:86:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should load authentication pages without JavaScript errors" classname="javascript-errors.spec.js" time="8.187">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle feed loading without variable reference errors" classname="javascript-errors.spec.js" time="6.978">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle authentication flow without variable errors" classname="javascript-errors.spec.js" time="5.8">
+<system-out>
+<![CDATA[
+🚨 JavaScript Errors Detected:
+Console Errors: [
+  {
+    "type": "console.error",
+    "text": "❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function\n    at HTMLFormElement.registerUser (http://localhost:3200/js/user.js:79:32)",
+    "location": {
+      "url": "http://localhost:3200/js/user.js",
+      "lineNumber": 125,
+      "columnNumber": 16
+    },
+    "timestamp": "2025-08-30T11:09:31.123Z"
+  }
+]
+Uncaught Exceptions: [
+  {
+    "type": "uncaught_exception",
+    "name": "TypeError",
+    "message": "window.apiService.isValidEmail is not a function",
+    "stack": "TypeError: window.apiService.isValidEmail is not a function\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\n    at HTMLInputElement.<anonymous> (http://localhost:3200/js/user.js:509:17)",
+    "timestamp": "2025-08-30T11:09:30.923Z"
+  }
+]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should detect string literal syntax errors" classname="javascript-errors.spec.js" time="4.371">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should validate all manager initializations" classname="javascript-errors.spec.js" time="5.421">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should catch constants loading errors" classname="javascript-errors.spec.js" time="3.393">
+</testcase>
+<testcase name="Specific Bug Regression Tests › should not have the original variable reference bugs" classname="javascript-errors.spec.js" time="5.877">
+</testcase>
+</testsuite>
+<testsuite name="javascript-errors.spec.js" timestamp="2025-08-30T11:09:03.822Z" hostname="Mobile Safari" tests="8" failures="1" skipped="0" time="52.095" errors="0">
+<testcase name="JavaScript Runtime Error Detection › should load homepage without JavaScript errors" classname="javascript-errors.spec.js" time="5.186">
+<failure message="javascript-errors.spec.js:54:3 should load homepage without JavaScript errors" type="FAILURE">
+<![CDATA[  [Mobile Safari] › javascript-errors.spec.js:54:3 › JavaScript Runtime Error Detection › should load homepage without JavaScript errors 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      84 |     expect(coreModulesLoaded.Utils).toBe(true);
+      85 |     expect(coreModulesLoaded.apiService).toBe(true);
+    > 86 |     expect(coreModulesLoaded.app).toBe(true);
+         |                                   ^
+      87 |     expect(coreModulesLoaded.configs.TEXTAREA_CONFIG).toBe(true);
+      88 |     expect(coreModulesLoaded.configs.FEED_CONFIG).toBe(true);
+      89 |     expect(coreModulesLoaded.configs.IMAGE_CONFIG).toBe(true);
+        at C:\wamp64\www\image-harvest\tests\e2e\javascript-errors.spec.js:86:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should load authentication pages without JavaScript errors" classname="javascript-errors.spec.js" time="5.931">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle feed loading without variable reference errors" classname="javascript-errors.spec.js" time="5.582">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle authentication flow without variable errors" classname="javascript-errors.spec.js" time="8.566">
+<system-out>
+<![CDATA[
+🚨 JavaScript Errors Detected:
+Console Errors: [
+  {
+    "type": "console.error",
+    "text": "❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)",
+    "location": {
+      "url": "http://localhost:3200/js/user.js",
+      "lineNumber": 125,
+      "columnNumber": 21
+    },
+    "timestamp": "2025-08-30T11:09:42.635Z"
+  }
+]
+Uncaught Exceptions: [
+  {
+    "type": "uncaught_exception",
+    "name": "TypeError",
+    "message": "window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)",
+    "stack": "TypeError: window.apiService.isValidEmail is not a function. (In 'window.apiService.isValidEmail(email)', 'window.apiService.isValidEmail' is undefined)\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:40)\n    at unknown (http://localhost:3200/js/user.js:509:38)",
+    "timestamp": "2025-08-30T11:09:40.678Z"
+  }
+]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should detect string literal syntax errors" classname="javascript-errors.spec.js" time="6.977">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should validate all manager initializations" classname="javascript-errors.spec.js" time="7.546">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should catch constants loading errors" classname="javascript-errors.spec.js" time="4.98">
+</testcase>
+<testcase name="Specific Bug Regression Tests › should not have the original variable reference bugs" classname="javascript-errors.spec.js" time="7.327">
+</testcase>
+</testsuite>
+<testsuite name="javascript-errors.spec.js" timestamp="2025-08-30T11:09:03.822Z" hostname="Microsoft Edge" tests="8" failures="1" skipped="0" time="43.537" errors="0">
+<testcase name="JavaScript Runtime Error Detection › should load homepage without JavaScript errors" classname="javascript-errors.spec.js" time="5.265">
+<failure message="javascript-errors.spec.js:54:3 should load homepage without JavaScript errors" type="FAILURE">
+<![CDATA[  [Microsoft Edge] › javascript-errors.spec.js:54:3 › JavaScript Runtime Error Detection › should load homepage without JavaScript errors 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      84 |     expect(coreModulesLoaded.Utils).toBe(true);
+      85 |     expect(coreModulesLoaded.apiService).toBe(true);
+    > 86 |     expect(coreModulesLoaded.app).toBe(true);
+         |                                   ^
+      87 |     expect(coreModulesLoaded.configs.TEXTAREA_CONFIG).toBe(true);
+      88 |     expect(coreModulesLoaded.configs.FEED_CONFIG).toBe(true);
+      89 |     expect(coreModulesLoaded.configs.IMAGE_CONFIG).toBe(true);
+        at C:\wamp64\www\image-harvest\tests\e2e\javascript-errors.spec.js:86:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Microsoft-Edge\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Microsoft-Edge\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Microsoft-Edge\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Microsoft-Edge\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Microsoft-Edge\video.webm]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Microsoft-Edge\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should load authentication pages without JavaScript errors" classname="javascript-errors.spec.js" time="5.648">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle feed loading without variable reference errors" classname="javascript-errors.spec.js" time="5.035">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle authentication flow without variable errors" classname="javascript-errors.spec.js" time="6.63">
+<system-out>
+<![CDATA[
+🚨 JavaScript Errors Detected:
+Console Errors: [
+  {
+    "type": "console.error",
+    "text": "❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function\n    at HTMLFormElement.registerUser (http://localhost:3200/js/user.js:79:32)",
+    "location": {
+      "url": "http://localhost:3200/js/user.js",
+      "lineNumber": 125,
+      "columnNumber": 16
+    },
+    "timestamp": "2025-08-30T11:09:44.824Z"
+  }
+]
+Uncaught Exceptions: [
+  {
+    "type": "uncaught_exception",
+    "name": "TypeError",
+    "message": "window.apiService.isValidEmail is not a function",
+    "stack": "TypeError: window.apiService.isValidEmail is not a function\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\n    at HTMLInputElement.<anonymous> (http://localhost:3200/js/user.js:509:17)",
+    "timestamp": "2025-08-30T11:09:44.515Z"
+  }
+]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should detect string literal syntax errors" classname="javascript-errors.spec.js" time="5.47">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should validate all manager initializations" classname="javascript-errors.spec.js" time="5.939">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should catch constants loading errors" classname="javascript-errors.spec.js" time="3.644">
+</testcase>
+<testcase name="Specific Bug Regression Tests › should not have the original variable reference bugs" classname="javascript-errors.spec.js" time="5.906">
+</testcase>
+</testsuite>
+<testsuite name="javascript-errors.spec.js" timestamp="2025-08-30T11:09:03.822Z" hostname="Google Chrome" tests="8" failures="1" skipped="0" time="38.361" errors="0">
+<testcase name="JavaScript Runtime Error Detection › should load homepage without JavaScript errors" classname="javascript-errors.spec.js" time="4.953">
+<failure message="javascript-errors.spec.js:54:3 should load homepage without JavaScript errors" type="FAILURE">
+<![CDATA[  [Google Chrome] › javascript-errors.spec.js:54:3 › JavaScript Runtime Error Detection › should load homepage without JavaScript errors 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      84 |     expect(coreModulesLoaded.Utils).toBe(true);
+      85 |     expect(coreModulesLoaded.apiService).toBe(true);
+    > 86 |     expect(coreModulesLoaded.app).toBe(true);
+         |                                   ^
+      87 |     expect(coreModulesLoaded.configs.TEXTAREA_CONFIG).toBe(true);
+      88 |     expect(coreModulesLoaded.configs.FEED_CONFIG).toBe(true);
+      89 |     expect(coreModulesLoaded.configs.IMAGE_CONFIG).toBe(true);
+        at C:\wamp64\www\image-harvest\tests\e2e\javascript-errors.spec.js:86:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Google-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Google-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Google-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Google-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Google-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\javascript-errors-JavaScri-82b0c-e-without-JavaScript-errors-Google-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should load authentication pages without JavaScript errors" classname="javascript-errors.spec.js" time="4.579">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle feed loading without variable reference errors" classname="javascript-errors.spec.js" time="4.526">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should handle authentication flow without variable errors" classname="javascript-errors.spec.js" time="5.552">
+<system-out>
+<![CDATA[
+🚨 JavaScript Errors Detected:
+Console Errors: [
+  {
+    "type": "console.error",
+    "text": "❌ Registration failed: TypeError: window.apiService.isValidEmail is not a function\n    at HTMLFormElement.registerUser (http://localhost:3200/js/user.js:79:32)",
+    "location": {
+      "url": "http://localhost:3200/js/user.js",
+      "lineNumber": 125,
+      "columnNumber": 16
+    },
+    "timestamp": "2025-08-30T11:09:52.936Z"
+  }
+]
+Uncaught Exceptions: [
+  {
+    "type": "uncaught_exception",
+    "name": "TypeError",
+    "message": "window.apiService.isValidEmail is not a function",
+    "stack": "TypeError: window.apiService.isValidEmail is not a function\n    at updateEmailValidation (http://localhost:3200/js/user.js:404:28)\n    at HTMLInputElement.<anonymous> (http://localhost:3200/js/user.js:509:17)",
+    "timestamp": "2025-08-30T11:09:52.430Z"
+  }
+]
+]]>
+</system-out>
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should detect string literal syntax errors" classname="javascript-errors.spec.js" time="4.832">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should validate all manager initializations" classname="javascript-errors.spec.js" time="5.393">
+</testcase>
+<testcase name="JavaScript Runtime Error Detection › should catch constants loading errors" classname="javascript-errors.spec.js" time="3.176">
+</testcase>
+<testcase name="Specific Bug Regression Tests › should not have the original variable reference bugs" classname="javascript-errors.spec.js" time="5.35">
+</testcase>
+</testsuite>
+</testsuites>

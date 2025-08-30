@@ -87,6 +87,7 @@ export class ImageService {
 
         return images.map(image => ({
             id: image.id,
+            userId: image.userId, // ✅ Added userId for client-side filtering
             prompt: image.prompt,
             original: image.original,
             imageUrl: image.imageUrl,

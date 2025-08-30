@@ -35,7 +35,10 @@ global.Utils = {
                 '.clear': { addEventListener: jest.fn() },
                 '.dropdown': { remove: jest.fn() },
                 '.term-container': { appendChild: jest.fn() },
-                '.loading': { classList: { toggle: jest.fn() } }
+                '.loading': {
+                    classList: { toggle: jest.fn() },
+                    style: { display: '' }
+                }
             };
             return mockElements[selector] || null;
         }),

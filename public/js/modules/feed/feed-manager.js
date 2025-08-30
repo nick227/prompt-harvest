@@ -9,53 +9,121 @@ class FeedManager {
         this.intersectionObserver = null;
         this.lastImageElement = null;
         this.currentOwnerFilter = 'site'; // Default to site (all public images)
+
+        // Enhanced caching system for client-side filtering
+        this.filterCache = {
+            site: {
+                images: [],
+                currentPage: 0,
+                hasMore: true,
+                isLoaded: false,
+                scrollPosition: 0
+            },
+            user: {
+                images: [],
+                currentPage: 0,
+                hasMore: true,
+                isLoaded: false,
+                scrollPosition: 0
+            }
+        };
     }
 
     init() {
         // Initialize feed manager
         this.setupFeed();
         this.setupOwnerFilter();
+
         return this;
     }
 
-        setupOwnerFilter() {
+    setupOwnerFilter() {
         const ownerButtons = document.querySelectorAll('input[name="owner"]');
 
         ownerButtons.forEach(button => {
-            button.addEventListener('change', (e) => {
-                this.currentOwnerFilter = e.target.value;
-                this.resetAndReload();
+            button.addEventListener('change', e => {
+                const newFilter = e.target.value;
+
+                this.switchFilter(newFilter);
             });
         });
 
         // Set default selection
         const siteButton = document.querySelector('input[name="owner"][value="site"]');
+
         if (siteButton) {
             siteButton.checked = true;
         }
 
         // Listen for authentication state changes
-        window.addEventListener('authStateChanged', (event) => {
-            const user = event.detail;
-            if (!user && this.currentOwnerFilter === 'user') {
+        window.addEventListener('authStateChanged', event => {
+            const _user = event.detail;
+
+            if (!_user && this.currentOwnerFilter === 'user') {
                 // User logged out while viewing "Mine" filter, switch to "Site"
-                console.log('🔧 User logged out, switching to site filter');
-                this.currentOwnerFilter = 'site';
+
                 const siteButton = document.querySelector('input[name="owner"][value="site"]');
+
                 if (siteButton) {
                     siteButton.checked = true;
                 }
-                this.resetAndReload();
+                this.switchFilter('site');
             }
         });
     }
 
+    // Smart filter switching without server requests (when possible)
+    async switchFilter(newFilter) {
+        console.log(`🔄 FILTER: Switching from '${this.currentOwnerFilter}' to '${newFilter}'`);
+        console.log('📊 FILTER: Cache state before switch:', this.getFilterStats());
+
+        // Save current scroll position
+        this.saveScrollPosition();
+
+        // Hide current filter's images
+        this.hideFilterImages(this.currentOwnerFilter);
+
+        // Update current filter
+        this.currentOwnerFilter = newFilter;
+
+        // Show new filter's images (load if needed)
+        if (this.filterCache[newFilter].isLoaded) {
+            console.log(`✅ FILTER: Showing cached '${newFilter}' images`);
+            this.showFilterImages(newFilter);
+            this.restoreScrollPosition(newFilter);
+        } else {
+            console.log(`📥 FILTER: Loading '${newFilter}' images for first time`);
+            await this.loadFilterImages(newFilter);
+        }
+
+        // Update pagination state for current system compatibility
+        this.syncPaginationState();
+
+        // Update lazy loading target
+        this.updateLazyLoadingTarget();
+
+        console.log('📊 FILTER: Cache state after switch:', this.getFilterStats());
+    }
+
+    // Legacy method for backwards compatibility and emergency resets
     resetAndReload() {
+        console.log('🔄 RESET: Full reload requested');
+
         // Clear current images
         const promptOutput = document.querySelector(this.config.promptOutputSelector);
+
         if (promptOutput) {
             promptOutput.innerHTML = '';
         }
+
+        // Reset cache for current filter
+        this.filterCache[this.currentOwnerFilter] = {
+            images: [],
+            currentPage: 0,
+            hasMore: true,
+            isLoaded: false,
+            scrollPosition: 0
+        };
 
         // Reset pagination
         this.currentPageCount = 0;
@@ -69,6 +137,10 @@ class FeedManager {
     async setupFeed() {
         try {
             await this.setupFeedPromptsNew();
+
+            // Mark the initial filter (site) as loaded
+            this.filterCache[this.currentOwnerFilter].isLoaded = true;
+
             this.isSetupComplete = true;
             this.setupLazyLoading();
 
@@ -91,30 +163,16 @@ class FeedManager {
                 page: this.currentPageCount
             });
 
-            // Add owner filter
-            if (this.currentOwnerFilter === 'user') {
-                // For user filter, we need to get the current user ID
-                const userInfo = this.getCurrentUserInfo();
-                if (userInfo && userInfo.id) {
-                    params.append('userId', userInfo.id);
-                } else {
-                    // If no user logged in, show empty state with login prompt
-                    console.log('No user logged in for user filter');
-                    this.showLoginPrompt();
-                    this.hasMoreData = false;
-                    return;
-                }
-            }
-            // For 'site' filter, don't add userId parameter (shows all public images)
+            // Always fetch all images (site view) - filtering is done client-side
+            // Note: userId parameter is not added to ensure we always get the full dataset
+            // Client-side filtering will handle showing user-specific vs all images
 
             const url = `${API_ENDPOINTS.FEED}?${params.toString()}`;
-            console.log('🔧 Loading feed with owner filter:', this.currentOwnerFilter, 'URL:', url);
-
             const response = await fetch(url);
-            const results = await response.json();
+            const _results = await response.json();
 
             // check if we have more data
-            if (results.length === 0) {
+            if (_results.length === 0) {
                 this.hasMoreData = false;
                 this.cleanupLazyLoading();
 
@@ -122,9 +180,10 @@ class FeedManager {
             }
 
             // process results - new API returns array of image objects directly
-            for (let i = 0; i < results.length; i++) {
+            for (let i = 0;
+                i < _results.length; i++) {
                 // Only add image, not prompt (since each image has its own prompt)
-                this.addImageToOutput(results[i]);
+                this.addImageToOutput(_results[i]);
             }
 
             this.currentPageCount++;
@@ -137,6 +196,9 @@ class FeedManager {
             if (window.imageComponent && window.imageComponent.clearImageOrderCache) {
                 window.imageComponent.clearImageOrderCache();
             }
+
+            // Sync pagination state with filter cache
+            this.syncPaginationState();
         } catch (error) {
             console.error('Feed fetch error:', error);
         } finally {
@@ -144,8 +206,149 @@ class FeedManager {
         }
     }
 
-    addPromptToOutput(result) {
-        if (!result || !result.prompt) {
+    // Helper methods for smart filtering system
+    saveScrollPosition() {
+        const promptOutput = document.querySelector(this.config.promptOutputSelector);
+
+        if (promptOutput) {
+            this.filterCache[this.currentOwnerFilter].scrollPosition = promptOutput.scrollTop;
+        }
+    }
+
+    restoreScrollPosition(filter) {
+        const promptOutput = document.querySelector(this.config.promptOutputSelector);
+
+        if (promptOutput) {
+            setTimeout(() => {
+                promptOutput.scrollTop = this.filterCache[filter].scrollPosition;
+            }, 100); // Small delay to ensure DOM is updated
+        }
+    }
+
+    hideFilterImages(filter) {
+        const promptOutput = document.querySelector(this.config.promptOutputSelector);
+
+        if (!promptOutput) {
+            console.warn('❌ FILTER: No prompt output container found');
+
+            return;
+        }
+
+        // Hide all images that don't match the current filter
+        const allImages = promptOutput.querySelectorAll('li[data-filter]');
+
+        console.log(`🔧 FILTER: Hiding ${allImages.length} total images`);
+
+        allImages.forEach(img => {
+            img.style.display = 'none';
+        });
+    }
+
+    showFilterImages(filter) {
+        const promptOutput = document.querySelector(this.config.promptOutputSelector);
+
+        if (!promptOutput) {
+            console.warn('❌ FILTER: No prompt output container found');
+
+            return;
+        }
+
+        const currentUser = this.getCurrentUserInfo();
+        const allImages = promptOutput.querySelectorAll('li[data-user-id]');
+        let shownCount = 0;
+
+        allImages.forEach(img => {
+            const imageUserId = img.getAttribute('data-user-id');
+            let shouldShow = false;
+
+            if (filter === 'site') {
+                // Show all images for site filter
+                shouldShow = true;
+            } else if (filter === 'user') {
+                // Show only current user's images
+                shouldShow = currentUser && imageUserId === currentUser.id;
+            }
+
+            if (shouldShow) {
+                img.style.display = '';
+                shownCount++;
+            } else {
+                img.style.display = 'none';
+            }
+        });
+
+        console.log(`🔧 FILTER: Showing ${shownCount} images for '${filter}' filter out of ${allImages.length} total`);
+
+        // If user filter shows very few results, try loading more images
+        if (filter === 'user' && shownCount < 10 && this.hasMoreData) {
+            console.log('📥 FILTER: User filter shows few results, loading more images...');
+            setTimeout(() => this.setupFeedPromptsNew(), 100);
+        }
+    }
+
+    async loadFilterImages(filter) {
+        if (filter === 'user') {
+            // For user filter, we need to check if site data is available
+            if (!this.filterCache['site'].isLoaded) {
+                console.log('📥 FILTER: Loading all images first (required for user filtering)');
+                // Load all images first
+                await this.setupFeedPromptsNew();
+                this.filterCache['site'].isLoaded = true;
+            }
+
+            // Now show user-filtered images
+            console.log('🔧 FILTER: Applying client-side user filter');
+            this.showFilterImages(filter);
+            this.filterCache[filter].isLoaded = true;
+        } else {
+            // For site filter, load all images normally
+            this.currentPageCount = this.filterCache[filter].currentPage;
+            this.hasMoreData = this.filterCache[filter].hasMore;
+            await this.setupFeedPromptsNew();
+            this.filterCache[filter].isLoaded = true;
+        }
+    }
+
+    syncPaginationState() {
+        // Sync the current pagination state with the active filter cache
+        this.filterCache[this.currentOwnerFilter].currentPage = this.currentPageCount;
+        this.filterCache[this.currentOwnerFilter].hasMore = this.hasMoreData;
+    }
+
+    // Clear cache for a specific filter (useful for refreshing)
+    clearFilterCache(filter) {
+        if (this.filterCache[filter]) {
+            this.filterCache[filter] = {
+                images: [],
+                currentPage: 0,
+                hasMore: true,
+                isLoaded: false,
+                scrollPosition: 0
+            };
+        }
+    }
+
+    // Get current filter statistics for debugging
+    getFilterStats() {
+        return {
+            currentFilter: this.currentOwnerFilter,
+            cacheState: Object.keys(this.filterCache).reduce((stats, filter) => {
+                const cache = this.filterCache[filter];
+
+                stats[filter] = {
+                    imageCount: cache.images.length,
+                    currentPage: cache.currentPage,
+                    hasMore: cache.hasMore,
+                    isLoaded: cache.isLoaded
+                };
+
+                return stats;
+            }, {})
+        };
+    }
+
+    addPromptToOutput(_result) {
+        if (!_result || !_result.prompt) {
             return;
         }
 
@@ -155,26 +358,26 @@ class FeedManager {
             return;
         }
 
-        const li = Utils.dom.createElement('li', '', result.prompt);
+        const li = Utils.dom.createElement('li', '', _result.prompt);
 
         promptOutput.appendChild(li);
     }
 
-    addImageToOutput(result, isNewlyGenerated = false) {
-        if (!result || (!result.imageUrl && !result.image && !result.imageName)) {
+    addImageToOutput(_result, isNewlyGenerated = false) {
+        if (!_result || (!_result.imageUrl && !_result.image && !_result.imageName)) {
             return;
         }
 
         // try ImageComponent first
-        if (this.tryImageComponent(result, isNewlyGenerated)) {
+        if (this.tryImageComponent(_result, isNewlyGenerated)) {
             return;
         }
 
         // fallback to basic image
-        this.createBasicImage(result, isNewlyGenerated);
+        this.createBasicImage(_result, isNewlyGenerated);
     }
 
-    tryImageComponent(result, isNewlyGenerated = false) {
+    tryImageComponent(_result, isNewlyGenerated = false) {
         // ImageComponent should be available since it's loaded first
         if (!window.imageComponent) {
             console.warn('ImageComponent not available, using fallback');
@@ -182,14 +385,14 @@ class FeedManager {
             return false;
         }
 
-        const imageData = this.createImageData(result);
-        const container = this.getImageContainer();
+        const imageData = this.createImageData(_result);
+        const _container = this.getImageContainer();
 
-        if (!container) {
+        if (!_container) {
             return false;
         }
 
-        const li = this.createImageListItem();
+        const li = this.createImageListItem(_result);
         const wrapper = window.imageComponent.createImageWrapper(imageData);
 
         if (wrapper) {
@@ -197,9 +400,9 @@ class FeedManager {
 
             // Newly generated images go at the top, infinite scroll images go at the bottom
             if (isNewlyGenerated) {
-                container.insertBefore(li, container.firstChild);
+                _container.insertBefore(li, _container.firstChild);
             } else {
-                container.appendChild(li);
+                _container.appendChild(li);
             }
 
             return true;
@@ -210,37 +413,36 @@ class FeedManager {
         return false;
     }
 
+    createBasicImage(_result, isNewlyGenerated = false) {
+        const _container = this.getImageContainer();
 
-    createBasicImage(result, isNewlyGenerated = false) {
-        const container = this.getImageContainer();
-
-        if (!container) {
+        if (!_container) {
             return;
         }
 
-        const li = this.createImageListItem();
-        const img = this.createImageElement(result);
+        const li = this.createImageListItem(_result);
+        const img = this.createImageElement(_result);
 
         li.appendChild(img);
 
         // Newly generated images go at the top, infinite scroll images go at the bottom
         if (isNewlyGenerated) {
-            container.insertBefore(li, container.firstChild);
+            _container.insertBefore(li, _container.firstChild);
         } else {
-            container.appendChild(li);
+            _container.appendChild(li);
         }
     }
 
-    createImageData(result) {
+    createImageData(_result) {
         const imageData = {
-            id: result.id || result.imageId || 'unknown',
-            url: result.imageUrl || result.image || result.url || `uploads/${result.imageName}`,
-            title: result.prompt || 'Image',
-            prompt: result.prompt || '',
-            original: result.original || '',
-            provider: result.provider || result.providerName || '',
-            guidance: result.guidance || '',
-            rating: result.rating || ''
+            id: _result.id || _result.imageId || 'unknown',
+            url: _result.imageUrl || _result.image || _result.url || `uploads/${_result.imageName}`,
+            title: _result.prompt || 'Image',
+            prompt: _result.prompt || '',
+            original: _result.original || '',
+            provider: _result.provider || _result.providerName || '',
+            guidance: _result.guidance || '',
+            rating: _result.rating || ''
         };
 
         return imageData;
@@ -250,7 +452,7 @@ class FeedManager {
         return Utils.dom.get(this.config.imagesSelector) || document.querySelector('.prompt-output');
     }
 
-    createImageListItem() {
+    createImageListItem(_result) {
         const li = Utils.dom.createElement('li', 'image-item');
 
         li.style.width = '100%';
@@ -262,23 +464,43 @@ class FeedManager {
         li.style.margin = '0';
         li.style.padding = '0';
 
+        // Add data attributes for smart filtering
+        if (_result) {
+            // Determine if this is a user's image or site image
+            const currentUser = this.getCurrentUserInfo();
+            const isUserImage = currentUser && _result.userId === currentUser.id;
+            const filterType = isUserImage ? 'user' : 'site';
+
+            li.setAttribute('data-filter', filterType);
+            li.setAttribute('data-user-id', _result.userId || 'unknown');
+            li.setAttribute('data-image-id', _result.id || _result.imageId || 'unknown');
+
+            // Debug logging (can be removed in production)
+            if (!_result.userId) {
+                console.warn(`⚠️ FILTER: Image ${_result.id || _result.imageId} missing userId field`);
+            }
+
+            // Cache this image in the appropriate filter
+            this.filterCache[filterType].images.push(_result);
+        }
+
         return li;
     }
 
-    createImageElement(result) {
+    createImageElement(_result) {
         const img = Utils.dom.createElement('img');
 
-        this.setupImageProperties(img, result);
-        this.addImageDataset(img, result);
+        this.setupImageProperties(img, _result);
+        this.addImageDataset(img, _result);
         // Click events now handled by event delegation in ImageComponent
 
         return img;
     }
 
-    setupImageProperties(img, result) {
-        img.src = result.imageUrl || result.image || result.url || `uploads/${result.imageName}`;
-        img.alt = result.prompt || '';
-        img.title = result.prompt || '';
+    setupImageProperties(img, _result) {
+        img.src = _result.imageUrl || _result.image || _result.url || `uploads/${_result.imageName}`;
+        img.alt = _result.prompt || '';
+        img.title = _result.prompt || '';
         img.style.width = '100%';
         img.style.height = '150px';
         img.style.objectFit = 'cover';
@@ -288,30 +510,30 @@ class FeedManager {
         img.classList.add('generated-image');
     }
 
-    addImageDataset(img, result) {
+    addImageDataset(img, _result) {
 
-        if (result.id || result.imageId) {
-            img.dataset.id = result.id || result.imageId;
+        if (_result.id || _result.imageId) {
+            img.dataset.id = _result.id || _result.imageId;
         }
-        if (result.prompt) {
-            img.dataset.prompt = result.prompt;
+        if (_result.prompt) {
+            img.dataset.prompt = _result.prompt;
         }
-        if (result.original) {
-            img.dataset.original = result.original;
+        if (_result.original) {
+            img.dataset.original = _result.original;
         }
-        if (result.provider || result.providerName) {
-            img.dataset.provider = result.provider || result.providerName;
+        if (_result.provider || _result.providerName) {
+            img.dataset.provider = _result.provider || _result.providerName;
         }
-        if (result.guidance) {
-            img.dataset.guidance = result.guidance;
+        if (_result.guidance) {
+            img.dataset.guidance = _result.guidance;
         }
-        if (result.rating) {
-            img.dataset.rating = result.rating;
+        if (_result.rating) {
+            img.dataset.rating = _result.rating;
         }
     }
 
-    handleImageClick(result) {
-        const imageData = this.createImageData(result);
+    handleImageClick(_result) {
+        const imageData = this.createImageData(_result);
 
         // ensure image component is initialized
         this.ensureImageComponentInitialized();
@@ -361,7 +583,12 @@ class FeedManager {
             entries => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting && this.hasMoreData && !this.isLoading) {
-                        this.setupFeedPromptsNew();
+                        // Use the current filter's pagination state
+                        const filterCache = this.filterCache[this.currentOwnerFilter];
+
+                        if (filterCache.hasMore) {
+                            this.setupFeedPromptsNew();
+                        }
                     }
                 });
             }, {
@@ -369,7 +596,6 @@ class FeedManager {
                 rootMargin: this.config.lazyLoading.rootMargin
             }
         );
-
         this.updateLazyLoadingTarget();
     }
 
@@ -386,7 +612,7 @@ class FeedManager {
         }
 
         // find the last image element - ONLY from the grid, not fullscreen
-        const gridImages = document.querySelectorAll('.prompt-output .image-wrapper img, .prompt-output li.image-item img');
+        const gridImages = document.querySelectorAll('.prompt-output.image-wrapper img, .prompt-output li.image-item img');
 
         if (gridImages.length > 0) {
             this.lastImageElement = gridImages[gridImages.length - 1];
@@ -517,18 +743,22 @@ class FeedManager {
     getCurrentUserInfo() {
         // Try to get user info from auth component
         if (window.authComponent && window.authComponent.getUser) {
-            const user = window.authComponent.getUser();
-            if (user && user.id) {
-                return user;
+            const _user = window.authComponent.getUser();
+
+            if (_user && _user.id) {
+                return _user;
             }
         }
 
         // Fallback to localStorage
         const userData = localStorage.getItem('userData');
+
         if (userData) {
             try {
                 const parsed = JSON.parse(userData);
+
                 // Handle different response structures
+                // TODO: Refactor nested ternary
                 if (parsed.data?.user?.id) {
                     return parsed.data.user;
                 } else if (parsed.user?.id) {
@@ -546,6 +776,7 @@ class FeedManager {
 
     showLoginPrompt() {
         const promptOutput = document.querySelector(this.config.promptOutputSelector);
+
         if (promptOutput) {
             promptOutput.innerHTML = `
                 <div class="flex flex-col items-center justify-center p-8 text-center">
@@ -572,7 +803,6 @@ const feedManager = new FeedManager();
 
 // export functions for global access (maintaining backward compatibility)
 const setupFeed = async() => await feedManager.setupFeed();
-
 const setupFeedPromptsNew = () => feedManager.setupFeedPromptsNew();
 
 const refreshFeed = async() => await feedManager.refreshFeed();
@@ -589,4 +819,8 @@ if (typeof window !== 'undefined') {
     window.setupFeed = setupFeed;
     window.setupFeedPromptsNew = setupFeedPromptsNew;
     window.refreshFeed = refreshFeed;
+
+    // Debug helpers
+    window.getFilterStats = () => feedManager.getFilterStats();
+    window.clearFilterCache = filter => feedManager.clearFilterCache(filter);
 }

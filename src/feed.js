@@ -1,10 +1,6 @@
 import OpenAI from 'openai';
-import fs from 'fs';
 import dotenv from 'dotenv';
-import path from 'path';
-import url from 'url';
 import axios from 'axios';
-import sharp from 'sharp';
 import wordTypeManager from '../lib/word-type-manager.js';
 import databaseClient from './database/PrismaClient.js';
 import { fileSystemManager } from './utils/FileSystemManager.js';
@@ -13,20 +9,24 @@ const DEFAULT_GUIDANCE_VALUE = 10;
 
 dotenv.config();
 
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const baseDir = path.join(__dirname, '/public/uploads/');
 const queue = [];
 let isProcessing = false;
 
 // Initialize Prisma client
 const prisma = databaseClient.getClient();
 
-Array.prototype.shuffle = function() {
-    return this.sort(() => Math.random() - 0.5);
-};
+// Utility function for shuffling arrays (Fisher-Yates algorithm)
+const shuffleArray = arr => {
+    const shuffled = [...arr];
 
-let replacementDict = {};
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled;
+};
 
 const processCustomVariables = (customVariables, customDict) => {
     if (!customVariables || customVariables === 'undefined') {
@@ -57,40 +57,35 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, re
         if (typeof prompt !== 'string' || !prompt) {
             return { error: 'Error generating image' };
         }
-        // savePromptComponents(prompt, multiplier, req);
-        let customDict = {};
 
-        customDict = processCustomVariables(customVariables, customDict);
-        replacementDict = {};
+        // Process custom variables and build base prompt
+        const customDict = processCustomVariables(customVariables, {});
         let processedString = await processPromptText(prompt, customDict);
 
-        if (mixup) {
-            processedString = shufflePrompt(processedString);
-        }
+        // Apply prompt modifications in sequence
+        if (mixup) { processedString = shufflePrompt(processedString); }
+        if (multiplier) { processedString = await multiplyPrompt(processedString, multiplier, customDict); }
+        if (mashup) { processedString = mashupPrompt(processedString); }
 
-        if (multiplier) {
-            processedString = await multiplyPrompt(processedString, multiplier, customDict);
-        }
-
-        if (mashup) {
-            processedString = mashupPrompt(processedString);
-        }
-
+        // Save prompt and return result
         const data = { original: prompt, prompt: processedString };
+        const promptResponse = await saveFeedEvent('prompt', data, req);
 
-        const promptReponse = await saveFeedEvent('prompt', data, req);
-
-        const result = { original: prompt, prompt: processedString, promptId: promptReponse._id };
-
-        return result;
+        return {
+            original: prompt,
+            prompt: processedString,
+            promptId: promptResponse._id
+        };
     } catch (error) {
-        console.error(`Error building prompt: ${error.message}`);
+        console.error(`❌ Error building prompt: ${error.message}`);
+
+        return { error: 'Error generating image' };
     }
 };
 
-const shufflePrompt = prompt => prompt.split(', ').shuffle().join(', ');
+const shufflePrompt = prompt => shuffleArray(prompt.split(', ')).join(', ');
 
-const mashupPrompt = prompt => prompt.replace(/,/g, '').split(' ').shuffle().join(' ');
+const mashupPrompt = prompt => shuffleArray(prompt.replace(/,/g, '').split(' ')).join(' ');
 
 const processPromptText = async(prompt, customDict) => await wordTypeManager.processPromptText(prompt, customDict);
 
@@ -126,59 +121,6 @@ const multiplyPrompt = async(prompt, multiplier, customDict) => {
     return processedPromptParts.join(' ');
 };
 
-// Legacy function replaced by wordTypeManager.getWordReplacement()
-const getWordReplacement = async(element, customDict) => await wordTypeManager.getWordReplacement(element, customDict);
-
-const getWordFromElement = element => element.slice(element.startsWith('$$') ? 3 : 2, -1);
-
-const isCustomArray = word => word.startsWith('[') && word.endsWith(']');
-
-
-const getRandomElementFromCustomArray = word => {
-    try {
-        const words = JSON.parse(word.replace(/'/g, '"'));
-
-        if (!Array.isArray(words)) {
-            return word;
-        }
-
-        return words[Math.floor(Math.random() * words.length)];
-    } catch (error) {
-        return word;
-    }
-};
-
-const getReplacementWord = (element, results) => {
-    const word = getWordFromElement(element);
-
-    if (element.startsWith('$$')) {
-        return getReplacementWordForDoubleDollar(element, results, word);
-    } else {
-        return getRandomType(results, word);
-    }
-};
-
-const getReplacementWordForDoubleDollar = (element, results, originalWord) => {
-    const word = getWordFromElement(element);
-
-    if (replacementDict[word]) {
-        return replacementDict[word];
-    } else {
-        const replacement = getRandomType(results, originalWord);
-
-        replacementDict[word] = replacement;
-
-        return replacement;
-    }
-};
-
-const getRandomType = (results, originalWord) => {
-    if (!results.length || !results[0].types) {
-        return originalWord;
-    }
-
-    return results[0].types[Math.floor(Math.random() * results[0].types.length)];
-};
 
 /** *********
  * START GENERATE
@@ -232,50 +174,58 @@ const generateImage = async(prompt, original, promptId, providers, guidance, req
     const wasEmpty = queue.length === 0;
 
     queue.push({ prompt, original, promptId, providers, guidance, resolve, reject });
+
     if (wasEmpty) {
         processQueue(req);
     }
 });
 
 const processQueue = async req => {
-    if (isProcessing) {
-        return;
-    }
+    if (isProcessing) { return; }
+
     isProcessing = true;
+    try {
+        while (queue.length > 0) {
+            const { prompt, original, promptId, providers, guidance, resolve, reject } = queue.shift();
 
-    while (queue.length > 0) {
-        const { prompt, original, promptId, providers, guidance, resolve, reject } = queue.shift();
+            try {
+                const response = await generate(prompt, original, promptId, providers, guidance, req);
 
-        try {
-            const response = await generate(prompt, original, promptId, providers, guidance, req);
-
-            resolve(response);
-        } catch (error) {
-            reject(error);
+                resolve(response);
+            } catch (error) {
+                reject(error);
+            }
         }
+    } finally {
+        isProcessing = false;
     }
-    isProcessing = false;
 };
 
 const generate = async(prompt, original, promptId, providers, guidance, req) => {
-
+    // Validate and set default providers
     if (!providers || providers.length === 0) {
-        console.error('❌ No providers provided, using default: flux');
+        console.warn('⚠️  No providers provided, using default: flux');
         providers = ['flux'];
     }
 
-        const providerName = providers[Math.floor(Math.random() * providers.length)];
+    // Select random provider
+    const providerName = providers[Math.floor(Math.random() * providers.length)];
+    const userId = req.user ? req.user.id : 'undefined';
 
-    const b64Json = await generateProviderImage(providerName, prompt, guidance, req.user ? req.user._id : 'undefined');
+    // Generate image
+    const b64Json = await generateProviderImage(providerName, prompt, guidance, userId);
 
     if (b64Json.error) {
-        console.log('❌ Provider image generation failed:', b64Json.error);
+        console.error('❌ Provider image generation failed:', b64Json.error);
+
         return b64Json;
     }
 
-    const imageName = await saveB64Image(b64Json, providerName, prompt, req);
+    // Save image file
+    const imageName = await saveB64Image(b64Json, providerName, prompt);
 
-    const data = {
+    // Save to database
+    const imageData = {
         prompt,
         providerName,
         imageName,
@@ -284,21 +234,22 @@ const generate = async(prompt, original, promptId, providers, guidance, req) => 
         original
     };
 
-    const results = await saveFeedEvent('image', data, req);
+    const dbResult = await saveFeedEvent('image', imageData, req);
 
-    results.data.imageId = results._id;
-    results.data.image = `uploads/${imageName}`;
-
-    return results.data;
+    // Return formatted response
+    return {
+        ...dbResult.data,
+        imageId: dbResult._id,
+        image: `uploads/${imageName}`
+    };
 };
 
-const saveB64Image = async(b64Json, providerName, prompt, req) => {
+const saveB64Image = async(b64Json, providerName, prompt) => {
     const buffer = Buffer.from(b64Json, 'base64');
-    const safePrompt = makeFileNameSafeForWindows(prompt).substring(0, 50); // Truncate to avoid overly long filenames
+    const safePrompt = makeFileNameSafeForWindows(prompt).substring(0, 50);
     const imageName = `${providerName}-${safePrompt}-${Date.now()}.jpg`;
 
     try {
-        // Use atomic file system operations
         await fileSystemManager.saveImageAtomic(buffer, imageName, {
             processWithSharp: true,
             quality: 90
@@ -312,70 +263,14 @@ const saveB64Image = async(b64Json, providerName, prompt, req) => {
 };
 
 const saveFeedEvent = async(type, data, req) => {
-    // Ensure userId is always a valid string
-    let userId = 'anonymous';
-    if (req && req.user && req.user._id) {
-        userId = req.user._id;
-        if (userId === 'undefined' || userId === 'null' || userId === '') {
-            userId = 'anonymous';
-        }
-    }
+    // Extract userId with validation
+    const userId = getUserId(req);
 
-        try {
+    try {
         if (type === 'image') {
-            // Save image to MySQL using Prisma
-            const imageData = {
-                id: data.imageId || generateId(),
-                userId: userId,
-                prompt: data.prompt || '',
-                original: data.original || data.prompt || '',
-                imageUrl: data.image || `uploads/${data.imageName}`,
-                provider: data.providerName || 'unknown',
-                guidance: data.guidance || 10,
-                model: data.model || null,
-                rating: data.rating || null
-            };
-
-                        console.log('💾 Saving image to database:', {
-                id: imageData.id,
-                prompt: imageData.prompt.substring(0, 30) + '...',
-                provider: imageData.provider,
-                imageUrl: imageData.imageUrl
-            });
-
-            const image = await prisma.image.create({
-                data: imageData
-            });
-
-            console.log('✅ Image saved to database with ID:', image.id);
-
-            return {
-                _id: image.id,
-                data: {
-                    ...data,
-                    imageId: image.id,
-                    image: image.imageUrl
-                }
-            };
+            return await saveImageToDatabase(data, userId);
         } else {
-            // Save prompt to MySQL using Prisma
-            const prompt = await prisma.prompts.create({
-                data: {
-                    id: generateId(),
-                    userId: userId,
-                    prompt: data.prompt || '',
-                    original: data.original || '',
-                    promptId: data.promptId || null
-                }
-            });
-
-            return {
-                _id: prompt.id,
-                data: {
-                    ...data,
-                    promptId: prompt.id
-                }
-            };
+            return await savePromptToDatabase(data, userId);
         }
     } catch (error) {
         console.error(`❌ Error saving ${type} to database:`, error);
@@ -383,9 +278,69 @@ const saveFeedEvent = async(type, data, req) => {
     }
 };
 
-const generateId = () => {
-    return Math.random().toString(36).substr(2, 9);
+const getUserId = req => {
+    if (!req?.user?.id) { return 'anonymous'; }
+
+    const { id } = req.user;
+
+    return (id && id !== 'undefined' && id !== 'null' && id !== '') ? id : 'anonymous';
 };
+
+const saveImageToDatabase = async(data, userId) => {
+    const imageData = {
+        id: data.imageId || generateId(),
+        userId,
+        prompt: data.prompt || '',
+        original: data.original || data.prompt || '',
+        imageUrl: data.image || `uploads/${data.imageName}`,
+        provider: data.providerName || 'unknown',
+        guidance: data.guidance || 10,
+        model: data.model || null,
+        rating: data.rating || null
+    };
+
+    console.log('💾 Saving image to database:', {
+        id: imageData.id,
+        userId,
+        prompt: `${imageData.prompt.substring(0, 30)}...`,
+        provider: imageData.provider
+    });
+
+    const image = await prisma.image.create({ data: imageData });
+
+    console.log('✅ Image saved to database with ID:', image.id);
+
+    return {
+        _id: image.id,
+        data: {
+            ...data,
+            imageId: image.id,
+            image: image.imageUrl
+        }
+    };
+};
+
+const savePromptToDatabase = async(data, userId) => {
+    const promptData = {
+        id: generateId(),
+        userId,
+        prompt: data.prompt || '',
+        original: data.original || '',
+        promptId: data.promptId || null
+    };
+
+    const prompt = await prisma.prompts.create({ data: promptData });
+
+    return {
+        _id: prompt.id,
+        data: {
+            ...data,
+            promptId: prompt.id
+        }
+    };
+};
+
+const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const generateDalleImage = async(prompt, guidance, userId = null) => {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -418,16 +373,26 @@ const generateDalleImage = async(prompt, guidance, userId = null) => {
 };
 
 const generateDezgoImage = async(prompt, guidance, url, model = 'flux_1_schnell') => {
-    const params = { prompt, /* negative_prompt: "", guidance: guidance || DEFAULT_GUIDANCE_VALUE,*/ seed: generateRandomNineCharNumber(), model };
+    // Build request parameters
+    const params = {
+        prompt,
+        seed: generateRandomNineCharNumber(),
+        model
+    };
 
+    // Add guidance for non-flux models
     if (model !== 'flux_1_schnell') {
         params.guidance = guidance || DEFAULT_GUIDANCE_VALUE;
     }
+
     const options = {
         method: 'POST',
         url,
         timeout: 180000,
-        headers: { 'content-type': 'application/x-www-form-urlencoded', 'X-Dezgo-Key': process.env.DEZGO_API_KEY },
+        headers: {
+            'content-type': 'application/x-www-form-urlencoded',
+            'X-Dezgo-Key': process.env.DEZGO_API_KEY
+        },
         data: new URLSearchParams(params).toString(),
         responseType: 'arraybuffer'
     };
@@ -436,14 +401,14 @@ const generateDezgoImage = async(prompt, guidance, url, model = 'flux_1_schnell'
         const response = await axios.request(options);
 
         if (response.status !== 200) {
-            console.error(`Error !200 in generateDezgoImage: ${response.status}`);
+            console.error(`❌ Dezgo API error: ${response.status} for model: ${model}`);
 
             return { error: 'Error generating image', details: response.status };
         }
 
         return Buffer.from(response.data, 'binary').toString('base64');
     } catch (error) {
-        console.error(`Axios Error in generateDezgoImage: ${error.message}`, url, model);
+        console.error(`❌ Dezgo request failed: ${error.message}`, { url, model });
 
         return { error: 'Error generating image', details: error.message };
     }

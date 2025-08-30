@@ -3,6 +3,8 @@ import { ValidationError, AuthenticationError, NotFoundError } from '../errors/C
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import databaseClient from '../database/PrismaClient.js';
+import emailService from '../services/EmailService.js';
+import { rateLimitPasswordReset, rateLimitLogin } from '../middleware/rateLimitMiddleware.js';
 
 const prisma = databaseClient.getClient();
 
@@ -67,6 +69,13 @@ export const register = asyncHandler(async (req, res) => {
     // Generate token
     const token = generateToken(user.id);
 
+    // Send welcome email (don't block registration if email fails)
+    try {
+        await emailService.sendWelcomeEmail(user.email, user.username);
+    } catch (error) {
+        console.warn('Welcome email failed:', error.message);
+    }
+
     res.status(201).json({
         success: true,
         message: 'User registered successfully',
@@ -100,13 +109,26 @@ export const login = asyncHandler(async (req, res) => {
     });
 
     if (!user) {
+        // Record failed login attempt
+        if (req.recordFailedLogin) {
+            req.recordFailedLogin();
+        }
         throw new AuthenticationError('Invalid email or password');
     }
 
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+        // Record failed login attempt
+        if (req.recordFailedLogin) {
+            req.recordFailedLogin();
+        }
         throw new AuthenticationError('Invalid email or password');
+    }
+
+    // Record successful login
+    if (req.recordSuccessfulLogin) {
+        req.recordSuccessfulLogin();
     }
 
     // Generate token
@@ -261,21 +283,27 @@ export const requestPasswordReset = asyncHandler(async (req, res) => {
     });
 
     if (user) {
-        // Generate reset token (in a real app, you'd send this via email)
+        // Generate reset token
         const resetToken = jwt.sign(
             { userId: user.id, type: 'password-reset' },
             process.env.JWT_SECRET || 'your-secret-key',
             { expiresIn: '1h' }
         );
 
-        // Store reset token in database (simplified for demo)
+        // Store reset token in database
         await prisma.user.update({
             where: { id: user.id },
             data: { resetToken }
         });
 
-        // In production, send email with reset link
-        console.log(`Password reset token for ${email}: ${resetToken}`);
+        // Send password reset email
+        try {
+            await emailService.sendPasswordResetEmail(user.email, resetToken, user.username);
+            console.log(`✅ Password reset email sent to ${email}`);
+        } catch (error) {
+            console.error(`❌ Failed to send password reset email to ${email}:`, error.message);
+            // Still continue - user will see success message for security
+        }
     }
 
     // Always return success to prevent email enumeration
@@ -357,11 +385,11 @@ export const logout = asyncHandler(async (req, res) => {
 // Setup auth routes
 export const setupAuthRoutes = (app) => {
     app.post('/api/auth/register', register);
-    app.post('/api/auth/login', login);
+    app.post('/api/auth/login', rateLimitLogin, login);
     app.get('/api/auth/profile', getProfile);
     app.put('/api/auth/profile', updateProfile);
     app.post('/api/auth/change-password', changePassword);
-    app.post('/api/auth/forgot-password', requestPasswordReset);
+    app.post('/api/auth/forgot-password', rateLimitPasswordReset, requestPasswordReset);
     app.post('/api/auth/reset-password', resetPassword);
     app.post('/api/auth/logout', logout);
 };

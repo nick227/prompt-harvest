@@ -13,7 +13,7 @@ export class EnhancedImageController {
         console.log(`🚀 Image generation request [${requestId}]:`, {
             method: req.method,
             url: req.originalUrl,
-            userId: req.user?._id || 'anonymous',
+            userId: req.user?.id || 'anonymous',
             ip: req.ip
         });
 
@@ -31,7 +31,7 @@ export class EnhancedImageController {
                 original
             } = req.validatedData || req.body;
 
-            const userId = req.user?._id;
+            const userId = req.user?.id;
 
             const options = {
                 promptId,
@@ -74,8 +74,8 @@ export class EnhancedImageController {
             };
 
             console.log(`✅ Image generation successful [${requestId}]:`, {
-                imageId: result.id,
-                provider: result.provider,
+                imageId: result.imageId,
+                provider: result.providerName,
                 duration: response.duration
             });
 
@@ -311,7 +311,7 @@ export class EnhancedImageController {
     async getHealth(req, res) {
         try {
             const health = await this.imageService.getHealth();
-            
+
             const response = {
                 success: true,
                 data: health,
@@ -322,7 +322,7 @@ export class EnhancedImageController {
 
         } catch (error) {
             console.error('❌ Health check error:', error.message);
-            
+
             const errorResponse = this.formatErrorResponse(error, 'health_check', 0);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }

@@ -16,8 +16,8 @@ class StatsManager {
     async setupStatsBar () {
         try {
             const response = await fetch(this.config.api.count);
-            const results = await response.json();
-            const { count } = results;
+            const _results = await response.json();
+            const { count } = _results;
 
             this.updateCountDisplay(count);
             this.updateCostDisplay(count);
@@ -66,7 +66,7 @@ class StatsManager {
     showMilestoneAlert (count) {
         const message = `You have created ${count} images! These images are not not free. Please consider chipping in a few bucks. Thank You!`;
 
-        alert(message);
+        console.warn(message);
     }
 
     // utility methods for external access
@@ -142,12 +142,13 @@ class StatsManager {
         this.updateCostDisplay(0);
     }
 
-    // legacy method names for backward compatibility
-    setupStatsBarLegacy () {
-        return this.init();
-    }
 }
 
-// global exports for backward compatibility
+// Export for global access
 window.StatsManager = StatsManager;
 window.statsManager = new StatsManager();
+
+// Export for module testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = StatsManager;
+}

@@ -17,7 +17,7 @@ const Utils = {
         },
 
         init (selectors) {
-            Object.values(selectors).forEach((selector) => {
+            Object.values(selectors).forEach(selector => {
                 this.get(selector);
             });
 
@@ -48,7 +48,7 @@ const Utils = {
 
     // async utilities
     async: {
-        async fetchJson (url, options = {}) {
+        async fetchJson (url, options = { /* Empty block */ }) {
             const response = await fetch(url, options);
 
             if (!response.ok) {
@@ -69,7 +69,7 @@ const Utils = {
         debounce (func, wait) {
             let timeout;
 
-            return function (...args) {
+            return function debounced(...args) {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
@@ -83,9 +83,8 @@ const Utils = {
         },
 
         makeFileNameSafe (name) {
-            return name
-                .replace(/[\x00-\x1F<>:"/\\|?*.,;(){}[\]!@#$%^&+=`~]/g, '') // eslint-disable-line no-control-regex
-                .substring(0, 100)
+            // Remove unsafe characters for filenames
+            return name.replace(/[<>:"/\\|?*.,;(){}[\]!@#$%^&+=`~]/g, '')
                 .trim();
         },
 
@@ -141,14 +140,6 @@ const Utils = {
 
     // validation utilities
     validation: {
-        isProviderSelected () {
-            const checkedProviders = Array.from(
-                document.querySelectorAll('input[name="providers"]:checked')
-            ).map((input) => input.value);
-
-            return checkedProviders.length > 0;
-        },
-
         validateVariablePair (variableName, variableValues) {
             return variableName && variableValues
                 && variableName.trim() !== ''
@@ -179,13 +170,13 @@ const StateManager = {
     notify (key) {
         // observer pattern for state changes
         if (this.observers && this.observers[key]) {
-            this.observers[key].forEach((callback) => callback(this.state[key]));
+            this.observers[key].forEach(callback => callback(this.state[key]));
         }
     },
 
     observe (key, callback) {
         if (!this.observers) {
-            this.observers = {};
+            this.observers = { /* Empty block */ };
         }
         if (!this.observers[key]) {
             this.observers[key] = [];

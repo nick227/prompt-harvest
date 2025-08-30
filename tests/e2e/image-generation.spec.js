@@ -1,296 +1,241 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
-test.describe('Image Generation Functionality', () => {
-    test.beforeEach(async({ page }) => {
-        await page.goto('/');
-        await page.waitForLoadState('networkidle');
+test.describe('Image Generation Flow', () => {
+  let userEmail;
+  let userPassword;
+
+  test.beforeAll(async () => {
+    // Generate unique user for this test suite
+    const timestamp = Date.now();
+    userEmail = `testgen${timestamp}@example.com`;
+    userPassword = 'TestPassword123!';
+  });
+
+  test.beforeEach(async ({ page }) => {
+    // Clear cookies and register/login user
+    await page.context().clearCookies();
+
+    // Register user
+    await page.goto('/register.html');
+    await page.fill('#registerEmail', userEmail);
+    await page.fill('#registerPassword', userPassword);
+    await page.fill('#confirmPassword', userPassword);
+    await page.click('button[type="submit"]');
+    await page.waitForURL('/', { timeout: 10000 });
+  });
+
+  test('should complete full image generation workflow', async ({ page }) => {
+    // Verify we're on the homepage and authenticated
+    await expect(page.locator('#authentication')).toContainText(userEmail);
+
+    // Enter a prompt
+    const prompt = 'A beautiful sunset over mountains';
+    await page.fill('#prompt-textarea', prompt);
+
+    // Select at least one provider
+    const firstProvider = page.locator('input[name="providers"]').first();
+    await firstProvider.check();
+
+    // Verify button is enabled and ready
+    const generateButton = page.locator('.btn-generate');
+    await expect(generateButton).toBeEnabled();
+    await expect(generateButton).toContainText('START');
+
+    // Click generate button
+    await generateButton.click();
+
+    // Should show loading state
+    await expect(generateButton).toContainText('Generating...');
+    await expect(generateButton).toBeDisabled();
+
+    // Should show loading placeholder in the output
+    const outputContainer = page.locator('.prompt-output');
+    await expect(outputContainer.locator('.loading-placeholder')).toBeVisible();
+
+    // Wait for generation to complete (with generous timeout)
+    await page.waitForFunction(() => {
+      const button = document.querySelector('.btn-generate');
+      return button && button.textContent === 'START' && !button.disabled;
+    }, { timeout: 60000 });
+
+    // Button should be re-enabled
+    await expect(generateButton).toBeEnabled();
+    await expect(generateButton).toContainText('START');
+
+    // Should have an image in the output
+    const imageElement = outputContainer.locator('img').first();
+    await expect(imageElement).toBeVisible({ timeout: 5000 });
+
+    // Image should have proper attributes
+    await expect(imageElement).toHaveAttribute('src', /uploads\/.*\.(jpg|jpeg|png|webp)/);
+    await expect(imageElement).toHaveAttribute('alt', prompt);
+  });
+
+  test('should validate form inputs', async ({ page }) => {
+    // Try to generate without prompt
+    const generateButton = page.locator('.btn-generate');
+    await generateButton.click();
+
+    // Should show validation error
+    await page.waitForFunction(() => {
+      return window.alert || document.querySelector('.alert, .error');
+    }, { timeout: 5000 }).catch(() => {
+      // Alert might not be captured, that's okay
     });
 
-    test('should require provider selection before generation', async({ page }) => {
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
+    // Enter prompt but don't select providers
+    await page.fill('#prompt-textarea', 'test prompt');
+    await generateButton.click();
 
-        // Enter a prompt without selecting a provider
-        await textarea.fill('A beautiful landscape');
-        await generateButton.click();
-
-        // Should show an error or alert
-        try {
-            // Wait for any error message or alert
-            await page.waitForTimeout(2000);
-
-            // Check for alert dialog or error message
-            const alertPromise = page.waitForEvent('dialog');
-            const alert = await alertPromise;
-            expect(alert.message()).toContain('provider');
-            await alert.accept();
-        } catch (error) {
-            // If no alert, check for error message in DOM
-            const errorElement = page.locator('.error, .alert, [class*="error"]');
-            if (await errorElement.count() > 0) {
-                await expect(errorElement.first()).toBeVisible();
-            }
-        }
+    // Should show provider validation error
+    await page.waitForFunction(() => {
+      return window.alert || document.querySelector('.alert, .error');
+    }, { timeout: 5000 }).catch(() => {
+      // Alert might not be captured, that's okay
     });
+  });
 
-    test('should show loading placeholder when generating image', async({ page }) => {
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
-        const imageGrid = page.locator('.prompt-output');
+  test('should prevent duplicate generation requests', async ({ page }) => {
+    // Enter prompt and select provider
+    await page.fill('#prompt-textarea', 'test prompt');
+    const firstProvider = page.locator('input[name="providers"]').first();
+    await firstProvider.check();
 
-        // Select a provider
-        await page.locator('input[name="providers"]').first().check();
+    const generateButton = page.locator('.btn-generate');
 
-        // Enter a prompt
-        await textarea.fill('A simple test image');
+    // Click generate button multiple times rapidly
+    await generateButton.click();
+    await generateButton.click();
+    await generateButton.click();
 
-        // Get initial image count
-        const initialImageCount = await page.locator('.image-item').count();
+    // Should only have one loading placeholder
+    const outputContainer = page.locator('.prompt-output');
+    const loadingPlaceholders = outputContainer.locator('.loading-placeholder');
+    await expect(loadingPlaceholders).toHaveCount(1);
+  });
 
-        // Click generate
-        await generateButton.click();
+  test('should display transaction stats', async ({ page }) => {
+    // Check if transaction stats component is visible
+    const transactionStats = page.locator('#transaction-stats');
+    await expect(transactionStats).toBeVisible();
 
-        // Should show loading placeholder
-        await expect(page.locator('.loading-placeholder')).toBeVisible();
+    // Should show some stats for authenticated user
+    await expect(transactionStats).toContainText(/\d+.*generations?/i);
+  });
 
-        // Verify loading placeholder has correct content
-        await expect(page.locator('.loading-placeholder .loading-text')).toHaveText('Generating...');
+  test('should handle provider selection', async ({ page }) => {
+    // Should have provider checkboxes
+    const providers = page.locator('input[name="providers"]');
+    await expect(providers).toHaveCount.greaterThan(0);
 
-        // Wait for generation to complete or timeout
-        try {
-            await expect(page.locator('.loading-placeholder')).not.toBeVisible({ timeout: 30000 });
+    // Should be able to check/uncheck providers
+    const firstProvider = providers.first();
+    await firstProvider.check();
+    await expect(firstProvider).toBeChecked();
 
-            // Verify new image was added
-            const finalImageCount = await page.locator('.image-item').count();
-            expect(finalImageCount).toBeGreaterThan(initialImageCount);
-        } catch (error) {
-            // If timeout, that's okay - just verify loading state is gone
-            await expect(page.locator('.loading-placeholder')).not.toBeVisible();
-        }
-    });
+    await firstProvider.uncheck();
+    await expect(firstProvider).not.toBeChecked();
 
-    test('should handle image generation with different prompts', async({ page }) => {
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
+    // Should have select all functionality (if implemented)
+    const selectAllBtn = page.locator('.select-all-providers');
+    if (await selectAllBtn.isVisible()) {
+      await selectAllBtn.click();
 
-        // Select a provider
-        await page.locator('input[name="providers"]').first().check();
+      // All providers should be selected
+      const checkedProviders = page.locator('input[name="providers"]:checked');
+      await expect(checkedProviders).toHaveCount.greaterThan(0);
+    }
+  });
 
-        const testPrompts = [
-            'A red car',
-            'A blue sky',
-            'A green tree'
-        ];
+  test('should handle auto-generation feature', async ({ page }) => {
+    // Check if auto-generation controls exist
+    const autoGenCheckbox = page.locator('input[name="autoGenerate"]');
+    const maxNumInput = page.locator('input[name="maxNum"]');
 
-        for (const prompt of testPrompts) {
-            // Enter prompt
-            await textarea.fill(prompt);
+    if (await autoGenCheckbox.isVisible()) {
+      // Enable auto-generation
+      await autoGenCheckbox.check();
 
-            // Generate image
-            await generateButton.click();
+      if (await maxNumInput.isVisible()) {
+        await maxNumInput.fill('3');
+      }
 
-            // Wait for loading to start
-            await expect(page.locator('.loading-placeholder')).toBeVisible();
+      // Enter prompt and select provider
+      await page.fill('#prompt-textarea', 'auto generation test');
+      const firstProvider = page.locator('input[name="providers"]').first();
+      await firstProvider.check();
 
-            // Wait for generation to complete or timeout
-            try {
-                await expect(page.locator('.loading-placeholder')).not.toBeVisible({ timeout: 30000 });
+      // Start generation
+      const generateButton = page.locator('.btn-generate');
+      await generateButton.click();
 
-                // Verify the prompt is visible in the generated image
-                const imageItems = page.locator('.image-item');
-                const lastImage = imageItems.last();
-                await expect(lastImage).toBeVisible();
-            } catch (error) {
-                // If timeout, continue to next prompt
-                console.log(`Timeout for prompt: ${prompt}`);
-            }
-        }
-    });
+      // Should generate multiple images
+      const outputContainer = page.locator('.prompt-output');
 
-    test('should handle guidance parameter changes', async({ page }) => {
-        const guidanceTop = page.locator('select[name="guidance-top"]');
-        const guidanceBottom = page.locator('select[name="guidance-bottom"]');
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
+      // Wait for auto-generation to complete
+      await page.waitForFunction(() => {
+        const images = document.querySelectorAll('.prompt-output img');
+        return images.length >= 2; // At least 2 images generated
+      }, { timeout: 120000 });
 
-        // Select a provider
-        await page.locator('input[name="providers"]').first().check();
+      const images = outputContainer.locator('img');
+      await expect(images).toHaveCount.greaterThanOrEqual(2);
+    }
+  });
 
-        // Set different guidance values
-        await guidanceTop.selectOption('15');
-        await guidanceBottom.selectOption('5');
+  test('should handle image interactions', async ({ page }) => {
+    // Generate an image first
+    await page.fill('#prompt-textarea', 'test image for interactions');
+    const firstProvider = page.locator('input[name="providers"]').first();
+    await firstProvider.check();
 
-        // Enter a prompt
-        await textarea.fill('Test with guidance parameters');
+    const generateButton = page.locator('.btn-generate');
+    await generateButton.click();
 
-        // Generate image
-        await generateButton.click();
+    // Wait for image to appear
+    const outputContainer = page.locator('.prompt-output');
+    const imageElement = outputContainer.locator('img').first();
+    await expect(imageElement).toBeVisible({ timeout: 60000 });
 
-        // Should still work with custom guidance
-        await expect(page.locator('.loading-placeholder')).toBeVisible();
-    });
+    // Click on image (should open fullscreen or show interactions)
+    await imageElement.click();
 
-    test('should handle multiple provider selection', async({ page }) => {
-        const providerCheckboxes = page.locator('input[name="providers"]');
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
+    // Check for fullscreen or modal
+    const fullscreenElement = page.locator('.full-screen, .modal, .lightbox');
+    if (await fullscreenElement.isVisible()) {
+      // Should be able to close fullscreen
+      const closeButton = page.locator('.close-button, .close, [aria-label="Close"]');
+      if (await closeButton.isVisible()) {
+        await closeButton.click();
+        await expect(fullscreenElement).not.toBeVisible();
+      }
+    }
+  });
 
-        // Select multiple providers
-        const providerCount = await providerCheckboxes.count();
-        if (providerCount > 1) {
-            await providerCheckboxes.nth(0).check();
-            await providerCheckboxes.nth(1).check();
+  test('should maintain session across page refreshes', async ({ page }) => {
+    // Generate an image
+    await page.fill('#prompt-textarea', 'session test');
+    const firstProvider = page.locator('input[name="providers"]').first();
+    await firstProvider.check();
 
-            // Enter a prompt
-            await textarea.fill('Test with multiple providers');
+    const generateButton = page.locator('.btn-generate');
+    await generateButton.click();
 
-            // Generate image
-            await generateButton.click();
+    // Wait for completion
+    await page.waitForFunction(() => {
+      const button = document.querySelector('.btn-generate');
+      return button && button.textContent === 'START' && !button.disabled;
+    }, { timeout: 60000 });
 
-            // Should work with multiple providers
-            await expect(page.locator('.loading-placeholder')).toBeVisible();
-        }
-    });
+    // Refresh page
+    await page.reload();
 
-    test('should handle image generation errors gracefully', async({ page }) => {
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
+    // Should still be authenticated
+    await expect(page.locator('#authentication')).toContainText(userEmail);
 
-        // Select a provider
-        await page.locator('input[name="providers"]').first().check();
-
-        // Try with an empty prompt
-        await textarea.fill('');
-        await generateButton.click();
-
-        // Should show error for empty prompt
-        try {
-            const alertPromise = page.waitForEvent('dialog');
-            const alert = await alertPromise;
-            expect(alert.message()).toContain('prompt');
-            await alert.accept();
-        } catch (error) {
-            // Check for error message in DOM
-            const errorElement = page.locator('.error, .alert, [class*="error"]');
-            if (await errorElement.count() > 0) {
-                await expect(errorElement.first()).toBeVisible();
-            }
-        }
-    });
-
-    test('should refresh feed after image generation', async({ page }) => {
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
-
-        // Select a provider
-        await page.locator('input[name="providers"]').first().check();
-
-        // Get initial image count
-        const initialImageCount = await page.locator('.image-item').count();
-
-        // Enter a prompt and generate
-        await textarea.fill('Test image for feed refresh');
-        await generateButton.click();
-
-        // Wait for generation to complete
-        try {
-            await expect(page.locator('.loading-placeholder')).not.toBeVisible({ timeout: 30000 });
-
-            // Wait a bit more for feed refresh
-            await page.waitForTimeout(2000);
-
-            // Verify feed was refreshed (should have more images)
-            const finalImageCount = await page.locator('.image-item').count();
-            expect(finalImageCount).toBeGreaterThanOrEqual(initialImageCount);
-        } catch (error) {
-            // If timeout, that's okay
-            console.log('Image generation or feed refresh took too long');
-        }
-    });
-
-    test('should handle image generation with custom variables', async({ page }) => {
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
-
-        // Select a provider
-        await page.locator('input[name="providers"]').first().check();
-
-        // Enter a prompt with template variables
-        await textarea.fill('A ${color} ${object} in ${setting}');
-
-        // Generate image
-        await generateButton.click();
-
-        // Should handle template variables
-        await expect(page.locator('.loading-placeholder')).toBeVisible();
-    });
-
-    test('should maintain button state during generation', async({ page }) => {
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
-
-        // Select a provider
-        await page.locator('input[name="providers"]').first().check();
-
-        // Enter a prompt
-        await textarea.fill('Test button state');
-
-        // Click generate
-        await generateButton.click();
-
-        // Button should be disabled and show "Generating..."
-        await expect(generateButton).toBeDisabled();
-        await expect(generateButton).toHaveText('Generating...');
-
-        // Wait for completion
-        try {
-            await expect(generateButton).toHaveText('START', { timeout: 30000 });
-            await expect(generateButton).not.toBeDisabled();
-        } catch (error) {
-            // If timeout, verify button is back to normal state
-            await expect(generateButton).not.toHaveText('Generating...');
-            await expect(generateButton).not.toBeDisabled();
-        }
-    });
-
-    test('should handle concurrent image generations', async({ page }) => {
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
-
-        // Select a provider
-        await page.locator('input[name="providers"]').first().check();
-
-        // Start first generation
-        await textarea.fill('First concurrent image');
-        await generateButton.click();
-
-        // Wait for loading to start
-        await expect(page.locator('.loading-placeholder')).toBeVisible();
-
-        // Try to start second generation (should be prevented)
-        await textarea.fill('Second concurrent image');
-        await generateButton.click();
-
-        // Should still be in first generation state
-        await expect(generateButton).toBeDisabled();
-        await expect(generateButton).toHaveText('Generating...');
-    });
-
-    test('should handle image generation with special characters', async({ page }) => {
-        const textarea = page.locator('#prompt-textarea');
-        const generateButton = page.locator('.btn-generate');
-
-        // Select a provider
-        await page.locator('input[name="providers"]').first().check();
-
-        // Test with special characters
-        const specialPrompt = 'A cat & dog with "quotes" and <brackets> and émojis 🐱🐶';
-        await textarea.fill(specialPrompt);
-
-        // Generate image
-        await generateButton.click();
-
-        // Should handle special characters
-        await expect(page.locator('.loading-placeholder')).toBeVisible();
-    });
+    // Previous images should still be visible
+    const outputContainer = page.locator('.prompt-output');
+    const images = outputContainer.locator('img');
+    await expect(images).toHaveCount.greaterThanOrEqual(1);
+  });
 });

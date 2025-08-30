@@ -14,7 +14,7 @@ class HeaderComponent {
 
         try {
             this.createHeader();
-            console.log('Header component initialized successfully');
+
         } catch (error) {
             console.error('Error initializing header component:', error);
         }
@@ -55,6 +55,9 @@ class HeaderComponent {
                     </nav>
 
                     <div class="flex items-center space-x-4">
+                        <div id="transaction-stats" class="text-sm">
+                            <!-- Transaction stats will be loaded here -->
+                        </div>
                         <div id="authentication" class="text-sm">
                             <span class="text-gray-500 mx-2">/</span>
                             <a href="/register.html" class="text-gray-300 hover:text-blue-400 transition-colors duration-200">
@@ -78,7 +81,7 @@ class HeaderComponent {
 }
 
 // Initialize header component
-console.log('Header component script loaded');
+
 const headerComponent = new HeaderComponent();
 
 window.headerComponent = headerComponent;

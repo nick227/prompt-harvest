@@ -18,7 +18,7 @@ class PromptsManager {
         const clearButton = Utils.dom.get(this.config.selectors.clearButton);
 
         if (termElement && typeof termElement.addEventListener === 'function') {
-            termElement.addEventListener('keyup', (e) => this.handleSearchTermKeyUp(e));
+            termElement.addEventListener('keyup', e => this.handleSearchTermKeyUp(e));
             termElement.addEventListener('focusout', () => this.handleSearchTermFocusOut());
         }
 
@@ -63,8 +63,8 @@ class PromptsManager {
         const wordTypesElement = Utils.dom.get(this.config.selectors.wordTypes);
 
         if (wordTypesElement) {
-            wordTypesElement.innerHTML = words.map((word) => `<li title="${word}">${word}</li>`).join('');
-            wordTypesElement.addEventListener('click', (e) => this.handleWordTypeClick(e));
+            wordTypesElement.innerHTML = words.map(word => `<li title="${word}">${word}</li>`).join('');
+            wordTypesElement.addEventListener('click', e => this.handleWordTypeClick(e));
         }
     }
 
@@ -123,11 +123,9 @@ class PromptsManager {
 
     renderDropDown(matches) {
         this.clearTermDropDown();
-
         const dropdown = Utils.dom.createElement('div', this.config.selectors.dropdown.substring(1));
 
-        dropdown.innerHTML = matches.map((match) => `<div class="dropdown-item">${match}</div>`).join('');
-
+        dropdown.innerHTML = matches.map(match => `<div class="dropdown-item">${match}</div>`).join('');
         const termElement = Utils.dom.get(this.config.selectors.term);
 
         if (termElement && termElement.parentNode) {
@@ -140,7 +138,7 @@ class PromptsManager {
     setupDropDownEvents(dropdown) {
         const items = dropdown.querySelectorAll('.dropdown-item');
 
-        items.forEach((item) => {
+        items.forEach(item => {
             item.addEventListener('click', () => {
                 const termElement = Utils.dom.get(this.config.selectors.term);
 
@@ -156,7 +154,7 @@ class PromptsManager {
         const wordTypes = Utils.dom.getAll('.word-types li');
         const matches = [];
 
-        wordTypes.forEach((element) => {
+        wordTypes.forEach(element => {
             const text = element.textContent.toLowerCase();
 
             if (text.includes(term.toLowerCase())) {
@@ -221,9 +219,7 @@ class PromptsManager {
 
             if (data && Array.isArray(data)) {
                 this.checkTermTypes(data);
-            } else {
-                console.log('No term types found for:', term);
-            }
+            } else { /* Empty block */ }
         } catch (error) {
             console.error('Error finding term types:', error);
         } finally {
@@ -239,21 +235,22 @@ class PromptsManager {
 
     clearTermResults() {
         const termResultsElement = Utils.dom.get('.term-results');
+
         if (termResultsElement) {
             termResultsElement.innerHTML = '';
         }
     }
 
     checkTermTypes(types) {
-            const termResultsElement = Utils.dom.get('.term-results');
-            const currentTerm = this.getCurrentSearchTerm();
+        const termResultsElement = Utils.dom.get('.term-results');
+        const currentTerm = this.getCurrentSearchTerm();
 
-            if (termResultsElement && Array.isArray(types) && types.length > 0) {
-                const resultsHtml = `
+        if (termResultsElement && Array.isArray(types) && types.length > 0) {
+            const resultsHtml = `
                 <div class="term-types-found">
                     <h4>Term Types Found:</h4>
                     <ul>
-                        ${types.map((type) => `<li>${type}</li>`).join('')}
+                        ${types.map(type => `<li>${type}</li>`).join('')}
                     </ul>
                 </div>
             `;
@@ -273,6 +270,7 @@ class PromptsManager {
                         <div class="add-term-status hidden"></div>
                     </div>
                 `;
+
                 termResultsElement.innerHTML = addNewTermHtml;
 
                 // Add event listener for the add new term button
@@ -285,8 +283,9 @@ class PromptsManager {
         const addButton = Utils.dom.get('.add-new-term-btn');
 
         if (addButton) {
-            addButton.addEventListener('click', (e) => {
+            addButton.addEventListener('click', e => {
                 const term = e.target.dataset.term || e.target.closest('.add-new-term-btn').dataset.term;
+
                 this.handleAddNewTerm(term);
             });
         }
@@ -330,7 +329,6 @@ class PromptsManager {
             }
         } catch (error) {
             console.error('Error adding new term:', error);
-
             if (statusDiv) {
                 statusDiv.innerHTML = '<p class="status-error">❌ Failed to generate term types. Please try again.</p>';
             }
@@ -345,18 +343,6 @@ class PromptsManager {
         }
     }
 
-    // legacy method names for backward compatibility
-    setupSearchTermLegacy () {
-        return this.init();
-    }
-
-    setupWordTypeSectionLegacy () {
-        return this.init();
-    }
-
-    setupTermCountLegacy () {
-        return this.getTermCount();
-    }
 }
 
 // export for testing

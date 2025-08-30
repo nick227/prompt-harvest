@@ -132,7 +132,7 @@
 
             <!-- Generate Button -->
             <div class="w-full">
-                <button class="btn-generate w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">START</button>
+                <button type="button" class="btn-generate w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">START</button>
             </div>
 
             <!-- Matches -->
@@ -174,13 +174,25 @@
     <!-- Authentication Component -->
     <script src="js/components/auth-component.js"></script>
 
+    <!-- Transaction Stats Component -->
+    <script src="js/components/transaction-stats-component.js"></script>
+
     <!-- Core modules -->
     <script src="js/core/constants.js"></script>
     <script src="js/core/utils.js"></script>
     <script src="js/core/api-service.js"></script>
 
-    <!-- Component modules -->
+    <!-- Services -->
+    <script src="js/services/stats-service.js"></script>
+
+    <!-- Image Component (Separated Architecture) -->
+    <script src="js/components/image/image-ui.js"></script>
+    <script src="js/components/image/image-events.js"></script>
+    <script src="js/components/image/image-data.js"></script>
+    <script src="js/components/image/image-manager.js"></script>
     <script src="js/components/image-component.js"></script>
+
+    <!-- Component modules -->
     <script src="js/components/multiselect-dropdown.js"></script>
 
     <!-- Feature modules -->
@@ -193,28 +205,22 @@
     <script src="js/modules/stats/stats-manager.js"></script>
     <script src="js/modules/providers/provider-manager.js"></script>
 
-    <!-- Legacy modules (to be consolidated) -->
+    <!-- Core modules -->
     <script src="js/user.js"></script>
     <script src="js/tools.js"></script>
-    <script src="js/helpers/addPromptToOutput.js"></script>
     <script src="js/modules/images.js"></script>
-    <script src="js/script.js"></script>
 
-    <!-- Enhanced image generation with circuit breakers -->
-    <script src="js/enhanced-image-generation.js"></script>
+    <!-- Generation Component (Separated Architecture) -->
+    <script src="js/components/generation/generation-ui.js"></script>
+    <script src="js/components/generation/generation-events.js"></script>
+    <script src="js/components/generation/generation-data.js"></script>
+    <script src="js/components/generation/generation-manager.js"></script>
+    <script src="js/components/generation/generation-component.js"></script>
 
     <!-- Main application loader -->
     <script src="js/app.js"></script>
 
-    <!-- Payload testing script -->
-    <script src="js/test-payload.js"></script>
 
-        <script>
-        // Authentication state is now handled by the AuthComponent
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🔍 Main page loaded');
-        });
-        </script>
 
 </body>
 
