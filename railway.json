@@ -4,6 +4,6 @@
         "builder": "NIXPACKS"
     },
     "deploy": {
-        "startCommand": "echo '=== FULL ENVIRONMENT DEBUG ===' && env | sort && echo '=== MYSQL/DATABASE VARS ===' && env | grep -E '(MYSQL|DATABASE)' && echo '=== END DEBUG ===' && npm run db:deploy && npm start"
+        "startCommand": "echo '=== DATABASE_URL CHECK ===' && echo 'DATABASE_URL='$DATABASE_URL && echo '=== END CHECK ===' && npm run db:deploy && npm start"
     }
 }
