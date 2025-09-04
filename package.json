@@ -37,6 +37,7 @@
         "dev": "nodemon server.js",
         "build": "npm run db:generate",
         "postinstall": "npm run db:generate",
+        "build:production": "npm run db:generate --omit=dev",
         "db:generate": "prisma generate",
         "db:migrate": "prisma migrate dev",
         "db:deploy": "prisma migrate deploy",
@@ -118,11 +119,19 @@
         "eslint-plugin-node": "^11.1.0",
         "jest": "^29.7.0",
         "jest-environment-jsdom": "^29.7.0",
-        "jsdom": "^26.1.0",
+        "jsdom": "^20.0.3",
         "nodemon": "^3.1.0",
         "prettier": "^3.2.5",
         "supertest": "^7.1.4"
     },
     "author": "nrios",
-    "license": "ISC"
+    "license": "ISC",
+    "overrides": {
+        "jsdom": {
+            "canvas": "^2.11.2"
+        }
+    },
+    "optionalDependencies": {
+        "canvas": "^2.11.2"
+    }
 }
