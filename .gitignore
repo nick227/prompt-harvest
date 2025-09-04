@@ -15,3 +15,4 @@ data/prompt-clauses.db
 data/multipliers.db
 /src/generated/prisma
 test-results/
+docs/
