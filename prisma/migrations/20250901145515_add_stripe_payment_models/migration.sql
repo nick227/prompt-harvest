@@ -20,11 +20,11 @@
   - The required column `id` was added to the `stripe_payments` table with a prisma-level default value. This is not possible if the table is not empty. Please add this column as optional, then populate it before making it required.
 
 */
--- DropIndex
-DROP INDEX `credit_ledger_promoCodeId_fkey` ON `credit_ledger`;
+-- DropForeignKey
+ALTER TABLE `credit_ledger` DROP FOREIGN KEY `credit_ledger_promoCodeId_fkey`;
 
--- DropIndex
-DROP INDEX `credit_ledger_stripePaymentId_fkey` ON `credit_ledger`;
+-- DropForeignKey
+ALTER TABLE `credit_ledger` DROP FOREIGN KEY `credit_ledger_stripePaymentId_fkey`;
 
 -- AlterTable
 ALTER TABLE `credit_ledger` DROP COLUMN `promoCodeId`,
