@@ -9,7 +9,7 @@ const app = express();
 
 // Enable CORS for all routes
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:3200', 'http://127.0.0.1:3000', 'http://127.0.0.1:3200'],
+    origin: process.env.NODE_ENV === 'production' ? [process.env.FRONTEND_URL || 'https://dialogica.up.railway.app'] : ['http://localhost:3000', 'http://localhost:3200', 'http://127.0.0.1:3000', 'http://127.0.0.1:3200'],
     credentials: true
 }));
 
