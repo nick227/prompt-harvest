@@ -16,3 +16,4 @@ data/multipliers.db
 /src/generated/prisma
 test-results/
 docs/
+public/test-*.js
