@@ -4,6 +4,6 @@
         "builder": "NIXPACKS"
     },
     "deploy": {
-        "startCommand": "echo '=== DATABASE_URL CHECK ===' && echo 'DATABASE_URL='$DATABASE_URL && echo '=== END CHECK ===' && npm run db:deploy && npm start"
+        "startCommand": "echo '=== DATABASE_URL CHECK ===' && echo 'DATABASE_URL='$DATABASE_URL && echo '=== END CHECK ===' && npx prisma migrate reset --force && npm run db:deploy && npm start"
     }
 }
