@@ -37,7 +37,6 @@
         "dev": "nodemon server.js",
         "build": "npm run db:generate",
         "postinstall": "npm run db:generate",
-        "build:production": "npm run db:generate --omit=dev",
         "db:generate": "prisma generate",
         "db:migrate": "prisma migrate dev",
         "db:deploy": "prisma migrate deploy",
