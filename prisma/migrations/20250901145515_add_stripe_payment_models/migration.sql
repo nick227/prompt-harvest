@@ -55,10 +55,10 @@ ALTER TABLE `stripe_payments` DROP PRIMARY KEY,
 ALTER TABLE `users` DROP COLUMN `creditBalance`;
 
 -- DropTable
-DROP TABLE `promo_codes`;
+DROP TABLE `promo_redemptions`;
 
 -- DropTable
-DROP TABLE `promo_redemptions`;
+DROP TABLE `promo_codes`;
 
 -- CreateIndex
 CREATE UNIQUE INDEX `stripe_payments_stripeSessionId_key` ON `stripe_payments`(`stripeSessionId`);
