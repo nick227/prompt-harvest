@@ -4,6 +4,6 @@
         "builder": "NIXPACKS"
     },
     "deploy": {
-        "startCommand": "npm run db:deploy && npm start"
+        "startCommand": "echo 'Environment check:' && env | grep -E '(MYSQL|DATABASE)' && npm run db:deploy && npm start"
     }
 }
