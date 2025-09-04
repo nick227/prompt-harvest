@@ -26,7 +26,7 @@ export class SystemMonitor {
                 database: {}
             }
         };
-        
+
         this.alerts = [];
         this.isMonitoring = false;
     }
@@ -44,7 +44,7 @@ export class SystemMonitor {
 
     recordRequest(endpoint, duration, success, error = null) {
         this.metrics.requests.total++;
-        
+
         if (success) {
             this.metrics.requests.successful++;
         } else {
@@ -63,6 +63,7 @@ export class SystemMonitor {
         }
 
         const endpointStats = this.metrics.requests.byEndpoint.get(endpoint);
+
         endpointStats.total++;
         if (success) {
             endpointStats.successful++;
@@ -77,13 +78,13 @@ export class SystemMonitor {
 
     recordError(error) {
         const errorType = error?.name || 'Unknown';
-        
+
         if (!this.metrics.errors.byType.has(errorType)) {
             this.metrics.errors.byType.set(errorType, 0);
         }
-        
+
         this.metrics.errors.byType.set(
-            errorType, 
+            errorType,
             this.metrics.errors.byType.get(errorType) + 1
         );
 
@@ -105,14 +106,14 @@ export class SystemMonitor {
 
     updateResponseTimeMetrics(duration) {
         this.metrics.performance.responseTimes.push(duration);
-        
+
         // Keep only last 1000 response times
         if (this.metrics.performance.responseTimes.length > 1000) {
             this.metrics.performance.responseTimes.shift();
         }
-        
-        this.metrics.performance.averageResponseTime = 
-            this.metrics.performance.responseTimes.reduce((a, b) => a + b, 0) / 
+
+        this.metrics.performance.averageResponseTime =
+            this.metrics.performance.responseTimes.reduce((a, b) => a + b, 0) /
             this.metrics.performance.responseTimes.length;
     }
 
@@ -132,24 +133,25 @@ export class SystemMonitor {
         try {
             // Database health check
             health.checks.database = await this.checkDatabaseHealth();
-            
+
             // File system health check
             health.checks.fileSystem = await this.checkFileSystemHealth();
-            
+
             // Circuit breaker health check
             health.checks.circuitBreakers = this.checkCircuitBreakerHealth();
-            
+
             // Memory health check
             health.checks.memory = this.checkMemoryHealth();
-            
+
             // Overall status
             const failedChecks = Object.values(health.checks).filter(check => !check.healthy);
+
             if (failedChecks.length > 0) {
                 health.status = 'degraded';
             }
-            
+
             this.metrics.resources = health.checks;
-            
+
         } catch (error) {
             health.status = 'unhealthy';
             health.error = error.message;
@@ -162,16 +164,16 @@ export class SystemMonitor {
         try {
             const prisma = databaseClient.getClient();
             const startTime = Date.now();
-            
+
             // Test database connection
             await prisma.$queryRaw`SELECT 1`;
-            
+
             const responseTime = Date.now() - startTime;
-            
+
             // Get some basic stats
             const imageCount = await prisma.image.count();
             const userCount = await prisma.user.count();
-            
+
             return {
                 healthy: true,
                 responseTime,
@@ -192,7 +194,7 @@ export class SystemMonitor {
         try {
             const diskUsage = fileSystemManager.getDiskUsage();
             const imageList = await fileSystemManager.listImages(10); // Sample of recent images
-            
+
             return {
                 healthy: true,
                 diskUsage,
@@ -211,7 +213,7 @@ export class SystemMonitor {
         try {
             const circuitBreakers = circuitBreakerManager.getHealth();
             const openBreakers = Object.values(circuitBreakers).filter(cb => cb.state === 'OPEN');
-            
+
             return {
                 healthy: openBreakers.length === 0,
                 totalBreakers: Object.keys(circuitBreakers).length,
@@ -230,12 +232,12 @@ export class SystemMonitor {
         try {
             const memUsage = process.memoryUsage();
             const heapUsedPercent = (memUsage.heapUsed / memUsage.heapTotal) * 100;
-            
+
             return {
                 healthy: heapUsedPercent < 90, // Alert if > 90% heap usage
                 heapUsed: this.formatBytes(memUsage.heapUsed),
                 heapTotal: this.formatBytes(memUsage.heapTotal),
-                heapUsedPercent: heapUsedPercent.toFixed(2) + '%',
+                heapUsedPercent: `${heapUsedPercent.toFixed(2)}%`,
                 rss: this.formatBytes(memUsage.rss),
                 external: this.formatBytes(memUsage.external)
             };
@@ -249,7 +251,7 @@ export class SystemMonitor {
 
     checkErrorThresholds(errorType) {
         const errorCount = this.metrics.errors.byType.get(errorType) || 0;
-        
+
         // Alert if more than 10 errors of the same type in the last hour
         if (errorCount > 10) {
             this.createAlert('ERROR_THRESHOLD', {
@@ -268,16 +270,16 @@ export class SystemMonitor {
             timestamp: new Date().toISOString(),
             acknowledged: false
         };
-        
+
         this.alerts.push(alert);
-        
+
         // Keep only last 100 alerts
         if (this.alerts.length > 100) {
             this.alerts.shift();
         }
-        
+
         console.warn(`🚨 Alert: ${type}`, data);
-        
+
         return alert;
     }
 
@@ -285,8 +287,8 @@ export class SystemMonitor {
         return {
             ...this.metrics,
             uptime: Date.now() - this.metrics.startTime,
-            successRate: this.metrics.requests.total > 0 
-                ? (this.metrics.requests.successful / this.metrics.requests.total * 100).toFixed(2) + '%'
+            successRate: this.metrics.requests.total > 0
+                ? `${(this.metrics.requests.successful / this.metrics.requests.total * 100).toFixed(2)}%`
                 : '0%'
         };
     }
@@ -297,19 +299,22 @@ export class SystemMonitor {
 
     acknowledgeAlert(alertId) {
         const alert = this.alerts.find(a => a.id === alertId);
+
         if (alert) {
             alert.acknowledged = true;
         }
     }
 
     scheduleHealthChecks() {
-        if (!this.isMonitoring) return;
-        
+        if (!this.isMonitoring) {
+            return;
+        }
+
         // Run health check every 30 seconds
         setTimeout(async () => {
             try {
                 const health = await this.checkSystemHealth();
-                
+
                 // Check for critical issues
                 if (health.status === 'unhealthy') {
                     this.createAlert('SYSTEM_UNHEALTHY', {
@@ -317,48 +322,47 @@ export class SystemMonitor {
                         error: health.error
                     });
                 }
-                
+
                 // Check for degraded performance
                 if (this.metrics.performance.averageResponseTime > 5000) {
                     this.createAlert('HIGH_RESPONSE_TIME', {
                         averageResponseTime: this.metrics.performance.averageResponseTime
                     });
                 }
-                
+
             } catch (error) {
                 console.error('❌ Health check failed:', error);
             }
-            
+
             // Schedule next check
             this.scheduleHealthChecks();
         }, 30000);
     }
 
     formatBytes(bytes) {
-        if (bytes === 0) return '0 Bytes';
+        if (bytes === 0) {
+            return '0 Bytes';
+        }
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
     }
 
     // Cleanup old metrics
     cleanup() {
         const oneHourAgo = Date.now() - (60 * 60 * 1000);
-        
+
         // Clean up old response times
-        this.metrics.performance.responseTimes = 
+        this.metrics.performance.responseTimes =
             this.metrics.performance.responseTimes.filter(time => time > oneHourAgo);
-        
+
         // Clean up old alerts
-        this.alerts = this.alerts.filter(alert => 
-            new Date(alert.timestamp).getTime() > oneHourAgo
-        );
-        
+        this.alerts = this.alerts.filter(alert => new Date(alert.timestamp).getTime() > oneHourAgo);
+
         // Clean up old errors
-        this.metrics.errors.recent = this.metrics.errors.recent.filter(error =>
-            error.timestamp > oneHourAgo
-        );
+        this.metrics.errors.recent = this.metrics.errors.recent.filter(error => error.timestamp > oneHourAgo);
     }
 }
 

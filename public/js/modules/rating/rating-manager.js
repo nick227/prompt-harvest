@@ -3,6 +3,7 @@ class RatingManager {
     constructor() {
         this.config = RATING_CONFIG;
         this.isInitialized = false;
+        this.init();
     }
 
     init() {
@@ -23,7 +24,9 @@ class RatingManager {
         document.addEventListener('keydown', async e => {
             // Check if we're in fullscreen mode
             const fullscreenContainer = document.querySelector('.full-screen');
-            const isFullScreen = fullscreenContainer && fullscreenContainer.style.display === 'flex';
+            const isFullScreen = fullscreenContainer &&
+                               fullscreenContainer.style &&
+                               fullscreenContainer.style.display === 'flex';
 
             if (isFullScreen) {
                 // Handle number keys 1-5 for rating
@@ -38,18 +41,23 @@ class RatingManager {
     }
 
     setupRatingFilter() {
-        // Add a small delay to ensure DOM is ready
-        setTimeout(() => {
-            const dropdownContainer = document.getElementById('rating-dropdown');
+        // Try to find the dropdown container immediately
+        const dropdownContainer = document.getElementById('rating-dropdown');
 
-            if (!dropdownContainer) {
-                console.error('Rating dropdown container not found');
-
-                return;
-            }
-
+        if (dropdownContainer) {
             this.createRatingDropdown(dropdownContainer);
-        }, 100);
+        } else {
+            // If not found immediately, try again after a short delay
+            setTimeout(() => {
+                const retryContainer = document.getElementById('rating-dropdown');
+
+                if (retryContainer) {
+                    this.createRatingDropdown(retryContainer);
+                } else {
+                    console.warn('Rating dropdown container not found, filter functionality disabled');
+                }
+            }, 100);
+        }
     }
 
     createRatingDropdown(_container) {
@@ -89,8 +97,9 @@ class RatingManager {
         try {
             const fullscreenContainer = document.querySelector('.full-screen');
 
-            if (!fullscreenContainer || fullscreenContainer.style.display !== 'flex') {
-
+            if (!fullscreenContainer ||
+                !fullscreenContainer.style ||
+                fullscreenContainer.style.display !== 'flex') {
                 return;
             }
 
@@ -169,10 +178,10 @@ class RatingManager {
                 this.showRatingFeedback(rating);
 
             } else {
-                console.error('Failed to update rating:', response.status, response.statusText);
+                console.error('Error:', response.status, response.statusText);
             }
         } catch (error) {
-            console.error('Error updating rating:', error);
+            console.error('Rating error:', error);
         }
     }
 
@@ -207,6 +216,13 @@ class RatingManager {
         }
 
         items.forEach(item => {
+            // Ensure item has required properties before manipulation
+            if (!item || !item.style || !item.classList) {
+                console.warn('Invalid item element found during rating filter');
+
+                return;
+            }
+
             const image = item.querySelector('img');
             let shouldShow = false;
 
@@ -215,7 +231,6 @@ class RatingManager {
                 shouldShow = true;
             } else {
                 // Get image rating or treat as unrated
-                // TODO: Refactor nested ternary
                 const imageRating = image?.dataset?.rating;
                 const isUnrated = !imageRating || imageRating === '0' || imageRating === '';
 
@@ -229,11 +244,15 @@ class RatingManager {
             if (shouldShow) {
                 item.style.display = '';
                 item.style.visibility = 'visible';
-                item.classList.remove('rating-filtered');
+                if (item.classList && typeof item.classList.remove === 'function') {
+                    item.classList.remove('rating-filtered');
+                }
             } else {
                 item.style.display = 'none';
                 item.style.visibility = 'hidden';
-                item.classList.add('rating-filtered');
+                if (item.classList && typeof item.classList.add === 'function') {
+                    item.classList.add('rating-filtered');
+                }
             }
         });
     }
@@ -314,10 +333,10 @@ class RatingManager {
         if (this.ratingDropdown) {
             const selectedItems = this.ratingDropdown.getSelectedItems();
 
-            return selectedItems.length > 0 ? selectedItems : ['all'];
+            return selectedItems.length > 0 ? selectedItems[0] : 'all';
         }
 
-        return ['all'];
+        return 'all';
     }
 
     setFilter(ratings) {
@@ -326,11 +345,14 @@ class RatingManager {
 
             this.ratingDropdown.setSelectedItems(ratingArray);
         }
-        this.filterByMultipleRatings(Array.isArray(ratings) ? ratings : [ratings]);
+        // For backward compatibility, also call the single rating filter
+        const rating = Array.isArray(ratings) ? ratings[0] : ratings;
+
+        this.filterByRatings(rating);
     }
 
     clearFilter() {
-        this.filterByMultipleRatings(['all']);
+        this.filterByRatings('all');
     }
 
     validateRating(rating) {
@@ -364,6 +386,28 @@ class RatingManager {
         });
 
         return ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : 0;
+    }
+
+    getRatingStats() {
+        const items = document.querySelectorAll('ul.prompt-output > li');
+        const stats = {
+            total: items.length,
+            ratings: {}
+        };
+
+        items.forEach(item => {
+            const image = item.querySelector('img');
+
+            if (image && image.dataset.rating && image.dataset.rating !== '0') {
+                const rating = parseInt(image.dataset.rating);
+
+                if (rating >= 1 && rating <= 5) {
+                    stats.ratings[rating] = (stats.ratings[rating] || 0) + 1;
+                }
+            }
+        });
+
+        return stats;
     }
 
 }

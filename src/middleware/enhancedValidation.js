@@ -1,6 +1,7 @@
 import { ValidationError } from '../errors/CustomErrors.js';
 
 // Enhanced validation middleware with detailed error reporting
+// eslint-disable-next-line max-lines-per-function, max-statements
 export const validateImageGenerationEnhanced = (req, res, next) => {
     const errors = [];
     const warnings = [];
@@ -21,10 +22,10 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
         if (!req.body.providers) {
             errors.push('At least one provider must be selected');
         } else {
-            const providers = Array.isArray(req.body.providers) 
-                ? req.body.providers 
+            const providers = Array.isArray(req.body.providers)
+                ? req.body.providers
                 : req.body.providers.split(',').map(p => p.trim());
-            
+
             if (providers.length === 0) {
                 errors.push('At least one provider must be selected');
             } else {
@@ -35,8 +36,9 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
                     'portraitplus', 'tshirt', 'abyssorange', 'cyber', 'disco',
                     'synthwave', 'lowpoly', 'bluepencil', 'ink'
                 ];
-                
+
                 const invalidProviders = providers.filter(p => !validProviders.includes(p));
+
                 if (invalidProviders.length > 0) {
                     errors.push(`Invalid providers: ${invalidProviders.join(', ')}`);
                 }
@@ -46,6 +48,7 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
         // Guidance validation
         if (req.body.guidance !== undefined) {
             const guidance = parseInt(req.body.guidance);
+
             if (isNaN(guidance)) {
                 errors.push('Guidance must be a number');
             } else if (guidance < 1 || guidance > 20) {
@@ -77,7 +80,7 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
             const sensitiveWords = ['nude', 'naked', 'explicit', 'porn', 'adult', 'nsfw'];
             const lowerPrompt = req.body.prompt.toLowerCase();
             const foundSensitiveWords = sensitiveWords.filter(word => lowerPrompt.includes(word));
-            
+
             if (foundSensitiveWords.length > 0) {
                 warnings.push(`Content may violate policy. Sensitive words detected: ${foundSensitiveWords.join(', ')}`);
             }
@@ -85,6 +88,7 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
 
         // Request size validation
         const requestSize = JSON.stringify(req.body).length;
+
         if (requestSize > 10000) { // 10KB limit
             errors.push('Request payload too large');
         }
@@ -92,7 +96,7 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
         // Rate limiting check (basic)
         const clientIP = req.ip || req.connection.remoteAddress;
         const userAgent = req.get('User-Agent');
-        
+
         if (!clientIP) {
             warnings.push('Unable to determine client IP for rate limiting');
         }
@@ -102,12 +106,13 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
             const errorResponse = {
                 error: 'Validation failed',
                 details: errors,
-                warnings: warnings,
+                warnings,
                 timestamp: new Date().toISOString(),
                 requestId: req.id || 'unknown'
             };
-            
+
             console.error('❌ Image generation validation failed:', errorResponse);
+
             return res.status(400).json(errorResponse);
         }
 
@@ -120,8 +125,8 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
         // Add validated data to request
         req.validatedData = {
             prompt: req.body.prompt.trim(),
-            providers: Array.isArray(req.body.providers) 
-                ? req.body.providers 
+            providers: Array.isArray(req.body.providers)
+                ? req.body.providers
                 : req.body.providers.split(',').map(p => p.trim()),
             guidance: req.body.guidance ? parseInt(req.body.guidance) : 10,
             multiplier: req.body.multiplier === 'true' || req.body.multiplier === true,
@@ -132,8 +137,9 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
             original: req.body.original || req.body.prompt
         };
 
+        // eslint-disable-next-line no-console
         console.log('✅ Image generation validation passed:', {
-            prompt: req.validatedData.prompt.substring(0, 50) + '...',
+            prompt: `${req.validatedData.prompt.substring(0, 50)}...`,
             providers: req.validatedData.providers,
             guidance: req.validatedData.guidance
         });
@@ -162,7 +168,7 @@ export const enhancedRateLimit = (options = {}) => {
     const requests = new Map();
 
     return (req, res, next) => {
-        const clientId = req.user?._id || req.ip || 'anonymous';
+        const clientId = req.user?.id || req.ip || 'anonymous';
         const now = Date.now();
         const windowStart = now - windowMs;
 
@@ -170,24 +176,25 @@ export const enhancedRateLimit = (options = {}) => {
         if (!requests.has(clientId)) {
             requests.set(clientId, []);
         }
-        
+
         const clientRequests = requests.get(clientId);
         const recentRequests = clientRequests.filter(timestamp => timestamp > windowStart);
+
         requests.set(clientId, recentRequests);
 
         // Check rate limit
         if (recentRequests.length >= maxRequests) {
             const oldestRequest = Math.min(...recentRequests);
             const retryAfter = Math.ceil((oldestRequest + windowMs - now) / 1000);
-            
+
             console.warn(`⚠️ Rate limit exceeded for ${clientId}: ${recentRequests.length}/${maxRequests} requests`);
-            
+
             return res.status(429).json({
                 error: 'Rate limit exceeded',
-                message: message,
-                retryAfter: retryAfter,
+                message,
+                retryAfter,
                 limit: maxRequests,
-                windowMs: windowMs,
+                windowMs,
                 timestamp: new Date().toISOString()
             });
         }
@@ -220,7 +227,7 @@ export const validateAuthentication = (req, res, next) => {
         }
 
         // Validate user object
-        if (!req.user._id && !req.user.id) {
+        if (!req.user.id) {
             return res.status(401).json({
                 error: 'Invalid user session',
                 message: 'User session is corrupted',
@@ -230,11 +237,12 @@ export const validateAuthentication = (req, res, next) => {
 
         // Add user info to request for logging
         req.userInfo = {
-            id: req.user._id || req.user.id,
+            id: req.user.id,
             email: req.user.email,
             isAdmin: req.user.isAdmin || false
         };
 
+        // eslint-disable-next-line no-console
         console.log('✅ Authentication validated for user:', req.userInfo.id);
         next();
     } catch (error) {

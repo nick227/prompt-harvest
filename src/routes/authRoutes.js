@@ -5,23 +5,24 @@ import jwt from 'jsonwebtoken';
 import databaseClient from '../database/PrismaClient.js';
 import emailService from '../services/EmailService.js';
 import { rateLimitPasswordReset, rateLimitLogin } from '../middleware/rateLimitMiddleware.js';
+import { authenticateTokenRequired } from '../middleware/authMiddleware.js';
 
 const prisma = databaseClient.getClient();
 
 // Helper function to generate JWT token
-const generateToken = (userId) => {
-    return jwt.sign({ userId }, process.env.JWT_SECRET || 'your-secret-key', {
-        expiresIn: '7d'
-    });
-};
+const generateToken = userId => jwt.sign({ userId }, process.env.JWT_SECRET || 'your-secret-key', {
+    expiresIn: '7d'
+});
 
 // Helper function to validate email format
-const isValidEmail = (email) => {
+const isValidEmail = email => {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
     return re.test(String(email).toLowerCase());
 };
 
 // Register new user
+// eslint-disable-next-line
 export const register = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
@@ -118,6 +119,7 @@ export const login = asyncHandler(async (req, res) => {
 
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
         // Record failed login attempt
         if (req.recordFailedLogin) {
@@ -250,6 +252,7 @@ export const changePassword = asyncHandler(async (req, res) => {
 
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
     if (!isCurrentPasswordValid) {
         throw new ValidationError('Current password is incorrect');
     }
@@ -299,6 +302,7 @@ export const requestPasswordReset = asyncHandler(async (req, res) => {
         // Send password reset email
         try {
             await emailService.sendPasswordResetEmail(user.email, resetToken, user.username);
+            // eslint-disable-next-line no-console
             console.log(`✅ Password reset email sent to ${email}`);
         } catch (error) {
             console.error(`❌ Failed to send password reset email to ${email}:`, error.message);
@@ -383,13 +387,29 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 // Setup auth routes
-export const setupAuthRoutes = (app) => {
+export const setupAuthRoutes = app => {
     app.post('/api/auth/register', register);
     app.post('/api/auth/login', rateLimitLogin, login);
-    app.get('/api/auth/profile', getProfile);
-    app.put('/api/auth/profile', updateProfile);
-    app.post('/api/auth/change-password', changePassword);
+    app.get('/api/auth/profile', authenticateTokenRequired, getProfile);
+    app.put('/api/auth/profile', authenticateTokenRequired, updateProfile);
+    app.post('/api/auth/change-password', authenticateTokenRequired, changePassword);
     app.post('/api/auth/forgot-password', rateLimitPasswordReset, requestPasswordReset);
     app.post('/api/auth/reset-password', resetPassword);
     app.post('/api/auth/logout', logout);
+
+    // Email service diagnostic endpoint
+    app.get('/api/auth/email-status', async (req, res) => {
+        try {
+            const emailService = await import('../services/EmailService.js');
+            const status = await emailService.default.testConfiguration();
+
+            res.json(status);
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Failed to check email service status',
+                error: error.message
+            });
+        }
+    });
 };

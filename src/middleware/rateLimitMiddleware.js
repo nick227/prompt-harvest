@@ -45,6 +45,7 @@ export const rateLimitPasswordReset = (req, res, next) => {
     // Check if rate limit exceeded
     if (attempts.count >= 5) {
         const timeRemaining = Math.ceil((attempts.resetTime - now) / 60000); // minutes
+
         return res.status(429).json({
             success: false,
             message: `Too many password reset attempts. Please try again in ${timeRemaining} minutes.`,
@@ -86,6 +87,7 @@ export const rateLimitLogin = (req, res, next) => {
     // Check if currently locked out
     if (attempts.lockoutUntil && now < attempts.lockoutUntil) {
         const timeRemaining = Math.ceil((attempts.lockoutUntil - now) / 60000); // minutes
+
         return res.status(429).json({
             success: false,
             message: `Account temporarily locked due to too many failed login attempts. Please try again in ${timeRemaining} minutes.`,
@@ -148,6 +150,7 @@ export const rateLimitGeneral = (limit = 100, windowMs = 900000) => {
         // Check if rate limit exceeded
         if (requestData.count >= limit) {
             const timeRemaining = Math.ceil((requestData.resetTime - now) / 60000); // minutes
+
             return res.status(429).json({
                 success: false,
                 message: `Too many requests. Please try again in ${timeRemaining} minutes.`,
@@ -177,27 +180,33 @@ export const getRateLimitStatus = (ip, type = 'general') => {
     const now = Date.now();
 
     switch (type) {
-        case 'reset':
+        case 'reset': {
             const resetData = resetAttempts.get(ip);
+
             if (!resetData || now > resetData.resetTime) {
                 return { remaining: 5, resetTime: null };
             }
+
             return {
                 remaining: Math.max(0, 5 - resetData.count),
                 resetTime: resetData.resetTime
             };
+        }
 
-        case 'login':
+        case 'login': {
             const loginData = loginAttempts.get(ip);
+
             if (!loginData || (now > loginData.resetTime && (!loginData.lockoutUntil || now > loginData.lockoutUntil))) {
                 return { remaining: 5, resetTime: null, lockedOut: false };
             }
+
             return {
                 remaining: Math.max(0, 5 - loginData.count),
                 resetTime: loginData.resetTime,
                 lockedOut: loginData.lockoutUntil && now < loginData.lockoutUntil,
                 lockoutUntil: loginData.lockoutUntil
             };
+        }
 
         default:
             return { remaining: 100, resetTime: null };

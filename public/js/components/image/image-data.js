@@ -113,7 +113,8 @@ class ImageData {
             return [];
         }
 
-        const imageElements = _container.querySelectorAll('li img[data-id]');
+        // Look for both feed images (data-image-id) and generated images (data-id)
+        const imageElements = _container.querySelectorAll('img[data-id], img[data-image-id]');
         const images = [];
 
         imageElements.forEach(imgElement => {

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Test - AutoImage</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #1f2937;
+            color: white;
+        }
+
+        .test-content {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .test-section {
+            background: #374151;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+
+        h2 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+
+        .test-info {
+            background: #1e40af;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .test-status {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 0.25rem;
+            font-family: monospace;
+        }
+
+        .status-success {
+            background: #065f46;
+            color: #d1fae5;
+        }
+
+        .status-warning {
+            background: #92400e;
+            color: #fef3c7;
+        }
+
+        .status-error {
+            background: #991b1b;
+            color: #fee2e2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Component will be loaded here -->
+
+    <div class="test-content">
+        <div class="test-info">
+            <h2>Header Component Test</h2>
+            <p>This page tests the header component layout, alignment, and user system integration.</p>
+            <p><strong>Expected:</strong> Login/Register links on left, AutoImage logo in center, transaction stats on right</p>
+            <p><strong>Dynamic:</strong> Header should show user info and logout when authenticated</p>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Content</h2>
+            <p>This content should appear below the header to verify proper spacing and layout.</p>
+            <p>The header should have:</p>
+            <ul>
+                <li>Login and Register links properly aligned on the left</li>
+                <li>AutoImage logo and title centered</li>
+                <li>Transaction stats and terms link on the right</li>
+                <li>No duplicate Register links</li>
+                <li>Proper spacing between all elements</li>
+                <li>Dynamic user info display when authenticated</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>Navigation Test</h2>
+            <p>Test the navigation links:</p>
+            <ul>
+                <li><a href="/login.html" style="color: #60a5fa;">Login Page</a></li>
+                <li><a href="/register.html" style="color: #60a5fa;">Register Page</a></li>
+                <li><a href="/terms.html" style="color: #60a5fa;">Terms Page</a></li>
+                <li><a href="/" style="color: #60a5fa;">Home Page</a></li>
+            </ul>
+        </div>
+
+        <div id="test-results" class="test-section">
+            <h2>Test Results</h2>
+            <div id="results-container">
+                <p>Running tests...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Header Component -->
+    <script src="js/components/header-component.js"></script>
+
+    <!-- Load Transaction Stats Component -->
+    <script src="js/components/transaction-stats-component.js"></script>
+
+    <script>
+        // Test script to verify header functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧪 Header Test: Page loaded');
+
+            const resultsContainer = document.getElementById('results-container');
+
+            function addResult(message, type = 'info') {
+                const div = document.createElement('div');
+                div.className = `test-status status-${type}`;
+                div.textContent = message;
+                resultsContainer.appendChild(div);
+            }
+
+            // Wait for header to be created
+            setTimeout(() => {
+                const header = document.querySelector('header');
+                if (header) {
+                    addResult('✅ Header found and created successfully', 'success');
+
+                    // Check for login/register links
+                    const authLinks = header.querySelector('#auth-links');
+                    if (authLinks) {
+                        const loginLink = authLinks.querySelector('a[href="/login.html"]');
+                        const registerLink = authLinks.querySelector('a[href="/register.html"]');
+
+                        if (loginLink && registerLink) {
+                            addResult('✅ Login and Register links found in auth-links container', 'success');
+                        } else {
+                            addResult('⚠️ Missing login or register links in auth-links container', 'warning');
+                        }
+                    } else {
+                        addResult('❌ auth-links container not found', 'error');
+                    }
+
+                    // Check for user info container
+                    const userInfo = header.querySelector('#user-info');
+                    if (userInfo) {
+                        addResult('✅ User info container found (hidden by default)', 'success');
+                    } else {
+                        addResult('❌ User info container not found', 'error');
+                    }
+
+                    // Check for logo
+                    const logo = header.querySelector('h1');
+                    if (logo && logo.textContent.includes('AutoImage')) {
+                        addResult('✅ Logo found: ' + logo.textContent, 'success');
+                    } else {
+                        addResult('⚠️ Logo not found or incorrect', 'warning');
+                    }
+
+                    // Check for transaction stats container
+                    const statsContainer = header.querySelector('#transaction-stats');
+                    if (statsContainer) {
+                        addResult('✅ Transaction stats container found', 'success');
+                    } else {
+                        addResult('⚠️ Transaction stats container not found', 'warning');
+                    }
+
+                    // Check for terms link
+                    const termsLink = header.querySelector('a[href="/terms.html"]');
+                    if (termsLink) {
+                        addResult('✅ Terms link found', 'success');
+                    } else {
+                        addResult('⚠️ Terms link not found', 'warning');
+                    }
+
+                    // Test user system integration
+                    setTimeout(() => {
+                        if (window.userSystem) {
+                            addResult('✅ User system found and integrated', 'success');
+
+                            const isAuthenticated = window.userSystem.isAuthenticated();
+                            addResult(`ℹ️ Authentication state: ${isAuthenticated ? 'Authenticated' : 'Not authenticated'}`, 'info');
+
+                            if (isAuthenticated) {
+                                const user = window.userSystem.getUser();
+                                addResult(`ℹ️ Current user: ${user?.email || 'Unknown'}`, 'info');
+                            }
+                        } else {
+                            addResult('⚠️ User system not found (header will work in basic mode)', 'warning');
+                        }
+                    }, 500);
+
+                } else {
+                    addResult('❌ Header not found', 'error');
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>

@@ -3,6 +3,9 @@ export default {
   // Test environment - use node to avoid canvas issues
   testEnvironment: 'node',
 
+  // Root directory for Jest
+  rootDir: '.',
+
   // Module file extensions
   moduleFileExtensions: ['js', 'json'],
 
@@ -19,17 +22,18 @@ export default {
     '/tests/e2e/'
   ],
 
-  // Setup files
+  // Setup files for each test file
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+
+  // Module directories
+  moduleDirectories: ['node_modules', 'public/js', 'tests'],
 
   // Module name mapping for absolute imports
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/public/js/$1',
     '^@components/(.*)$': '<rootDir>/public/js/components/$1',
     '^@modules/(.*)$': '<rootDir>/public/js/modules/$1',
-    '^@core/(.*)$': '<rootDir>/public/js/core/$1',
-    '^canvas$': '<rootDir>/tests/__mocks__/canvas.js',
-    'canvas': '<rootDir>/tests/__mocks__/canvas.js'
+    '^@core/(.*)$': '<rootDir>/public/js/core/$1'
   },
 
   // Coverage configuration
@@ -63,8 +67,6 @@ export default {
   transformIgnorePatterns: [
     'node_modules/(?!(canvas|jsdom)/)'
   ],
-
-
 
   // Test timeout
   testTimeout: 10000,

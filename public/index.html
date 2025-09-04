@@ -125,7 +125,10 @@
             </div>
 
             <!-- Tools Section -->
-            <div class="flex items-center gap-3 text-sm flex-wrap"> </div>
+            <div class="flex items-center gap-3 text-sm flex-wrap">
+                <!-- Enhanced Notification Display -->
+                <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+            </div>
 
             <!-- Prompt Textarea -->
             <textarea id="prompt-textarea" class="w-full bg-white text-gray-800 px-3 py-2 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" rows="6" placeholder="Enter your prompt here..."></textarea>
@@ -171,16 +174,23 @@
     <!-- Header Component -->
     <script src="js/components/header-component.js"></script>
 
-    <!-- Authentication Component -->
-    <script src="js/components/auth-component.js"></script>
-
     <!-- Transaction Stats Component -->
     <script src="js/components/transaction-stats-component.js"></script>
 
     <!-- Core modules -->
     <script src="js/core/constants.js"></script>
     <script src="js/core/utils.js"></script>
+
+    <!-- Load api-service first -->
     <script src="js/core/api-service.js"></script>
+
+    <!-- Notification Service -->
+    <script src="js/core/notification-service.js"></script>
+
+
+
+    <!-- Unified User System (replaces all user management) -->
+    <script src="js/core/user-system.js"></script>
 
     <!-- Services -->
     <script src="js/services/stats-service.js"></script>
@@ -199,16 +209,27 @@
     <script src="js/modules/textarea.js"></script>
     <script src="js/modules/ui.js"></script>
     <script src="js/modules/search.js"></script>
-    <script src="js/modules/feed/feed-manager.js"></script>
+    <!-- Refactored Feed System -->
+    <script src="js/modules/feed/feed-constants.js"></script>
+    <script src="js/modules/feed/feed-cache-manager.js"></script>
+    <script src="js/modules/feed/feed-filter-manager.js"></script>
+    <script src="js/modules/feed/feed-dom-manager.js"></script>
+    <script src="js/modules/feed/feed-api-manager.js"></script>
+    <script src="js/modules/feed/feed-ui-manager.js"></script>
+    <script src="js/modules/feed/feed-manager-refactored.js"></script>
     <script src="js/modules/guidance/guidance-manager.js"></script>
     <script src="js/modules/rating/rating-manager.js"></script>
     <script src="js/modules/stats/stats-manager.js"></script>
     <script src="js/modules/providers/provider-manager.js"></script>
 
     <!-- Core modules -->
-    <script src="js/user.js"></script>
     <script src="js/tools.js"></script>
-    <script src="js/modules/images.js"></script>
+
+    <!-- Modular Images System -->
+    <script src="js/modules/image-generation-api.js"></script>
+    <script src="js/modules/image-dom-manager.js"></script>
+    <script src="js/modules/image-ui-state.js"></script>
+    <script src="js/modules/images-manager.js"></script>
 
     <!-- Generation Component (Separated Architecture) -->
     <script src="js/components/generation/generation-ui.js"></script>
@@ -216,6 +237,10 @@
     <script src="js/components/generation/generation-data.js"></script>
     <script src="js/components/generation/generation-manager.js"></script>
     <script src="js/components/generation/generation-component.js"></script>
+
+    <!-- Test Script -->
+    <script src="test-feed-response.js"></script>
+    <script src="test-fullscreen.js"></script>
 
     <!-- Main application loader -->
     <script src="js/app.js"></script>

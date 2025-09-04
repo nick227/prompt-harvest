@@ -55,7 +55,119 @@ class ImageUI {
         img.style.borderRadius = '3px';
         img.style.cursor = 'pointer';
 
+        // Add placeholder detection pipeline
+        this.addImageErrorHandling(img, imageData);
+
         return img;
+    }
+
+    addImageErrorHandling(img, imageData) {
+        // Add loading state
+        img.classList.add('image-loading');
+
+        // Handle successful load
+        img.onload = () => {
+            img.classList.remove('image-loading');
+            img.classList.add('image-loaded');
+        };
+
+        // Handle load errors
+        img.onerror = () => {
+            this.createImagePlaceholder(img, imageData);
+        };
+
+        // Check for images that are broken from start
+        setTimeout(() => {
+            if (img.complete && img.naturalWidth === 0) {
+                this.createImagePlaceholder(img, imageData);
+            }
+        }, 100);
+    }
+
+    createImagePlaceholder(img, imageData) {
+        // Remove src and add placeholder class
+        img.removeAttribute('src');
+        img.classList.remove('image-loading', 'image-loaded');
+        img.classList.add('image-placeholder');
+
+        // Apply placeholder styles
+        Object.assign(img.style, {
+            backgroundColor: '#f8f9fa',
+            border: '2px dashed #dee2e6',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            minHeight: '150px',
+            boxSizing: 'border-box',
+            width: '100%',
+            height: '150px',
+            objectFit: 'cover',
+            borderRadius: '3px',
+            cursor: 'pointer'
+        });
+
+        // Set placeholder data
+        img.setAttribute('data-placeholder', '🖼️');
+        const promptText = imageData.prompt || imageData.original || '';
+        const displayText = promptText.length > 30 ?
+            `${promptText.substring(0, 30)}...` :
+            (promptText || 'Image unavailable');
+
+        img.setAttribute('data-text', displayText);
+
+        // Add placeholder CSS if not already present
+        this.addPlaceholderStyles();
+    }
+
+    addPlaceholderStyles() {
+        const styleId = 'pipeline-placeholder-styles';
+
+        if (document.getElementById(styleId)) {
+            return;
+        }
+
+        const style = document.createElement('style');
+
+        style.id = styleId;
+        style.textContent = `
+            .image-placeholder::before {
+                content: attr(data-placeholder) !important;
+                font-size: 2rem !important;
+                color: #6c757d !important;
+                margin-bottom: 0.5rem !important;
+                position: absolute !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                z-index: 2 !important;
+            }
+            .image-placeholder::after {
+                content: attr(data-text) !important;
+                position: absolute !important;
+                bottom: 8px !important;
+                left: 8px !important;
+                right: 8px !important;
+                font-size: 0.75rem !important;
+                color: #6c757d !important;
+                text-align: center !important;
+                background: rgba(255,255,255,0.9) !important;
+                padding: 4px !important;
+                border-radius: 4px !important;
+                font-family: system-ui, -apple-system, sans-serif !important;
+                z-index: 2 !important;
+            }
+            .image-loading {
+                opacity: 0.8 !important;
+                transition: opacity 0.3s ease !important;
+            }
+            .image-loaded {
+                opacity: 1 !important;
+                transition: opacity 0.3s ease !important;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     createImageWrapper(imageData) {

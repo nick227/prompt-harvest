@@ -1,0 +1,170 @@
+/**
+ * Image UI State Manager
+ * Extracted from images.js - handles UI states, button management, and user interactions
+ */
+
+class ImageUIState {
+    constructor() {
+        this.isGenerating = false;
+    }
+
+    disableGenerateButton() {
+        const generateBtn = document.querySelector('.btn-generate');
+
+        if (generateBtn) {
+            generateBtn.classList.add('processing');
+            generateBtn.textContent = 'Generating...';
+            generateBtn.disabled = true;
+            generateBtn.style.cssText = `
+                opacity: 0.7;
+                cursor: not-allowed;
+                animation: processing 1.5s ease-in-out infinite;
+            `;
+        }
+    }
+
+    enableGenerateButton() {
+        const generateBtn = document.querySelector('.btn-generate');
+
+        if (generateBtn) {
+            generateBtn.classList.remove('processing');
+            generateBtn.textContent = 'START';
+            generateBtn.disabled = false;
+            generateBtn.style.cssText = `
+                opacity: 1;
+                cursor: pointer;
+                animation: none;
+            `;
+        }
+    }
+
+    setGeneratingState(isGenerating) {
+        this.isGenerating = isGenerating;
+        if (isGenerating) {
+            this.disableGenerateButton();
+        } else {
+            this.enableGenerateButton();
+        }
+    }
+
+    isProviderSelected() {
+        const checkedProviders = Array.from(
+            document.querySelectorAll('input[name="providers"]:checked')
+        );
+
+        return checkedProviders.length > 0;
+    }
+
+    getCurrentPrompt() {
+        const textarea = document.querySelector('#prompt-textarea');
+
+        return textarea ? textarea.value.trim() : '';
+    }
+
+    getSelectedProviders() {
+        const checkedProviders = Array.from(
+            document.querySelectorAll('input[name="providers"]:checked')
+        );
+
+        return checkedProviders.map(input => input.value);
+    }
+
+    validateGenerationInputs() {
+        const prompt = this.getCurrentPrompt();
+        const providers = this.getSelectedProviders();
+
+        const errors = [];
+
+        if (!prompt) {
+            errors.push('Please enter a prompt');
+        }
+
+        if (providers.length === 0) {
+            errors.push('Please select at least one AI provider');
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors,
+            prompt,
+            providers
+        };
+    }
+
+    showValidationErrors(errors) {
+        errors.forEach(error => {
+            console.warn(`⚠️ VALIDATION: ${error}`);
+        });
+
+        // Could integrate with notification system here
+        if (window.ErrorHandler) {
+            window.ErrorHandler.showUserError(errors.join('. '));
+        }
+    }
+
+    showGenerationSuccess(_imageData) {
+        console.log('✅ Generation completed successfully');
+
+        // Could show success notification here
+        if (window.ErrorHandler) {
+            // Don't show success message for now to avoid spam
+            // window.ErrorHandler.showUserError('Image generated successfully!');
+        }
+    }
+
+    showGenerationError(error) {
+        console.error('❌ Generation failed:', error);
+
+        if (window.ErrorHandler) {
+            window.ErrorHandler.handleGenerationError(error);
+        } else {
+            console.warn('Image generation failed. Please try again.');
+        }
+    }
+
+    // Event listener management
+    setupEventListeners(handleGenerateClick) {
+        const generateBtn = document.querySelector('.btn-generate');
+
+        if (generateBtn) {
+            // Store bound function for proper event listener management
+            if (!this.boundHandleGenerateClick) {
+                this.boundHandleGenerateClick = handleGenerateClick;
+            }
+
+            // Remove any existing listeners to avoid duplicates
+            generateBtn.removeEventListener('click', this.boundHandleGenerateClick);
+
+            // Add the click listener
+            generateBtn.addEventListener('click', this.boundHandleGenerateClick);
+        } else {
+            console.error('❌ ImageUIState: Generate button not found');
+
+            // Only retry a limited number of times to prevent infinite loops
+            this.retryCount = (this.retryCount || 0) + 1;
+            if (this.retryCount < 5) {
+                setTimeout(() => {
+                    this.setupEventListeners(handleGenerateClick);
+                }, 1000);
+            } else {
+                console.error('❌ ImageUIState: Max retries reached, giving up on button setup');
+            }
+        }
+    }
+
+    cleanup() {
+        const generateBtn = document.querySelector('.btn-generate');
+
+        if (generateBtn && this.boundHandleGenerateClick) {
+            generateBtn.removeEventListener('click', this.boundHandleGenerateClick);
+        }
+    }
+}
+
+// Export for global access
+window.ImageUIState = ImageUIState;
+
+// Export for modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ImageUIState;
+}

@@ -22,6 +22,7 @@ export class TransactionService {
             });
 
             console.log(`✅ TRANSACTION: Successfully logged transaction ${transaction.id}`);
+
             return transaction;
         } catch (error) {
             console.error('❌ TRANSACTION: Error logging transaction:', error);
@@ -32,52 +33,13 @@ export class TransactionService {
     // Get user's generation statistics
     async getUserStats(userId, startDate = null, endDate = null) {
         try {
-            const whereClause = { userId };
+            const whereClause = this.buildDateFilter(userId, startDate, endDate);
+            const transactions = await this.getUserTransactions(whereClause);
+            const stats = this.calculateUserStats(transactions, userId, startDate, endDate);
 
-            if (startDate || endDate) {
-                whereClause.createdAt = {};
-                if (startDate) whereClause.createdAt.gte = startDate;
-                if (endDate) whereClause.createdAt.lte = endDate;
-            }
-
-            // Get transactions instead of images for accurate cost tracking
-            const transactions = await this.prisma.transaction.findMany({
-                where: whereClause,
-                select: {
-                    id: true,
-                    provider: true,
-                    count: true,
-                    cost: true,
-                    createdAt: true
-                },
-                orderBy: { createdAt: 'desc' }
-            });
-
-            // Calculate stats from transactions
-            const totalCost = transactions.reduce((sum, t) => sum + t.cost, 0);
-            const generationCount = transactions.reduce((sum, t) => sum + t.count, 0);
-
-            // Provider breakdown
-            const providerBreakdown = transactions.reduce((breakdown, t) => {
-                if (!breakdown[t.provider]) {
-                    breakdown[t.provider] = { count: 0, cost: 0 };
-                }
-                breakdown[t.provider].count += t.count;
-                breakdown[t.provider].cost += t.cost;
-                return breakdown;
-            }, {});
-
-            return {
-                userId,
-                period: { startDate, endDate },
-                totalCost,
-                generationCount,
-                providerBreakdown,
-                averageCostPerGeneration: generationCount > 0
-                    ? totalCost / generationCount
-                    : 0
-            };
+            return stats;
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Error getting user stats:', error);
             if (error.code === 'P1001' || error.code === 'P1008') {
                 throw new Error('Database connection failed');
@@ -92,11 +54,75 @@ export class TransactionService {
             return 0;
         }
 
-        const totalCost = providers.reduce((sum, provider) => {
-            return sum + calculateCost(provider);
-        }, 0);
+        const totalCost = providers.reduce((sum, provider) => sum + calculateCost(provider), 0);
 
         return totalCost;
+    }
+
+    /**
+     * Build date filter for queries
+     */
+    buildDateFilter(userId, startDate, endDate) {
+        const whereClause = { userId };
+
+        if (startDate || endDate) {
+            whereClause.createdAt = {};
+            if (startDate) {
+                whereClause.createdAt.gte = startDate;
+            }
+            if (endDate) {
+                whereClause.createdAt.lte = endDate;
+            }
+        }
+
+        return whereClause;
+    }
+
+    /**
+     * Get user transactions from database
+     */
+    async getUserTransactions(whereClause) {
+        return await this.prisma.transaction.findMany({
+            where: whereClause,
+            select: {
+                id: true,
+                provider: true,
+                count: true,
+                cost: true,
+                createdAt: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+
+    /**
+     * Calculate user statistics from transactions
+     */
+    calculateUserStats(transactions, userId, startDate, endDate) {
+        const totalCost = transactions.reduce((sum, t) => sum + t.cost, 0);
+        const generationCount = transactions.reduce((sum, t) => sum + t.count, 0);
+
+        // Provider breakdown
+        const providerBreakdown = transactions.reduce((breakdown, t) => {
+            if (!breakdown[t.provider]) {
+                breakdown[t.provider] = { count: 0, cost: 0 };
+            }
+            breakdown[t.provider].count += t.count;
+            breakdown[t.provider].cost += t.cost;
+
+            return breakdown;
+        }, {});
+
+        return {
+            userId,
+            period: { startDate, endDate },
+            totalCost,
+            generationCount,
+            providerBreakdown,
+            averageCostPerGeneration: generationCount > 0
+                ? totalCost / generationCount
+                : 0
+        };
     }
 
     // Get provider usage breakdown for a user
@@ -106,8 +132,12 @@ export class TransactionService {
 
             if (startDate || endDate) {
                 whereClause.createdAt = {};
-                if (startDate) whereClause.createdAt.gte = startDate;
-                if (endDate) whereClause.createdAt.lte = endDate;
+                if (startDate) {
+                    whereClause.createdAt.gte = startDate;
+                }
+                if (endDate) {
+                    whereClause.createdAt.lte = endDate;
+                }
             }
 
             const usage = await this.prisma.image.groupBy({
@@ -140,6 +170,7 @@ export class TransactionService {
     async getDailyUsage(userId, days = 30) {
         try {
             const startDate = new Date();
+
             startDate.setDate(startDate.getDate() - days);
 
             const images = await this.prisma.image.findMany({
@@ -160,7 +191,8 @@ export class TransactionService {
             const dailyUsage = {};
 
             images.forEach(image => {
-                const date = image.createdAt.toISOString().split('T')[0];
+                const [date] = image.createdAt.toISOString().split('T');
+
                 if (!dailyUsage[date]) {
                     dailyUsage[date] = {
                         date,
@@ -172,6 +204,7 @@ export class TransactionService {
 
                 dailyUsage[date].generationCount++;
                 const cost = calculateCost(image.provider);
+
                 dailyUsage[date].totalCost += cost;
 
                 if (!dailyUsage[date].providers[image.provider]) {
@@ -198,8 +231,12 @@ export class TransactionService {
 
             if (startDate || endDate) {
                 whereClause.createdAt = {};
-                if (startDate) whereClause.createdAt.gte = startDate;
-                if (endDate) whereClause.createdAt.lte = endDate;
+                if (startDate) {
+                    whereClause.createdAt.gte = startDate;
+                }
+                if (endDate) {
+                    whereClause.createdAt.lte = endDate;
+                }
             }
 
             const images = await this.prisma.image.findMany({

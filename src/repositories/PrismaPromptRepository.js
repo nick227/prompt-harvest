@@ -14,12 +14,12 @@ export class PrismaPromptRepository extends PrismaBaseRepository {
 
     async getPromptsByUserId(userId, limit = 8, page = 0) {
         const skip = page * limit;
-        
+
         return await this.prisma.prompts.findMany({
             where: { userId: userId || 'undefined' },
             orderBy: { createdAt: 'desc' },
             take: limit,
-            skip: skip
+            skip
         });
     }
 
@@ -27,11 +27,11 @@ export class PrismaPromptRepository extends PrismaBaseRepository {
         const prompt = await this.prisma.prompts.findUnique({
             where: { id }
         });
-        
+
         if (!prompt) {
             throw new NotFoundError(`Prompt with id ${id} not found`);
         }
-        
+
         return prompt;
     }
 

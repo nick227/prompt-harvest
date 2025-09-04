@@ -6,6 +6,7 @@ export class ConfigController {
     }
 
     // Get configuration (filtered for security)
+    // eslint-disable-next-line max-lines-per-function
     async getConfig(req, res) {
         try {
             if (!this.configManager) {

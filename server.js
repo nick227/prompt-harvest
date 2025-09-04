@@ -1,7 +1,5 @@
 import express from 'express';
-import User from './auth/User.js';
 import { setupRoutes } from './src/routes/index.js';
-import { authenticateToken } from './src/middleware/authMiddleware.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
@@ -15,13 +13,8 @@ app.use(cors({
     credentials: true
 }));
 
-new User(app);
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Apply JWT authentication middleware globally
-app.use(authenticateToken);
 
 // Serve static files BEFORE setting up routes
 app.use(express.static('public'));

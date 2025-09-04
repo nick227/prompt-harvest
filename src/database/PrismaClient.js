@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 class DatabaseClient {
     constructor() {
         this.prisma = new PrismaClient({
-            log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+            log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
         });
     }
 
@@ -38,6 +38,7 @@ class DatabaseClient {
     async healthCheck() {
         try {
             await this.prisma.$queryRaw`SELECT 1`;
+
             return { status: 'healthy', timestamp: new Date().toISOString() };
         } catch (error) {
             return { status: 'unhealthy', error: error.message, timestamp: new Date().toISOString() };
@@ -53,7 +54,7 @@ class DatabaseClient {
                 this.prisma.likes.count(),
                 this.prisma.tags.count(),
                 this.prisma.prompts.count(),
-                this.prisma.word_types.count(),
+                this.prisma.word_types.count()
             ]);
 
             return {
@@ -63,7 +64,7 @@ class DatabaseClient {
                 tags: tagCount,
                 prompts: promptCount,
                 wordTypes: wordTypeCount,
-                timestamp: new Date().toISOString(),
+                timestamp: new Date().toISOString()
             };
         } catch (error) {
             console.error('❌ Failed to get database stats:', error);

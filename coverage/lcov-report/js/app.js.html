@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/158</span>
+                <span class='fraction'>0/168</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/59</span>
+                <span class='fraction'>0/73</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/154</span>
+                <span class='fraction'>0/164</span>
             </div>
         
             
@@ -428,7 +428,27 @@
 <a name='L363'></a><a href='#L363'>363</a>
 <a name='L364'></a><a href='#L364'>364</a>
 <a name='L365'></a><a href='#L365'>365</a>
-<a name='L366'></a><a href='#L366'>366</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a>
+<a name='L383'></a><a href='#L383'>383</a>
+<a name='L384'></a><a href='#L384'>384</a>
+<a name='L385'></a><a href='#L385'>385</a>
+<a name='L386'></a><a href='#L386'>386</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -458,7 +478,14 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -547,12 +574,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -739,6 +777,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -821,6 +861,13 @@ class AppLoader {
 &nbsp;
 <span class="fstat-no" title="function not covered" >    as</span>ync loadCore() {
 <span class="cstat-no" title="statement not covered" >        await this.waitForDependencies(['Utils', 'StateManager', 'API_ENDPOINTS', 'apiService', 'userApi', 'imageApi']);</span>
+&nbsp;
+        // Initialize auth state manager early to prevent multiple auth queries
+<span class="cstat-no" title="statement not covered" >        if (window.authStateManager) {</span>
+<span class="cstat-no" title="statement not covered" >            console.log('🔐 APP: Auth state manager available');</span>
+        } else {
+<span class="cstat-no" title="statement not covered" >            console.warn('⚠️ APP: Auth state manager not available');</span>
+        }
     }
 &nbsp;
 <span class="fstat-no" title="function not covered" >    as</span>ync loadModules() {
@@ -918,7 +965,18 @@ class AppLoader {
     }
 &nbsp;
 <span class="fstat-no" title="function not covered" >    in</span>itializeComponents() {
-<span class="cstat-no" title="statement not covered" >        if (window.imageComponent/* TODO: Refactor nested ternary */?.init) {</span>
+        // Initialize new modular images system
+<span class="cstat-no" title="statement not covered" >        if (window.imagesManager &amp;&amp; window.imagesManager.init) {</span>
+<span class="cstat-no" title="statement not covered" >            console.log('🚀 Initializing ImagesManager...');</span>
+<span class="cstat-no" title="statement not covered" >            window.imagesManager.init();</span>
+        } else <span class="cstat-no" title="statement not covered" >if (window.ImagesManager) {</span>
+<span class="cstat-no" title="statement not covered" >            console.log('🚀 Creating and initializing ImagesManager...');</span>
+<span class="cstat-no" title="statement not covered" >            window.imagesManager = new window.ImagesManager();</span>
+<span class="cstat-no" title="statement not covered" >            window.imagesManager.init();</span>
+        }
+&nbsp;
+        // Legacy fallback
+<span class="cstat-no" title="statement not covered" >        if (window.imageComponent &amp;&amp; window.imageComponent.init) {</span>
 <span class="cstat-no" title="statement not covered" >            window.imageComponent.init();</span>
 <span class="cstat-no" title="statement not covered" >            window.imageComponent.reSetupEventDelegation?.();</span>
         }
@@ -1031,7 +1089,7 @@ class AppLoader {
         const _autoGenerateCheckbox = <span class="cstat-no" title="statement not covered" >document.querySelector('input[name="auto-generate"]');</span>
         const maxNumInput = <span class="cstat-no" title="statement not covered" >document.querySelector('input[name="maxNum"]');</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        if (!_autoGenerateCheckbox/* TODO: Refactor nested ternary */?.checked) {</span>
+<span class="cstat-no" title="statement not covered" >        if (!_autoGenerateCheckbox || !_autoGenerateCheckbox.checked) {</span>
 <span class="cstat-no" title="statement not covered" >            return;</span>
         }
 &nbsp;
@@ -1087,7 +1145,7 @@ class AppLoader {
     }
 &nbsp;
 <span class="fstat-no" title="function not covered" >    ge</span>tStatus() {
-        const _status = <span class="cstat-no" title="statement not covered" >{ /* Empty block */ };</span>
+        const status = <span class="cstat-no" title="statement not covered" >{};</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >        for (const [name, moduleInfo] of this.modules) {</span>
 <span class="cstat-no" title="statement not covered" >            status[name] = {</span>
@@ -1103,7 +1161,9 @@ class AppLoader {
 // Shared validation function for image generation
 const validateImageGeneration = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
     const textArea = <span class="cstat-no" title="statement not covered" >document.querySelector('#prompt-textarea');</span>
-    const selectedProviders = <span class="cstat-no" title="statement not covered" >window.providerManager/* TODO: Refactor nested ternary */?.getSelectedProviders() || [];</span>
+    const selectedProviders = <span class="cstat-no" title="statement not covered" >(window.providerManager &amp;&amp; window.providerManager.getSelectedProviders)</span>
+        ? window.providerManager.getSelectedProviders()
+        : [];
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    if (!textArea?.value.trim()) {</span>
 <span class="cstat-no" title="statement not covered" >        console.warn('Please enter a prompt');</span>
@@ -1135,7 +1195,7 @@ const validateImageGeneration = <span class="cstat-no" title="statement not cove
 <span class="cstat-no" title="statement not covered" >    window.app = app;</span>
 &nbsp;
     // Verify generation component is available
-<span class="cstat-no" title="statement not covered" >    if (window.generationComponent) { /* Empty block */ } else {</span>
+<span class="cstat-no" title="statement not covered" >    if (!window.generationComponent) {</span>
 <span class="cstat-no" title="statement not covered" >        console.warn('⚠️ Generation component not found, button may not work');</span>
     }
 &nbsp;
@@ -1165,7 +1225,7 @@ const validateImageGeneration = <span class="cstat-no" title="statement not cove
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-30T16:01:13.911Z
+                at 2025-09-03T20:56:34.733Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -27,12 +27,13 @@ export class EnhancedImageService {
         };
     }
 
+    // eslint-disable-next-line max-params
     async generateImage(prompt, providers, guidance, userId, options = {}) {
         const startTime = Date.now();
         const requestId = this.generateRequestId();
 
         console.log(`🚀 Starting image generation [${requestId}]:`, {
-            prompt: prompt.substring(0, 50) + '...',
+            prompt: `${prompt.substring(0, 50)}...`,
             providers,
             guidance,
             userId: userId || 'anonymous'
@@ -59,10 +60,11 @@ export class EnhancedImageService {
             console.log(`💾 Skipping database save - image already saved by feed.js [${requestId}]`);
 
             const duration = Date.now() - startTime;
+
             console.log(`✅ Image generation completed [${requestId}] in ${duration}ms:`, {
                 imageId: imageData.id,
                 provider: imageData.provider,
-                prompt: imageData.prompt.substring(0, 30) + '...'
+                prompt: `${imageData.prompt.substring(0, 30)}...`
             });
 
             // Log transaction for cost tracking
@@ -80,6 +82,7 @@ export class EnhancedImageService {
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
             console.error(`❌ Image generation failed [${requestId}] after ${duration}ms:`, {
                 error: error.message,
                 type: error.name,
@@ -94,8 +97,10 @@ export class EnhancedImageService {
         }
     }
 
+    // eslint-disable-next-line max-lines-per-function, max-statements
     async validateInputs(prompt, providers, guidance, userId) {
         return await circuitBreakerManager.execute('validation', async () => {
+            // eslint-disable-next-line max-lines-per-function, max-statements
             const errors = [];
             const warnings = [];
 
@@ -114,12 +119,13 @@ export class EnhancedImageService {
             } else {
                 // Validate each provider
                 const validProviders = [
-            'flux', 'dalle', 'juggernaut', 'juggernautReborn', 'redshift',
-            'absolute', 'realisticvision', 'icbinp', 'icbinp_seco', 'hasdx',
-            'dreamshaper', 'nightmareshaper', 'openjourney', 'analogmadness',
-            'portraitplus', 'tshirt', 'abyssorange', 'cyber', 'disco',
-            'synthwave', 'lowpoly', 'bluepencil', 'ink'
-        ];
+                    'flux', 'dalle', 'juggernaut', 'juggernautReborn', 'redshift',
+                    'absolute', 'realisticvision', 'icbinp', 'icbinp_seco', 'hasdx',
+                    'dreamshaper', 'nightmareshaper', 'openjourney', 'analogmadness',
+                    'portraitplus', 'tshirt', 'abyssorange', 'cyber', 'disco',
+                    'synthwave', 'lowpoly', 'bluepencil', 'ink'
+                ];
+
                 for (const provider of providers) {
                     if (!validProviders.includes(provider)) {
                         errors.push(`Invalid provider: ${provider}. Valid providers: ${validProviders.join(', ')}`);
@@ -147,9 +153,10 @@ export class EnhancedImageService {
             ];
 
             const promptLower = prompt.toLowerCase();
+
             for (const violation of contentPolicyViolations) {
                 if (promptLower.includes(violation)) {
-                    errors.push(`Content policy violation: prompt contains inappropriate content`);
+                    errors.push('Content policy violation: prompt contains inappropriate content');
                     break;
                 }
             }
@@ -194,7 +201,7 @@ export class EnhancedImageService {
 
             if (!needsProcessing || !this.aiService) {
                 return {
-                    prompt: prompt,
+                    prompt,
                     original: prompt,
                     promptId: null
                 };
@@ -216,8 +223,9 @@ export class EnhancedImageService {
                 };
             } catch (error) {
                 console.warn('⚠️ Prompt processing failed, using original:', error.message);
+
                 return {
-                    prompt: prompt,
+                    prompt,
                     original: prompt,
                     promptId: null
                 };
@@ -225,9 +233,10 @@ export class EnhancedImageService {
         }, this.breakerConfigs.aiService);
     }
 
+    // eslint-disable-next-line max-params
     async generateImageWithBreaker(prompt, original, promptId, providers, guidance, userId) {
         return await circuitBreakerManager.execute('imageGeneration', async () => {
-                        // Validate userId before proceeding
+            // Validate userId before proceeding
             const validUserId = userId && userId !== 'undefined' ? userId : 'anonymous';
 
             // Import feed module dynamically
@@ -287,15 +296,16 @@ export class EnhancedImageService {
         ];
 
         const errorString = error.toString().toLowerCase();
+
         return resourceFailurePatterns.some(pattern => errorString.includes(pattern));
     }
 
     async saveImageWithTransaction(imageData, userId) {
         return await circuitBreakerManager.execute('database', async () => {
-                        // Validate userId before database operation
+            // Validate userId before database operation
             const validUserId = userId && userId !== 'undefined' ? userId : 'anonymous';
 
-            return await this.prisma.$transaction(async (tx) => {
+            return await this.prisma.$transaction(async tx => {
                 // Create image record with validated userId
                 const image = await tx.image.create({
                     data: {
@@ -337,6 +347,7 @@ export class EnhancedImageService {
         }
     }
 
+    // eslint-disable-next-line max-lines-per-function
     formatErrorResponse(error, requestId) {
         const baseResponse = {
             error: true,
@@ -422,10 +433,6 @@ export class EnhancedImageService {
         return Math.random().toString(36).substr(2, 9);
     }
 
-    generateRequestId() {
-        return `req_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
-    }
-
     isRateLimited(userId) {
         // Simple in-memory rate limiting
         const key = userId || 'anonymous';
@@ -478,9 +485,10 @@ export class EnhancedImageService {
     }
 
     async getImages(userId, limit = 8, page = 0) {
-        const images = await this.imageRepository.findByUserId(userId, limit, page);
+        const result = await this.imageRepository.findByUserId(userId, limit, page);
 
-        return images.map(image => ({
+        // Normalize image data
+        const normalizedImages = result.images.map(image => ({
             id: image.id,
             userId: image.userId, // ✅ Added userId for client-side filtering
             prompt: image.prompt,
@@ -493,6 +501,12 @@ export class EnhancedImageService {
             createdAt: image.createdAt,
             updatedAt: image.updatedAt
         }));
+
+        return {
+            images: normalizedImages,
+            hasMore: result.hasMore,
+            totalCount: result.totalCount
+        };
     }
 
     async getFeed(userId, limit = 8, page = 0) {

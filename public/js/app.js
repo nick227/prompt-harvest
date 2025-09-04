@@ -26,6 +26,13 @@ class AppLoader {
 
     async loadCore() {
         await this.waitForDependencies(['Utils', 'StateManager', 'API_ENDPOINTS', 'apiService', 'userApi', 'imageApi']);
+
+        // Initialize auth state manager early to prevent multiple auth queries
+        if (window.authStateManager) {
+            console.log('🔐 APP: Auth state manager available');
+        } else {
+            console.warn('⚠️ APP: Auth state manager not available');
+        }
     }
 
     async loadModules() {
@@ -123,7 +130,18 @@ class AppLoader {
     }
 
     initializeComponents() {
-        if (window.imageComponent/* TODO: Refactor nested ternary */?.init) {
+        // Initialize new modular images system
+        if (window.imagesManager && window.imagesManager.init) {
+            console.log('🚀 Initializing ImagesManager...');
+            window.imagesManager.init();
+        } else if (window.ImagesManager) {
+            console.log('🚀 Creating and initializing ImagesManager...');
+            window.imagesManager = new window.ImagesManager();
+            window.imagesManager.init();
+        }
+
+        // Legacy fallback
+        if (window.imageComponent && window.imageComponent.init) {
             window.imageComponent.init();
             window.imageComponent.reSetupEventDelegation?.();
         }
@@ -236,7 +254,7 @@ class AppLoader {
         const _autoGenerateCheckbox = document.querySelector('input[name="auto-generate"]');
         const maxNumInput = document.querySelector('input[name="maxNum"]');
 
-        if (!_autoGenerateCheckbox/* TODO: Refactor nested ternary */?.checked) {
+        if (!_autoGenerateCheckbox || !_autoGenerateCheckbox.checked) {
             return;
         }
 
@@ -292,7 +310,7 @@ class AppLoader {
     }
 
     getStatus() {
-        const _status = { /* Empty block */ };
+        const status = {};
 
         for (const [name, moduleInfo] of this.modules) {
             status[name] = {
@@ -308,7 +326,9 @@ class AppLoader {
 // Shared validation function for image generation
 const validateImageGeneration = () => {
     const textArea = document.querySelector('#prompt-textarea');
-    const selectedProviders = window.providerManager/* TODO: Refactor nested ternary */?.getSelectedProviders() || [];
+    const selectedProviders = (window.providerManager && window.providerManager.getSelectedProviders)
+        ? window.providerManager.getSelectedProviders()
+        : [];
 
     if (!textArea?.value.trim()) {
         console.warn('Please enter a prompt');
@@ -340,7 +360,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     window.app = app;
 
     // Verify generation component is available
-    if (window.generationComponent) { /* Empty block */ } else {
+    if (!window.generationComponent) {
         console.warn('⚠️ Generation component not found, button may not work');
     }
 

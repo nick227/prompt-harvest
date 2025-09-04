@@ -1,0 +1,9 @@
+-- AlterTable
+ALTER TABLE `images` ADD COLUMN `mashup` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `mixup` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `multiplier` BOOLEAN NOT NULL DEFAULT false;
+
+-- AlterTable
+ALTER TABLE `prompts` ADD COLUMN `mashup` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `mixup` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `multiplier` BOOLEAN NOT NULL DEFAULT false;

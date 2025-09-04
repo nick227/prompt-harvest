@@ -28,7 +28,7 @@ class StatsManager {
                 this.showMilestoneAlert(count);
             }
         } catch (error) {
-            // stats fetch error
+            console.error('Stats fetch error:', error);
         }
     }
 
@@ -66,7 +66,11 @@ class StatsManager {
     showMilestoneAlert (count) {
         const message = `You have created ${count} images! These images are not not free. Please consider chipping in a few bucks. Thank You!`;
 
-        console.warn(message);
+        if (typeof alert !== 'undefined') {
+            alert(message);
+        } else {
+            console.warn(message);
+        }
     }
 
     // utility methods for external access
@@ -101,6 +105,11 @@ class StatsManager {
         return [...this.history];
     }
 
+    // Alias for backward compatibility
+    getStatsHistory () {
+        return this.getHistory();
+    }
+
     getAverageCost () {
         if (this.history.length === 0) {
             return 0;
@@ -124,6 +133,20 @@ class StatsManager {
             current: this.getCurrentStats().cost,
             projected: this.formatCurrency(remainingCount * costPerImage),
             additionalCost: remainingCount * costPerImage
+        };
+    }
+
+    // Alias for backward compatibility
+    calculateProjectedCost (currentCount, additionalImages) {
+        const projectedCount = currentCount + additionalImages;
+        const currentCost = this.calculateCost(currentCount);
+        const projectedCost = this.calculateCost(projectedCount);
+        const additionalCost = this.calculateCost(additionalImages);
+
+        return {
+            currentCost,
+            projectedCost,
+            additionalCost
         };
     }
 

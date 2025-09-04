@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing & Credits - Image Harvest</title>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/optimized.css" as="style">
+    <link rel="preload" href="css/billing-optimized.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+
+    <!-- Critical CSS -->
+    <link rel="stylesheet" href="css/optimized.css">
+    <link rel="stylesheet" href="css/billing-optimized.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        custom: '#123456',
+                    },
+                },
+            },
+        }
+    </script>
+
+    <!-- SEO and Social Meta -->
+    <meta name="description" content="Manage your AI image generation credits, view payment history, and purchase additional credits securely with Stripe.">
+    <meta name="keywords" content="AI image generation, credits, billing, payment, Stripe">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Billing & Credits - Image Harvest">
+    <meta property="og:description" content="Manage your AI image generation credits and payment history">
+    <meta property="og:type" content="website">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body class="bg-gray-50">
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded">
+        Skip to main content
+    </a>
+
+    <!-- Header Component loads automatically via header-component.js -->
+
+    <main id="main-content" class="billing-container" role="main">
+        <!-- Billing Header -->
+        <header class="billing-header">
+            <h1><i class="fas fa-credit-card" aria-hidden="true"></i> Billing & Credits</h1>
+            <p>Manage your credits, view payment history, and purchase additional credits for AI image generation</p>
+        </header>
+
+        <!-- Alert Messages -->
+        <div id="error-message" class="error-message" role="alert" aria-live="polite"></div>
+        <div id="success-message" class="success-message" role="alert" aria-live="polite"></div>
+
+        <!-- Current Balance & Quick Actions -->
+        <section class="billing-grid" aria-label="Account Overview">
+            <!-- Current Balance Card -->
+            <article class="billing-card">
+                <h2><i class="fas fa-coins" aria-hidden="true"></i> Current Balance</h2>
+                <div class="credit-balance">
+                    <div id="current-credits" class="credit-amount" aria-label="Current credit balance">
+                        <div class="skeleton-circle skeleton"></div>
+                    </div>
+                    <div class="credit-label">Available Credits</div>
+                    <button id="add-credits-btn" class="add-credits-btn" aria-describedby="credits-help">
+                        <i class="fas fa-plus" aria-hidden="true"></i> Add More Credits
+                    </button>
+                    <div id="credits-help" class="sr-only">
+                        Click to view and purchase additional credit packages
+                    </div>
+                </div>
+            </article>
+
+            <!-- Usage Summary Card -->
+            <article class="billing-card">
+                <h2><i class="fas fa-chart-line" aria-hidden="true"></i> Usage Summary</h2>
+                <div id="usage-summary">
+                    <div class="skeleton-card">
+                        <div class="skeleton-line skeleton"></div>
+                        <div class="skeleton-line skeleton"></div>
+                        <div class="skeleton-line skeleton"></div>
+                        <div class="skeleton-line short skeleton"></div>
+                    </div>
+
+                    <!-- Content loaded by JavaScript -->
+                    <div id="usage-content" class="hidden">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <span>Total Images Generated:</span>
+                            <strong id="total-images" aria-label="Total images generated">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <span>Credits Used This Month:</span>
+                            <strong id="monthly-usage" aria-label="Credits used this month">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <span>Total Credits Purchased:</span>
+                            <strong id="total-purchased" aria-label="Total credits purchased">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Account Created:</span>
+                            <strong id="account-created" aria-label="Account creation date">-</strong>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- Promo Code Section -->
+        <section class="history-section" aria-label="Promo Code Redemption">
+            <h2><i class="fas fa-ticket-alt" aria-hidden="true"></i> Redeem Promo Code</h2>
+            <div class="promo-section">
+                <div class="info-box">
+                    <h3><i class="fas fa-gift" aria-hidden="true"></i> Have a Promo Code?</h3>
+                    <p>Enter your promo code below to add free credits to your account. Promo codes can only be used once per account.</p>
+                </div>
+
+                <div class="promo-form">
+                    <div class="promo-input-group">
+                        <input
+                            type="text"
+                            id="promo-code-input"
+                            placeholder="Enter promo code (e.g., WELCOME5)"
+                            class="promo-input"
+                            maxlength="20"
+                            aria-label="Promo code"
+                        >
+                        <button id="redeem-promo-btn" class="redeem-promo-btn">
+                            <i class="fas fa-ticket-alt" aria-hidden="true"></i> Redeem
+                        </button>
+                    </div>
+                    <div id="promo-message" class="promo-message" role="alert" aria-live="polite"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Credit Packages Section -->
+        <section id="credit-packages" class="hidden" aria-label="Credit Packages">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">
+                <i class="fas fa-shopping-cart" aria-hidden="true"></i> Choose Your Credit Package
+            </h2>
+
+            <div class="info-box">
+                <h3><i class="fas fa-info-circle" aria-hidden="true"></i> How Credits Work</h3>
+                <p>Each AI image generation uses credits based on the provider and settings. DALL-E 3 uses more credits than DALL-E 2, and multipliers increase credit usage. Credits never expire!</p>
+            </div>
+
+            <!-- Package Grid -->
+            <div id="packages-grid" class="package-grid" role="list" aria-label="Available credit packages">
+                <!-- Skeleton loading for packages -->
+                <div class="skeleton-card skeleton">
+                    <div class="skeleton-circle skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line short skeleton"></div>
+                    <div class="skeleton-button skeleton"></div>
+                </div>
+                <div class="skeleton-card skeleton">
+                    <div class="skeleton-circle skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line short skeleton"></div>
+                    <div class="skeleton-button skeleton"></div>
+                </div>
+                <div class="skeleton-card skeleton">
+                    <div class="skeleton-circle skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line short skeleton"></div>
+                    <div class="skeleton-button skeleton"></div>
+                </div>
+                <div class="skeleton-card skeleton">
+                    <div class="skeleton-circle skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line short skeleton"></div>
+                    <div class="skeleton-button skeleton"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Payment History Section -->
+        <section class="history-section" aria-label="Payment History">
+            <h2><i class="fas fa-history" aria-hidden="true"></i> Payment History</h2>
+            <div id="payment-history">
+                <!-- Skeleton loading -->
+                <div class="skeleton-card">
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line medium skeleton"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Credit History Section -->
+        <section class="history-section" aria-label="Credit History">
+            <h2><i class="fas fa-list" aria-hidden="true"></i> Credit History</h2>
+            <div id="credit-history">
+                <!-- Skeleton loading -->
+                <div class="skeleton-card">
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line medium skeleton"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts - loaded at end for performance -->
+    <script type="module" src="js/core/constants.js"></script>
+    <script src="js/core/api-service.js"></script>
+    <script src="js/core/user-system.js"></script>
+    <script type="module" src="js/components/header-component.js"></script>
+    <script type="module" src="js/components/credit-balance-widget.js"></script>
+    
+    <!-- Modular Billing System -->
+    <script src="js/modules/billing/billing-constants.js"></script>
+    <script src="js/modules/billing/billing-api-manager.js"></script>
+    <script src="js/modules/billing/billing-data-manager.js"></script>
+    <script src="js/modules/billing/billing-dom-manager.js"></script>
+    <script src="js/modules/billing/billing-ui-manager.js"></script>
+    <script src="js/modules/billing/billing-manager.js"></script>
+    <script src="js/billing-modular.js"></script>
+
+    <!-- Performance monitoring (optional) -->
+    <script>
+        // Basic performance monitoring
+        window.addEventListener('load', () => {
+            if ('performance' in window) {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                console.log('🚀 Page Load Performance:', {
+                    domContentLoaded: Math.round(perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart),
+                    loadComplete: Math.round(perfData.loadEventEnd - perfData.loadEventStart),
+                    totalTime: Math.round(perfData.loadEventEnd - perfData.fetchStart)
+                });
+            }
+        });
+
+        // Error tracking
+        window.addEventListener('error', (event) => {
+            console.error('🚨 JavaScript Error:', {
+                message: event.message,
+                filename: event.filename,
+                line: event.lineno,
+                column: event.colno
+            });
+        });
+
+        // Unhandled promise rejection tracking
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('🚨 Unhandled Promise Rejection:', event.reason);
+        });
+    </script>
+</body>
+</html>

@@ -13,6 +13,7 @@ export class TagService {
 
         // Check if tag already exists for this image
         const existingTag = await this.tagRepository.findTag(userId, imageId, tag);
+
         if (existingTag) {
             throw new ValidationError('Tag already exists for this image');
         }

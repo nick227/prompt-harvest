@@ -69,13 +69,18 @@ export class ImageController {
 
     async getImages(req, res) {
         try {
-            const userId = req.user?.id; // Use req.user.id instead of req.user._id
+            const { id: userId } = req.user || {}; // Use consistent field name
             const limit = parseInt(req.query.limit) || 8;
             const page = parseInt(req.query.page) || 0;
 
-            const images = await this.imageService.getImages(userId, limit, page);
+            const result = await this.imageService.getImages(userId, limit, page);
 
-            res.send(images);
+            res.json({
+                success: true,
+                images: result.images,
+                hasMore: result.hasMore,
+                totalCount: result.totalCount
+            });
         } catch (error) {
             console.error('❌ Get images error:', error);
             throw new DatabaseError(error.message, 'find');
@@ -84,7 +89,7 @@ export class ImageController {
 
     async getImageCount(req, res) {
         try {
-            const userId = req.user?.id; // Use consistent field name
+            const { id: userId } = req.user || {}; // Use consistent field name
             const result = await this.imageService.getImageCount(userId);
 
             res.send(result);
@@ -97,24 +102,34 @@ export class ImageController {
     async getFeed(req, res) {
         try {
             // Support both authenticated user and explicit userId parameter
-            let userId = req.user?.id; // Use consistent field name
+            let { id: userId } = req.user || {}; // Use consistent field name
 
             // If userId is provided in query params, use it (for owner filtering)
             if (req.query.userId) {
-                userId = req.query.userId;
+                const { userId: queryUserId } = req.query;
+
+                userId = queryUserId;
+                // eslint-disable-next-line no-console
                 console.log('🔧 Feed request with explicit userId:', userId);
             } else {
+                // eslint-disable-next-line no-console
                 console.log('🔧 Feed request with authenticated user:', userId || 'anonymous');
             }
 
             const limit = parseInt(req.query.limit) || 8;
             const page = parseInt(req.query.page) || 0;
 
-            const images = await this.imageService.getFeed(userId, limit, page);
+            const result = await this.imageService.getFeed(userId, limit, page);
 
-            console.log(`✅ Feed returned ${images.length} images for userId: ${userId || 'all'}`);
+            // eslint-disable-next-line no-console
+            console.log(`✅ Feed returned ${result.images.length} images for userId: ${userId || 'all'}`);
 
-            res.send(images);
+            res.json({
+                success: true,
+                images: result.images,
+                hasMore: result.hasMore,
+                totalCount: result.totalCount
+            });
         } catch (error) {
             console.error('❌ Get feed error:', error);
             throw new DatabaseError(error.message, 'feed');
@@ -123,7 +138,7 @@ export class ImageController {
 
     async getImagesCount(req, res) {
         try {
-            const userId = req.user?.id; // Use consistent field name
+            const { id: userId } = req.user || {}; // Use consistent field name
             const result = await this.imageService.getImageCount(userId);
 
             res.send(result);

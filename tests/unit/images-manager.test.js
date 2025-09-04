@@ -1,5 +1,6 @@
 /**
- * @jest-environment jsdom
+ * @fileoverview Images Manager Unit Tests
+ * Tests for image management functionality
  */
 
 import '../setup.js';
@@ -12,6 +13,9 @@ const mockImagesManager = {
     selectors: {
       imageContainer: '.prompt-output'
     }
+  },
+  ui: {
+    setupEventListeners: jest.fn()
   },
   init: jest.fn(),
   setupEventListeners: jest.fn(),
@@ -61,8 +65,11 @@ describe('Images Manager', () => {
     });
 
     it('should set up event listeners on initialization', () => {
+      mockImagesManager.init.mockImplementation(() => {
+        mockImagesManager.ui.setupEventListeners();
+      });
       mockImagesManager.init();
-      expect(mockImagesManager.setupEventListeners).toHaveBeenCalled();
+      expect(mockImagesManager.ui.setupEventListeners).toHaveBeenCalled();
     });
   });
 

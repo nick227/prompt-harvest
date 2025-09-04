@@ -111,40 +111,44 @@ class TransactionStatsComponent {
         }
 
         try {
-            this.isLoading = true;
-            this.showLoadingState();
-
-            // Check if we have the API service available
-            if (!window.apiService) {
-                console.warn('⚠️ API service not available');
-                this.showErrorState();
-
-                return;
-            }
-
-            // Check if user is authenticated before making API call
-            if (!window.userApi || !window.userApi.isAuthenticated()) {
-                console.log('📊 STATS-COMPONENT: User not authenticated, showing not authenticated state');
-                this.showNotAuthenticatedState();
-
-                return;
-            }
-
-            // Fetch user stats
-            const response = await window.apiService.get('/api/transactions/user/stats');
-
-            if (response.success) {
-                this.stats = response.data;
-                this.updateDisplay();
-            } else {
-                console.error('❌ Failed to load stats:', response.error);
-                this.showErrorState();
-            }
+            this.loadStatsDirectly();
         } catch (error) {
             console.error('❌ Error loading transaction stats:', error);
             this.showErrorState();
         } finally {
             this.isLoading = false;
+        }
+    }
+
+    async loadStats() {
+        this.isLoading = true;
+        this.showLoadingState();
+
+        // Check if we have the API service available
+        if (!window.apiService) {
+            console.warn('⚠️ API service not available');
+            this.showErrorState();
+
+            return;
+        }
+
+        // Check if user is authenticated before making API call
+        if (!window.userApi || !window.userApi.isAuthenticated()) {
+            console.log('📊 STATS-COMPONENT: User not authenticated, showing not authenticated state');
+            this.showNotAuthenticatedState();
+
+            return;
+        }
+
+        // Fetch user stats
+        const response = await window.apiService.get('/api/transactions/user/stats');
+
+        if (response.success) {
+            this.stats = response.data;
+            this.updateDisplay();
+        } else {
+            console.error('❌ Failed to load stats:', response.error);
+            this.showErrorState();
         }
     }
 
@@ -160,6 +164,9 @@ class TransactionStatsComponent {
         if (!this.container || !this.stats) {
             return;
         }
+
+        // Ensure the container is visible when showing stats
+        this.container.style.display = 'block';
 
         const { generationCount, totalCost } = this.stats;
 
@@ -185,6 +192,9 @@ class TransactionStatsComponent {
             return;
         }
 
+        // Ensure the container is visible when loading
+        this.container.style.display = 'block';
+
         this.container.innerHTML = `
             <div class="flex items-center space-x-2 text-sm">
                 <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-400"></div>
@@ -198,12 +208,8 @@ class TransactionStatsComponent {
             return;
         }
 
-        this.container.innerHTML = `
-            <div class="flex items-center space-x-2 text-sm">
-                <i class="fas fa-chart-bar text-gray-500"></i>
-                <span class="text-gray-500">Stats</span>
-            </div>
-        `;
+        // Hide the stats container completely when not authenticated
+        this.container.style.display = 'none';
     }
 
     showErrorState() {

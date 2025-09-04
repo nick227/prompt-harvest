@@ -1,11 +1,13 @@
 import { systemMonitor } from '../monitoring/SystemMonitor.js';
 import { validateAuthentication } from '../middleware/enhancedValidation.js';
 
-export const setupMonitoringRoutes = (app) => {
+// eslint-disable-next-line max-lines-per-function
+export const setupMonitoringRoutes = app => {
     // System health check (public)
     app.get('/api/health', async (req, res) => {
         try {
             const health = await systemMonitor.checkSystemHealth();
+
             res.json({
                 success: true,
                 data: health,
@@ -34,6 +36,7 @@ export const setupMonitoringRoutes = (app) => {
 
         try {
             const metrics = systemMonitor.getMetrics();
+
             res.json({
                 success: true,
                 data: metrics,
@@ -62,6 +65,7 @@ export const setupMonitoringRoutes = (app) => {
 
         try {
             const alerts = systemMonitor.getAlerts();
+
             res.json({
                 success: true,
                 data: alerts,
@@ -90,8 +94,9 @@ export const setupMonitoringRoutes = (app) => {
 
         try {
             const { alertId } = req.params;
+
             systemMonitor.acknowledgeAlert(alertId);
-            
+
             res.json({
                 success: true,
                 message: 'Alert acknowledged',
@@ -120,10 +125,10 @@ export const setupMonitoringRoutes = (app) => {
 
         try {
             const { fileSystemManager } = await import('../utils/FileSystemManager.js');
-            
+
             const diskUsage = fileSystemManager.getDiskUsage();
             const recentImages = await fileSystemManager.listImages(20);
-            
+
             res.json({
                 success: true,
                 data: {
@@ -157,17 +162,17 @@ export const setupMonitoringRoutes = (app) => {
         try {
             const { fileSystemManager } = await import('../utils/FileSystemManager.js');
             const { databaseClient } = await import('../database/PrismaClient.js');
-            
+
             // Get all valid image IDs from database
             const prisma = databaseClient.getClient();
             const validImages = await prisma.image.findMany({
                 select: { id: true }
             });
             const validImageIds = validImages.map(img => img.id);
-            
+
             // Cleanup orphaned files
             const cleanedCount = await fileSystemManager.cleanupOrphanedFiles(validImageIds);
-            
+
             res.json({
                 success: true,
                 data: {
@@ -199,7 +204,7 @@ export const setupMonitoringRoutes = (app) => {
 
         try {
             const { action } = req.params;
-            
+
             if (action === 'start') {
                 systemMonitor.start();
                 res.json({
@@ -231,5 +236,6 @@ export const setupMonitoringRoutes = (app) => {
         }
     });
 
+    // eslint-disable-next-line no-console
     console.log('✅ Monitoring routes configured');
 };

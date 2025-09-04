@@ -1,0 +1,73 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e4]:
+      - link "AutoImage AI Image Generation" [ref=e6]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e10]:
+          - heading "AutoImage" [level=1] [ref=e11]
+          - paragraph [ref=e12]: AI Image Generation
+      - navigation
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: /
+          - link "Register" [ref=e16]:
+            - /url: /register.html
+        - link:
+          - /url: /terms.html
+    - generic [ref=e18]:
+      - link "Login" [ref=e19]:
+        - /url: /login.html
+      - link "Register" [ref=e20]:
+        - /url: /register.html
+  - generic [ref=e30]:
+    - generic [ref=e31]:
+      - img [ref=e35]
+      - heading "Join AutoImage" [level=1] [ref=e38]
+      - paragraph [ref=e39]: Start your creative journey today
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - generic [ref=e43]: Email Address
+          - generic [ref=e44]:
+            - textbox "Email Address" [ref=e45]
+            - generic:
+              - img
+        - generic [ref=e46]:
+          - generic [ref=e47]: Password
+          - generic [ref=e48]:
+            - textbox "Password" [ref=e49]
+            - generic:
+              - img
+          - paragraph [ref=e50]: Password must be at least 6 characters long
+        - generic [ref=e51]:
+          - generic [ref=e52]: Confirm Password
+          - generic [ref=e53]:
+            - textbox "Confirm Password" [ref=e54]
+            - generic:
+              - img
+        - button "Create Account" [ref=e55] [cursor=pointer]:
+          - img [ref=e57] [cursor=pointer]
+          - text: Create Account
+      - generic [ref=e63]: Already have an account?
+      - link "Sign in to your account" [ref=e65]:
+        - /url: /login.html
+        - generic [ref=e66]: Sign in to your account
+        - img [ref=e67]
+    - generic [ref=e69]:
+      - heading "What you'll get with AutoImage:" [level=3] [ref=e70]
+      - generic [ref=e71]:
+        - generic [ref=e74]: Batch AI image generation
+        - generic [ref=e77]: Advanced prompt engineering tools
+        - generic [ref=e80]: Multiple AI providers and styles
+    - paragraph [ref=e82]:
+      - text: By creating an account, you agree to our
+      - link "Terms of Service" [ref=e83]:
+        - /url: /terms.html
+      - text: and
+      - link "Privacy Policy" [ref=e84]:
+        - /url: /privacy.html
+```

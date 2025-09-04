@@ -354,14 +354,24 @@ const setupWordRoutes = app => {
     });
 
     app.get('/words', async(req, res) => {
-        const db = new DB('word-types.db');
-        let response = await db.find({ projection: JSON.stringify({ word: 1 }) });
+        try {
+            // Use Prisma to query the new MySQL word_types table
+            const { PrismaClient } = await import('@prisma/client');
+            const prisma = new PrismaClient();
 
-        response = response.map(doc => doc.word);
+            const wordRecords = await prisma.word_types.findMany({
+                select: { word: true }
+            });
 
-        response.sort();
+            const response = wordRecords.map(record => record.word);
+            response.sort();
 
-        res.send(response);
+            await prisma.$disconnect();
+            res.send(response);
+        } catch (error) {
+            console.error('Error fetching words:', error);
+            res.status(500).send({ error: 'Failed to fetch words' });
+        }
     });
 
     app.get('/ai/word/add/:word', async(req, res) => {
@@ -394,29 +404,31 @@ const getWordExamplesList = async(word, limit = 8) => {
 };
 
 const getWordTypesList = async(word, limit = 8) => {
-    const db = new DB('word-types.db');
-    const docs = await db.find({
-        limit,
-        $or: [
-            { word }
-        ]
-    });
+    try {
+        // Use Prisma to query the new MySQL word_types table
+        const { PrismaClient } = await import('@prisma/client');
+        const prisma = new PrismaClient();
 
-    // Check if docs array exists and has at least one element
-    if (!docs || docs.length === 0 || !docs[0]) {
+        const wordRecord = await prisma.word_types.findUnique({
+            where: { word: word.toLowerCase() }
+        });
+
+        await prisma.$disconnect();
+
+        if (!wordRecord || !wordRecord.types) {
+            return [];
+        }
+
+        const types = Array.isArray(wordRecord.types) ? wordRecord.types : [];
+        return types.slice(0, limit).sort();
+    } catch (error) {
+        console.error('Error fetching word types:', error);
         return [];
     }
-
-    const types = docs[0].types || [];
-
-    types.sort();
-
-    return types;
 };
 
 const addAiWordType = async word => {
     try {
-        const db = new DB('word-types.db');
         const options = createAddWordAIOptions(word);
         const openai = new OpenAI();
         const res = await openai.chat.completions.create(options);
@@ -425,17 +437,23 @@ const addAiWordType = async word => {
         if (resObj && typeof resObj.types === 'object') {
             const { types } = resObj;
 
-            db.insert({ word, types }, (err, newDoc) => {
-                if (err) {
-                    console.error(`Failed to insert record: ${err}`);
+            // Use Prisma to insert into the new MySQL word_types table
+            const { PrismaClient } = await import('@prisma/client');
+            const prisma = new PrismaClient();
+
+            await prisma.word_types.create({
+                data: {
+                    word: word.toLowerCase(),
+                    types: types
                 }
             });
+
+            await prisma.$disconnect();
         }
 
         return res;
     } catch (error) {
         console.error(error);
-
         return { error: error.message };
     }
 };

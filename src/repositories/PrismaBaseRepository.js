@@ -46,7 +46,7 @@ export class PrismaBaseRepository {
     async findByUserId(userId, options = {}) {
         try {
             const { skip = 0, take = 10, orderBy = { createdAt: 'desc' } } = options;
-            
+
             return await this.prisma[this.modelName].findMany({
                 where: { userId },
                 skip,
@@ -96,7 +96,7 @@ export class PrismaBaseRepository {
     async findWithPagination(options = {}) {
         try {
             const { skip = 0, take = 10, where = {}, orderBy = { createdAt: 'desc' }, include = {} } = options;
-            
+
             const [data, total] = await Promise.all([
                 this.prisma[this.modelName].findMany({
                     where,

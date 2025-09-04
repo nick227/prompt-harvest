@@ -7,11 +7,14 @@ import { Resend } from 'resend';
 class EmailService {
     constructor() {
         this.resend = new Resend(process.env.RESEND_API_KEY);
-        this.fromEmail = process.env.FROM_EMAIL || 'noreply@yourdomain.com';
+        this.fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev'; // Use Resend's test domain for dev
         this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3200';
+        this.isConfigured = !!(process.env.RESEND_API_KEY);
 
-        if (!process.env.RESEND_API_KEY) {
-            console.warn('⚠️  RESEND_API_KEY not found in environment variables');
+        if (!this.isConfigured) {
+            console.warn('⚠️  Email service not configured. Set RESEND_API_KEY to enable email sending.');
+        } else if (this.fromEmail === 'onboarding@resend.dev') {
+            console.log('📧 Using Resend test domain for development emails');
         }
     }
 
@@ -42,8 +45,9 @@ class EmailService {
                 })
             });
 
+            // eslint-disable-next-line no-console
             console.log('✅ Password reset email sent successfully:', {
-                email: email,
+                email,
                 messageId: result.data?.id
             });
 
@@ -83,8 +87,9 @@ class EmailService {
                 })
             });
 
+            // eslint-disable-next-line no-console
             console.log('✅ Welcome email sent successfully:', {
-                email: email,
+                email,
                 messageId: result.data?.id
             });
 
@@ -95,6 +100,7 @@ class EmailService {
 
         } catch (error) {
             console.error('❌ Failed to send welcome email:', error);
+
             // Don't throw error for welcome emails - registration should still succeed
             return {
                 success: false,
@@ -106,6 +112,7 @@ class EmailService {
     /**
      * Generate HTML content for password reset email
      */
+    // eslint-disable-next-line
     generatePasswordResetHTML({ userName, resetUrl, expiresIn, supportEmail }) {
         return `
         <!DOCTYPE html>
@@ -209,7 +216,7 @@ class EmailService {
                 <p style="word-break: break-all; color: #666; font-size: 14px;">${resetUrl}</p>
 
                 <div class="footer">
-                    <p>If you didn't request this password reset, please ignore this email or contact support at <a href="mailto:${supportEmail}">${supportEmail}</a></p>
+                    <p>If you didn't request this password reset, please ignore this email</p>
                     <p>Thanks,<br>The Image Harvest Team</p>
                 </div>
             </div>
@@ -242,6 +249,7 @@ The Image Harvest Team
     /**
      * Generate HTML content for welcome email
      */
+    // eslint-disable-next-line
     generateWelcomeHTML({ userName, loginUrl, supportEmail }) {
         return `
         <!DOCTYPE html>
@@ -308,7 +316,7 @@ The Image Harvest Team
 
                 <p>Hi ${userName},</p>
 
-                <p>Welcome to Image Harvest! Your account has been successfully created and you're ready to start generating amazing AI images.</p>
+                <p>Welcome your account has been successfully created!</p>
 
                 <div style="text-align: center;">
                     <a href="${loginUrl}" class="button">Start Creating Images</a>
@@ -323,9 +331,6 @@ The Image Harvest Team
                         <li>⭐ Rate and organize your favorite images</li>
                     </ul>
                 </div>
-
-                <p>If you have any questions or need help getting started, feel free to reach out to our support team.</p>
-
                 <div class="footer">
                     <p>Need help? Contact us at <a href="mailto:${supportEmail}">${supportEmail}</a></p>
                     <p>Happy creating!<br>The Image Harvest Team</p>

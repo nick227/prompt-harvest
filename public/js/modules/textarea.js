@@ -62,11 +62,11 @@ class TextAreaManager {
         } catch (error) {
             console.warn('⚠️ Sample matches endpoint not available, using fallback:', error.message);
 
-            // Fallback sample matches
+            // Fallback sample matches - using variables that exist in the database
             const fallbackSamples = [
-                'beautiful', 'detailed', 'high quality', 'professional',
-                'artistic', 'creative', 'stunning', 'amazing',
-                'photorealistic', 'cinematic', 'dramatic', 'vibrant'
+                'synonyms for beautiful', 'detailed', 'high quality', 'professional',
+                'creative artistic description', 'examples of breathtaking', 'wonderful',
+                'photogenic characteristics', 'cinematic', 'dramatic', 'vibrant'
             ];
 
             return fallbackSamples.map(word => `<li class="sample" title="${word}">${word}</li>`).join('');
@@ -534,4 +534,16 @@ class TextAreaManager {
 
 // Export for global access
 window.TextAreaManager = TextAreaManager;
-window.textAreaManager = new TextAreaManager();
+
+// Initialize when dependencies are available
+const initTextAreaManager = () => {
+    if (typeof TEXTAREA_CONFIG !== 'undefined' && typeof Utils !== 'undefined') {
+        window.textAreaManager = new TextAreaManager();
+    } else {
+        // Retry after a short delay
+        setTimeout(initTextAreaManager, 50);
+    }
+};
+
+// Start initialization
+initTextAreaManager();

@@ -4,15 +4,16 @@ import databaseClient from '../database/PrismaClient.js';
 
 const prisma = databaseClient.getClient();
 
-// JWT authentication middleware
+// JWT authentication middleware - for optional authentication
 export const authenticateToken = async (req, res, next) => {
     try {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
         if (!token) {
-            // Allow anonymous access for certain endpoints
+            // No token provided - allow anonymous access
             req.user = null;
+
             return next();
         }
 
@@ -30,17 +31,81 @@ export const authenticateToken = async (req, res, next) => {
         });
 
         if (!user) {
-            throw new AuthenticationError('Invalid token');
+            // Invalid user ID in token
+            req.user = null;
+
+            return next();
         }
 
         req.user = user;
         next();
     } catch (error) {
         if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-            // For JWT errors, allow anonymous access
+            // JWT verification failed - allow anonymous access
             req.user = null;
+
             return next();
         }
+        // Other errors should be passed to error handler
+        next(error);
+    }
+};
+
+// JWT authentication middleware - for required authentication (stricter)
+export const authenticateTokenRequired = async (req, res, next) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+        console.log('🔐 BACKEND: Auth middleware called for:', req.path);
+        console.log('🔐 BACKEND: Auth header:', authHeader ? 'Present' : 'Missing');
+        console.log('🔐 BACKEND: JWT_SECRET available:', !!process.env.JWT_SECRET);
+
+        if (!token) {
+            console.log('🔐 BACKEND: No token provided');
+            throw new AuthenticationError('Authentication token required');
+        }
+
+        console.log('🔐 BACKEND: Token received, length:', token.length);
+        console.log('🔐 BACKEND: Token preview:', `${token.substring(0, 20)}...`);
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+
+        console.log('🔐 BACKEND: JWT decoded successfully:', { userId: decoded.userId, iat: decoded.iat, exp: decoded.exp });
+
+        // Get user from database
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                createdAt: true
+            }
+        });
+
+        if (!user) {
+            console.log('🔐 BACKEND: User not found in database for ID:', decoded.userId);
+            throw new AuthenticationError('Invalid token - user not found');
+        }
+
+        console.log('🔐 BACKEND: User found:', { id: user.id, email: user.email });
+        req.user = user;
+        next();
+    } catch (error) {
+        console.log('🔐 BACKEND: Authentication error:', error.name, error.message);
+
+        if (error.name === 'JsonWebTokenError') {
+            throw new AuthenticationError('Invalid authentication token');
+        }
+        if (error.name === 'TokenExpiredError') {
+            throw new AuthenticationError('Authentication token expired');
+        }
+        // Re-throw authentication errors
+        if (error instanceof AuthenticationError) {
+            throw error;
+        }
+        // Other errors should be passed to error handler
         next(error);
     }
 };

@@ -10,7 +10,9 @@ import {
     ImageGenerationError
 } from '../errors/CustomErrors.js';
 
+// eslint-disable-next-line max-lines-per-function, max-statements
 export const errorHandler = (err, req, res, _next) => {
+    // eslint-disable-next-line no-console
     console.error('❌ Error:', err);
 
     // Default error response
@@ -24,7 +26,9 @@ export const errorHandler = (err, req, res, _next) => {
     if (err instanceof ValidationError) {
         errorResponse.error = 'Validation Error';
         errorResponse.message = err.message;
-        if (err.field) { errorResponse.field = err.field; }
+        if (err.field) {
+            errorResponse.field = err.field;
+        }
 
         return res.status(err.statusCode).json(errorResponse);
     }
@@ -46,7 +50,9 @@ export const errorHandler = (err, req, res, _next) => {
     if (err instanceof NotFoundError) {
         errorResponse.error = 'Not Found';
         errorResponse.message = err.message;
-        if (err.resource) { errorResponse.resource = err.resource; }
+        if (err.resource) {
+            errorResponse.resource = err.resource;
+        }
 
         return res.status(err.statusCode).json(errorResponse);
     }
@@ -61,7 +67,9 @@ export const errorHandler = (err, req, res, _next) => {
     if (err instanceof RateLimitError) {
         errorResponse.error = 'Rate Limit Exceeded';
         errorResponse.message = err.message;
-        if (err.retryAfter) { errorResponse.retryAfter = err.retryAfter; }
+        if (err.retryAfter) {
+            errorResponse.retryAfter = err.retryAfter;
+        }
 
         return res.status(err.statusCode).json(errorResponse);
     }
@@ -69,7 +77,9 @@ export const errorHandler = (err, req, res, _next) => {
     if (err instanceof DatabaseError) {
         errorResponse.error = 'Database Error';
         errorResponse.message = err.message;
-        if (err.operation) { errorResponse.operation = err.operation; }
+        if (err.operation) {
+            errorResponse.operation = err.operation;
+        }
 
         return res.status(err.statusCode).json(errorResponse);
     }
@@ -77,7 +87,9 @@ export const errorHandler = (err, req, res, _next) => {
     if (err instanceof ExternalServiceError) {
         errorResponse.error = 'External Service Error';
         errorResponse.message = err.message;
-        if (err.service) { errorResponse.service = err.service; }
+        if (err.service) {
+            errorResponse.service = err.service;
+        }
 
         return res.status(err.statusCode).json(errorResponse);
     }
@@ -85,7 +97,9 @@ export const errorHandler = (err, req, res, _next) => {
     if (err instanceof ImageGenerationError) {
         errorResponse.error = 'Image Generation Error';
         errorResponse.message = err.message;
-        if (err.provider) { errorResponse.provider = err.provider; }
+        if (err.provider) {
+            errorResponse.provider = err.provider;
+        }
 
         return res.status(err.statusCode).json(errorResponse);
     }
@@ -155,8 +169,9 @@ export const notFoundHandler = (req, res, next) => {
     if (req.originalUrl.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
         return res.status(404).send('File not found');
     }
-    
+
     const error = new Error(`Route ${req.originalUrl} not found`);
+
     error.name = 'NotFoundError';
     next(error);
 };

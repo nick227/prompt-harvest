@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e4]:
+      - link "AutoImage AI Image Generation" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8] [cursor=pointer]
+        - generic [ref=e10] [cursor=pointer]:
+          - heading "AutoImage" [level=1] [ref=e11] [cursor=pointer]
+          - paragraph [ref=e12] [cursor=pointer]: AI Image Generation
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: /
+          - link "Register" [ref=e16] [cursor=pointer]:
+            - /url: /register.html
+        - link:
+          - /url: /terms.html
+    - generic [ref=e18]:
+      - link "Login" [ref=e19] [cursor=pointer]:
+        - /url: /login.html
+      - link "Register" [ref=e20] [cursor=pointer]:
+        - /url: /register.html
+  - generic [ref=e30]:
+    - generic [ref=e31]:
+      - img [ref=e35]
+      - heading "Welcome Back" [level=1] [ref=e38]
+      - paragraph [ref=e39]: Continue your creative journey
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - generic [ref=e43]: Email Address
+          - generic [ref=e44]:
+            - textbox "Email Address" [ref=e45]
+            - generic:
+              - img
+        - generic [ref=e46]:
+          - generic [ref=e47]: Password
+          - generic [ref=e48]:
+            - textbox "Password" [ref=e49]
+            - generic:
+              - img
+        - button "Sign In" [ref=e50] [cursor=pointer]:
+          - img [ref=e52] [cursor=pointer]
+          - text: Sign In
+        - link "Forgot your password?" [ref=e55] [cursor=pointer]:
+          - /url: forgot-password.html
+      - generic [ref=e60]: New to AutoImage?
+      - link "Create your account" [ref=e62] [cursor=pointer]:
+        - /url: /register.html
+        - generic [ref=e63] [cursor=pointer]: Create your account
+        - img [ref=e64] [cursor=pointer]
+    - generic [ref=e67]:
+      - generic [ref=e70]: Unlimited AI Generation
+      - generic [ref=e73]: HD Quality Images
+```

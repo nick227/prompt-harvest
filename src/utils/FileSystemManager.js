@@ -18,11 +18,11 @@ export class FileSystemManager {
     async saveImageAtomic(buffer, filename, options = {}) {
         const tempPath = path.join(this.uploadDir, `temp_${filename}`);
         const finalPath = path.join(this.uploadDir, filename);
-        
+
         try {
             // Step 1: Write to temporary file
             await this.writeBufferToFile(buffer, tempPath);
-            
+
             // Step 2: Process with Sharp if needed
             if (options.processWithSharp !== false) {
                 await this.processWithSharp(tempPath, finalPath, options);
@@ -32,13 +32,14 @@ export class FileSystemManager {
                 // Move temp file to final location
                 await this.moveFile(tempPath, finalPath);
             }
-            
+
             // Step 3: Verify final file exists and is valid
             await this.verifyImageFile(finalPath);
-            
+
             console.log(`✅ Image saved successfully: ${filename}`);
+
             return filename;
-            
+
         } catch (error) {
             // Cleanup on failure
             await this.cleanupOnFailure(tempPath, finalPath);
@@ -48,7 +49,7 @@ export class FileSystemManager {
 
     async writeBufferToFile(buffer, filePath) {
         return new Promise((resolve, reject) => {
-            fs.writeFile(filePath, buffer, (error) => {
+            fs.writeFile(filePath, buffer, error => {
                 if (error) {
                     reject(new Error(`Failed to write file: ${error.message}`));
                 } else {
@@ -77,7 +78,7 @@ export class FileSystemManager {
 
     async moveFile(sourcePath, destPath) {
         return new Promise((resolve, reject) => {
-            fs.rename(sourcePath, destPath, (error) => {
+            fs.rename(sourcePath, destPath, error => {
                 if (error) {
                     reject(new Error(`Failed to move file: ${error.message}`));
                 } else {
@@ -91,10 +92,11 @@ export class FileSystemManager {
         return new Promise((resolve, reject) => {
             if (!fs.existsSync(filePath)) {
                 resolve(); // File doesn't exist, consider it deleted
+
                 return;
             }
-            
-            fs.unlink(filePath, (error) => {
+
+            fs.unlink(filePath, error => {
                 if (error) {
                     reject(new Error(`Failed to delete file: ${error.message}`));
                 } else {
@@ -108,13 +110,16 @@ export class FileSystemManager {
         return new Promise((resolve, reject) => {
             if (!fs.existsSync(filePath)) {
                 reject(new Error(`Image file not found: ${filePath}`));
+
                 return;
             }
 
             // Check file size
             const stats = fs.statSync(filePath);
+
             if (stats.size === 0) {
                 reject(new Error(`Image file is empty: ${filePath}`));
+
                 return;
             }
 
@@ -146,20 +151,22 @@ export class FileSystemManager {
 
     async deleteImage(filename) {
         const filePath = path.join(this.uploadDir, filename);
-        
+
         try {
             await this.deleteFile(filePath);
             console.log(`✅ Image deleted: ${filename}`);
+
             return true;
         } catch (error) {
             console.error(`❌ Failed to delete image ${filename}:`, error.message);
+
             return false;
         }
     }
 
     async getImageInfo(filename) {
         const filePath = path.join(this.uploadDir, filename);
-        
+
         try {
             if (!fs.existsSync(filePath)) {
                 throw new Error('Image file not found');
@@ -167,7 +174,7 @@ export class FileSystemManager {
 
             const stats = fs.statSync(filePath);
             const metadata = await sharp(filePath).metadata();
-            
+
             return {
                 filename,
                 size: stats.size,
@@ -185,14 +192,15 @@ export class FileSystemManager {
     async listImages(limit = 100) {
         try {
             const files = fs.readdirSync(this.uploadDir);
-            const imageFiles = files.filter(file => 
-                /\.(jpg|jpeg|png|gif|webp)$/i.test(file)
+            const imageFiles = files.filter(file => (/\.(jpg|jpeg|png|gif|webp)$/i).test(file)
             );
 
             const imageInfos = [];
+
             for (const file of imageFiles.slice(0, limit)) {
                 try {
                     const info = await this.getImageInfo(file);
+
                     imageInfos.push(info);
                 } catch (error) {
                     console.warn(`⚠️ Skipping invalid image: ${file}`);
@@ -209,30 +217,29 @@ export class FileSystemManager {
         try {
             const files = fs.readdirSync(this.uploadDir);
             const orphanedFiles = [];
-            
+
             for (const file of files) {
-                if (!/\.(jpg|jpeg|png|gif|webp)$/i.test(file)) {
+                if (!(/\.(jpg|jpeg|png|gif|webp)$/i).test(file)) {
                     continue; // Skip non-image files
                 }
-                
+
                 // Check if this file is referenced in the database
-                const isReferenced = validImageIds.some(id => 
-                    file.includes(id) || file.startsWith(id)
-                );
-                
+                const isReferenced = validImageIds.some(id => file.includes(id) || file.startsWith(id));
+
                 if (!isReferenced) {
                     orphanedFiles.push(file);
                 }
             }
-            
+
             // Delete orphaned files
             for (const file of orphanedFiles) {
                 await this.deleteImage(file);
             }
-            
+
             console.log(`🧹 Cleaned up ${orphanedFiles.length} orphaned files`);
+
             return orphanedFiles.length;
-            
+
         } catch (error) {
             throw new Error(`Failed to cleanup orphaned files: ${error.message}`);
         }
@@ -243,16 +250,17 @@ export class FileSystemManager {
             const files = fs.readdirSync(this.uploadDir);
             let totalSize = 0;
             let fileCount = 0;
-            
+
             for (const file of files) {
                 const filePath = path.join(this.uploadDir, file);
                 const stats = fs.statSync(filePath);
+
                 if (stats.isFile()) {
                     totalSize += stats.size;
                     fileCount++;
                 }
             }
-            
+
             return {
                 totalSize,
                 fileCount,
@@ -265,11 +273,14 @@ export class FileSystemManager {
     }
 
     formatBytes(bytes) {
-        if (bytes === 0) return '0 Bytes';
+        if (bytes === 0) {
+            return '0 Bytes';
+        }
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
     }
 }
 

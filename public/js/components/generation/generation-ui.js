@@ -83,6 +83,17 @@ class GenerationUI {
 
     // Notification System
     showNotification(message, type = 'info') {
+        // Use the new notification service if available
+        if (window.notificationService) {
+            window.notificationService.show(message, type);
+        } else {
+            // Fallback to old notification system
+            this.showLegacyNotification(message, type);
+        }
+    }
+
+    // Legacy notification system (fallback)
+    showLegacyNotification(message, type = 'info') {
         const notification = document.createElement('div');
 
         notification.className = `notification ${type}`;

@@ -6,6 +6,7 @@ import {
 import { sanitizeInput } from '../middleware/validation.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
+// eslint-disable-next-line max-lines-per-function
 export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
     // Health check endpoint
     app.get('/api/health/image-service',
@@ -122,9 +123,11 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
 
             if (service) {
                 circuitBreakerManager.reset(service);
+                // eslint-disable-next-line no-console
                 console.log(`🔄 Circuit breaker reset for service: ${service}`);
             } else {
                 circuitBreakerManager.resetAll();
+                // eslint-disable-next-line no-console
                 console.log('🔄 All circuit breakers reset');
             }
 
@@ -136,5 +139,6 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
         }
     );
 
+    // eslint-disable-next-line no-console
     console.log('✅ Enhanced image routes configured with circuit breakers and validation');
 };

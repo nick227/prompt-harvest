@@ -1,9 +1,7 @@
 // Stats Service - Centralized service for managing user statistics
-console.log('📊 STATS-SERVICE: Script loading started...');
 
 class StatsService {
     constructor() {
-        console.log('📊 STATS-SERVICE: Constructor called...');
         this.cache = null;
         this.lastFetch = null;
         this.cacheTimeout = 30000; // 30 seconds cache
@@ -42,7 +40,6 @@ class StatsService {
     async getStats(forceRefresh = false) {
         // Check authentication first
         if (!window.userApi || !window.userApi.isAuthenticated()) {
-            console.log('📊 STATS-SERVICE: getStats called but user not authenticated');
             this.clearCache();
 
             return null;
@@ -69,11 +66,9 @@ class StatsService {
 
         try {
             this.isLoading = true;
-            console.log('📊 STATS-SERVICE: Fetching user stats');
 
             // Check if user is authenticated
             if (!window.userApi || !window.userApi.isAuthenticated()) {
-                console.log('📊 STATS-SERVICE: User not authenticated, clearing cache');
                 this.clearCache();
 
                 return null;
@@ -92,7 +87,6 @@ class StatsService {
             if (response.success) {
                 this.cache = response.data;
                 this.lastFetch = Date.now();
-                console.log('✅ STATS-SERVICE: Stats fetched successfully', this.cache);
 
                 // Notify all listeners
                 this.notify(this.cache);
@@ -116,20 +110,15 @@ class StatsService {
     async refreshAfterGeneration() {
         // Don't refresh stats if user is not authenticated
         if (!window.userApi || !window.userApi.isAuthenticated()) {
-            console.log('📊 STATS-SERVICE: Skipping stats refresh - user not authenticated');
 
             return null;
         }
-
-        console.log('🔄 STATS-SERVICE: Refreshing stats after image generation');
 
         // Small delay to ensure backend transaction is saved
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
             const stats = await this.fetchStats();
-
-            console.log('✅ STATS-SERVICE: Stats refreshed successfully', stats);
 
             return stats;
         } catch (error) {
@@ -141,7 +130,6 @@ class StatsService {
 
     // Clear cache (e.g., on logout)
     clearCache() {
-        console.log('🗑️ STATS-SERVICE: Clearing stats cache');
         this.cache = null;
         this.lastFetch = null;
         this.notify(null);
@@ -184,11 +172,8 @@ class StatsService {
 
     // Initialize service and set up event listeners
     init() {
-        console.log('📊 STATS-SERVICE: Starting initialization...');
-
         try {
             // Listen for authentication state changes
-            console.log('📊 STATS-SERVICE: Setting up authStateChanged listener...');
             const self = this;
 
             window.addEventListener('authStateChanged', event => {
@@ -202,21 +187,15 @@ class StatsService {
             });
 
             // Listen for image generation events
-            console.log('📊 STATS-SERVICE: Setting up imageGenerated listener...');
-            window.addEventListener('imageGenerated', async event => {
-                console.log('📊 STATS-SERVICE: Received imageGenerated event', event.detail);
-                console.log('📊 STATS-SERVICE: Current authentication status:', window.userApi?.isAuthenticated());
+            window.addEventListener('imageGenerated', async _event => {
 
                 try {
                     await self.refreshAfterGeneration();
-                    console.log('📊 STATS-SERVICE: Stats refresh completed after imageGenerated');
                 } catch (error) {
                     console.error('❌ STATS-SERVICE: Error refreshing stats after generation:', error);
                 }
             });
 
-            console.log('📊 STATS-SERVICE: Event listeners set up successfully');
-            console.log('📊 STATS-SERVICE: Service initialized');
         } catch (error) {
             console.error('❌ STATS-SERVICE: Error during initialization:', error);
             throw error;
@@ -227,18 +206,15 @@ class StatsService {
 // Create and initialize the service with dependency checking
 let statsService = null;
 
-const initializeStatsService = function() {
+const initializeStatsService = () => {
     try {
-        console.log('📊 STATS-SERVICE: Creating service instance...');
         statsService = new StatsService();
 
-        console.log('📊 STATS-SERVICE: Initializing service...');
         statsService.init();
 
         // Export for global access
         if (typeof window !== 'undefined') {
             window.statsService = statsService;
-            console.log('📊 STATS-SERVICE: Service exposed to window.statsService');
         } else {
             console.warn('⚠️ STATS-SERVICE: Window not available, cannot expose globally');
         }
@@ -249,21 +225,19 @@ const initializeStatsService = function() {
 
         return false;
     }
-}
+};
 
 // Wait for dependencies and initialize
-const waitForDependenciesAndInit = function() {
+const waitForDependenciesAndInit = () => {
     // Check if required dependencies are available
     if (typeof window !== 'undefined' && window.apiService && window.userApi) {
-        console.log('📊 STATS-SERVICE: Dependencies available, initializing...');
 
         return initializeStatsService();
     } else {
-        console.log('📊 STATS-SERVICE: Waiting for dependencies...');
         // Retry after a short delay
         setTimeout(waitForDependenciesAndInit, 100);
     }
-}
+};
 
 // Start the initialization process
 if (typeof window !== 'undefined') {
@@ -275,7 +249,6 @@ if (typeof window !== 'undefined') {
     }
 } else {
     // Node.js environment - create but don't initialize
-    console.log('📊 STATS-SERVICE: Node.js environment detected, skipping browser initialization');
     statsService = new StatsService();
 }
 

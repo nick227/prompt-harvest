@@ -9,6 +9,16 @@ import fs from 'fs';
 
 const DB_PATH = path.join(process.cwd(), './data/');
 
+// Ensure the data directory exists
+if (!fs.existsSync(DB_PATH)) {
+    try {
+        fs.mkdirSync(DB_PATH, { recursive: true });
+        console.log(`✅ Created data directory: ${DB_PATH}`);
+    } catch (error) {
+        console.error(`❌ Failed to create data directory: ${DB_PATH}`, error);
+    }
+}
+
 let instances = {};
 
 export default class DB {
@@ -22,14 +32,53 @@ export default class DB {
         if (!fs.existsSync(DB_PATH)) {
             fs.mkdirSync(DB_PATH, { recursive: true });
         }
-        this.db = new Datastore({ filename: path.join(DB_PATH, dbName), autoload: true });
+        const dbPath = path.join(DB_PATH, dbName);
+
+        // Check if database file exists and is readable
+        if (fs.existsSync(dbPath)) {
+            try {
+                const stats = fs.statSync(dbPath);
+                console.log(`📊 Database file ${dbName}: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+            } catch (error) {
+                console.error(`❌ Error reading database file ${dbName}:`, error);
+            }
+        } else {
+            console.log(`📝 Database file ${dbName} does not exist, will be created`);
+        }
+
+        this.db = new Datastore({ filename: dbPath, autoload: true });
         this.dbName = dbName.split('.')[0];
         this.queue = async.queue((task, callback) => {
             task(callback);
         }, 1);
         this.db.loadDatabase(err => {
             if (err) {
-                console.error('Error loading database:', err);
+                console.error(`❌ Error loading database ${dbName}:`, err);
+                console.error('Database path:', path.join(DB_PATH, dbName));
+                console.error('Error details:', {
+                    errorType: err.constructor.name,
+                    message: err.message,
+                    code: err.code
+                });
+
+                // Try to recover from corrupted database
+                if (err.message.includes('corrupt') || err.message.includes('invalid')) {
+                    console.warn(`⚠️ Database ${dbName} appears corrupted, attempting recovery...`);
+                    // For now, just log the issue - in production you might want to backup and recreate
+                } else if (err.message.includes('locked') || err.message.includes('busy')) {
+                    console.warn(`⚠️ Database ${dbName} is locked or busy, retrying in 1 second...`);
+                    setTimeout(() => {
+                        this.db.loadDatabase((retryErr) => {
+                            if (retryErr) {
+                                console.error(`❌ Retry failed for database ${dbName}:`, retryErr);
+                            } else {
+                                console.log(`✅ Database ${dbName} loaded successfully on retry`);
+                            }
+                        });
+                    }, 1000);
+                }
+            } else {
+                console.log(`✅ Database ${dbName} loaded successfully`);
             }
         });
         this.db.insertAsync = util.promisify(this.db.insert);
@@ -38,18 +87,56 @@ export default class DB {
         this.db.updateAsync = util.promisify(this.db.update);
         this.db.removeAsync = util.promisify(this.db.remove);
 
+        // Test database connection with timeout
+        const testTimeout = setTimeout(() => {
+            console.warn(`⚠️ Database ${dbName} connection test timed out`);
+        }, 5000);
+
+        this.db.find({}).limit(1).exec((err) => {
+            clearTimeout(testTimeout);
+            if (err) {
+                console.error(`❌ Database ${dbName} connection test failed:`, err);
+                console.error('Error details:', {
+                    errorType: err.constructor.name,
+                    message: err.message,
+                    code: err.code
+                });
+            } else {
+                console.log(`✅ Database ${dbName} connection test passed`);
+            }
+        });
+
         instances[dbName] = this;
     }
 
     find(query) {
         return new Promise((resolve, reject) => {
+            // Add timeout to prevent hanging
+            const timeout = setTimeout(() => {
+                reject(new Error(`Database query timeout for ${this.dbName}`));
+            }, 10000);
+
             this.queue.push(callback => {
-                this._find(query).then(resolve).catch(reject).finally(callback);
+                this._find(query)
+                    .then(result => {
+                        clearTimeout(timeout);
+                        resolve(result);
+                    })
+                    .catch(error => {
+                        clearTimeout(timeout);
+                        reject(error);
+                    })
+                    .finally(callback);
             });
         });
     }
 
     async _find(query) {
+        // Validate database connection
+        if (!this.db || !this.db.find) {
+            throw new Error('Database not properly initialized');
+        }
+
         let sort = { timestamp: -1 };
         let limit = null;
         let projection = {};
@@ -90,10 +177,29 @@ export default class DB {
             cursor = cursor.skip((page - 1) * limit).limit(limit);
         }
 
-        const execAsync = util.promisify(cursor.exec.bind(cursor));
-        const results = await execAsync();
+        try {
+            const execAsync = util.promisify(cursor.exec.bind(cursor));
+            const results = await execAsync();
+            return results;
+        } catch (error) {
+            console.error(`❌ Database query execution failed:`, error);
+            console.error('Query details:', { query, sort, limit, page });
+            console.error('Error details:', {
+                errorType: error.constructor.name,
+                message: error.message,
+                code: error.code,
+                stack: error.stack
+            });
 
-        return results;
+            // Check for specific database errors
+            if (error.message.includes('corrupt') || error.message.includes('invalid')) {
+                console.error(`❌ Database ${this.dbName} appears corrupted`);
+            } else if (error.message.includes('locked') || error.message.includes('busy')) {
+                console.error(`❌ Database ${this.dbName} is locked or busy`);
+            }
+
+            throw error;
+        }
     }
 
     async insert(rows) {

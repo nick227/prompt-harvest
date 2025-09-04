@@ -6,12 +6,24 @@ export const createErrorResponse = (error, additionalData = {}) => {
     };
 
     // Add additional data if provided
-    if (error.field) { baseResponse.field = error.field; }
-    if (error.resource) { baseResponse.resource = error.resource; }
-    if (error.operation) { baseResponse.operation = error.operation; }
-    if (error.service) { baseResponse.service = error.service; }
-    if (error.provider) { baseResponse.provider = error.provider; }
-    if (error.retryAfter) { baseResponse.retryAfter = error.retryAfter; }
+    if (error.field) {
+        baseResponse.field = error.field;
+    }
+    if (error.resource) {
+        baseResponse.resource = error.resource;
+    }
+    if (error.operation) {
+        baseResponse.operation = error.operation;
+    }
+    if (error.service) {
+        baseResponse.service = error.service;
+    }
+    if (error.provider) {
+        baseResponse.provider = error.provider;
+    }
+    if (error.retryAfter) {
+        baseResponse.retryAfter = error.retryAfter;
+    }
 
     // Add custom additional data
     Object.assign(baseResponse, additionalData);

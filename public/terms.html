@@ -25,6 +25,38 @@
             }
         }
     </script>
+
+    <!-- Custom CSS for skeleton loading animations -->
+    <style>
+        @keyframes slideInTerm {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .skeleton-row {
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        /* Enhanced pulse animation for skeletons */
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
     </head>
 
     <body class="bg-gray-800 text-gray-200 min-h-screen">
@@ -49,18 +81,16 @@
                         </nav>
                     </div>
 
-                    <!-- Authentication -->
+                    <!-- Authentication - Handled by header component -->
                     <div id="authentication" class="flex items-center space-x-2 text-sm">
-                        <a href="/login.html" class="text-gray-300 hover:text-purple-400 transition-colors duration-200">Login</a>
-                        <span class="text-gray-500">/</span>
-                        <a href="/register.html" class="text-gray-300 hover:text-purple-400 transition-colors duration-200">Register</a>
+                        <!-- Will be populated by header component -->
                     </div>
                 </div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main class="max-w-[1020px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Page Header -->
             <div class="mb-8">
                 <h1 class="text-3xl font-bold text-gray-200 mb-2">Terms Library
@@ -75,7 +105,8 @@
                 <h2 class="text-xl font-semibold text-gray-200 mb-4">Add New
                     Term
                 </h2>
-                <div class="flex space-x-4">
+
+                                <div class="flex space-x-4">
                     <div class="flex-1">
                         <label for="newTerm"
                             class="block text-sm font-medium text-gray-300 mb-2">Term</label>
@@ -85,10 +116,15 @@
                     </div>
                     <div class="flex items-end">
                         <button id="addTerm"
-                            class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition-colors font-medium">
+                            class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
                             Add Term
                         </button>
                     </div>
+                </div>
+
+                <!-- Subtle Message Container -->
+                <div id="termMessageContainer" class="mt-4 hidden" style="scroll-margin: 0; contain: layout;">
+                    <!-- Clean, minimal feedback area -->
                 </div>
             </div>
 
@@ -101,15 +137,11 @@
                 <div class="flex space-x-4">
                     <div class="flex-1">
                         <input type="text" id="searchInput"
-                            placeholder="Search terms..."
+                            placeholder="Type to filter terms instantly..."
                             class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     </div>
-                    <button id="searchBtn"
-                        class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition-colors font-medium">
-                        Search
-                    </button>
                     <button id="clearSearch"
-                        class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition-colors font-medium">
+                        class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors font-medium">
                         Clear
                     </button>
                 </div>
@@ -130,18 +162,19 @@
             <div
                 class="bg-gray-700 rounded-lg shadow-sm border border-gray-600 p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold text-gray-200">Terms
-                        Library
-                    </h2>
-                    <div class="text-sm text-gray-400">
-                        Total: <span id="termCount"
-                            class="font-medium text-gray-200">0</span>
+                    <h2 class="text-xl font-semibold text-gray-200">Terms Library</h2>
+                    <div class="flex items-center space-x-4">
+                        <!-- Term Count -->
+                        <div class="text-sm text-gray-400">
+                            Total: <span id="termCount" class="font-medium text-gray-200">0</span>
+                        </div>
                     </div>
                 </div>
 
-                <div id="termsList" class="space-y-4 flex flex-wrap gap-4">
-                    <!-- Terms will be populated here -->
-                    <div class="text-center text-gray-400 py-8">
+                <!-- Terms List - New Full-Width Row Layout -->
+                <div id="termsList" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Terms will be populated here as full-width rows -->
+                    <div id="emptyState" class="text-center text-gray-400 py-8">
                         <svg class="mx-auto h-12 w-12 text-gray-500" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -149,49 +182,15 @@
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <p class="mt-2">No terms found</p>
-                        <p class="text-sm">Add your first term above to get
-                            started
-                        </p>
+                        <p class="text-sm">Add your first term above to get started</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Term Details Modal -->
-            <div id="termDetailsModal"
-                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-                <div
-                    class="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 id="modalTitle"
-                            class="text-xl font-semibold text-gray-200">Term
-                            Details
-                        </h3>
-                        <button id="closeModal"
-                            class="text-gray-400 hover:text-gray-200">
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round"
-                                    stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div id="modalContent" class="text-gray-300">
-                        <!-- Modal content will be populated here -->
-                    </div>
-                </div>
-            </div>
+
         </main>
 
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay"
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
-                <div
-                    class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                <span class="text-gray-700">Loading...</span>
-            </div>
-        </div>
+        <!-- Loading overlay removed - now using skeleton loading -->
 
         <!-- Success Toast -->
         <div id="successToast"
@@ -223,18 +222,22 @@
         <script src="js/core/constants.js"></script>
         <script src="js/core/utils.js"></script>
         <script src="js/core/api-service.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
 
         <!-- Header Component -->
         <script src="js/components/header-component.js"></script>
 
-        <!-- Authentication Component -->
-        <script src="js/components/auth-component.js"></script>
+        <!-- User Management (includes authentication) -->
+        <script src="js/core/user-system.js"></script>
 
-        <!-- User Management -->
-        <script src="js/user.js"></script>
-
-        <!-- Terms Page Specific Script -->
-        <script src="js/terms-manager.js"></script>
+        <!-- Refactored Terms System -->
+        <script src="js/modules/terms/terms-constants.js"></script>
+        <script src="js/modules/terms/terms-search-service.js"></script>
+        <script src="js/modules/terms/terms-cache-manager.js"></script>
+        <script src="js/modules/terms/terms-dom-manager.js"></script>
+        <script src="js/modules/terms/terms-api-manager.js"></script>
+        <script src="js/modules/terms/terms-ui-manager.js"></script>
+        <script src="js/modules/terms/terms-manager-refactored.js"></script>
 
         <script>
         // Debug: Check if components are loaded
@@ -259,6 +262,12 @@
                 console.error('Terms manager not found!');
             }
 
+            if (window.TermsManager) {
+                console.log('TermsManager class found:', window.TermsManager);
+            } else {
+                console.error('TermsManager class not found!');
+            }
+
             // Check if header element exists
             const header = document.querySelector('header');
             if (header) {
@@ -267,13 +276,8 @@
                 console.error('Header element not found!');
             }
 
-            // Check if authentication element exists
-            const auth = document.getElementById('authentication');
-            if (auth) {
-                console.log('Authentication element found:', auth);
-            } else {
-                console.error('Authentication element not found!');
-            }
+            // Note: Authentication is now handled by the dynamic header component
+            console.log('Authentication handled by header component');
         });
     </script>
     </body>

@@ -10,6 +10,9 @@ import { setupMonitoringRoutes } from './monitoringRoutes.js';
 import { setupAuthRoutes } from './authRoutes.js';
 import { setupImageRatingRoutes } from './imageRatingRoutes.js';
 import { setupTransactionRoutes } from './transactionRoutes.js';
+import { setupWordRoutes } from './wordRoutes.js';
+import stripeModule from '../stripe.js';
+import express from 'express';
 import { ImageController } from '../controllers/ImageController.js';
 import { EnhancedImageController } from '../controllers/EnhancedImageController.js';
 import { AIController } from '../controllers/AIController.js';
@@ -25,12 +28,14 @@ import { TagService } from '../services/TagService.js';
 import { ImageRepository } from '../repositories/ImageRepository.js';
 import { errorHandler, notFoundHandler } from '../middleware/index.js';
 import configManager from '../config/ConfigManager.js';
+import { authenticateTokenRequired } from '../middleware/authMiddleware.js';
 
-// eslint-disable-next-line max-statements
+// eslint-disable-next-line max-lines-per-function, max-statements
 export const setupRoutes = async app => {
     // Validate configuration on startup
     try {
         configManager.validate();
+        // eslint-disable-next-line no-console
         console.log('✅ Configuration validated successfully');
     } catch (error) {
         console.error('❌ Configuration validation failed:', error.message);
@@ -88,6 +93,7 @@ export const setupRoutes = async app => {
 
     // Setup routes
     setupPageRoutes(app); // Must be first to handle frontend pages
+    setupAuthRoutes(app); // Authentication routes (no middleware needed)
     setupImageRoutes(app, imageController);
     setupEnhancedImageRoutes(app, enhancedImageController); // Enhanced routes with circuit breakers
     setupFeedRoutes(app, imageController);
@@ -95,10 +101,24 @@ export const setupRoutes = async app => {
     setupConfigRoutes(app, configController);
     setupLikeRoutes(app, likeController);
     setupTagRoutes(app, tagController);
-    setupAuthRoutes(app); // Authentication routes
     setupImageRatingRoutes(app); // Image rating routes
     setupMonitoringRoutes(app); // System monitoring routes
     setupTransactionRoutes(app, transactionController); // Transaction accounting routes
+    setupWordRoutes(app); // Word types and examples routes
+    stripeModule.init(app, express); // Stripe payment routes
+
+    // Apply JWT authentication middleware to protected routes only
+    // Note: Auth routes (/api/auth/*) are handled separately and don't need this middleware
+    app.use('/api/images', authenticateTokenRequired);
+    app.use('/api/image', authenticateTokenRequired);
+    app.use('/api/feed', authenticateTokenRequired);
+    app.use('/api/ai', authenticateTokenRequired);
+    app.use('/api/config', authenticateTokenRequired);
+    app.use('/api/likes', authenticateTokenRequired);
+    app.use('/api/tags', authenticateTokenRequired);
+    app.use('/api/rating', authenticateTokenRequired);
+    app.use('/api/transactions', authenticateTokenRequired);
+    app.use('/api/stripe', authenticateTokenRequired);
 
     // Additional route setups will be added here as we refactor other domains
     // setupPromptRoutes(app, promptController);
@@ -110,6 +130,7 @@ export const setupRoutes = async app => {
         const { systemMonitor } = await import('../monitoring/SystemMonitor.js');
 
         systemMonitor.start();
+        // eslint-disable-next-line no-console
         console.log('✅ System monitoring started');
     } catch (error) {
         console.error('❌ Failed to start system monitoring:', error.message);

@@ -1,5 +1,4 @@
-import { LikeService } from '../services/LikeService.js';
-import { ValidationError, NotFoundError, DatabaseError } from '../errors/CustomErrors.js';
+import { ValidationError, NotFoundError } from '../errors/CustomErrors.js';
 import { createErrorResponse } from '../utils/errorResponse.js';
 
 export class LikeController {
@@ -17,6 +16,7 @@ export class LikeController {
             }
 
             const like = await this.likeService.createLike(userId, imageId);
+
             res.status(201).json({ success: true, data: like });
         } catch (error) {
             if (error instanceof ValidationError) {
@@ -59,6 +59,7 @@ export class LikeController {
             const userId = req.user?.id || req.user?._id;
 
             const isLiked = await this.likeService.checkIfLiked(userId, imageId);
+
             res.json({ liked: isLiked });
         } catch (error) {
             console.error('Like check error:', error);
@@ -70,6 +71,7 @@ export class LikeController {
         try {
             const { imageId } = req.params;
             const likes = await this.likeService.getLikesByImageId(imageId);
+
             res.json({ success: true, data: likes });
         } catch (error) {
             if (error instanceof ValidationError) {

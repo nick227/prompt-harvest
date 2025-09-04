@@ -29,32 +29,54 @@ const shuffleArray = arr => {
 };
 
 const processCustomVariables = (customVariables, customDict) => {
-    if (!customVariables || customVariables === 'undefined') {
+    if (!customVariables || customVariables === 'undefined' || typeof customVariables !== 'string') {
         return customDict;
     }
 
-    const customVariablesPairs = customVariables.split(';');
+    try {
+        const customVariablesPairs = customVariables.split(';');
 
-    customVariablesPairs.forEach(pair => {
-        const [key, list] = pair.split('=');
+        customVariablesPairs.forEach(pair => {
+            if (!pair || typeof pair !== 'string') {
+                return;
+            }
 
-        if (!key || !list) {
-            console.log(`Invalid pair: ${pair}`);
+            const [key, list] = pair.split('=');
 
-            return;
-        }
+            if (!key || !list) {
+                console.log(`Invalid pair: ${pair}`);
 
-        const value = list.split(',');
+                return;
+            }
 
-        customDict[key] = value;
-    });
+            const value = list.split(',');
+
+            customDict[key] = value;
+        });
+    } catch (error) {
+        console.error('Error processing custom variables:', error);
+    }
 
     return customDict;
 };
 
+// eslint-disable-next-line max-params
 const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, req) => {
     try {
+        // Add detailed logging for debugging
+        console.log('🔍 buildPrompt called with:', {
+            prompt: prompt ? `${typeof prompt} (${prompt.length} chars)` : 'undefined/null',
+            promptPreview: prompt ? `${prompt.substring(0, 50)}...` : 'N/A',
+            multiplier: multiplier ? 'present' : 'false',
+            mixup: mixup ? 'present' : 'false',
+            mashup: mashup ? 'present' : 'false',
+            customVariables: customVariables ? 'present' : 'false',
+            req: req ? 'present' : 'null'
+        });
+
         if (typeof prompt !== 'string' || !prompt) {
+            console.error('❌ buildPrompt: Invalid prompt received:', { prompt, type: typeof prompt });
+
             return { error: 'Error generating image' };
         }
 
@@ -63,12 +85,22 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, re
         let processedString = await processPromptText(prompt, customDict);
 
         // Apply prompt modifications in sequence
-        if (mixup) { processedString = shufflePrompt(processedString); }
-        if (multiplier) { processedString = await multiplyPrompt(processedString, multiplier, customDict); }
-        if (mashup) { processedString = mashupPrompt(processedString); }
+        if (mixup) {
+            processedString = shufflePrompt(processedString);
+        }
+        if (multiplier) {
+            processedString = await multiplyPrompt(processedString, multiplier, customDict);
+        }
+        if (mashup) {
+            processedString = mashupPrompt(processedString);
+        }
 
         // Save prompt and return result
-        const data = { original: prompt, prompt: processedString };
+        const data = {
+            original: prompt,
+            prompt: processedString,
+            provider: 'prompt-builder' // Add provider field for database
+        };
         const promptResponse = await saveFeedEvent('prompt', data, req);
 
         return {
@@ -78,26 +110,62 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, re
         };
     } catch (error) {
         console.error(`❌ Error building prompt: ${error.message}`);
+        console.error('Error details:', {
+            prompt,
+            multiplier,
+            mixup,
+            mashup,
+            customVariables: customVariables ? 'present' : 'missing',
+            errorType: error.constructor.name,
+            stack: error.stack
+        });
 
         return { error: 'Error generating image' };
     }
 };
 
-const shufflePrompt = prompt => shuffleArray(prompt.split(', ')).join(', ');
+const shufflePrompt = prompt => {
+    if (!prompt || typeof prompt !== 'string') {
+        console.warn('shufflePrompt: Invalid prompt type:', typeof prompt, prompt);
 
-const mashupPrompt = prompt => shuffleArray(prompt.replace(/,/g, '').split(' ')).join(' ');
+        return prompt || '';
+    }
+
+    return shuffleArray(prompt.split(', ')).join(', ');
+};
+
+const mashupPrompt = prompt => {
+    if (!prompt || typeof prompt !== 'string') {
+        console.warn('mashupPrompt: Invalid prompt type:', typeof prompt, prompt);
+
+        return prompt || '';
+    }
+
+    return shuffleArray(prompt.replace(/,/g, '').split(' ')).join(' ');
+};
 
 const processPromptText = async(prompt, customDict) => await wordTypeManager.processPromptText(prompt, customDict);
 
 const multiplyPrompt = async(prompt, multiplier, customDict) => {
-    if (!multiplier) {
+    if (!multiplier || !prompt) {
         return prompt;
+    }
+
+    // Ensure prompt is a string
+    if (typeof prompt !== 'string') {
+        console.warn('multiplyPrompt: Invalid prompt type:', typeof prompt, prompt);
+
+        return prompt || '';
     }
 
     const promptParts = prompt.split(', ');
     const processedPromptParts = [];
 
     for (const part of promptParts) {
+        if (!part) {
+            continue; // Skip empty parts
+        }
+
         const multiplierElements = multiplier.match(/(\$\$\{[^}]+\})|(\$\{[^}]+\})|(\$\[\{[^}]+\}\])|(\$\$\[\{[^}]+\}\])/g);
 
         if (!multiplierElements) {
@@ -105,17 +173,22 @@ const multiplyPrompt = async(prompt, multiplier, customDict) => {
             continue;
         }
 
-        const processedMultiplierElements = await Promise.all(multiplierElements.map(element => wordTypeManager.getWordReplacement(element, customDict)));
+        try {
+            const processedMultiplierElements = await Promise.all(multiplierElements.map(element => wordTypeManager.getWordReplacement(element, customDict)));
 
-        let processedMultiplier = multiplier;
+            let processedMultiplier = multiplier;
 
-        for (let i = 0; i < multiplierElements.length; i++) {
-            const regex = new RegExp(multiplierElements[i].replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+            for (let i = 0; i < multiplierElements.length; i++) {
+                const regex = new RegExp(multiplierElements[i].replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
 
-            processedMultiplier = processedMultiplier.replace(regex, processedMultiplierElements[i]);
+                processedMultiplier = processedMultiplier.replace(regex, processedMultiplierElements[i]);
+            }
+
+            processedPromptParts.push(`${part}, ${processedMultiplier}`);
+        } catch (error) {
+            console.error('Error processing multiplier part:', error);
+            processedPromptParts.push(`${part}, ${multiplier}`);
         }
-
-        processedPromptParts.push(`${part}, ${processedMultiplier}`);
     }
 
     return processedPromptParts.join(' ');
@@ -170,6 +243,7 @@ const generateProviderImage = async(providerName, prompt, guidance, userId = nul
     return { error: `Unknown provider type: ${config.type}` };
 };
 
+// eslint-disable-next-line max-params
 const generateImage = async(prompt, original, promptId, providers, guidance, req) => new Promise((resolve, reject) => {
     const wasEmpty = queue.length === 0;
 
@@ -181,7 +255,9 @@ const generateImage = async(prompt, original, promptId, providers, guidance, req
 });
 
 const processQueue = async req => {
-    if (isProcessing) { return; }
+    if (isProcessing) {
+        return;
+    }
 
     isProcessing = true;
     try {
@@ -201,6 +277,7 @@ const processQueue = async req => {
     }
 };
 
+// eslint-disable-next-line max-params
 const generate = async(prompt, original, promptId, providers, guidance, req) => {
     // Validate and set default providers
     if (!providers || providers.length === 0) {
@@ -279,7 +356,9 @@ const saveFeedEvent = async(type, data, req) => {
 };
 
 const getUserId = req => {
-    if (!req?.user?.id) { return 'anonymous'; }
+    if (!req?.user?.id) {
+        return 'anonymous';
+    }
 
     const { id } = req.user;
 
@@ -326,7 +405,7 @@ const savePromptToDatabase = async(data, userId) => {
         userId,
         prompt: data.prompt || '',
         original: data.original || '',
-        promptId: data.promptId || null
+        provider: data.provider || 'unknown' // Add missing provider field
     };
 
     const prompt = await prisma.prompts.create({ data: promptData });

@@ -3,6 +3,7 @@ class GuidanceManager {
     constructor () {
         this.config = GUIDANCE_CONFIG;
         this.isInitialized = false;
+        this.init();
     }
 
     init () {

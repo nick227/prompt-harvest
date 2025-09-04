@@ -1,5 +1,4 @@
-import { TagService } from '../services/TagService.js';
-import { ValidationError, NotFoundError, DatabaseError } from '../errors/CustomErrors.js';
+import { ValidationError, NotFoundError } from '../errors/CustomErrors.js';
 import { createErrorResponse } from '../utils/errorResponse.js';
 
 export class TagController {
@@ -17,6 +16,7 @@ export class TagController {
             }
 
             const newTag = await this.tagService.createTag(userId, imageId, tag);
+
             res.status(201).json({ success: true, data: newTag });
         } catch (error) {
             if (error instanceof ValidationError) {
@@ -54,6 +54,7 @@ export class TagController {
         try {
             const { imageId } = req.params;
             const tags = await this.tagService.getTagsByImageId(imageId);
+
             res.json({ success: true, data: tags });
         } catch (error) {
             if (error instanceof ValidationError) {
@@ -73,6 +74,7 @@ export class TagController {
             }
 
             const tags = await this.tagService.getTagsByUserId(userId);
+
             res.json({ success: true, data: tags });
         } catch (error) {
             if (error instanceof ValidationError) {

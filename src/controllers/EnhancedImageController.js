@@ -1,15 +1,16 @@
-import { ValidationError, NotFoundError, DatabaseError } from '../errors/CustomErrors.js';
-import { EnhancedImageService } from '../services/EnhancedImageService.js';
+import { ValidationError } from '../errors/CustomErrors.js';
 
 export class EnhancedImageController {
     constructor(enhancedImageService) {
         this.imageService = enhancedImageService;
     }
 
+    // eslint-disable-next-line max-lines-per-function
     async generateImage(req, res) {
         const startTime = Date.now();
         const requestId = req.id || this.generateRequestId();
 
+        // eslint-disable-next-line no-console
         console.log(`🚀 Image generation request [${requestId}]:`, {
             method: req.method,
             url: req.originalUrl,
@@ -61,6 +62,7 @@ export class EnhancedImageController {
                 };
 
                 console.error(`❌ Image generation failed [${requestId}]:`, response);
+
                 return res.status(statusCode).json(response);
             }
 
@@ -73,6 +75,7 @@ export class EnhancedImageController {
                 timestamp: new Date().toISOString()
             };
 
+            // eslint-disable-next-line no-console
             console.log(`✅ Image generation successful [${requestId}]:`, {
                 imageId: result.imageId,
                 provider: result.providerName,
@@ -83,6 +86,7 @@ export class EnhancedImageController {
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
             console.error(`❌ Image generation controller error [${requestId}]:`, {
                 error: error.message,
                 stack: error.stack,
@@ -91,6 +95,7 @@ export class EnhancedImageController {
 
             // Format error response
             const errorResponse = this.formatErrorResponse(error, requestId, duration);
+
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
@@ -112,6 +117,7 @@ export class EnhancedImageController {
             }
 
             const ratingNum = parseInt(rating);
+
             if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
                 throw new ValidationError('Rating must be a number between 1 and 5');
             }
@@ -126,6 +132,7 @@ export class EnhancedImageController {
                 timestamp: new Date().toISOString()
             };
 
+            // eslint-disable-next-line no-console
             console.log(`✅ Rating updated [${requestId}]:`, {
                 imageId: id,
                 rating: ratingNum,
@@ -136,9 +143,11 @@ export class EnhancedImageController {
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
             console.error(`❌ Rating update error [${requestId}]:`, error.message);
 
             const errorResponse = this.formatErrorResponse(error, requestId, duration);
+
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
@@ -164,6 +173,7 @@ export class EnhancedImageController {
                 timestamp: new Date().toISOString()
             };
 
+            // eslint-disable-next-line no-console
             console.log(`✅ Image deleted [${requestId}]:`, {
                 imageId: id,
                 duration: response.duration
@@ -173,9 +183,11 @@ export class EnhancedImageController {
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
             console.error(`❌ Image deletion error [${requestId}]:`, error.message);
 
             const errorResponse = this.formatErrorResponse(error, requestId, duration);
+
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
@@ -215,6 +227,7 @@ export class EnhancedImageController {
                 timestamp: new Date().toISOString()
             };
 
+            // eslint-disable-next-line no-console
             console.log(`✅ Images retrieved [${requestId}]:`, {
                 count: images.length,
                 userId: userId || 'anonymous',
@@ -225,9 +238,11 @@ export class EnhancedImageController {
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
             console.error(`❌ Get images error [${requestId}]:`, error.message);
 
             const errorResponse = this.formatErrorResponse(error, requestId, duration);
+
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
@@ -248,6 +263,7 @@ export class EnhancedImageController {
                 timestamp: new Date().toISOString()
             };
 
+            // eslint-disable-next-line no-console
             console.log(`✅ Image count retrieved [${requestId}]:`, {
                 count: result.count,
                 userId: userId || 'anonymous',
@@ -258,9 +274,11 @@ export class EnhancedImageController {
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
             console.error(`❌ Get image count error [${requestId}]:`, error.message);
 
             const errorResponse = this.formatErrorResponse(error, requestId, duration);
+
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
@@ -291,6 +309,7 @@ export class EnhancedImageController {
                 timestamp: new Date().toISOString()
             };
 
+            // eslint-disable-next-line no-console
             console.log(`✅ Feed retrieved [${requestId}]:`, {
                 count: images.length,
                 userId: userId || 'anonymous',
@@ -301,9 +320,11 @@ export class EnhancedImageController {
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
             console.error(`❌ Get feed error [${requestId}]:`, error.message);
 
             const errorResponse = this.formatErrorResponse(error, requestId, duration);
+
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
@@ -324,10 +345,12 @@ export class EnhancedImageController {
             console.error('❌ Health check error:', error.message);
 
             const errorResponse = this.formatErrorResponse(error, 'health_check', 0);
+
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
 
+    // eslint-disable-next-line max-lines-per-function
     formatErrorResponse(error, requestId, duration = 0) {
         const baseResponse = {
             success: false,

@@ -6,6 +6,7 @@ export class ImageService {
         this.aiService = aiService;
     }
 
+    // eslint-disable-next-line max-params
     async generateImage(prompt, providers, guidance, userId, options = {}) {
         const {
             promptId,
@@ -81,11 +82,12 @@ export class ImageService {
 
     async getImages(userId, limit = 8, page = 0) {
         // Get all images (public) if no userId, or user-specific images if authenticated
-        const images = userId
+        const result = userId
             ? await this.imageRepository.findByUserId(userId, limit, page)
             : await this.imageRepository.findAll(limit, page);
 
-        return images.map(image => ({
+        // Normalize image data
+        const normalizedImages = result.images.map(image => ({
             id: image.id,
             userId: image.userId, // ✅ Added userId for client-side filtering
             prompt: image.prompt,
@@ -98,6 +100,12 @@ export class ImageService {
             createdAt: image.createdAt,
             updatedAt: image.updatedAt
         }));
+
+        return {
+            images: normalizedImages,
+            hasMore: result.hasMore,
+            totalCount: result.totalCount
+        };
     }
 
     async getFeed(userId, limit = 8, page = 0) {
@@ -110,6 +118,7 @@ export class ImageService {
         if (!userId) {
             // Return total count of all images for site-wide view
             const count = await this.imageRepository.countAll();
+
             return { count };
         }
 
@@ -118,6 +127,7 @@ export class ImageService {
         return { count };
     }
 
+    // eslint-disable-next-line max-params
     async _generateImageWithFeed(prompt, original, promptId, providers, guidance, userId) {
         // Temporary implementation - will be replaced when feed service is extracted
         // For now, we'll import the feed module directly

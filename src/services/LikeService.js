@@ -13,6 +13,7 @@ export class LikeService {
 
         // Check if like already exists
         const existingLike = await this.likeRepository.findLike(userId, imageId);
+
         if (existingLike) {
             throw new ValidationError('User has already liked this image');
         }
@@ -38,6 +39,7 @@ export class LikeService {
         }
 
         const like = await this.likeRepository.findLike(userId, imageId);
+
         return !!like;
     }
 

@@ -47,7 +47,7 @@ export class PrismaImageRepository extends PrismaBaseRepository {
     // Get images by user with pagination
     async getImagesByUser(userId, limit = 8, page = 0) {
         const skip = page * limit;
-        
+
         return await this.findWithPagination({
             where: { userId },
             skip,
@@ -99,6 +99,7 @@ export class PrismaImageRepository extends PrismaBaseRepository {
     // Update image rating
     async updateRating(id, rating) {
         const image = await this.findById(id);
+
         if (!image) {
             throw new NotFoundError('Image not found', 'image');
         }
@@ -194,6 +195,7 @@ export class PrismaImageRepository extends PrismaBaseRepository {
             totalTags,
             imagesByProvider: imagesByProvider.reduce((acc, item) => {
                 acc[item.provider] = item._count.id;
+
                 return acc;
             }, {}),
             timestamp: new Date().toISOString()

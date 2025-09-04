@@ -5,19 +5,25 @@ import {
 
 export const setupFeedRoutes = (app, imageController) => {
     // Feed routes for getting images
-    app.get('/feed',
+    app.get('/api/feed/site',
         apiRateLimit,
         sanitizeInput,
         imageController.getFeed.bind(imageController)
     );
 
-    app.get('/images',
+    app.get('/api/feed',
+        apiRateLimit,
+        sanitizeInput,
+        imageController.getFeed.bind(imageController)
+    );
+
+    app.get('/api/images',
         apiRateLimit,
         sanitizeInput,
         imageController.getImages.bind(imageController)
     );
 
-    app.get('/images/count',
+    app.get('/api/images/count',
         apiRateLimit,
         imageController.getImagesCount.bind(imageController)
     );

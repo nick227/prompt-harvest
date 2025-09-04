@@ -97,6 +97,7 @@ export const getImageStats = asyncHandler(async (req, res) => {
 
     // Get user count (if authenticated)
     let userCount = 0;
+
     if (userId) {
         userCount = await prisma.image.count({
             where: { userId }
@@ -118,6 +119,7 @@ export const getImageStats = asyncHandler(async (req, res) => {
 
     // Format rating stats
     const ratingDistribution = {};
+
     ratingStats.forEach(stat => {
         ratingDistribution[stat.rating] = stat._count.rating;
     });
@@ -146,7 +148,7 @@ export const getImageStats = asyncHandler(async (req, res) => {
 });
 
 // Setup image rating routes
-export const setupImageRatingRoutes = (app) => {
+export const setupImageRatingRoutes = app => {
     app.get('/api/images/stats', getImageStats); // Must come before /:id route
     app.post('/api/images/:id/rating', rateImage);
     app.get('/api/images/:id', getImage);

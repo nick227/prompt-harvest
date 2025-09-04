@@ -76,7 +76,23 @@
     "textarea_utils": "readonly",
     "IMAGE_CATEGORY_SELECTOR": "readonly",
     "IMAGE_CATEGORY_ADD": "readonly",
-    "DEFAULT_IMAGE_LIMIT": "readonly"
+    "DEFAULT_IMAGE_LIMIT": "readonly",
+    "FEED_CONSTANTS": "readonly",
+    "TERMS_CONSTANTS": "readonly",
+    "TermsCacheManager": "readonly",
+    "TermsDOMManager": "readonly",
+    "TermsAPIManager": "readonly",
+    "TermsUIManager": "readonly",
+    "TermsSearchService": "readonly",
+    "FeedCacheManager": "readonly",
+    "FeedDOMManager": "readonly",
+    "FeedAPIManager": "readonly",
+    "FeedUIManager": "readonly",
+    "FeedFilterManager": "readonly",
+    "ImageGenerationAPI": "readonly",
+    "ImageDOMManager": "readonly",
+    "ImageUIState": "readonly",
+    "AdminModels": "readonly"
   },
   "rules": {
     // === ERROR PREVENTION ===

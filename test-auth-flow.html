@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Flow Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8">
+    <h1 class="text-2xl font-bold mb-4">Authentication Flow Test</h1>
+
+    <div class="space-y-4">
+        <div>
+            <h2 class="text-lg font-semibold">1. Script Loading Test</h2>
+            <div id="scriptTest" class="p-2 bg-gray-100 rounded"></div>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-semibold">2. API Service Test</h2>
+            <div id="apiTest" class="p-2 bg-gray-100 rounded"></div>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-semibold">3. User System Test</h2>
+            <div id="userTest" class="p-2 bg-gray-100 rounded"></div>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-semibold">4. Auth Messaging Test</h2>
+            <div id="messagingTest" class="p-2 bg-gray-100 rounded"></div>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-semibold">5. End-to-End Test</h2>
+            <button id="testButton" class="px-4 py-2 bg-blue-500 text-white rounded">Test Complete Flow</button>
+            <div id="e2eTest" class="p-2 bg-gray-100 rounded mt-2"></div>
+        </div>
+    </div>
+
+    <!-- Load scripts in order -->
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/api-service.js"></script>
+    <script src="js/core/user-system.js"></script>
+    <script src="js/shared/auth-messaging.js"></script>
+    <script src="js/auth-forms.js"></script>
+
+    <script>
+        // Test script loading
+        function testScriptLoading() {
+            const testDiv = document.getElementById('scriptTest');
+            const tests = [
+                { name: 'constants.js', check: () => window.API_ENDPOINTS },
+                { name: 'utils.js', check: () => window.Utils },
+                { name: 'api-service.js', check: () => window.userApi },
+                { name: 'user-system.js', check: () => window.userSystem },
+                { name: 'auth-messaging.js', check: () => window.authMessaging },
+                { name: 'auth-forms.js', check: () => window.AuthFormsHandler }
+            ];
+
+            let results = [];
+            tests.forEach(test => {
+                const available = test.check();
+                results.push(`${test.name}: ${available ? '✅' : '❌'}`);
+            });
+
+            testDiv.innerHTML = results.join('<br>');
+        }
+
+        // Test API service
+        function testAPIService() {
+            const testDiv = document.getElementById('apiTest');
+            try {
+                const hasUserApi = !!window.userApi;
+                const hasImageApi = !!window.imageApi;
+                const hasApiService = !!window.apiService;
+
+                testDiv.innerHTML = `
+                    userApi: ${hasUserApi ? '✅' : '❌'}<br>
+                    imageApi: ${hasImageApi ? '✅' : '❌'}<br>
+                    apiService: ${hasApiService ? '✅' : '❌'}
+                `;
+            } catch (error) {
+                testDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Test user system
+        function testUserSystem() {
+            const testDiv = document.getElementById('userTest');
+            try {
+                const hasUserSystem = !!window.userSystem;
+                const isInitialized = window.userSystem?.isInitialized;
+
+                testDiv.innerHTML = `
+                    userSystem: ${hasUserSystem ? '✅' : '❌'}<br>
+                    initialized: ${isInitialized ? '✅' : '❌'}
+                `;
+            } catch (error) {
+                testDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Test auth messaging
+        function testAuthMessaging() {
+            const testDiv = document.getElementById('messagingTest');
+            try {
+                const hasAuthMessaging = !!window.authMessaging;
+                const hasMethods = window.authMessaging?.showError && window.authMessaging?.showSuccess;
+
+                testDiv.innerHTML = `
+                    authMessaging: ${hasAuthMessaging ? '✅' : '❌'}<br>
+                    methods: ${hasMethods ? '✅' : '❌'}
+                `;
+            } catch (error) {
+                testDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Test end-to-end flow
+        async function testE2EFlow() {
+            const testDiv = document.getElementById('e2eTest');
+            testDiv.innerHTML = 'Testing...';
+
+            try {
+                // Test registration
+                const registerResponse = await window.userApi.register('test@example.com', 'testpass123');
+                testDiv.innerHTML += `<br>✅ Registration: ${registerResponse.success ? 'Success' : 'Failed'}`;
+
+                // Test login
+                const loginResponse = await window.userApi.login('test@example.com', 'testpass123');
+                testDiv.innerHTML += `<br>✅ Login: ${loginResponse.success ? 'Success' : 'Failed'}`;
+
+                // Test profile access
+                if (loginResponse.success) {
+                    const profileResponse = await window.userApi.getProfile();
+                    testDiv.innerHTML += `<br>✅ Profile: ${profileResponse.success ? 'Success' : 'Failed'}`;
+                }
+
+            } catch (error) {
+                testDiv.innerHTML += `<br>❌ Error: ${error.message}`;
+            }
+        }
+
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                testScriptLoading();
+                testAPIService();
+                testUserSystem();
+                testAuthMessaging();
+            }, 1000);
+        });
+
+        // Setup test button
+        document.getElementById('testButton').addEventListener('click', testE2EFlow);
+    </script>
+</body>
+</html>

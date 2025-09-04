@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const setupPageRoutes = (app) => {
+export const setupPageRoutes = app => {
     // Serve the main application page
     app.get('/', (req, res) => {
         res.sendFile(path.join(__dirname, '../../public/index.html'));

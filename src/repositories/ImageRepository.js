@@ -21,22 +21,44 @@ export class ImageRepository extends PrismaBaseRepository {
     async findByUserId(userId, limit = 8, page = 0) {
         const skip = page * limit;
 
-        return await this.prisma.image.findMany({
-            where: { userId: userId || 'undefined' },
-            orderBy: { createdAt: 'desc' },
-            take: limit,
-            skip: skip
-        });
+        // Get images and total count for user
+        const [images, total] = await Promise.all([
+            this.prisma.image.findMany({
+                where: { userId: userId || 'undefined' },
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                skip
+            }),
+            this.prisma.image.count({
+                where: { userId: userId || 'undefined' }
+            })
+        ]);
+
+        return {
+            images,
+            hasMore: skip + limit < total,
+            totalCount: total
+        };
     }
 
     async findAll(limit = 8, page = 0) {
         const skip = page * limit;
 
-        return await this.prisma.image.findMany({
-            orderBy: { createdAt: 'desc' },
-            take: limit,
-            skip: skip
-        });
+        // Get images and total count
+        const [images, total] = await Promise.all([
+            this.prisma.image.findMany({
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                skip
+            }),
+            this.prisma.image.count()
+        ]);
+
+        return {
+            images,
+            hasMore: skip + limit < total,
+            totalCount: total
+        };
     }
 
     async updateRating(id, rating) {

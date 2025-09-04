@@ -48,7 +48,7 @@ const Utils = {
 
     // async utilities
     async: {
-        async fetchJson (url, options = { /* Empty block */ }) {
+        async fetchJson (url, options = {}) {
             const response = await fetch(url, options);
 
             if (!response.ok) {
@@ -144,6 +144,48 @@ const Utils = {
             return variableName && variableValues
                 && variableName.trim() !== ''
                 && variableValues.trim() !== '';
+        },
+
+        validateImageData(imageData) {
+            return imageData && (imageData.url || imageData.image || imageData.imageUrl);
+        },
+
+        validateRating(rating) {
+            const numRating = parseInt(rating);
+
+            return !isNaN(numRating) && numRating >= 1 && numRating <= 5;
+        },
+
+        validatePrompt(prompt) {
+            return prompt && typeof prompt === 'string' && prompt.trim().length > 0;
+        },
+
+        validateProviders(providers) {
+            return Array.isArray(providers) && providers.length > 0;
+        }
+    },
+
+    // image utilities
+    image: {
+        makeFileNameSafe(name) {
+            return name.replace(/[<>:"/\\|?*.,;(){}[\]!@#$%^&+=`~]/g, '')
+                .substring(0, 100)
+                .trim();
+        },
+
+        formatTitle(title, maxLength = 124) {
+            if (!title) {
+                return '';
+            }
+            if (title.length <= maxLength) {
+                return title;
+            }
+
+            return `${title.substring(0, maxLength - 3)}...`;
+        },
+
+        createImageUrl(result) {
+            return result.imageUrl || result.image || result.url || `uploads/${result.imageName}`;
         }
     }
 };
@@ -176,7 +218,7 @@ const StateManager = {
 
     observe (key, callback) {
         if (!this.observers) {
-            this.observers = { /* Empty block */ };
+            this.observers = {};
         }
         if (!this.observers[key]) {
             this.observers[key] = [];

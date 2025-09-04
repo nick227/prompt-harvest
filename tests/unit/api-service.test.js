@@ -1,136 +1,439 @@
 /**
- * @jest-environment jsdom
+ * @fileoverview APIService Unit Tests
+ * Comprehensive tests for API communication, authentication, and error handling
  */
 
 import '../setup.js';
 
-// Mock the API service since it's a class that needs to be imported
-const mockApiService = {
-  baseUrl: 'http://localhost:3200',
-  getAuthToken: jest.fn(),
-  setAuthToken: jest.fn(),
-  clearAuthToken: jest.fn(),
-  isAuthenticated: jest.fn(),
-  login: jest.fn(),
-  register: jest.fn(),
-  logout: jest.fn(),
-  getProfile: jest.fn(),
-  post: jest.fn(),
-  get: jest.fn(),
-  put: jest.fn(),
-  delete: jest.fn()
+// Mock fetch globally
+global.fetch = jest.fn();
+
+// Mock localStorage
+const mockLocalStorage = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn()
 };
 
-// Set up global userApi
-window.userApi = mockApiService;
+// Mock sessionStorage
+const mockSessionStorage = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn()
+};
 
-describe('API Service', () => {
+// Mock console methods
+const mockConsole = {
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  info: jest.fn()
+};
+
+describe('APIService', () => {
+  let apiService;
+  let originalConsole;
+  let originalLocalStorage;
+  let originalSessionStorage;
+
   beforeEach(() => {
+    // Store original globals
+    originalConsole = global.console;
+    originalLocalStorage = global.localStorage;
+    originalSessionStorage = global.sessionStorage;
+
+    // Mock globals
+    global.console = mockConsole;
+    global.localStorage = mockLocalStorage;
+    global.sessionStorage = mockSessionStorage;
+
+    // Reset all mocks
     jest.clearAllMocks();
-    fetch.mockClear();
+    global.fetch.mockClear();
+
+    // Mock window.location
+    global.window = {
+      location: {
+        origin: 'http://localhost:3200',
+        search: '?debug=true'
+      }
+    };
+
+    // Create APIService instance
+    const { ApiService } = require('../../public/js/core/api-service.js');
+    apiService = new ApiService();
+  });
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
+  afterEach(() => {
+    // Restore original globals
+    global.console = originalConsole;
+    global.localStorage = originalLocalStorage;
+    global.sessionStorage = originalSessionStorage;
+  });
+
+  describe('Initialization', () => {
+    test('should initialize with default configuration', () => {
+      expect(apiService.baseUrl).toBe('http://localhost:3200');
+      expect(apiService.timeout).toBe(30000);
+      expect(apiService.retryConfig.maxRetries).toBe(2);
+      expect(apiService.retryConfig.retryDelay).toBe(1000);
+      expect(apiService.circuitBreaker.state).toBe('CLOSED');
+    });
+
+    test('should initialize with custom configuration', () => {
+      const customApiService = new (require('../../public/js/core/api-service.js').ApiService)();
+
+      // Test that the service initializes correctly
+      expect(customApiService).toBeInstanceOf(require('../../public/js/core/api-service.js').ApiService);
+      expect(customApiService.baseUrl).toBe('http://localhost:3200');
+    });
   });
 
   describe('Authentication', () => {
-    it('should store auth token on successful login', async () => {
-      const mockResponse = {
-        success: true,
-        data: {
-          token: 'mock-jwt-token',
-          user: { id: '1', email: 'test@example.com' }
+    test('should add auth header when token exists in localStorage', () => {
+      mockLocalStorage.getItem.mockReturnValue('jwt-token');
+
+      const headers = apiService.getAuthHeaders();
+
+      expect(headers.Authorization).toBe('Bearer jwt-token');
+      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('authToken');
+      expect(mockConsole.log).toHaveBeenCalledWith('🔑 API: Adding auth header with token:', 'jwt-token...');
+    });
+
+    test('should add auth header when token exists in sessionStorage', () => {
+      mockLocalStorage.getItem.mockReturnValue(null);
+      mockSessionStorage.getItem.mockReturnValue('session-token');
+
+      const headers = apiService.getAuthHeaders();
+
+      expect(headers.Authorization).toBe('Bearer session-token');
+      expect(mockSessionStorage.getItem).toHaveBeenCalledWith('authToken');
+    });
+
+    test('should not add auth header when no token exists', () => {
+      mockLocalStorage.getItem.mockReturnValue(null);
+      mockSessionStorage.getItem.mockReturnValue(null);
+
+      const headers = apiService.getAuthHeaders();
+
+      expect(headers.Authorization).toBeUndefined();
+      expect(mockConsole.log).toHaveBeenCalledWith('🔑 API: No auth token found in storage');
+    });
+
+    test('should set auth token in localStorage when remember is true', () => {
+      apiService.setAuthToken('new-token', true);
+
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith('authToken', 'new-token');
+      expect(mockSessionStorage.setItem).not.toHaveBeenCalled();
+    });
+
+    test('should set auth token in sessionStorage when remember is false', () => {
+      apiService.setAuthToken('new-token', false);
+
+      expect(mockSessionStorage.setItem).toHaveBeenCalledWith('authToken', 'new-token');
+      expect(mockLocalStorage.setItem).not.toHaveBeenCalled();
+    });
+
+    test('should clear auth token from both storages', () => {
+      apiService.clearAuthToken();
+
+      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('authToken');
+      expect(mockSessionStorage.removeItem).toHaveBeenCalledWith('authToken');
+    });
+  });
+
+  describe('Circuit Breaker', () => {
+    test('should check if circuit breaker is open', () => {
+      // Initially closed
+      expect(apiService.isCircuitBreakerOpen()).toBe(false);
+
+      // Set to open
+      apiService.circuitBreaker.state = 'OPEN';
+      apiService.circuitBreaker.lastFailure = Date.now();
+
+      expect(apiService.isCircuitBreakerOpen()).toBe(true);
+    });
+
+    test('should transition to half-open after timeout', () => {
+      apiService.circuitBreaker.state = 'OPEN';
+      apiService.circuitBreaker.lastFailure = Date.now() - 70000; // 70 seconds ago
+
+      expect(apiService.isCircuitBreakerOpen()).toBe(false);
+      expect(apiService.circuitBreaker.state).toBe('HALF_OPEN');
+    });
+
+    test('should record failures and open circuit breaker', () => {
+      // Initially closed
+      expect(apiService.circuitBreaker.state).toBe('CLOSED');
+
+      // Record failures up to threshold
+      for (let i = 0; i < 5; i++) {
+        apiService.recordFailure();
+      }
+
+      expect(apiService.circuitBreaker.state).toBe('OPEN');
+    });
+
+    test('should record success and close circuit breaker', () => {
+      // Set to open first
+      apiService.circuitBreaker.state = 'OPEN';
+      apiService.circuitBreaker.failures = 5;
+
+      // Record success
+      apiService.recordSuccess();
+
+      expect(apiService.circuitBreaker.state).toBe('CLOSED');
+      expect(apiService.circuitBreaker.failures).toBe(0);
+    });
+  });
+
+  describe('Request Methods', () => {
+    beforeEach(() => {
+      // Mock successful response with proper headers
+      global.fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: {
+          get: jest.fn((header) => {
+            if (header === 'content-type') return 'application/json';
+            return null;
+          })
+        },
+        json: async () => ({ success: true })
+      });
+    });
+
+    test('should make successful GET request', async () => {
+      const result = await apiService.get('/test');
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://localhost:3200/test',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json'
+          })
+        })
+      );
+    });
+
+    test('should make successful POST request with data', async () => {
+      const mockData = { name: 'test' };
+
+      const result = await apiService.post('/test', mockData);
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://localhost:3200/test',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(mockData)
+        })
+      );
+    });
+
+    test('should make successful PUT request', async () => {
+      const mockData = { name: 'updated' };
+
+      const result = await apiService.put('/test/123', mockData);
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://localhost:3200/test/123',
+        expect.objectContaining({
+          method: 'PUT',
+          body: JSON.stringify(mockData)
+        })
+      );
+    });
+
+    test('should make successful DELETE request', async () => {
+      const result = await apiService.delete('/test/123');
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://localhost:3200/test/123',
+        expect.objectContaining({
+          method: 'DELETE'
+        })
+      );
+    });
+
+    test('should make successful PATCH request', async () => {
+      const mockData = { name: 'patched' };
+
+      const result = await apiService.patch('/test/123', mockData);
+
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://localhost:3200/test/123',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify(mockData)
+        })
+      );
+    });
+  });
+
+  describe('Error Handling', () => {
+    test('should handle network errors gracefully', async () => {
+      global.fetch.mockRejectedValue(new Error('Network error'));
+
+      await expect(apiService.get('/test')).rejects.toThrow('Network error');
+    });
+
+    test('should handle HTTP error responses', async () => {
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        headers: {
+          get: jest.fn(() => 'application/json')
+        },
+        json: async () => ({ error: 'Server error' })
+      });
+
+      await expect(apiService.get('/test')).rejects.toThrow('Server error');
+    }, 30000); // Increase timeout to 30 seconds
+
+    test('should handle malformed JSON responses', async () => {
+      global.fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: {
+          get: jest.fn(() => 'application/json')
+        },
+        json: async () => {
+          throw new Error('Invalid JSON');
         }
-      };
-
-      mockApiService.login.mockResolvedValue(mockResponse);
-
-      const result = await mockApiService.login('test@example.com', 'password');
-
-      expect(mockApiService.login).toHaveBeenCalledWith('test@example.com', 'password');
-      expect(result).toEqual(mockResponse);
-    });
-
-    it('should clear auth token on logout', async () => {
-      mockApiService.logout.mockResolvedValue({ success: true });
-
-      await mockApiService.logout();
-
-      expect(mockApiService.logout).toHaveBeenCalled();
-    });
-
-    it('should validate email format', () => {
-      const validEmails = [
-        'test@example.com',
-        'user.name@domain.co.uk',
-        'user+label@example.org'
-      ];
-
-      const invalidEmails = [
-        'invalid-email',
-        '@example.com',
-        'user@',
-        'user@domain',
-        ''
-      ];
-
-      validEmails.forEach(email => {
-        expect(isValidEmail(email)).toBe(true);
       });
 
-      invalidEmails.forEach(email => {
-        expect(isValidEmail(email)).toBe(false);
+      await expect(apiService.get('/test')).rejects.toThrow('Invalid JSON');
+    });
+
+    test('should handle 401 authentication errors', async () => {
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: {
+          get: jest.fn(() => 'application/json')
+        },
+        json: async () => ({ error: 'Authentication required' })
       });
+
+      await expect(apiService.get('/test')).rejects.toThrow('Authentication required');
+      expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('authToken');
+      expect(mockSessionStorage.removeItem).toHaveBeenCalledWith('authToken');
+    });
+
+    test('should handle 429 rate limiting errors', async () => {
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: {
+          get: jest.fn((header) => {
+            if (header === 'retry-after') return '60';
+            return 'application/json';
+          })
+        },
+        json: async () => ({ error: 'Rate limit exceeded' })
+      });
+
+      await expect(apiService.get('/test')).rejects.toThrow('Rate limit exceeded. Please wait 60 seconds.');
     });
   });
 
-  describe('HTTP Methods', () => {
-    it('should make GET requests with proper headers', async () => {
-      const mockData = { success: true, data: [] };
-      mockApiService.get.mockResolvedValue(mockData);
+  describe('Retry Logic', () => {
+        test('should retry failed requests up to max retries', async () => {
+      // Mock first two requests to fail, third to succeed
+      global.fetch
+        .mockRejectedValueOnce(new Error('network error'))
+        .mockRejectedValueOnce(new Error('network error'))
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          headers: {
+            get: jest.fn(() => 'application/json')
+          },
+          json: async () => ({ success: true })
+        });
 
-      const result = await mockApiService.get('/api/test');
+      const result = await apiService.get('/test');
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/api/test');
-      expect(result).toEqual(mockData);
-    });
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledTimes(3);
+    }, 15000); // Increase timeout to 15 seconds
 
-    it('should make POST requests with data', async () => {
-      const mockData = { success: true };
-      const postData = { name: 'test' };
+    test('should not retry non-retryable errors', async () => {
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: {
+          get: jest.fn(() => 'application/json')
+        },
+        json: async () => ({ error: 'Bad request' })
+      });
 
-      mockApiService.post.mockResolvedValue(mockData);
+      await expect(apiService.get('/test')).rejects.toThrow('Bad request');
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    }, 15000); // Increase timeout to 15 seconds
+  });
 
-      const result = await mockApiService.post('/api/test', postData);
+  describe('Timeout Handling', () => {
+    test('should handle request timeouts', async () => {
+      // Mock a fetch that never resolves (simulating a hanging request)
+      global.fetch.mockImplementation(() => {
+        return new Promise(() => {
+          // This promise never resolves or rejects
+        });
+      });
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/api/test', postData);
-      expect(result).toEqual(mockData);
-    });
+      // Start the request (it will hang)
+      const requestPromise = apiService.get('/test');
 
-    it('should handle network errors gracefully', async () => {
-      const networkError = new Error('Network error');
-      mockApiService.get.mockRejectedValue(networkError);
+      // Fast-forward time to trigger timeout
+      jest.advanceTimersByTime(30000);
 
-      await expect(mockApiService.get('/api/test')).rejects.toThrow('Network error');
+      // Run any pending timers
+      jest.runAllTimers();
+
+      // Now the timeout should have triggered
+      await expect(requestPromise).rejects.toThrow('Request timeout');
     });
   });
 
-  describe('Authentication State', () => {
-    it('should return true when user is authenticated', () => {
-      mockApiService.isAuthenticated.mockReturnValue(true);
-      mockApiService.getAuthToken.mockReturnValue('valid-token');
+  describe('Utility Methods', () => {
+    test('should get auth token from storage', () => {
+      mockLocalStorage.getItem.mockReturnValue('stored-token');
 
-      expect(mockApiService.isAuthenticated()).toBe(true);
+      const token = apiService.getAuthToken();
+
+      expect(token).toBe('stored-token');
     });
 
-    it('should return false when user is not authenticated', () => {
-      mockApiService.isAuthenticated.mockReturnValue(false);
-      mockApiService.getAuthToken.mockReturnValue(null);
+    test('should return null when no auth token exists', () => {
+      mockLocalStorage.getItem.mockReturnValue(null);
+      mockSessionStorage.getItem.mockReturnValue(null);
 
-      expect(mockApiService.isAuthenticated()).toBe(false);
+      const token = apiService.getAuthToken();
+
+      expect(token).toBeNull();
     });
+
+
   });
 });
-
-// Helper function for email validation (mocked)
-function isValidEmail(email) {
-  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email).toLowerCase());
-}

@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/236</span>
+                <span class='fraction'>0/240</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/109</span>
+                <span class='fraction'>0/113</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/49</span>
+                <span class='fraction'>0/50</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/230</span>
+                <span class='fraction'>0/234</span>
             </div>
         
             
@@ -600,7 +600,19 @@
 <a name='L535'></a><a href='#L535'>535</a>
 <a name='L536'></a><a href='#L536'>536</a>
 <a name='L537'></a><a href='#L537'>537</a>
-<a name='L538'></a><a href='#L538'>538</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L538'></a><a href='#L538'>538</a>
+<a name='L539'></a><a href='#L539'>539</a>
+<a name='L540'></a><a href='#L540'>540</a>
+<a name='L541'></a><a href='#L541'>541</a>
+<a name='L542'></a><a href='#L542'>542</a>
+<a name='L543'></a><a href='#L543'>543</a>
+<a name='L544'></a><a href='#L544'>544</a>
+<a name='L545'></a><a href='#L545'>545</a>
+<a name='L546'></a><a href='#L546'>546</a>
+<a name='L547'></a><a href='#L547'>547</a>
+<a name='L548'></a><a href='#L548'>548</a>
+<a name='L549'></a><a href='#L549'>549</a>
+<a name='L550'></a><a href='#L550'>550</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1136,6 +1148,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// textArea Module - Consolidated from setupTextArea.js and textAreaHelpers.js
 class TextAreaManager {
@@ -1201,11 +1225,11 @@ class TextAreaManager {
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >            console.warn('⚠️ Sample matches endpoint not available, using fallback:', error.message);</span>
 &nbsp;
-            // Fallback sample matches
+            // Fallback sample matches - using variables that exist in the database
             const fallbackSamples = <span class="cstat-no" title="statement not covered" >[</span>
-                'beautiful', 'detailed', 'high quality', 'professional',
-                'artistic', 'creative', 'stunning', 'amazing',
-                'photorealistic', 'cinematic', 'dramatic', 'vibrant'
+                'synonyms for beautiful', 'detailed', 'high quality', 'professional',
+                'creative artistic description', 'examples of breathtaking', 'wonderful',
+                'photogenic characteristics', 'cinematic', 'dramatic', 'vibrant'
             ];
 &nbsp;
 <span class="cstat-no" title="statement not covered" >            return fallbackSamples.map(<span class="fstat-no" title="function not covered" >wo</span>rd =&gt; <span class="cstat-no" title="statement not covered" >`&lt;li class="sample" title="${word}"&gt;${word}&lt;/li&gt;`)</span>.join('');</span>
@@ -1673,7 +1697,19 @@ class TextAreaManager {
 &nbsp;
 // Export for global access
 <span class="cstat-no" title="statement not covered" >window.TextAreaManager = TextAreaManager;</span>
-<span class="cstat-no" title="statement not covered" >window.textAreaManager = new TextAreaManager();</span>
+&nbsp;
+// Initialize when dependencies are available
+const initTextAreaManager = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    if (typeof TEXTAREA_CONFIG !== 'undefined' &amp;&amp; typeof Utils !== 'undefined') {</span>
+<span class="cstat-no" title="statement not covered" >        window.textAreaManager = new TextAreaManager();</span>
+    } else {
+        // Retry after a short delay
+<span class="cstat-no" title="statement not covered" >        setTimeout(initTextAreaManager, 50);</span>
+    }
+};
+&nbsp;
+// Start initialization
+<span class="cstat-no" title="statement not covered" >initTextAreaManager();</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -1681,7 +1717,7 @@ class TextAreaManager {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-30T16:01:13.911Z
+                at 2025-09-03T20:56:34.733Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

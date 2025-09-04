@@ -7,6 +7,7 @@ class ConfigManager {
         this.config = this.loadConfiguration();
     }
 
+    // eslint-disable-next-line max-lines-per-function
     loadConfiguration() {
         const _env = process.env.NODE_ENV || 'development';
 

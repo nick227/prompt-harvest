@@ -30,6 +30,9 @@ class ApiService {
             timeout: 60000,
             state: 'CLOSED' // CLOSED, OPEN, HALF_OPEN
         };
+
+        // Counter for multiple 401s on profile endpoint
+        this.profile401Count = 0;
     }
 
     /**
@@ -43,6 +46,12 @@ class ApiService {
 
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
+            // Only log auth headers when debugging
+            if (window.location.search.includes('debug')) {
+                console.log('🔑 API: Adding auth header with token:', `${token.substring(0, 20)}...`);
+            }
+        } else {
+            console.log('🔑 API: No auth token found in storage');
         }
 
         return headers;
@@ -118,7 +127,9 @@ class ApiService {
     createTimeoutPromise() {
         return new Promise((_, reject) => {
             setTimeout(() => {
-                reject(new Error('Request timeout'));
+                const timeoutError = new Error('Request timeout');
+                timeoutError.isTimeout = true; // Mark as timeout error
+                reject(timeoutError);
             }, this.timeout);
         });
     }
@@ -135,9 +146,10 @@ class ApiService {
             }
 
             // Check if error is retryable
-            const isRetryable = this.retryConfig.retryableStatusCodes.includes(error.status) ||
-                               error.message.includes('timeout') ||
-                               error.message.includes('network');
+            const isRetryable = !error.isTimeout && (
+                this.retryConfig.retryableStatusCodes.includes(error.status) ||
+                error.message.includes('network')
+            );
 
             if (!isRetryable) {
                 throw error;
@@ -162,6 +174,11 @@ class ApiService {
 
         const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
         const headers = { ...this.getAuthHeaders(), ...options.headers };
+
+        // Only log headers for auth endpoints or when debugging
+        if (endpoint.includes('/api/auth/') || window.location.search.includes('debug')) {
+            console.log('🔑 API: Request headers for', endpoint, ':', headers);
+        }
 
         const requestOptions = {
             method: method.toUpperCase(),
@@ -192,8 +209,32 @@ class ApiService {
 
             // Handle authentication errors
             if (response.status === 401) {
-                this.clearAuthToken();
-                window.location.href = '/login';
+                console.log('🔑 API: 401 Unauthorized - clearing auth token');
+
+                // Don't clear token immediately for profile endpoint (might be backend issue)
+                const isProfileEndpoint = url.includes('/api/auth/profile');
+
+                if (isProfileEndpoint) {
+                    console.log('🔑 API: Profile endpoint 401 - this might be a backend issue, not clearing token yet');
+                    // Only clear token if we get multiple 401s on profile endpoint
+                    if (this.profile401Count && this.profile401Count > 1) {
+                        console.log('🔑 API: Multiple profile 401s - clearing token');
+                        this.clearAuthToken();
+                    } else {
+                        this.profile401Count = (this.profile401Count || 0) + 1;
+                        console.log('🔑 API: Profile 401 count:', this.profile401Count);
+                    }
+                } else {
+                    this.clearAuthToken();
+                }
+
+                // Don't redirect for auth endpoints (login/register)
+                const isAuthEndpoint = url.includes('/api/auth/');
+
+                if (!isAuthEndpoint) {
+                    window.location.href = '/login';
+                }
+
                 throw new Error('Authentication required');
             }
 
@@ -213,8 +254,14 @@ class ApiService {
                     responseData,
                     url
                 });
-                // TODO: Refactor nested ternary
-                const errorMessage = responseData?.error || responseData?.message || `HTTP ${response.status}`;
+
+                // Log full response data for debugging
+                if (responseData && typeof responseData === 'object') {
+                    console.error('🔍 Full Server Response:', JSON.stringify(responseData, null, 2));
+                }
+
+                // Use the most descriptive error message available
+                const errorMessage = responseData?.message || responseData?.error || `HTTP ${response.status}`;
                 const error = new Error(errorMessage);
 
                 error.status = response.status;
