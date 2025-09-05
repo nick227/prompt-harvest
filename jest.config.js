@@ -65,7 +65,7 @@ export default {
 
   // Module transformation ignores
   transformIgnorePatterns: [
-    'node_modules/(?!(canvas|jsdom)/)'
+    'node_modules/'
   ],
 
   // Test timeout
