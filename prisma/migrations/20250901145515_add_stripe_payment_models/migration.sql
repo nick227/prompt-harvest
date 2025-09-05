@@ -42,14 +42,25 @@ ALTER TABLE `prompts` DROP COLUMN `mashup`,
     DROP COLUMN `mixup`,
     DROP COLUMN `multiplier`;
 
--- AlterTable
-ALTER TABLE `stripe_payments` DROP PRIMARY KEY,
-    DROP COLUMN `currency`,
-    ADD COLUMN `id` VARCHAR(25) NOT NULL,
-    ADD COLUMN `metadata` JSON NULL,
-    MODIFY `amount` DOUBLE NOT NULL,
-    MODIFY `status` VARCHAR(50) NOT NULL DEFAULT 'pending',
-    ADD PRIMARY KEY (`id`);
+-- AlterTable (safe approach for primary key change)
+-- First, add the new id column as nullable
+ALTER TABLE `stripe_payments` ADD COLUMN `id` VARCHAR(25) NULL;
+
+-- Populate the id column with unique values
+UPDATE `stripe_payments` SET `id` = CONCAT('sp_', LPAD(ROW_NUMBER() OVER (ORDER BY createdAt), 10, '0')) WHERE `id` IS NULL;
+
+-- Make the id column NOT NULL
+ALTER TABLE `stripe_payments` MODIFY `id` VARCHAR(25) NOT NULL;
+
+-- Drop the old primary key and add new one
+ALTER TABLE `stripe_payments` DROP PRIMARY KEY;
+ALTER TABLE `stripe_payments` ADD PRIMARY KEY (`id`);
+
+-- Drop currency column and modify other columns
+ALTER TABLE `stripe_payments` DROP COLUMN `currency`;
+ALTER TABLE `stripe_payments` ADD COLUMN `metadata` JSON NULL;
+ALTER TABLE `stripe_payments` MODIFY `amount` DOUBLE NOT NULL;
+ALTER TABLE `stripe_payments` MODIFY `status` VARCHAR(50) NOT NULL DEFAULT 'pending';
 
 -- AlterTable
 ALTER TABLE `users` DROP COLUMN `creditBalance`;
@@ -60,17 +71,39 @@ DROP TABLE `promo_redemptions`;
 -- DropTable
 DROP TABLE `promo_codes`;
 
--- CreateIndex
+-- CreateIndex (only if no duplicates exist)
+-- First, remove any duplicate stripeSessionId values
+UPDATE `stripe_payments` s1
+SET `stripeSessionId` = CONCAT(`stripeSessionId`, '_', s1.id)
+WHERE EXISTS (
+    SELECT 1 FROM `stripe_payments` s2
+    WHERE s2.`stripeSessionId` = s1.`stripeSessionId`
+    AND s2.id != s1.id
+);
+
+-- Now create the unique index
 CREATE UNIQUE INDEX `stripe_payments_stripeSessionId_key` ON `stripe_payments`(`stripeSessionId`);
 
--- CreateIndex
-CREATE INDEX `stripe_payments_createdAt_idx` ON `stripe_payments`(`createdAt`);
+-- CreateIndex (only if it doesn't exist)
+SET @index_exists = (SELECT COUNT(*) FROM information_schema.STATISTICS WHERE INDEX_NAME = 'stripe_payments_createdAt_idx' AND TABLE_NAME = 'stripe_payments' AND TABLE_SCHEMA = DATABASE());
+SET @sql = IF(@index_exists = 0, 'CREATE INDEX `stripe_payments_createdAt_idx` ON `stripe_payments`(`createdAt`)', 'SELECT "Index already exists"');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
--- AddForeignKey
-ALTER TABLE `images` ADD CONSTRAINT `images_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+-- AddForeignKey (only if it doesn't exist)
+SET @constraint_exists = (SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE CONSTRAINT_NAME = 'images_userId_fkey' AND TABLE_NAME = 'images' AND TABLE_SCHEMA = DATABASE());
+SET @sql = IF(@constraint_exists = 0, 'ALTER TABLE `images` ADD CONSTRAINT `images_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE', 'SELECT "Constraint already exists"');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
--- AddForeignKey
-ALTER TABLE `transactions` ADD CONSTRAINT `transactions_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+-- AddForeignKey (only if it doesn't exist)
+SET @constraint_exists = (SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE CONSTRAINT_NAME = 'transactions_userId_fkey' AND TABLE_NAME = 'transactions' AND TABLE_SCHEMA = DATABASE());
+SET @sql = IF(@constraint_exists = 0, 'ALTER TABLE `transactions` ADD CONSTRAINT `transactions_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE', 'SELECT "Constraint already exists"');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- AddForeignKey (only if it doesn't exist)
 SET @constraint_exists = (SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE CONSTRAINT_NAME = 'stripe_payments_userId_fkey' AND TABLE_NAME = 'stripe_payments' AND TABLE_SCHEMA = DATABASE());
@@ -79,5 +112,9 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
--- AddForeignKey
-ALTER TABLE `credit_ledger` ADD CONSTRAINT `credit_ledger_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+-- AddForeignKey (only if it doesn't exist)
+SET @constraint_exists = (SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE WHERE CONSTRAINT_NAME = 'credit_ledger_userId_fkey' AND TABLE_NAME = 'credit_ledger' AND TABLE_SCHEMA = DATABASE());
+SET @sql = IF(@constraint_exists = 0, 'ALTER TABLE `credit_ledger` ADD CONSTRAINT `credit_ledger_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE', 'SELECT "Constraint already exists"');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
