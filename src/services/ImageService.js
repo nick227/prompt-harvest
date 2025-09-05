@@ -131,7 +131,7 @@ export class ImageService {
     async _generateImageWithFeed(prompt, original, promptId, providers, guidance, userId) {
         // Temporary implementation - will be replaced when feed service is extracted
         // For now, we'll import the feed module directly
-        const feed = await import('../../src/feed.js');
+        const feed = await import('../../feed.js');
 
         return await feed.default.image.generate(
             prompt,

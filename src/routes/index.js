@@ -127,7 +127,8 @@ export const setupRoutes = async app => {
 
     // Start system monitoring
     try {
-        const { systemMonitor } = await import('../monitoring/SystemMonitor.js');
+        const { systemMonitor } = await
+        import ('../monitoring/SystemMonitor.js');
 
         systemMonitor.start();
         // eslint-disable-next-line no-console
