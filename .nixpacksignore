@@ -1,0 +1,7 @@
+tests/
+coverage/
+playwright-report/
+node_modules/@playwright/
+node_modules/playwright/
+node_modules/canvas/
+node_modules/jsdom/
