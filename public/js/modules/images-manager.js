@@ -60,6 +60,13 @@ class ImagesManager {
 
         e.preventDefault();
 
+        // Check authentication first
+        if (!window.userApi || !window.userApi.isAuthenticated()) {
+            console.log(`🔒 AUTH CHECK [${requestId}]: User not authenticated, redirecting to login`);
+            this.ui.showAuthRequiredMessage();
+            return;
+        }
+
         // Guard against duplicate calls
         if (this.ui.isGenerating) {
             console.log(`⚠️ DUPLICATE CALL [${requestId}]: Generation already in progress, ignoring`);

@@ -357,12 +357,12 @@ const saveFeedEvent = async(type, data, req) => {
 
 const getUserId = req => {
     if (!req?.user?.id) {
-        return 'anonymous';
+        return null;
     }
 
     const { id } = req.user;
 
-    return (id && id !== 'undefined' && id !== 'null' && id !== '') ? id : 'anonymous';
+    return (id && id !== 'undefined' && id !== 'null' && id !== '') ? id : null;
 };
 
 const saveImageToDatabase = async(data, userId) => {
@@ -380,7 +380,7 @@ const saveImageToDatabase = async(data, userId) => {
 
     console.log('💾 Saving image to database:', {
         id: imageData.id,
-        userId,
+        userId: userId || 'anonymous',
         prompt: `${imageData.prompt.substring(0, 30)}...`,
         provider: imageData.provider
     });

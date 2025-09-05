@@ -36,7 +36,7 @@ export class EnhancedImageService {
             prompt: `${prompt.substring(0, 50)}...`,
             providers,
             guidance,
-            userId: userId || 'anonymous'
+            userId: userId || null
         });
 
         try {
@@ -68,7 +68,7 @@ export class EnhancedImageService {
             });
 
             // Log transaction for cost tracking
-            if (userId && userId !== 'anonymous') {
+            if (userId && userId !== null) {
                 try {
                     await this.transactionService.logTransaction(userId, providers[0], 1);
                     console.log(`💰 Transaction logged for user ${userId}: ${providers[0]}`);
@@ -86,7 +86,7 @@ export class EnhancedImageService {
             console.error(`❌ Image generation failed [${requestId}] after ${duration}ms:`, {
                 error: error.message,
                 type: error.name,
-                userId: userId || 'anonymous'
+                userId: userId || null
             });
 
             // Clean up any partial resources
@@ -139,7 +139,7 @@ export class EnhancedImageService {
             }
 
             // UserId validation
-            if (userId && userId !== 'undefined' && userId !== 'anonymous') {
+            if (userId && userId !== 'undefined' && userId !== null) {
                 // Validate userId format if provided
                 if (typeof userId !== 'string' || userId.length < 3) {
                     warnings.push('UserId format appears invalid, using anonymous');
@@ -179,7 +179,7 @@ export class EnhancedImageService {
                 promptLength: prompt.length,
                 providers,
                 guidance,
-                userId: userId || 'anonymous'
+                userId: userId || null
             });
 
             return true;
@@ -237,7 +237,7 @@ export class EnhancedImageService {
     async generateImageWithBreaker(prompt, original, promptId, providers, guidance, userId) {
         return await circuitBreakerManager.execute('imageGeneration', async () => {
             // Validate userId before proceeding
-            const validUserId = userId && userId !== 'undefined' ? userId : 'anonymous';
+            const validUserId = userId && userId !== 'undefined' ? userId : null;
 
             // Import feed module dynamically
             const feed = await import('../feed.js');
@@ -303,7 +303,7 @@ export class EnhancedImageService {
     async saveImageWithTransaction(imageData, userId) {
         return await circuitBreakerManager.execute('database', async () => {
             // Validate userId before database operation
-            const validUserId = userId && userId !== 'undefined' ? userId : 'anonymous';
+            const validUserId = userId && userId !== 'undefined' ? userId : null;
 
             return await this.prisma.$transaction(async tx => {
                 // Create image record with validated userId

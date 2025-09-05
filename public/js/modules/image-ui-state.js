@@ -102,6 +102,22 @@ class ImageUIState {
         }
     }
 
+    showAuthRequiredMessage() {
+        console.log('🔒 AUTH: Showing authentication required message');
+        
+        // Show authentication required message
+        if (window.ErrorHandler) {
+            window.ErrorHandler.showUserError('Please log in to generate images. Click here to login.', () => {
+                // Redirect to login page
+                window.location.href = '/login.html';
+            });
+        } else {
+            // Fallback: simple alert
+            alert('Please log in to generate images.');
+            window.location.href = '/login.html';
+        }
+    }
+
     showGenerationSuccess(_imageData) {
         console.log('✅ Generation completed successfully');
 
