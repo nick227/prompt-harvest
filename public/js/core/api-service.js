@@ -128,6 +128,7 @@ class ApiService {
         return new Promise((_, reject) => {
             setTimeout(() => {
                 const timeoutError = new Error('Request timeout');
+
                 timeoutError.isTimeout = true; // Mark as timeout error
                 reject(timeoutError);
             }, this.timeout);

@@ -1,10 +1,10 @@
-/* global GenerationManager, GenerationUI, GenerationData, GenerationEvents */
+/* global _GenerationManager */
 // Generation Manager - Business logic layer orchestrating UI, events, and data for image generation
 class GenerationManager {
     constructor() {
-        this.ui = new GenerationUI();
-        this.data = new GenerationData();
-        this.events = new GenerationEvents(this);
+        this.ui = new window.GenerationUI();
+        this.data = new window.GenerationData();
+        this.events = new window.GenerationEvents(this);
 
         // State management
         this.isGenerating = false;

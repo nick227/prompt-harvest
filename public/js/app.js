@@ -1,4 +1,4 @@
-/* global userApi */
+/* global */
 // Central Application Loader
 class AppLoader {
     constructor() {
@@ -295,7 +295,7 @@ class AppLoader {
 
         if (typeof window.generateImage === 'function') {
             window.generateImage(promptObj.prompt, validation.providers)
-                .then(result => {
+                .then(_result => {
 
                     this.checkAutoGenerationContinue();
                 })

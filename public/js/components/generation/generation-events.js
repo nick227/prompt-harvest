@@ -1,4 +1,4 @@
-/* global GenerationEvents */
+/* global _GenerationEvents */
 // Generation Event Layer - Event handling and user interactions for image generation
 class GenerationEvents {
     constructor(generationManager) {
@@ -31,11 +31,13 @@ class GenerationEvents {
         // Debug functions for development
         window.testAutoGeneration = () => {
             const _status = this.generationManager.getStatus();
+
             this.generationManager.checkAutoGenerationContinue();
         };
-        
+
         window.testButtonFunctionality = () => {
             const _btn = this.ui.getGenerateButton();
+
             if (_btn) {
                 _btn.click();
             } else {
@@ -44,8 +46,7 @@ class GenerationEvents {
         };
     }
 
-    handleProviderChange(e) {
-
+    handleProviderChange(_e) {
         this.generationManager.updateProviderStatus();
     }
 

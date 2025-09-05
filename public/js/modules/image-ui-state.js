@@ -98,8 +98,10 @@ class ImageUIState {
 
         // Special handling for provider selection error
         const providerError = errors.find(error => error.includes('provider'));
+
         if (providerError) {
             this.showProviderSelectionAlert();
+
             return;
         }
 
@@ -111,12 +113,13 @@ class ImageUIState {
 
     showProviderSelectionAlert() {
         console.log('🔒 PROVIDER: Showing provider selection alert');
-        
+
         // Show prominent alert for provider selection
         if (window.ErrorHandler) {
             window.ErrorHandler.showUserError('Please select at least one AI provider to generate images. You can select multiple providers or use the "all" option.', () => {
                 // Focus on provider section
                 const providerSection = document.getElementById('provider-list');
+
                 if (providerSection) {
                     providerSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     // Add a temporary highlight
@@ -136,7 +139,7 @@ class ImageUIState {
 
     showAuthRequiredMessage() {
         console.log('🔒 AUTH: Showing authentication required message');
-        
+
         // Show authentication required message
         if (window.ErrorHandler) {
             window.ErrorHandler.showUserError('Please log in to generate images. Click here to login.', () => {

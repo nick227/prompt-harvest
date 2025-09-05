@@ -1,5 +1,5 @@
 /** * Admin Dashboard Models * Declarative configuration for all admin sections */
-const AdminModels = {
+const _AdminModels = {
     // ===============    // PAYMENTS SECTION MODEL    // =======
     payments: {
         id: 'payments',

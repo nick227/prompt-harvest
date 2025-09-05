@@ -118,6 +118,7 @@ class TransactionStatsComponent {
             if (!window.userApi || !window.userApi.isAuthenticated()) {
                 console.log('📊 STATS-COMPONENT: User not authenticated, showing not authenticated state');
                 this.showNotAuthenticatedState();
+
                 return;
             }
 

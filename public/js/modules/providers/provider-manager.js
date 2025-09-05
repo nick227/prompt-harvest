@@ -77,7 +77,7 @@ class ProviderManager {
             checkbox.id = provider.value;
             checkbox.name = 'providers';
             checkbox.className = 'mr-1';
-            
+
             // Restore saved selection
             if (savedSelections.includes(provider.value)) {
                 checkbox.checked = true;
@@ -124,7 +124,7 @@ class ProviderManager {
             } else if (e.target.name === 'providers') {
                 this.handleProviderCheckbox();
             }
-            
+
             // Save selections to localStorage whenever they change
             this.saveProviderSelections();
         });
@@ -216,6 +216,7 @@ class ProviderManager {
     // localStorage methods for persistence
     saveProviderSelections() {
         const selectedProviders = this.getSelectedProviders();
+
         localStorage.setItem('selectedProviders', JSON.stringify(selectedProviders));
         console.log('💾 Saved provider selections:', selectedProviders);
     }
@@ -223,15 +224,18 @@ class ProviderManager {
     loadProviderSelections() {
         try {
             const saved = localStorage.getItem('selectedProviders');
+
             if (saved) {
                 const selections = JSON.parse(saved);
+
                 console.log('📂 Loaded provider selections:', selections);
+
                 return selections;
             }
         } catch (error) {
             console.warn('⚠️ Failed to load provider selections from localStorage:', error);
         }
-        
+
         // Default selection: select first few providers if nothing is saved
         return ['flux', 'dalle'];
     }

@@ -126,7 +126,7 @@ class FeedFilterManager {
     }
 
     // Load filter images (to be implemented by main manager)
-    async loadFilterImages(filter) {
+    async loadFilterImages(_filter) {
         // This will be implemented by the main FeedManager
         // It's here as a placeholder for the filter switching logic
         throw new Error('loadFilterImages must be implemented by FeedManager');

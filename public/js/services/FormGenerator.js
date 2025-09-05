@@ -1,4 +1,4 @@
-/** * Declarative Form Generator * Generates forms from JSON schemas with validation and styling */class FormGenerator {
+/** * Declarative Form Generator * Generates forms from JSON schemas with validation and styling */class _FormGenerator {
     constructor(options = {}) {
         this.defaultOptions = {
             theme: 'admin',

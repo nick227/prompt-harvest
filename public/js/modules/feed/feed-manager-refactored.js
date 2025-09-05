@@ -67,7 +67,7 @@ class FeedManager {
     }
 
     // Handle last image visible (infinite scroll)
-    async handleLastImageVisible(event) {
+    async handleLastImageVisible(_event) {
         const currentFilter = this.filterManager.getCurrentFilter();
         const cache = this.cacheManager.getCache(currentFilter);
 
@@ -219,7 +219,7 @@ class FeedManager {
     }
 
     // Add image to output (for new generations)
-    addImageToOutput(imageData, download = false) {
+    addImageToOutput(imageData, _download = false) {
         try {
             const currentFilter = this.filterManager.getCurrentFilter();
 

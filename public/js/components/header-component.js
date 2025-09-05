@@ -113,7 +113,7 @@ class HeaderComponent {
 
         // Override the user system's UI creation methods to prevent conflicts
         if (window.userSystem && window.userSystem.setupUI) {
-            const originalSetupUI = window.userSystem.setupUI.bind(window.userSystem);
+            const _originalSetupUI = window.userSystem.setupUI.bind(window.userSystem);
 
             window.userSystem.setupUI = () => {
                 // Don't create new containers - we handle this in the header

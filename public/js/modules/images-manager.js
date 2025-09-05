@@ -64,6 +64,7 @@ class ImagesManager {
         if (!window.userApi || !window.userApi.isAuthenticated()) {
             console.log(`🔒 AUTH CHECK [${requestId}]: User not authenticated, redirecting to login`);
             this.ui.showAuthRequiredMessage();
+
             return;
         }
 
