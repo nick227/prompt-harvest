@@ -53,6 +53,25 @@ class StripeService {
     /**
      * Handle successful payment completion
      */
+    // Alternative to webhooks: Poll payment status
+    async checkPaymentStatus(sessionId) {
+        try {
+            const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+            
+            if (session.payment_status === 'paid') {
+                await this.handlePaymentSuccess(sessionId);
+                return { status: 'completed', session };
+            } else if (session.payment_status === 'unpaid') {
+                return { status: 'pending', session };
+            } else {
+                return { status: 'failed', session };
+            }
+        } catch (error) {
+            console.error('Error checking payment status:', error);
+            throw error;
+        }
+    }
+
     async handlePaymentSuccess(sessionId) {
         try {
             // Get session from Stripe

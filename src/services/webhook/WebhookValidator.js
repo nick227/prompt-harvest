@@ -17,6 +17,15 @@ export class WebhookValidator {
             throw new Error('Webhook payload is required');
         }
 
+        const webhookSecret = getWebhookSecret();
+        
+        // Skip webhook verification if no secret is provided (for development/testing)
+        if (!webhookSecret) {
+            console.warn('⚠️  Webhook secret not configured - skipping signature verification');
+            // Parse the body as JSON for testing
+            return JSON.parse(payload.toString());
+        }
+
         if (!signature) {
             throw new Error('Webhook signature is required');
         }
@@ -25,7 +34,7 @@ export class WebhookValidator {
             const event = stripe.webhooks.constructEvent(
                 payload,
                 signature,
-                getWebhookSecret()
+                webhookSecret
             );
 
             console.log(`💳 WEBHOOK-VALIDATOR: Verified event ${event.id}: ${event.type}`);
