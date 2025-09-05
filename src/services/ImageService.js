@@ -82,9 +82,9 @@ export class ImageService {
 
     async getImages(userId, limit = 8, page = 0) {
         // Get all images (public) if no userId, or user-specific images if authenticated
-        const result = userId
-            ? await this.imageRepository.findByUserId(userId, limit, page)
-            : await this.imageRepository.findAll(limit, page);
+        const result = userId ?
+            await this.imageRepository.findByUserId(userId, limit, page) :
+            await this.imageRepository.findAll(limit, page);
 
         // Normalize image data
         const normalizedImages = result.images.map(image => ({
@@ -131,7 +131,8 @@ export class ImageService {
     async _generateImageWithFeed(prompt, original, promptId, providers, guidance, userId) {
         // Temporary implementation - will be replaced when feed service is extracted
         // For now, we'll import the feed module directly
-        const feed = await import('../../feed.js');
+        const feed = await
+        import ('../../feed.js');
 
         return await feed.default.image.generate(
             prompt,

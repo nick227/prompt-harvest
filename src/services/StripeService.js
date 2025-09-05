@@ -105,7 +105,7 @@ class StripeService {
                     where: { stripeSessionId: sessionId },
                     data: {
                         status: 'completed',
-                        stripePaymentIntentId: session.payment_intent ? .id || null
+                        stripePaymentIntentId: session.payment_intent?.id || null
                     }
                 });
 
