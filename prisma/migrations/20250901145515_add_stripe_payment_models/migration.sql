@@ -73,14 +73,21 @@ DROP TABLE `promo_redemptions`;
 DROP TABLE `promo_codes`;
 
 -- CreateIndex (only if no duplicates exist)
--- First, remove any duplicate stripeSessionId values
-UPDATE `stripe_payments` s1
-SET `stripeSessionId` = CONCAT(`stripeSessionId`, '_', s1.id)
+-- First, remove any duplicate stripeSessionId values using a temporary table approach
+CREATE TEMPORARY TABLE `temp_duplicates` AS
+SELECT s1.id, s1.`stripeSessionId`
+FROM `stripe_payments` s1
 WHERE EXISTS (
-    SELECT 1 FROM `stripe_payments` s2
-    WHERE s2.`stripeSessionId` = s1.`stripeSessionId`
+    SELECT 1 FROM `stripe_payments` s2 
+    WHERE s2.`stripeSessionId` = s1.`stripeSessionId` 
     AND s2.id != s1.id
 );
+
+UPDATE `stripe_payments` s1
+INNER JOIN `temp_duplicates` t ON s1.id = t.id
+SET s1.`stripeSessionId` = CONCAT(s1.`stripeSessionId`, '_', s1.id);
+
+DROP TEMPORARY TABLE `temp_duplicates`;
 
 -- Now create the unique index
 CREATE UNIQUE INDEX `stripe_payments_stripeSessionId_key` ON `stripe_payments`(`stripeSessionId`);
