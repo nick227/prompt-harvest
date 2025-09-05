@@ -18,7 +18,7 @@ export class WebhookValidator {
         }
 
         const webhookSecret = getWebhookSecret();
-        
+
         // Skip webhook verification if no secret is provided (for development/testing)
         if (!webhookSecret) {
             console.warn('⚠️  Webhook secret not configured - skipping signature verification');

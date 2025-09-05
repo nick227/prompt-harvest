@@ -110,7 +110,7 @@ export const setupRoutes = async app => {
     // Apply JWT authentication middleware to protected routes only
     // Note: Auth routes (/api/auth/*) are handled separately and don't need this middleware
     app.use('/api/images', authenticateTokenRequired);
-    app.use('/api/image', authenticateTokenRequired);
+    // app.use('/api/image', authenticateTokenRequired); // Allow anonymous image generation
     app.use('/api/feed', authenticateTokenRequired);
     app.use('/api/ai', authenticateTokenRequired);
     app.use('/api/config', authenticateTokenRequired);

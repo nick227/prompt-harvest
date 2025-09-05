@@ -57,7 +57,7 @@ class StripeService {
     async checkPaymentStatus(sessionId) {
         try {
             const session = await this.stripe.checkout.sessions.retrieve(sessionId);
-            
+
             if (session.payment_status === 'paid') {
                 await this.handlePaymentSuccess(sessionId);
                 return { status: 'completed', session };
@@ -105,7 +105,7 @@ class StripeService {
                     where: { stripeSessionId: sessionId },
                     data: {
                         status: 'completed',
-                        stripePaymentIntentId: session.payment_intent?.id || null
+                        stripePaymentIntentId: session.payment_intent ? .id || null
                     }
                 });
 
@@ -114,8 +114,7 @@ class StripeService {
                     payment.userId,
                     payment.credits,
                     'purchase',
-                    `Credit purchase - ${payment.credits} credits`,
-                    { stripePaymentId: sessionId }
+                    `Credit purchase - ${payment.credits} credits`, { stripePaymentId: sessionId }
                 );
 
                 return updatedPayment;
@@ -192,8 +191,7 @@ class StripeService {
                 await SimplifiedCreditService.refundCredits(
                     payment.userId,
                     payment.credits, // Positive amount for refund
-                    `Refund for payment ${sessionId} - ${reason}`,
-                    { stripePaymentId: sessionId }
+                    `Refund for payment ${sessionId} - ${reason}`, { stripePaymentId: sessionId }
                 );
 
                 return {

@@ -110,8 +110,27 @@ class TransactionStatsComponent {
             return;
         }
 
+        this.isLoading = true;
+        this.showLoadingState();
+
         try {
-            this.loadStatsDirectly();
+            // Check if user is authenticated before making API call
+            if (!window.userApi || !window.userApi.isAuthenticated()) {
+                console.log('📊 STATS-COMPONENT: User not authenticated, showing not authenticated state');
+                this.showNotAuthenticatedState();
+                return;
+            }
+
+            // Fetch user stats
+            const response = await window.apiService.get('/api/transactions/user/stats');
+
+            if (response.success) {
+                this.stats = response.data;
+                this.handleStatsUpdate(this.stats);
+            } else {
+                console.error('❌ Failed to load stats:', response.error);
+                this.showErrorState();
+            }
         } catch (error) {
             console.error('❌ Error loading transaction stats:', error);
             this.showErrorState();

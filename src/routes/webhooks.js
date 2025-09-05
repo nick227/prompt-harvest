@@ -21,7 +21,7 @@ const STRIPE_WEBHOOK_IPS = [
  * Important: This endpoint requires raw body parsing, not JSON
  * The raw body is needed for Stripe signature verification
  */
-router.post('/stripe', express.raw({ type: 'application/json', limit: '1mb' }), async (req, res) => {
+router.post('/stripe', express.raw({ type: 'application/json', limit: '1mb' }), async(req, res) => {
     try {
         const signature = req.headers['stripe-signature'];
 
@@ -70,10 +70,10 @@ router.post('/stripe', express.raw({ type: 'application/json', limit: '1mb' }), 
  * Manual payment status check (alternative to webhooks)
  * POST /webhooks/check-payment
  */
-router.post('/check-payment', async (req, res) => {
+router.post('/check-payment', async(req, res) => {
     try {
         const { sessionId } = req.body;
-        
+
         if (!sessionId) {
             return res.status(400).json({ error: 'Session ID is required' });
         }
@@ -81,23 +81,24 @@ router.post('/check-payment', async (req, res) => {
         // Check payment status with Stripe
         const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
         const session = await stripe.checkout.sessions.retrieve(sessionId);
-        
+
         if (session.payment_status === 'paid') {
             // Process the payment (same logic as webhook)
-            const StripeService = (await import('../services/StripeService.js')).default;
+            const StripeService = (await
+                import ('../services/StripeService.js')).default;
             await StripeService.handlePaymentSuccess(sessionId);
-            
-            return res.json({ 
-                status: 'completed', 
-                message: 'Payment processed successfully' 
+
+            return res.json({
+                status: 'completed',
+                message: 'Payment processed successfully'
             });
         } else {
-            return res.json({ 
-                status: session.payment_status, 
-                message: 'Payment not yet completed' 
+            return res.json({
+                status: session.payment_status,
+                message: 'Payment not yet completed'
             });
         }
-        
+
     } catch (error) {
         console.error('Error checking payment status:', error);
         res.status(500).json({ error: 'Failed to check payment status' });
