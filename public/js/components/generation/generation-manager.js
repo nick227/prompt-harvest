@@ -253,13 +253,11 @@ class GenerationManager {
 
     // Debug Methods
     enableDebugMode() {
-
-        window.showDebugPanel();
+        console.log('🔧 Debug mode enabled');
     }
 
     disableDebugMode() {
-
-        window.hideDebugPanel();
+        console.log('🔧 Debug mode disabled');
     }
 
     // Performance Monitoring

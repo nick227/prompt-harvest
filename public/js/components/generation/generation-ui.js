@@ -212,41 +212,6 @@ class GenerationUI {
         }
     }
 
-    // Debug UI (for development)
-    createDebugPanel() {
-        const debugPanel = document.createElement('div');
-
-        debugPanel.id = 'debug-panel';
-        debugPanel.style.cssText = `
-            position: fixed;
-        top: 10px;
-            left: 10px;
-        background: rgba(0,0,0,0.8);
-            color: white;
-        padding: 10px;
-            border-radius: 5px;
-        font-size: 12px;
-            z-index: 9999;
-        display: none;
-        `;
-        document.body.appendChild(debugPanel);
-
-        return debugPanel;
-    }
-
-    updateDebugPanel(data) {
-        const debugPanel = document.getElementById('debug-panel');
-
-        if (debugPanel) {
-            debugPanel.innerHTML = `
-                <strong>Debug Info:</strong><br>
-                Generating: ${data.isGenerating}<br>
-                Auto-generating: ${data.isAutoGenerating}<br>
-                Counter: ${data.autoGenerationCounter}/${data.autoGenerationMax}<br>
-                Providers: ${data.selectedProviders?.length || 0}
-            `;
-        }
-    }
 }
 
 // Export for global access

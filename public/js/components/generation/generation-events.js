@@ -30,33 +30,16 @@ class GenerationEvents {
     setupDebugEvents() {
         // Debug functions for development
         window.testAutoGeneration = () => {
-
             const _status = this.generationManager.getStatus();
-
             this.generationManager.checkAutoGenerationContinue();
         };
+        
         window.testButtonFunctionality = () => {
-
             const _btn = this.ui.getGenerateButton();
-
             if (_btn) {
-
                 _btn.click();
             } else {
                 console.error('❌ Button not found');
-            }
-        };
-        window.showDebugPanel = () => {
-            const debugPanel = this.ui.createDebugPanel();
-
-            debugPanel.style.display = 'block';
-            this.updateDebugPanel();
-        };
-        window.hideDebugPanel = () => {
-            const debugPanel = document.getElementById('debug-panel');
-
-            if (debugPanel) {
-                debugPanel.style.display = 'none';
             }
         };
     }
@@ -66,15 +49,6 @@ class GenerationEvents {
         this.generationManager.updateProviderStatus();
     }
 
-    updateDebugPanel() {
-        const _status = this.generationManager.getStatus();
-        const selectedProviders = Array.from(this.ui.getProviderCheckboxes()).map(p => p.value);
-
-        this.ui.updateDebugPanel({
-            ...status,
-            selectedProviders
-        });
-    }
 
     // Event cleanup
     cleanup() {

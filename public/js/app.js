@@ -371,15 +371,5 @@ document.addEventListener('DOMContentLoaded', async() => {
             window.app.checkAutoGenerationContinue();
         }
     };
-    window.testButtonClick = () => {
-        const _btn = document.querySelector('.btn-generate');
-
-        if (_btn) {
-
-            _btn.click();
-        } else {
-            console.error('❌ Button not found for manual test');
-        }
-    };
 });
 

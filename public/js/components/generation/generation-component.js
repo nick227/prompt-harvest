@@ -142,44 +142,6 @@ class GenerationComponent {
         return this.manager.disableDebugMode();
     }
 
-    // Manual test method for debugging
-    testButtonClick() {
-
-        const _btn = document.querySelector('.btn-generate');
-
-        if (_btn) {
-
-            _btn.click();
-            setTimeout(() => { /* Empty block */ }, 1000);
-        } else {
-            console.error('❌ Button not found');
-        }
-    }
-
-    // Comprehensive debug method
-    debugGenerationFlow() {
-
-        // Check component status
-
-        // Check button
-        const _btn = document.querySelector('.btn-generate');
-
-        // Check generateImage function
-
-        // Check form data
-        const promptData = this.manager?.getPromptData();
-
-        // Check validation
-        if (promptData) {
-            const _isValid = this.manager?.validatePrompt(promptData);
-
-        }
-
-        // Check providers
-        const _providers = document.querySelectorAll('input[name="providers"]:checked');
-
-    }
-
     // Performance monitoring
     startPerformanceTimer() {
         return this.manager.startPerformanceTimer();
@@ -222,23 +184,6 @@ if (typeof window !== 'undefined') {
         window.generationComponent.init();
     }
 
-    // Add global test function
-    window.testGenerationButton = () => {
-        if (window.generationComponent) {
-            window.generationComponent.testButtonClick();
-        } else {
-            console.error('❌ Generation component not available');
-        }
-    };
-
-    // Add global debug function
-    window.debugGenerationFlow = () => {
-        if (window.generationComponent) {
-            window.generationComponent.debugGenerationFlow();
-        } else {
-            console.error('❌ Generation component not available');
-        }
-    };
 }
 
 // Export for testing
