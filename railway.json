@@ -1,9 +1,6 @@
 {
     "$schema": "https://railway.app/railway.schema.json",
     "build": {
-        "builder": "NIXPACKS"
-    },
-    "deploy": {
-        "startCommand": "echo '=== DATABASE_URL CHECK ===' && echo 'DATABASE_URL='$DATABASE_URL && echo '=== END CHECK ===' && npx prisma migrate reset --force && npm run db:deploy && npm start"
+        "builder": "DOCKERFILE"
     }
 }

@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+tests
+playwright-report
+coverage
+scripts/test-*.js
+public/tests
+playwright.config.js
+jest.config.js
+.nixpacksignore
+nixpacks.toml
