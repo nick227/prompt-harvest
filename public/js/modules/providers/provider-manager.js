@@ -61,6 +61,9 @@ class ProviderManager {
         // clear existing content
         this.providerList.innerHTML = '';
 
+        // Load saved selections from localStorage
+        const savedSelections = this.loadProviderSelections();
+
         // add provider checkboxes
         this.providers.forEach(provider => {
             const label = document.createElement('label');
@@ -74,6 +77,11 @@ class ProviderManager {
             checkbox.id = provider.value;
             checkbox.name = 'providers';
             checkbox.className = 'mr-1';
+            
+            // Restore saved selection
+            if (savedSelections.includes(provider.value)) {
+                checkbox.checked = true;
+            }
 
             const span = document.createElement('span');
 
@@ -116,6 +124,9 @@ class ProviderManager {
             } else if (e.target.name === 'providers') {
                 this.handleProviderCheckbox();
             }
+            
+            // Save selections to localStorage whenever they change
+            this.saveProviderSelections();
         });
     }
 
@@ -200,6 +211,34 @@ class ProviderManager {
             provider.label = newLabel;
             this.populateProviders();
         }
+    }
+
+    // localStorage methods for persistence
+    saveProviderSelections() {
+        const selectedProviders = this.getSelectedProviders();
+        localStorage.setItem('selectedProviders', JSON.stringify(selectedProviders));
+        console.log('💾 Saved provider selections:', selectedProviders);
+    }
+
+    loadProviderSelections() {
+        try {
+            const saved = localStorage.getItem('selectedProviders');
+            if (saved) {
+                const selections = JSON.parse(saved);
+                console.log('📂 Loaded provider selections:', selections);
+                return selections;
+            }
+        } catch (error) {
+            console.warn('⚠️ Failed to load provider selections from localStorage:', error);
+        }
+        
+        // Default selection: select first few providers if nothing is saved
+        return ['flux', 'dalle'];
+    }
+
+    clearProviderSelections() {
+        localStorage.removeItem('selectedProviders');
+        console.log('🗑️ Cleared provider selections from localStorage');
     }
 }
 

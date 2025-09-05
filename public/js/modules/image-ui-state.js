@@ -96,9 +96,41 @@ class ImageUIState {
             console.warn(`⚠️ VALIDATION: ${error}`);
         });
 
+        // Special handling for provider selection error
+        const providerError = errors.find(error => error.includes('provider'));
+        if (providerError) {
+            this.showProviderSelectionAlert();
+            return;
+        }
+
         // Could integrate with notification system here
         if (window.ErrorHandler) {
             window.ErrorHandler.showUserError(errors.join('. '));
+        }
+    }
+
+    showProviderSelectionAlert() {
+        console.log('🔒 PROVIDER: Showing provider selection alert');
+        
+        // Show prominent alert for provider selection
+        if (window.ErrorHandler) {
+            window.ErrorHandler.showUserError('Please select at least one AI provider to generate images. You can select multiple providers or use the "all" option.', () => {
+                // Focus on provider section
+                const providerSection = document.getElementById('provider-list');
+                if (providerSection) {
+                    providerSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Add a temporary highlight
+                    providerSection.style.border = '2px solid #ef4444';
+                    providerSection.style.borderRadius = '8px';
+                    setTimeout(() => {
+                        providerSection.style.border = '';
+                        providerSection.style.borderRadius = '';
+                    }, 3000);
+                }
+            });
+        } else {
+            // Fallback: simple alert
+            alert('Please select at least one AI provider to generate images.');
         }
     }
 
