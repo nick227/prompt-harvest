@@ -46,8 +46,9 @@ ALTER TABLE `prompts` DROP COLUMN `mashup`,
 -- First, add the new id column as nullable
 ALTER TABLE `stripe_payments` ADD COLUMN `id` VARCHAR(25) NULL;
 
--- Populate the id column with unique values
-UPDATE `stripe_payments` SET `id` = CONCAT('sp_', LPAD(ROW_NUMBER() OVER (ORDER BY createdAt), 10, '0')) WHERE `id` IS NULL;
+-- Populate the id column with unique values (MySQL compatible)
+SET @row_number = 0;
+UPDATE `stripe_payments` SET `id` = CONCAT('sp_', LPAD((@row_number := @row_number + 1), 10, '0')) WHERE `id` IS NULL ORDER BY `createdAt`;
 
 -- Make the id column NOT NULL
 ALTER TABLE `stripe_payments` MODIFY `id` VARCHAR(25) NOT NULL;
