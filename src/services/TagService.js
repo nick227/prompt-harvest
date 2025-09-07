@@ -1,5 +1,5 @@
 import { PrismaTagRepository } from '../repositories/PrismaTagRepository.js';
-import { ValidationError, NotFoundError } from '../errors/CustomErrors.js';
+import { ValidationError, NotFoundError as _NotFoundError } from '../errors/CustomErrors.js';
 
 export class TagService {
     constructor() {

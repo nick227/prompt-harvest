@@ -1,30 +1,18 @@
 import {
     apiRateLimit,
-    sanitizeInput
+    sanitizeInput,
+    authenticateToken
 } from '../middleware/index.js';
 
-export const setupFeedRoutes = (app, imageController) => {
-    // Feed routes for getting images
+export const setupFeedRoutes = (app, enhancedImageController) => {
+    // Feed routes for getting images - only /api/feed/site since /api/feed is handled by enhanced routes
     app.get('/api/feed/site',
         apiRateLimit,
+        authenticateToken, // Add authentication middleware
         sanitizeInput,
-        imageController.getFeed.bind(imageController)
+        enhancedImageController.getFeed.bind(enhancedImageController)
     );
 
-    app.get('/api/feed',
-        apiRateLimit,
-        sanitizeInput,
-        imageController.getFeed.bind(imageController)
-    );
-
-    app.get('/api/images',
-        apiRateLimit,
-        sanitizeInput,
-        imageController.getImages.bind(imageController)
-    );
-
-    app.get('/api/images/count',
-        apiRateLimit,
-        imageController.getImagesCount.bind(imageController)
-    );
+    // Note: /api/feed, /api/images, and /api/images/count are handled by enhancedImageRoutes.js
+    // with proper authentication middleware
 };

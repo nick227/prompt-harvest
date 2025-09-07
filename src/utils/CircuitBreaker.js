@@ -30,9 +30,13 @@ export class CircuitBreaker {
         if (this.state === 'OPEN') {
             if (this.shouldAttemptReset()) {
                 this.state = 'HALF_OPEN';
+                // eslint-disable-next-line no-console
                 console.log(`🔄 Circuit breaker for ${this.serviceName} moved to HALF_OPEN`);
             } else {
-                throw new Error(`Circuit breaker is OPEN for ${this.serviceName}. Retry after ${this.getTimeUntilReset()}ms`);
+                throw new Error(
+                    `Circuit breaker is OPEN for ${this.serviceName}. ` +
+                    `Retry after ${this.getTimeUntilReset()}ms`
+                );
             }
         }
 
@@ -61,6 +65,7 @@ export class CircuitBreaker {
 
         if (this.state === 'HALF_OPEN') {
             this.state = 'CLOSED';
+            // eslint-disable-next-line no-console
             console.log(`✅ Circuit breaker for ${this.serviceName} moved to CLOSED`);
         }
     }
@@ -70,10 +75,12 @@ export class CircuitBreaker {
         this.lastFailureTime = Date.now();
         this.metrics.failedRequests++;
 
+        // eslint-disable-next-line no-console
         console.error(`❌ Circuit breaker failure for ${this.serviceName}:`, error.message);
 
         if (this.failureCount >= this.failureThreshold) {
             this.state = 'OPEN';
+            // eslint-disable-next-line no-console
             console.log(`🚨 Circuit breaker for ${this.serviceName} moved to OPEN`);
         }
     }
@@ -127,6 +134,7 @@ export class CircuitBreaker {
         this.failureCount = 0;
         this.successCount = 0;
         this.lastFailureTime = null;
+        // eslint-disable-next-line no-console
         console.log(`🔄 Circuit breaker for ${this.serviceName} manually reset`);
     }
 }

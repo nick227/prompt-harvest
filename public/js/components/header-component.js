@@ -39,13 +39,18 @@ class HeaderComponent {
                     <!-- Left Section: Logo and Title -->
                     <div class="flex items-center space-x-3 group">
                         <a href="/" class="flex items-center space-x-3 group">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg
+                                         flex items-center justify-center shadow-lg group-hover:shadow-xl
+                                         transition-all duration-300">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor"
+                                     viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
                             <div>
-                                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400
+                                          bg-clip-text text-transparent">
                                     AutoImage
                                 </h1>
                                 <p class="text-xs text-gray-400 -mt-1">AI Image Generation</p>
@@ -59,20 +64,24 @@ class HeaderComponent {
                             <!-- Transaction stats will be loaded here -->
                         </div>
                         <div id="auth-links" class="flex items-center space-x-4">
-                            <a href="/login.html" class="text-gray-300 hover:text-blue-400 transition-colors duration-200">
+                            <a href="/login.html"
+                               class="text-gray-300 hover:text-blue-400 transition-colors duration-200">
                                 Login
                             </a>
-                            <a href="/register.html" class="text-gray-300 hover:text-blue-400 transition-colors duration-200">
+                            <a href="/register.html"
+                               class="text-gray-300 hover:text-blue-400 transition-colors duration-200">
                                 Register
                             </a>
                         </div>
                         <div id="user-info" class="hidden flex items-center space-x-4">
                             <span class="text-sm text-gray-300"></span>
-                            <button class="logout-btn text-gray-300 hover:text-red-400 transition-colors duration-200">
+                            <button class="logout-btn text-gray-300 hover:text-red-400
+                                          transition-colors duration-200">
                                 Logout
                             </button>
                         </div>
-                        <a href="/terms.html" class="text-gray-300 hover:text-blue-400 transition-colors duration-200 font-medium">
+                        <a href="/terms.html"
+                           class="text-gray-300 hover:text-blue-400 transition-colors duration-200 font-medium">
                             <i class="fa-solid fa-book"></i>
                         </a>
                     </div>

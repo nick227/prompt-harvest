@@ -1,10 +1,10 @@
-import { PrismaClient } from '@prisma/client';
 import { createStripeClient } from '../config/stripeConfig.js';
 import PaymentPackageService from './PaymentPackageService.js';
 import SimplifiedWebhookService from './webhook/SimplifiedWebhookService.js';
 import SimplifiedCreditService from './credit/SimplifiedCreditService.js';
+import databaseClient from '../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 const stripe = createStripeClient();
 
 /**
@@ -60,6 +60,7 @@ class StripeService {
 
             if (session.payment_status === 'paid') {
                 await this.handlePaymentSuccess(sessionId);
+
                 return { status: 'completed', session };
             } else if (session.payment_status === 'unpaid') {
                 return { status: 'pending', session };

@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/168</span>
+                <span class='fraction'>0/163</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/73</span>
+                <span class='fraction'>0/71</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/50</span>
+                <span class='fraction'>0/49</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/164</span>
+                <span class='fraction'>0/159</span>
             </div>
         
             
@@ -438,17 +438,7 @@
 <a name='L373'></a><a href='#L373'>373</a>
 <a name='L374'></a><a href='#L374'>374</a>
 <a name='L375'></a><a href='#L375'>375</a>
-<a name='L376'></a><a href='#L376'>376</a>
-<a name='L377'></a><a href='#L377'>377</a>
-<a name='L378'></a><a href='#L378'>378</a>
-<a name='L379'></a><a href='#L379'>379</a>
-<a name='L380'></a><a href='#L380'>380</a>
-<a name='L381'></a><a href='#L381'>381</a>
-<a name='L382'></a><a href='#L382'>382</a>
-<a name='L383'></a><a href='#L383'>383</a>
-<a name='L384'></a><a href='#L384'>384</a>
-<a name='L385'></a><a href='#L385'>385</a>
-<a name='L386'></a><a href='#L386'>386</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L376'></a><a href='#L376'>376</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -821,19 +811,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/* global userApi */
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/* global */
 // Central Application Loader
 class AppLoader {
 <span class="fstat-no" title="function not covered" >    co</span>nstructor() {
@@ -1130,7 +1110,7 @@ class AppLoader {
 &nbsp;
 <span class="cstat-no" title="statement not covered" >        if (typeof window.generateImage === 'function') {</span>
 <span class="cstat-no" title="statement not covered" >            window.generateImage(promptObj.prompt, validation.providers)</span>
-                .then(<span class="fstat-no" title="function not covered" >re</span>sult =&gt; {
+                .then(<span class="fstat-no" title="function not covered" >_r</span>esult =&gt; {
 &nbsp;
 <span class="cstat-no" title="statement not covered" >                    this.checkAutoGenerationContinue();</span>
                 })
@@ -1206,16 +1186,6 @@ const validateImageGeneration = <span class="cstat-no" title="statement not cove
 <span class="cstat-no" title="statement not covered" >            window.app.checkAutoGenerationContinue();</span>
         }
     };
-<span class="cstat-no" title="statement not covered" >    window.testButtonClick = <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-        const _btn = <span class="cstat-no" title="statement not covered" >document.querySelector('.btn-generate');</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >        if (_btn) {</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >            _btn.click();</span>
-        } else {
-<span class="cstat-no" title="statement not covered" >            console.error('❌ Button not found for manual test');</span>
-        }
-    };
 });
 &nbsp;
 &nbsp;</pre></td></tr></table></pre>
@@ -1225,7 +1195,7 @@ const validateImageGeneration = <span class="cstat-no" title="statement not cove
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-03T20:56:34.965Z
+                at 2025-09-07T05:42:09.485Z
             </div>
         <script src="../prettify.js"></script>
         <script>

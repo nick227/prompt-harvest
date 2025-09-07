@@ -51,6 +51,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
 
     // Image retrieval with pagination validation
     app.get('/api/images',
+        authenticateToken, // Add authentication middleware
         enhancedRateLimit({
             windowMs: 1 * 60 * 1000, // 1 minute
             maxRequests: 200, // 200 requests per minute
@@ -61,6 +62,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
     );
 
     app.get('/api/images/count',
+        authenticateToken, // Add authentication middleware
         enhancedRateLimit({
             windowMs: 1 * 60 * 1000, // 1 minute
             maxRequests: 100, // 100 requests per minute
@@ -72,6 +74,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
 
     // Feed endpoint with rate limiting
     app.get('/api/feed',
+        authenticateToken, // Add authentication middleware
         enhancedRateLimit({
             windowMs: 1 * 60 * 1000, // 1 minute
             maxRequests: 300, // 300 requests per minute

@@ -3,10 +3,10 @@
  * Handles promo code validation and redemption
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 import CreditTransactionService from './CreditTransactionService.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 export class PromoCodeService {
 
@@ -52,7 +52,10 @@ export class PromoCodeService {
                 { promoCodeId: result.id }
             );
 
-            console.log(`💳 PROMO-SERVICE: User ${userId} redeemed promo code ${promoCode} for ${result.credits} credits`);
+            console.log(
+                `💳 PROMO-SERVICE: User ${userId} redeemed promo code ${promoCode} ` +
+                `for ${result.credits} credits`
+            );
 
             return {
                 credits: result.credits,

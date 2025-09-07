@@ -16,6 +16,7 @@ class DatabaseClient {
     async connect() {
         try {
             await this.prisma.$connect();
+            // eslint-disable-next-line no-console
             console.log('✅ Database connected successfully');
         } catch (error) {
             console.error('❌ Database connection failed:', error);
@@ -27,6 +28,7 @@ class DatabaseClient {
     async disconnect() {
         try {
             await this.prisma.$disconnect();
+            // eslint-disable-next-line no-console
             console.log('✅ Database disconnected successfully');
         } catch (error) {
             console.error('❌ Database disconnection failed:', error);

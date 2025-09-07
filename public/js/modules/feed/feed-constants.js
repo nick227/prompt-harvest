@@ -51,7 +51,7 @@ const FEED_CONSTANTS = {
     // API Endpoints
     ENDPOINTS: {
         FEED: '/api/feed',
-        USER_FEED: '/api/feed/user',
+        USER_FEED: '/api/feed', // Use same endpoint for user feed
         SITE_FEED: '/api/feed/site'
     },
 

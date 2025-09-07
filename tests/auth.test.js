@@ -1,5 +1,5 @@
 // Load the auth functions and make them global
-require('../public/js/auth.js');
+require('../public/js/auth-forms.js');
 
 // Make isAuth function available globally for testing
 global.isAuth = function() {

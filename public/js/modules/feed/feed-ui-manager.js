@@ -19,8 +19,18 @@ class FeedUIManager {
         if ('IntersectionObserver' in window) {
             this.intersectionObserver = new IntersectionObserver(
                 entries => {
+                    console.log('🔍 INTERSECTION: Observer callback triggered', {
+                        entriesCount: entries.length,
+                        entries: entries.map(entry => ({
+                            isIntersecting: entry.isIntersecting,
+                            intersectionRatio: entry.intersectionRatio,
+                            target: entry.target.dataset?.imageId || 'unknown'
+                        }))
+                    });
+
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
+                            console.log('🔍 INTERSECTION: Image is intersecting, calling handleLastImageVisible');
                             this.handleLastImageVisible();
                         }
                     });
@@ -34,6 +44,11 @@ class FeedUIManager {
 
     // Handle when last image becomes visible
     handleLastImageVisible() {
+        console.log('🔍 INTERSECTION: handleLastImageVisible called', {
+            isLoading: this.isLoading,
+            lastImageElement: this.lastImageElement?.dataset?.imageId || 'none'
+        });
+
         if (this.isLoading) {
             console.log('🔍 INTERSECTION: Skipping - already loading');
 
@@ -42,19 +57,38 @@ class FeedUIManager {
 
         const lastImage = this.domManager.getLastImageElement();
 
-        if (lastImage && lastImage !== this.lastImageElement) {
-            this.lastImageElement = lastImage;
+        console.log('🔍 INTERSECTION: Last image check', {
+            lastImageFound: !!lastImage,
+            lastImageId: lastImage?.dataset?.imageId || 'none',
+            previousLastImageId: this.lastImageElement?.dataset?.imageId || 'none',
+            isDifferent: lastImage !== this.lastImageElement
+        });
 
-            console.log('🔍 INTERSECTION: Last image changed, dispatching event');
+        if (lastImage) {
+            // Check if this is the first time we're seeing this image or if it's different
+            const isFirstTime = !this.lastImageElement;
+            const isDifferentImage = lastImage !== this.lastImageElement;
 
-            // Dispatch event for infinite scroll
-            const event = new CustomEvent('lastImageVisible', {
-                detail: { element: lastImage }
-            });
+            if (isFirstTime || isDifferentImage) {
+                this.lastImageElement = lastImage;
 
-            window.dispatchEvent(event);
+                console.log('🔍 INTERSECTION: Last image changed or first time, dispatching event', {
+                    isFirstTime,
+                    isDifferentImage,
+                    lastImageId: lastImage.dataset?.imageId || 'unknown'
+                });
+
+                // Dispatch event for infinite scroll
+                const event = new CustomEvent('lastImageVisible', {
+                    detail: { element: lastImage }
+                });
+
+                window.dispatchEvent(event);
+            } else {
+                console.log('🔍 INTERSECTION: Same image, skipping event');
+            }
         } else {
-            console.log('🔍 INTERSECTION: Same image or no image, skipping event');
+            console.log('🔍 INTERSECTION: No last image found, skipping event');
         }
     }
 
@@ -106,24 +140,45 @@ class FeedUIManager {
 
     // Add image to feed
     addImageToFeed(imageData, filter) {
-        this.domManager.addImageToFeed(imageData, filter);
+        const wasAdded = this.domManager.addImageToFeed(imageData, filter);
 
-        // Update intersection observer
-        this.updateIntersectionObserver();
+        // Only update intersection observer if a new image was actually added
+        if (wasAdded) {
+            this.updateIntersectionObserver();
+        }
     }
 
     // Update intersection observer
     updateIntersectionObserver() {
-        if (this.intersectionObserver) {
-            // First, unobserve all current targets to prevent multiple observations
-            this.intersectionObserver.disconnect();
+        console.log('👁️ OBSERVER: updateIntersectionObserver called', {
+            hasObserver: !!this.intersectionObserver
+        });
 
+        if (this.intersectionObserver) {
             const lastImage = this.domManager.getLastImageElement();
 
-            if (lastImage) {
+            console.log('👁️ OBSERVER: Last image element check', {
+                lastImageFound: !!lastImage,
+                lastImageId: lastImage?.dataset?.imageId || 'unknown',
+                currentlyObserving: this.lastImageElement?.dataset?.imageId || 'none',
+                isSameImage: lastImage === this.lastImageElement
+            });
+
+            // Only update observer if we have a new last image
+            if (lastImage && lastImage !== this.lastImageElement) {
+                // First, unobserve all current targets to prevent multiple observations
+                this.intersectionObserver.disconnect();
+
                 console.log('👁️ OBSERVER: Observing new last image:', lastImage.dataset?.imageId || 'unknown');
                 this.intersectionObserver.observe(lastImage);
+                // Don't set this.lastImageElement here - let the intersection observer callback handle it
+            } else if (lastImage) {
+                console.log('👁️ OBSERVER: Same last image, skipping observer update');
+            } else {
+                console.log('👁️ OBSERVER: No last image found to observe');
             }
+        } else {
+            console.log('👁️ OBSERVER: No intersection observer available');
         }
     }
 

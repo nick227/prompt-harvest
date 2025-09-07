@@ -110,6 +110,12 @@ class ProviderManager {
         allLabel.appendChild(allCheckbox);
         allLabel.appendChild(allSpan);
         this.providerList.appendChild(allLabel);
+
+        // After restoring checkboxes and adding "all" checkbox, update states
+        setTimeout(() => {
+            this.handleProviderCheckbox();
+            this.updateButtonState();
+        }, 0);
     }
 
     bindEvents() {
@@ -243,6 +249,18 @@ class ProviderManager {
     clearProviderSelections() {
         localStorage.removeItem('selectedProviders');
         console.log('🗑️ Cleared provider selections from localStorage');
+    }
+
+    updateButtonState() {
+        // Notify the generation manager to update the button state
+        // Use a small delay to ensure the generation manager is ready
+        setTimeout(() => {
+            if (window.generationComponent && window.generationComponent.manager) {
+                window.generationComponent.manager.updateProviderStatus();
+            } else if (window.generationManager) {
+                window.generationManager.updateProviderStatus();
+            }
+        }, 100);
     }
 }
 

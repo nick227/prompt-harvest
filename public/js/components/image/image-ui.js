@@ -38,7 +38,13 @@ class ImageUI {
     createImageElement(imageData) {
         const img = this.createElement('img', this.config.classes.image);
 
-        img.src = imageData.url;
+        // Handle base64 data URLs properly
+        if (imageData.url && (imageData.url.startsWith('iVBORw0KGgo') || imageData.url.startsWith('/9j/'))) {
+            // It's base64 image data, format as data URL
+            img.src = `data:image/jpeg;base64,${imageData.url}`;
+        } else {
+            img.src = imageData.url;
+        }
         img.alt = imageData.title || 'Generated Image';
         img.dataset.id = imageData.id;
         img.dataset.rating = imageData.rating || '0';

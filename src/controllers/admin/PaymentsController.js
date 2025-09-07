@@ -3,10 +3,10 @@
  * Handles all payment-related admin operations
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 import StripeService from '../../services/StripeService.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 class PaymentsController {
     /**

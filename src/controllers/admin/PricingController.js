@@ -3,11 +3,11 @@
  * Handles pricing configuration and management
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 import fs from 'fs/promises';
 import path from 'path';
 
-const _prisma = new PrismaClient();
+const _prisma = databaseClient.getClient();
 
 // Default pricing configuration
 const DEFAULT_PRICING = {
@@ -413,7 +413,9 @@ class PricingController {
 
         // Validate markup percentage
         if (pricing.markup_percentage !== undefined) {
-            if (!Number.isInteger(pricing.markup_percentage) || pricing.markup_percentage < 0 || pricing.markup_percentage > 500) {
+            if (!Number.isInteger(pricing.markup_percentage) ||
+                pricing.markup_percentage < 0 ||
+                pricing.markup_percentage > 500) {
                 errors.push('markup_percentage must be an integer between 0 and 500');
             }
         }

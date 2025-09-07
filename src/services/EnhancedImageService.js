@@ -1,14 +1,12 @@
 import { ValidationError, NotFoundError } from '../errors/CustomErrors.js';
 import {
-    CircuitBreakerOpenError,
     ProviderUnavailableError,
     ImageGenerationTimeoutError,
-    ContentPolicyViolationError,
-    FileSystemError,
-    DatabaseTransactionError
+    FileSystemError
 } from '../errors/CircuitBreakerErrors.js';
 import { circuitBreakerManager } from '../utils/CircuitBreaker.js';
 import { TransactionService } from './TransactionService.js';
+import { formatErrorResponse } from '../utils/ResponseFormatter.js';
 import databaseClient from '../database/PrismaClient.js';
 
 export class EnhancedImageService {
@@ -33,7 +31,7 @@ export class EnhancedImageService {
         const requestId = this.generateRequestId();
 
         console.log(`🚀 Starting image generation [${requestId}]:`, {
-            prompt: `${prompt.substring(0, 50)}...`,
+            prompt: prompt ? `${prompt.substring(0, 50)}...` : 'undefined',
             providers,
             guidance,
             userId: userId || null
@@ -61,10 +59,17 @@ export class EnhancedImageService {
 
             const duration = Date.now() - startTime;
 
+            // Extract the first successful result from the feed response
+            const firstResult = imageData.results && imageData.results.length > 0 ? imageData.results[0] : null;
+            const actualImageId = firstResult?.imageId;
+            const actualProvider = firstResult?.provider;
+            const actualImageUrl = firstResult?.imageUrl;
+
             console.log(`✅ Image generation completed [${requestId}] in ${duration}ms:`, {
-                imageId: imageData.id,
-                provider: imageData.provider,
-                prompt: `${imageData.prompt.substring(0, 30)}...`
+                imageId: actualImageId,
+                provider: actualProvider,
+                imageUrl: actualImageUrl,
+                prompt: prompt ? `${prompt.substring(0, 30)}...` : 'undefined'
             });
 
             // Log transaction for cost tracking
@@ -78,7 +83,23 @@ export class EnhancedImageService {
                 }
             }
 
-            return imageData;
+            // Return the processed result with proper structure that frontend expects
+            const serviceResult = {
+                id: actualImageId,
+                imageUrl: actualImageUrl,
+                prompt: prompt,
+                original: processedData.original,
+                provider: actualProvider,
+                guidance: guidance,
+                rating: 0,
+                userId: userId,
+                createdAt: new Date().toISOString(),
+                success: true,
+                results: imageData.results
+            };
+
+
+            return serviceResult;
 
         } catch (error) {
             const duration = Date.now() - startTime;
@@ -93,7 +114,7 @@ export class EnhancedImageService {
             await this.cleanupOnFailure(error, requestId);
 
             // Return appropriate error response
-            return this.formatErrorResponse(error, requestId);
+            return formatErrorResponse(error, requestId, Date.now() - startTime);
         }
     }
 
@@ -255,7 +276,7 @@ export class EnhancedImageService {
                 user: { id: validUserId }
             };
 
-            const generationPromise = feed.default.image.generate(
+            const generationPromise = feed.default.generate(
                 prompt,
                 original,
                 promptId,
@@ -347,83 +368,6 @@ export class EnhancedImageService {
         }
     }
 
-    // eslint-disable-next-line max-lines-per-function
-    formatErrorResponse(error, requestId) {
-        const baseResponse = {
-            error: true,
-            requestId,
-            timestamp: new Date().toISOString()
-        };
-
-        switch (error.name) {
-            case 'ValidationError':
-                return {
-                    ...baseResponse,
-                    type: 'VALIDATION_ERROR',
-                    message: error.message,
-                    statusCode: 400
-                };
-
-            case 'CircuitBreakerOpenError':
-                return {
-                    ...baseResponse,
-                    type: 'SERVICE_UNAVAILABLE',
-                    message: error.message,
-                    retryAfter: error.retryAfter,
-                    statusCode: 503
-                };
-
-            case 'ProviderUnavailableError':
-                return {
-                    ...baseResponse,
-                    type: 'PROVIDER_ERROR',
-                    message: error.message,
-                    provider: error.provider,
-                    statusCode: 503
-                };
-
-            case 'ImageGenerationTimeoutError':
-                return {
-                    ...baseResponse,
-                    type: 'TIMEOUT_ERROR',
-                    message: error.message,
-                    timeout: error.timeout,
-                    statusCode: 408
-                };
-
-            case 'ContentPolicyViolationError':
-                return {
-                    ...baseResponse,
-                    type: 'CONTENT_POLICY_VIOLATION',
-                    message: error.message,
-                    statusCode: 400
-                };
-
-            case 'FileSystemError':
-                return {
-                    ...baseResponse,
-                    type: 'FILE_SYSTEM_ERROR',
-                    message: error.message,
-                    statusCode: 500
-                };
-
-            case 'DatabaseTransactionError':
-                return {
-                    ...baseResponse,
-                    type: 'DATABASE_ERROR',
-                    message: error.message,
-                    statusCode: 500
-                };
-
-            default:
-                return {
-                    ...baseResponse,
-                    type: 'UNKNOWN_ERROR',
-                    message: error.message || 'An unexpected error occurred',
-                    statusCode: 500
-                };
-        }
-    }
 
     generateRequestId() {
         return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -515,10 +459,7 @@ export class EnhancedImageService {
     }
 
     async getImageCount(userId) {
-        if (!userId) {
-            return { count: 0 };
-        }
-
+        // Allow anonymous access - return total count for public feed
         const count = await this.imageRepository.countByUserId(userId);
 
         return { count };

@@ -1,25 +1,49 @@
-import { ValidationError } from '../errors/CustomErrors.js';
+/**
+ * EnhancedImageController - Pure Controller
+ *
+ * This controller handles HTTP requests and responses for image operations.
+ * It delegates all business logic to services and focuses solely on:
+ * - HTTP request/response handling
+ * - Parameter extraction and validation
+ * - Service method calls
+ * - Response formatting
+ *
+ * All business logic, validation, and utility functions have been moved
+ * to dedicated services for better separation of concerns.
+ */
+
+// ValidationError is used by ValidationService
+import { formatSuccessResponse, formatErrorResponse, formatPaginatedResponse, formatHealthResponse } from '../utils/ResponseFormatter.js';
+import { generateRequestId, logRequestStart, logRequestSuccess, logRequestError } from '../utils/RequestLogger.js';
+import { validateImageGenerationParams, validateImageId, validateRating, validatePaginationParams } from '../utils/ValidationService.js';
 
 export class EnhancedImageController {
     constructor(enhancedImageService) {
         this.imageService = enhancedImageService;
     }
 
-    // eslint-disable-next-line max-lines-per-function
-    async generateImage(req, res) {
-        const startTime = Date.now();
-        const requestId = req.id || this.generateRequestId();
+    // ============================================================================
+    // IMAGE GENERATION
+    // ============================================================================
 
-        // eslint-disable-next-line no-console
-        console.log(`🚀 Image generation request [${requestId}]:`, {
-            method: req.method,
-            url: req.originalUrl,
-            userId: req.user?.id || 'anonymous',
-            ip: req.ip
-        });
+    /**
+     * Generate image endpoint
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    // eslint-disable-next-line max-lines-per-function, max-statements
+    async generateImage(req, res) {
+        const requestId = req.id || generateRequestId();
+        const startTime = Date.now();
 
         try {
-            // Use validated data from middleware
+            // Log request start
+            logRequestStart(requestId, req, 'Image Generation', {
+                prompt: `${req.body.prompt?.substring(0, 50)}...`,
+                providers: req.body.providers
+            });
+
+            // Extract and validate request data
             const {
                 prompt,
                 providers,
@@ -34,6 +58,10 @@ export class EnhancedImageController {
 
             const userId = req.user?.id;
 
+            // Validate image generation parameters
+            validateImageGenerationParams({ prompt, providers, guidance });
+
+            // Prepare options for service
             const options = {
                 promptId,
                 original,
@@ -43,7 +71,7 @@ export class EnhancedImageController {
                 customVariables
             };
 
-            // Generate image with enhanced service
+            // Call service to generate image
             const result = await this.imageService.generateImage(
                 prompt,
                 providers,
@@ -52,396 +80,282 @@ export class EnhancedImageController {
                 options
             );
 
-            // Check if result is an error response
+
+            // Handle error response from service
             if (result.error) {
-                const statusCode = result.statusCode || 500;
-                const response = {
-                    ...result,
-                    requestId,
-                    duration: Date.now() - startTime
-                };
+                const duration = Date.now() - startTime;
+                const errorResponse = formatErrorResponse(result, requestId, duration);
 
-                console.error(`❌ Image generation failed [${requestId}]:`, response);
+                logRequestError(requestId, 'Image Generation', duration, result);
 
-                return res.status(statusCode).json(response);
+                return res.status(errorResponse.statusCode || 500).json(errorResponse);
             }
 
-            // Success response
-            const response = {
-                success: true,
-                requestId,
-                data: result,
-                duration: Date.now() - startTime,
-                timestamp: new Date().toISOString()
-            };
+            // Format success response
+            const duration = Date.now() - startTime;
+            const response = formatSuccessResponse(result, requestId, duration, 'Image generated successfully');
 
-            // eslint-disable-next-line no-console
-            console.log(`✅ Image generation successful [${requestId}]:`, {
-                imageId: result.imageId,
-                provider: result.providerName,
-                duration: response.duration
+            logRequestSuccess(requestId, 'Image Generation', duration, {
+                imageId: result.id,
+                provider: result.provider
             });
 
             res.status(200).json(response);
 
         } catch (error) {
             const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
 
-            console.error(`❌ Image generation controller error [${requestId}]:`, {
-                error: error.message,
-                stack: error.stack,
-                duration
-            });
-
-            // Format error response
-            const errorResponse = this.formatErrorResponse(error, requestId, duration);
-
+            logRequestError(requestId, 'Image Generation', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
 
+    // ============================================================================
+    // IMAGE RATING
+    // ============================================================================
+
+    /**
+     * Update image rating endpoint
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async updateRating(req, res) {
+        const requestId = req.id || generateRequestId();
         const startTime = Date.now();
-        const requestId = req.id || this.generateRequestId();
 
         try {
+            // Extract parameters
             const { id } = req.params;
             const { rating } = req.body;
 
-            if (!id) {
-                throw new ValidationError('Image ID is required');
-            }
+            // Validate parameters
+            validateImageId(id);
+            validateRating(rating);
 
-            if (rating === undefined || rating === null) {
-                throw new ValidationError('Rating value is required');
-            }
+            // Call service to update rating
+            const result = await this.imageService.updateRating(id, parseInt(rating));
 
-            const ratingNum = parseInt(rating);
+            // Format success response
+            const duration = Date.now() - startTime;
+            const response = formatSuccessResponse(result, requestId, duration, 'Rating updated successfully');
 
-            if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
-                throw new ValidationError('Rating must be a number between 1 and 5');
-            }
-
-            const result = await this.imageService.updateRating(id, ratingNum);
-
-            const response = {
-                success: true,
-                requestId,
-                data: result,
-                duration: Date.now() - startTime,
-                timestamp: new Date().toISOString()
-            };
-
-            // eslint-disable-next-line no-console
-            console.log(`✅ Rating updated [${requestId}]:`, {
+            logRequestSuccess(requestId, 'Rating Update', duration, {
                 imageId: id,
-                rating: ratingNum,
-                duration: response.duration
+                rating: parseInt(rating)
             });
 
             res.json(response);
 
         } catch (error) {
             const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
 
-            console.error(`❌ Rating update error [${requestId}]:`, error.message);
-
-            const errorResponse = this.formatErrorResponse(error, requestId, duration);
-
+            logRequestError(requestId, 'Rating Update', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
 
+    // ============================================================================
+    // IMAGE DELETION
+    // ============================================================================
+
+    /**
+     * Delete image endpoint
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async deleteImage(req, res) {
+        const requestId = req.id || generateRequestId();
         const startTime = Date.now();
-        const requestId = req.id || this.generateRequestId();
 
         try {
+            // Extract and validate parameters
             const { id } = req.params;
 
-            if (!id) {
-                throw new ValidationError('Image ID is required');
-            }
+            validateImageId(id);
 
+            // Call service to delete image
             const result = await this.imageService.deleteImage(id);
 
-            const response = {
-                success: true,
-                requestId,
-                data: result,
-                duration: Date.now() - startTime,
-                timestamp: new Date().toISOString()
-            };
+            // Format success response
+            const duration = Date.now() - startTime;
+            const response = formatSuccessResponse(result, requestId, duration, 'Image deleted successfully');
 
-            // eslint-disable-next-line no-console
-            console.log(`✅ Image deleted [${requestId}]:`, {
-                imageId: id,
-                duration: response.duration
+            logRequestSuccess(requestId, 'Image Deletion', duration, {
+                imageId: id
             });
 
             res.json(response);
 
         } catch (error) {
             const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
 
-            console.error(`❌ Image deletion error [${requestId}]:`, error.message);
-
-            const errorResponse = this.formatErrorResponse(error, requestId, duration);
-
+            logRequestError(requestId, 'Image Deletion', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
 
+    // ============================================================================
+    // IMAGE RETRIEVAL
+    // ============================================================================
+
+    /**
+     * Get images endpoint
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async getImages(req, res) {
+        const requestId = req.id || generateRequestId();
         const startTime = Date.now();
-        const requestId = req.id || this.generateRequestId();
 
         try {
-            const userId = req.user?._id;
-            const limit = parseInt(req.query.limit) || 8;
-            const page = parseInt(req.query.page) || 0;
+            // Extract and validate parameters
+            const userId = req.user?.id;
+            const pagination = validatePaginationParams(req.query);
 
-            // Validate pagination parameters
-            if (limit < 1 || limit > 100) {
-                throw new ValidationError('Limit must be between 1 and 100');
-            }
+            // Call service to get images
+            const result = await this.imageService.getImages(userId, pagination.limit, pagination.page);
 
-            if (page < 0) {
-                throw new ValidationError('Page must be 0 or greater');
-            }
-
-            const images = await this.imageService.getImages(userId, limit, page);
-
-            const response = {
-                success: true,
+            // Format paginated response
+            const duration = Date.now() - startTime;
+            const response = formatPaginatedResponse(
+                result.images || [],
+                { ...pagination, total: result.totalCount || 0 },
                 requestId,
-                data: {
-                    images,
-                    pagination: {
-                        limit,
-                        page,
-                        count: images.length
-                    }
-                },
-                duration: Date.now() - startTime,
-                timestamp: new Date().toISOString()
-            };
+                duration
+            );
 
-            // eslint-disable-next-line no-console
-            console.log(`✅ Images retrieved [${requestId}]:`, {
-                count: images.length,
-                userId: userId || 'anonymous',
-                duration: response.duration
+            logRequestSuccess(requestId, 'Get Images', duration, {
+                count: result.images?.length || 0,
+                userId: userId || 'anonymous'
             });
 
             res.json(response);
 
         } catch (error) {
             const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
 
-            console.error(`❌ Get images error [${requestId}]:`, error.message);
-
-            const errorResponse = this.formatErrorResponse(error, requestId, duration);
-
+            logRequestError(requestId, 'Get Images', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
 
+    /**
+     * Get image count endpoint
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async getImageCount(req, res) {
+        const requestId = req.id || generateRequestId();
         const startTime = Date.now();
-        const requestId = req.id || this.generateRequestId();
 
         try {
-            const userId = req.user?._id;
+            // Extract parameters
+            const userId = req.user?.id;
+
+            // Call service to get image count
             const result = await this.imageService.getImageCount(userId);
 
-            const response = {
-                success: true,
-                requestId,
-                data: result,
-                duration: Date.now() - startTime,
-                timestamp: new Date().toISOString()
-            };
+            // Format success response
+            const duration = Date.now() - startTime;
+            const response = formatSuccessResponse(result, requestId, duration, 'Image count retrieved successfully');
 
-            // eslint-disable-next-line no-console
-            console.log(`✅ Image count retrieved [${requestId}]:`, {
+            logRequestSuccess(requestId, 'Get Image Count', duration, {
                 count: result.count,
-                userId: userId || 'anonymous',
-                duration: response.duration
+                userId: userId || 'anonymous'
             });
 
             res.json(response);
 
         } catch (error) {
             const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
 
-            console.error(`❌ Get image count error [${requestId}]:`, error.message);
-
-            const errorResponse = this.formatErrorResponse(error, requestId, duration);
-
+            logRequestError(requestId, 'Get Image Count', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
 
+    // ============================================================================
+    // FEED OPERATIONS
+    // ============================================================================
+
+    /**
+     * Get feed endpoint
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async getFeed(req, res) {
+        const requestId = req.id || generateRequestId();
         const startTime = Date.now();
-        const requestId = req.id || this.generateRequestId();
 
         try {
-            const userId = req.user?._id;
-            const limit = parseInt(req.query.limit) || 8;
-            const page = parseInt(req.query.page) || 0;
+            // Extract and validate parameters
+            const userId = req.user?.id;
+            const pagination = validatePaginationParams(req.query, 50); // Max 50 items for feed
 
-            const images = await this.imageService.getFeed(userId, limit, page);
-
-            const response = {
-                success: true,
+            console.log('🔍 BACKEND: getFeed called with:', {
                 requestId,
-                data: {
-                    images,
-                    pagination: {
-                        limit,
-                        page,
-                        count: images.length
-                    }
-                },
-                duration: Date.now() - startTime,
-                timestamp: new Date().toISOString()
-            };
+                userId,
+                query: req.query,
+                pagination,
+                userAgent: req.get('User-Agent')
+            });
 
-            // eslint-disable-next-line no-console
-            console.log(`✅ Feed retrieved [${requestId}]:`, {
-                count: images.length,
-                userId: userId || 'anonymous',
-                duration: response.duration
+            // Call service to get feed
+            const result = await this.imageService.getFeed(userId, pagination.limit, pagination.page);
+
+            // Format paginated response
+            const duration = Date.now() - startTime;
+            const response = formatPaginatedResponse(
+                result.images || [],
+                { ...pagination, total: result.totalCount || 0 },
+                requestId,
+                duration
+            );
+
+            logRequestSuccess(requestId, 'Get Feed', duration, {
+                count: result.images?.length || 0,
+                userId: userId || 'anonymous'
             });
 
             res.json(response);
 
         } catch (error) {
             const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
 
-            console.error(`❌ Get feed error [${requestId}]:`, error.message);
-
-            const errorResponse = this.formatErrorResponse(error, requestId, duration);
-
+            logRequestError(requestId, 'Get Feed', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
 
+    // ============================================================================
+    // HEALTH CHECK
+    // ============================================================================
+
+    /**
+     * Health check endpoint
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async getHealth(req, res) {
         try {
+            // Call service to get health status
             const health = await this.imageService.getHealth();
 
-            const response = {
-                success: true,
-                data: health,
-                timestamp: new Date().toISOString()
-            };
+            // Format health response
+            const response = formatHealthResponse(health);
 
             res.json(response);
 
         } catch (error) {
-            console.error('❌ Health check error:', error.message);
-
-            const errorResponse = this.formatErrorResponse(error, 'health_check', 0);
+            const errorResponse = formatErrorResponse(error, 'health_check', 0);
 
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
-    }
-
-    // eslint-disable-next-line max-lines-per-function
-    formatErrorResponse(error, requestId, duration = 0) {
-        const baseResponse = {
-            success: false,
-            requestId,
-            duration,
-            timestamp: new Date().toISOString()
-        };
-
-        switch (error.name) {
-            case 'ValidationError':
-                return {
-                    ...baseResponse,
-                    error: {
-                        type: 'VALIDATION_ERROR',
-                        message: error.message,
-                        details: error.details || null
-                    },
-                    statusCode: 400
-                };
-
-            case 'NotFoundError':
-                return {
-                    ...baseResponse,
-                    error: {
-                        type: 'NOT_FOUND',
-                        message: error.message,
-                        resource: error.resource || 'unknown'
-                    },
-                    statusCode: 404
-                };
-
-            case 'DatabaseError':
-                return {
-                    ...baseResponse,
-                    error: {
-                        type: 'DATABASE_ERROR',
-                        message: error.message,
-                        operation: error.operation || 'unknown'
-                    },
-                    statusCode: 500
-                };
-
-            case 'CircuitBreakerOpenError':
-                return {
-                    ...baseResponse,
-                    error: {
-                        type: 'SERVICE_UNAVAILABLE',
-                        message: error.message,
-                        service: error.service,
-                        retryAfter: error.retryAfter
-                    },
-                    statusCode: 503
-                };
-
-            case 'ProviderUnavailableError':
-                return {
-                    ...baseResponse,
-                    error: {
-                        type: 'PROVIDER_ERROR',
-                        message: error.message,
-                        provider: error.provider,
-                        reason: error.reason
-                    },
-                    statusCode: 503
-                };
-
-            case 'ImageGenerationTimeoutError':
-                return {
-                    ...baseResponse,
-                    error: {
-                        type: 'TIMEOUT_ERROR',
-                        message: error.message,
-                        provider: error.provider,
-                        timeout: error.timeout
-                    },
-                    statusCode: 408
-                };
-
-            default:
-                return {
-                    ...baseResponse,
-                    error: {
-                        type: 'UNKNOWN_ERROR',
-                        message: error.message || 'An unexpected error occurred'
-                    },
-                    statusCode: 500
-                };
-        }
-    }
-
-    generateRequestId() {
-        return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 }

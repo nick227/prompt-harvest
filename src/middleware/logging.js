@@ -12,6 +12,7 @@ export const requestLogger = (req, res, next) => {
     // Override res.end to log response
     const originalEnd = res.end;
 
+    // eslint-disable-next-line func-names
     res.end = function(chunk, encoding) {
         const duration = Date.now() - start;
         const status = res.statusCode;

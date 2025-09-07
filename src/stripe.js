@@ -52,7 +52,10 @@ const handleStripeEvent = async event => {
                 const expectedAmount = payment.amount;
 
                 if (session.amount_total !== expectedAmount) {
-                    console.error(`❌ Payment amount mismatch: expected ${expectedAmount} cents, got ${session.amount_total} cents`);
+                    console.error(
+                        `❌ Payment amount mismatch: expected ${expectedAmount} cents, ` +
+                        `got ${session.amount_total} cents`
+                    );
                     break;
                 }
 

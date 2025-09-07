@@ -3,9 +3,9 @@
  * Handles promo code management operations
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 class PromoCodesController {
     /**
@@ -119,14 +119,18 @@ class PromoCodesController {
             const { adminUser } = req;
 
             // Validate and check for existing code
-            const validationResult = await PromoCodesController.validateAndCheckPromoCode(code, credits, maxRedemptions, expiresAt, isActive);
+            const validationResult = await PromoCodesController.validateAndCheckPromoCode(
+                code, credits, maxRedemptions, expiresAt, isActive
+            );
 
             if (!validationResult.isValid) {
                 return res.status(validationResult.status).json(validationResult.response);
             }
 
             // Create promo code
-            const promoCode = await PromoCodesController.createPromoCodeRecord(code, credits, maxRedemptions, expiresAt, isActive);
+            const promoCode = await PromoCodesController.createPromoCodeRecord(
+                code, credits, maxRedemptions, expiresAt, isActive
+            );
 
             // eslint-disable-next-line no-console
             console.log(`✅ ADMIN-PROMO: Created promo code '${promoCode.code}' by ${adminUser.email}`);
@@ -257,6 +261,7 @@ class PromoCodesController {
      * Delete promo code
      * DELETE /api/admin/promo-codes/:promoId
      */
+    // eslint-disable-next-line max-lines-per-function
     static async deletePromoCode(req, res) {
         try {
             const { promoId } = req.params;
@@ -287,7 +292,8 @@ class PromoCodesController {
                 return res.status(400).json({
                     success: false,
                     error: 'Cannot delete redeemed promo code',
-                    message: `Promo code '${existingPromo.code}' has been redeemed ${existingPromo._count.redemptions} times and cannot be deleted`
+                    message: `Promo code '${existingPromo.code}' has been redeemed ` +
+                        `${existingPromo._count.redemptions} times and cannot be deleted`
                 });
             }
 

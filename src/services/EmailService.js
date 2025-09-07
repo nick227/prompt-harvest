@@ -14,6 +14,7 @@ class EmailService {
         if (!this.isConfigured) {
             console.warn('⚠️  Email service not configured. Set RESEND_API_KEY to enable email sending.');
         } else if (this.fromEmail === 'onboarding@resend.dev') {
+            // eslint-disable-next-line no-console
             console.log('📧 Using Resend test domain for development emails');
         }
     }
@@ -192,7 +193,8 @@ class EmailService {
 
                 <p>Hi ${userName},</p>
 
-                <p>We received a request to reset your password for your Image Harvest account. If you made this request, click the button below to reset your password:</p>
+                <p>We received a request to reset your password for your Image Harvest account. ` +
+                `If you made this request, click the button below to reset your password:</p>
 
                 <div style="text-align: center;">
                     <a href="${resetUrl}" class="button">Reset Password</a>

@@ -77,7 +77,8 @@ class FeedManager {
             hasMore: cache?.hasMore,
             currentPage: cache?.currentPage,
             imageCount: cache?.images?.length,
-            isLoading: this.uiManager.getLoading()
+            isLoading: this.uiManager.getLoading(),
+            isLoadingMore: this.isLoadingMore
         });
 
         // Prevent multiple simultaneous calls

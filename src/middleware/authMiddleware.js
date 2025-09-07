@@ -52,6 +52,7 @@ export const authenticateToken = async (req, res, next) => {
 };
 
 // JWT authentication middleware - for required authentication (stricter)
+// eslint-disable-next-line max-statements
 export const authenticateTokenRequired = async (req, res, next) => {
     try {
         const authHeader = req.headers['authorization'];

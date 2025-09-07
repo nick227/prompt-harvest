@@ -17,3 +17,8 @@ data/multipliers.db
 test-results/
 docs/
 public/test-*.js
+server/docs/
+tests/
+coverage/
+
+

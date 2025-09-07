@@ -24,7 +24,13 @@ class ImageFactory {
         const img = document.createElement('img');
 
         // Standard properties
-        img.src = imageData.url;
+        // Handle base64 data URLs properly
+        if (imageData.url && (imageData.url.startsWith('iVBORw0KGgo') || imageData.url.startsWith('/9j/'))) {
+            // It's base64 image data, format as data URL
+            img.src = `data:image/jpeg;base64,${imageData.url}`;
+        } else {
+            img.src = imageData.url;
+        }
         img.alt = imageData.title;
         img.title = imageData.title;
         img.classList.add('generated-image');

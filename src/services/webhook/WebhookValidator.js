@@ -22,6 +22,7 @@ export class WebhookValidator {
         // Skip webhook verification if no secret is provided (for development/testing)
         if (!webhookSecret) {
             console.warn('⚠️  Webhook secret not configured - skipping signature verification');
+
             // Parse the body as JSON for testing
             return JSON.parse(payload.toString());
         }

@@ -45,7 +45,7 @@ class FeedDOMManager {
         const promptOutput = this.getElement('promptOutput');
 
         if (!promptOutput) {
-            return;
+            return false;
         }
 
         // Check if image already exists to prevent duplicates
@@ -54,7 +54,7 @@ class FeedDOMManager {
         if (existingWrapper) {
             console.log('🚫 DOM: Skipping duplicate image:', imageData.id);
 
-            return;
+            return false;
         }
 
         // Create image wrapper
@@ -63,6 +63,8 @@ class FeedDOMManager {
         // Add to DOM
         promptOutput.appendChild(wrapper);
         console.log('✅ DOM: Added new image:', imageData.id);
+
+        return true;
     }
 
     // Create image wrapper

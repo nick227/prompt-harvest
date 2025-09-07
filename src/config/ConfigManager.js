@@ -59,7 +59,8 @@ class ConfigManager {
             rateLimit: {
                 windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
                 maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-                imageGenerationWindowMs: parseInt(process.env.IMAGE_GENERATION_RATE_LIMIT_WINDOW_MS) || 60 * 1000, // 1 minute
+                imageGenerationWindowMs: parseInt(process.env.IMAGE_GENERATION_RATE_LIMIT_WINDOW_MS) ||
+                    60 * 1000, // 1 minute
                 imageGenerationMaxRequests: parseInt(process.env.IMAGE_GENERATION_RATE_LIMIT_MAX_REQUESTS) || 10,
                 authWindowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
                 authMaxRequests: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS) || 5

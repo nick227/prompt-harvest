@@ -1,3 +1,20 @@
+// Mock window.ImageManager before requiring the module
+global.window = {
+    ImageManager: jest.fn().mockImplementation(() => ({
+        init: jest.fn(),
+        loadImages: jest.fn(),
+        renderImages: jest.fn(),
+        addImage: jest.fn(),
+        removeImage: jest.fn(),
+        updateImage: jest.fn(),
+        getImage: jest.fn(),
+        getAllImages: jest.fn(() => []),
+        getImageCount: jest.fn(() => 0),
+        clearImages: jest.fn(),
+        refreshImages: jest.fn()
+    }))
+};
+
 // Mock constants and utilities before requiring the module
 global.IMAGE_CONFIG = {
     selectors: {

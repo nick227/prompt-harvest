@@ -3,9 +3,9 @@
  * Handles credit additions, debits, and refunds
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 export class CreditTransactionService {
 
@@ -41,7 +41,10 @@ export class CreditTransactionService {
                 return { newBalance: user.creditBalance, ledgerEntry };
             }, { timeout: 10000 });
 
-            console.log(`💳 TRANSACTION-SERVICE: Added ${amount} credits to user ${userId}. New balance: ${result.newBalance}`);
+            console.log(
+                `💳 TRANSACTION-SERVICE: Added ${amount} credits to user ${userId}. ` +
+                `New balance: ${result.newBalance}`
+            );
 
             return result;
 
@@ -94,7 +97,10 @@ export class CreditTransactionService {
                 return { newBalance: updatedUser.creditBalance, ledgerEntry };
             }, { timeout: 10000 });
 
-            console.log(`💳 TRANSACTION-SERVICE: Debited ${amount} credits from user ${userId}. New balance: ${result.newBalance}`);
+            console.log(
+                `💳 TRANSACTION-SERVICE: Debited ${amount} credits from user ${userId}. ` +
+                `New balance: ${result.newBalance}`
+            );
 
             return result;
 
@@ -134,7 +140,10 @@ export class CreditTransactionService {
                 return { newBalance: user.creditBalance, ledgerEntry };
             }, { timeout: 10000 });
 
-            console.log(`💳 TRANSACTION-SERVICE: Refunded ${amount} credits to user ${userId}. New balance: ${result.newBalance}`);
+            console.log(
+                `💳 TRANSACTION-SERVICE: Refunded ${amount} credits to user ${userId}. ` +
+                `New balance: ${result.newBalance}`
+            );
 
             return result;
 

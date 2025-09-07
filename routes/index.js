@@ -4,6 +4,7 @@ import datamuse from 'datamuse';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import feed from '../src/feed.js';
+import DatabaseService from '../src/services/feed/DatabaseService.js';
 import getWordType from '../lib/getWordType.js';
 import wordTypeManager from '../lib/word-type-manager.js';
 
@@ -16,72 +17,7 @@ dotenv.config();
 
 OpenAI.apiKey = process.env.OPENAI_API_KEY;
 
-const setupImageRoutes = app => {
-    app.put('/api/images/:id/rating', async(req, res) => {
-        const { id } = req.params;
-        const { rating } = req.body;
-
-        if (!id || !rating) {
-            res.status(400).send({ message: 'id or rating missing' });
-
-            return;
-        }
-
-        try {
-            const db = new DB('images.db');
-            const result = await db.update({ _id: id }, { $set: { 'data.rating': rating } });
-
-            if (result === 0) {
-                res.status(404).send({ message: 'No image found to update' });
-            } else {
-                res.json({ result, id, rating });
-            }
-        } catch (err) {
-            res.status(500).send(err);
-        }
-    });
-
-    app.delete('/api/images/:id', async(req, res) => {
-        const db = new DB('images.db');
-        const { id: imageId } = req.params;
-
-        await db.remove({ _id: imageId });
-
-        res.send({ status: 'ok' });
-    });
-
-    app.post('/image/generate', async(req, res) => {
-
-        const prompt = decodeURIComponent(req.body.prompt);
-        const providers = decodeURIComponent(req.body.providers).split(',');
-        const guidance = isNaN(req.body.guidance) ? false : parseInt(req.body.guidance);
-        const { promptId, original, multiplier, mixup, mashup, customVariables } = req.body;
-
-        // Check if prompt needs processing (variables, multiplier, mixup, mashup)
-        const hasVariables = (/\$\{[^}]+\}/).test(prompt);
-        const needsProcessing = hasVariables || multiplier || mixup || mashup || customVariables;
-
-        let processedPrompt = prompt;
-        let processedPromptId = promptId;
-
-        if (needsProcessing) {
-            try {
-                // Build the enhanced prompt using the same logic as /prompt/build
-                const processedResult = await feed.prompt.build(prompt, multiplier || false, mixup || false, mashup || false, customVariables || '', req);
-
-                processedPrompt = processedResult.prompt;
-                processedPromptId = processedResult.promptId;
-            } catch (error) {
-                console.error('❌ Error processing prompt:', error);
-            }
-        }
-
-        const response = await feed.image
-            .generate(processedPrompt, original, processedPromptId, providers, guidance, req);
-
-        res.send(response);
-    });
-};
+// Legacy setupImageRoutes removed - now using enhanced routes with proper middleware
 
 const setupLikeRoutes = app => {
     app.delete('/like/image/:id', async(req, res) => {
@@ -161,7 +97,7 @@ const setupPromptRoutes = app => {
         const mixup = req.query.mixup ? decodeURIComponent(req.query.mixup) : false;
         const mashup = req.query.mashup ? decodeURIComponent(req.query.mashup) : false;
         const customVariables = decodeURIComponent(req.query.customVariables);
-        const response = await feed.prompt.build(prompt, multiplier, mixup, mashup, customVariables, req);
+        const response = await feed.buildPrompt(prompt, multiplier, mixup, mashup, customVariables, req);
 
         res.send(response);
     });
@@ -517,7 +453,7 @@ const createAddWordAIOptions = word => ({
 });
 
 const init = app => {
-    setupImageRoutes(app);
+    // setupImageRoutes(app); // Removed - using enhanced routes instead
     setupLikeRoutes(app);
     setupDownloadRoutes(app);
     setupPromptRoutes(app);

@@ -33,7 +33,8 @@ export default {
         '^@/(.*)$': '<rootDir>/public/js/$1',
         '^@components/(.*)$': '<rootDir>/public/js/components/$1',
         '^@modules/(.*)$': '<rootDir>/public/js/modules/$1',
-        '^@core/(.*)$': '<rootDir>/public/js/core/$1'
+        '^@core/(.*)$': '<rootDir>/public/js/core/$1',
+        '^canvas$': '<rootDir>/tests/__mocks__/canvas.js'
     },
 
     // Coverage configuration

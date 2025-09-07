@@ -1,4 +1,4 @@
-import { ValidationError } from '../errors/CustomErrors.js';
+import { ValidationError as _ValidationError } from '../errors/CustomErrors.js';
 
 // Enhanced validation middleware with detailed error reporting
 // eslint-disable-next-line max-lines-per-function, max-statements
@@ -95,7 +95,7 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
 
         // Rate limiting check (basic)
         const clientIP = req.ip || req.connection.remoteAddress;
-        const userAgent = req.get('User-Agent');
+        const _userAgent = req.get('User-Agent');
 
         if (!clientIP) {
             warnings.push('Unable to determine client IP for rate limiting');
@@ -161,8 +161,8 @@ export const enhancedRateLimit = (options = {}) => {
         windowMs = 15 * 60 * 1000, // 15 minutes
         maxRequests = 100,
         message = 'Too many requests',
-        skipSuccessfulRequests = false,
-        skipFailedRequests = false
+        skipSuccessfulRequests: _skipSuccessfulRequests = false,
+        skipFailedRequests: _skipFailedRequests = false
     } = options;
 
     const requests = new Map();

@@ -2,10 +2,11 @@
  * Word Routes - Handle word types and examples
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
+// eslint-disable-next-line max-lines-per-function
 export const setupWordRoutes = app => {
     // Get all words (for terms.html)
     app.get('/words', async (req, res) => {
@@ -35,7 +36,7 @@ export const setupWordRoutes = app => {
     app.get('/word/types/:word', async (req, res) => {
         try {
             const word = decodeURIComponent(req.params.word).toLowerCase();
-            const limit = parseInt(req.query.limit) || 8;
+            const _limit = parseInt(req.query.limit) || 8;
 
             console.log(`🔍 Fetching types for word: ${word}`);
 
@@ -50,7 +51,7 @@ export const setupWordRoutes = app => {
             }
 
             const types = Array.isArray(wordRecord.types) ? wordRecord.types : [];
-            const limitedTypes = types.slice(0, limit).sort();
+            const limitedTypes = types.slice(0, _limit).sort();
 
             console.log(`✅ Found ${limitedTypes.length} types for word: ${word}`);
             res.json(limitedTypes);
@@ -64,7 +65,7 @@ export const setupWordRoutes = app => {
     app.get('/word/examples/:word', async (req, res) => {
         try {
             const word = decodeURIComponent(req.params.word).toLowerCase();
-            const limit = parseInt(req.query.limit) || 8;
+            const _limit = parseInt(req.query.limit) || 8;
 
             console.log(`🔍 Fetching examples for word: ${word}`);
 

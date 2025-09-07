@@ -1,5 +1,5 @@
 import { PrismaLikeRepository } from '../repositories/PrismaLikeRepository.js';
-import { ValidationError, NotFoundError } from '../errors/CustomErrors.js';
+import { ValidationError, NotFoundError as _NotFoundError } from '../errors/CustomErrors.js';
 
 export class LikeService {
     constructor() {

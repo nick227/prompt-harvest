@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">11.02% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/127</span>
+                <span class='fraction'>14/127</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">1.85% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/54</span>
+                <span class='fraction'>1/54</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">26.31% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>5/19</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">10.4% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/125</span>
+                <span class='fraction'>13/125</span>
             </div>
         
             
@@ -381,17 +381,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -405,9 +405,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -673,10 +673,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -684,24 +684,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * Simple Authentication Forms Handler with Debugging
  * Tracks when and why form attributes change
  */
 &nbsp;
 class AuthFormsHandler {
-<span class="fstat-no" title="function not covered" >    co</span>nstructor() {
-<span class="cstat-no" title="statement not covered" >        console.log('🔐 AUTH-FORMS: Creating handler...');</span>
-<span class="cstat-no" title="statement not covered" >        this.init();</span>
+    constructor() {
+        console.log('🔐 AUTH-FORMS: Creating handler...');
+        this.init();
     }
 &nbsp;
-<span class="fstat-no" title="function not covered" >    as</span>ync init() {
-<span class="cstat-no" title="statement not covered" >        try {</span>
-<span class="cstat-no" title="statement not covered" >            console.log('🔐 AUTH-FORMS: Starting initialization...');</span>
+    async init() {
+        try {
+            console.log('🔐 AUTH-FORMS: Starting initialization...');
 &nbsp;
             // Wait for dependencies
-<span class="cstat-no" title="statement not covered" >            await this.waitForUserSystem();</span>
+            await this.waitForUserSystem();
 <span class="cstat-no" title="statement not covered" >            await this.waitForAuthMessaging();</span>
 &nbsp;
             // Set up button handlers and form prevention
@@ -715,10 +715,10 @@ class AuthFormsHandler {
         }
     }
 &nbsp;
-<span class="fstat-no" title="function not covered" >    as</span>ync waitForUserSystem() {
-<span class="cstat-no" title="statement not covered" >        while (!window.userSystem) {</span>
-<span class="cstat-no" title="statement not covered" >            console.log('🔐 AUTH-FORMS: Waiting for UserSystem...');</span>
-<span class="cstat-no" title="statement not covered" >            await new Promise(<span class="fstat-no" title="function not covered" >re</span>solve =&gt; <span class="cstat-no" title="statement not covered" >setTimeout(resolve, 100))</span>;</span>
+    async waitForUserSystem() {
+        while (!window.userSystem) {
+            console.log('🔐 AUTH-FORMS: Waiting for UserSystem...');
+            await new Promise(resolve =&gt; setTimeout(resolve, 100));
         }
 <span class="cstat-no" title="statement not covered" >        console.log('🔐 AUTH-FORMS: UserSystem found');</span>
     }
@@ -984,18 +984,18 @@ class AuthFormsHandler {
 }
 &nbsp;
 // Initialize when DOM is ready
-<span class="cstat-no" title="statement not covered" >if (document.readyState === 'loading') {</span>
-<span class="cstat-no" title="statement not covered" >    document.addEventListener('DOMContentLoaded', <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        console.log('🔐 AUTH-FORMS: DOM ready, creating handler...');</span>
-<span class="cstat-no" title="statement not covered" >        new AuthFormsHandler();</span>
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () =&gt; {
+        console.log('🔐 AUTH-FORMS: DOM ready, creating handler...');
+        new AuthFormsHandler();
     });
-} else {
+} else <span class="missing-if-branch" title="else path not taken" >E</span>{
 <span class="cstat-no" title="statement not covered" >    console.log('🔐 AUTH-FORMS: DOM already ready, creating handler...');</span>
 <span class="cstat-no" title="statement not covered" >    new AuthFormsHandler();</span>
 }
 &nbsp;
 // Export for global access
-<span class="cstat-no" title="statement not covered" >window.AuthFormsHandler = AuthFormsHandler;</span>
+window.AuthFormsHandler = AuthFormsHandler;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -1003,7 +1003,7 @@ class AuthFormsHandler {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-09-03T20:56:34.965Z
+                at 2025-09-07T05:42:09.485Z
             </div>
         <script src="../prettify.js"></script>
         <script>

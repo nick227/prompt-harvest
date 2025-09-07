@@ -53,6 +53,8 @@ class FeedAPIManager {
 
     // Make API request
     async makeAPIRequest(endpoint, params) {
+        console.log('🔗 API: Making request to:', endpoint, 'with params:', params);
+
         if (window.apiService) {
             return await window.apiService.get(endpoint, params);
         } else {
@@ -87,16 +89,48 @@ class FeedAPIManager {
             let totalCount = 0;
 
             console.log('🔍 API: Processing response structure:', {
+                hasDataItems: response.data && Array.isArray(response.data.items),
                 hasDataImages: response.data && Array.isArray(response.data.images),
                 hasDirectImages: Array.isArray(response.images),
                 hasDirectArray: Array.isArray(response),
                 hasMoreField: 'hasMore' in response,
                 hasMoreValue: response.hasMore,
                 totalCountField: 'totalCount' in response,
-                totalCountValue: response.totalCount
+                totalCountValue: response.totalCount,
+                paginationTotal: response.data?.pagination?.total,
+                paginationPage: response.data?.pagination?.page,
+                paginationLimit: response.data?.pagination?.limit,
+                paginationCount: response.data?.pagination?.count
             });
 
-            if (response.data && Array.isArray(response.data.images)) {
+            // Handle the new API response structure: {success: true, data: {items: [...], pagination: {...}}}
+            if (response.data && Array.isArray(response.data.items)) {
+                images = response.data.items;
+                totalCount = response.data.pagination?.total || images.length;
+                const currentPage = response.data.pagination?.page || 0;
+                const limit = response.data.pagination?.limit || 20;
+                const itemsReturned = response.data.pagination?.count || images.length;
+
+                // hasMore is true if we got a full page of results AND there are more items available
+                // If we got fewer items than the limit, we've reached the end
+                if (itemsReturned < limit) {
+                    hasMore = false; // We got fewer items than requested, so no more pages
+                } else {
+                    hasMore = itemsReturned === limit && (currentPage * limit + itemsReturned) < totalCount;
+                }
+
+                console.log('🔍 API: hasMore calculation details:', {
+                    currentPage,
+                    limit,
+                    itemsReturned,
+                    totalCount,
+                    logic: itemsReturned < limit ? 'itemsReturned < limit (end reached)' : 'itemsReturned === limit (check if more available)',
+                    calculation: itemsReturned < limit ?
+                        `${itemsReturned} < ${limit} = false` :
+                        `${itemsReturned} === ${limit} && (${currentPage} * ${limit} + ${itemsReturned}) < ${totalCount}`,
+                    result: hasMore
+                });
+            } else if (response.data && Array.isArray(response.data.images)) {
                 const { images: dataImages, hasMore: dataHasMore, totalCount: dataTotalCount } = response.data;
 
                 images = dataImages;
@@ -141,8 +175,10 @@ class FeedAPIManager {
         // Normalize image URL to ensure consistent format
         let imageUrl = image.imageUrl || image.url || image.image_url || '';
 
-        // Add leading slash if missing and it's a relative path
-        if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+        // Don't modify base64 data - it should be handled by the image component
+        // Only add leading slash for actual URL paths
+        if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/') &&
+            !imageUrl.startsWith('iVBORw0KGgo') && !imageUrl.startsWith('/9j/')) {
             imageUrl = `/${imageUrl}`;
         }
 

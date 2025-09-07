@@ -2,10 +2,11 @@
  * Admin Users Controller
  * Handles user management operations
  */
+// eslint-disable-next-line max-lines
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 class UsersController {
     /**
@@ -400,7 +401,10 @@ class UsersController {
             // For now, we'll add a comment since we don't have a suspension system
             // In a production system, you would add a 'status' or 'isSuspended' field
             // eslint-disable-next-line no-console
-            console.log(`⚠️ ADMIN-USERS: User suspension requested for ${user.email} by ${adminUser.email}. Reason: ${reason}`);
+            console.log(
+                `⚠️ ADMIN-USERS: User suspension requested for ${user.email} by ${adminUser.email}. ` +
+                `Reason: ${reason}`
+            );
 
             // You would implement actual suspension logic here
             // For example:
@@ -457,7 +461,10 @@ class UsersController {
             }
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-USERS: User unsuspension requested for ${user.email} by ${adminUser.email}. Reason: ${reason}`);
+            console.log(
+                `✅ ADMIN-USERS: User unsuspension requested for ${user.email} by ${adminUser.email}. ` +
+                `Reason: ${reason}`
+            );
 
             // You would implement actual unsuspension logic here
 

@@ -3,9 +3,9 @@
  * Replaces complex raw SQL with optimized Prisma queries
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 class OptimizedQueryService {
     /**

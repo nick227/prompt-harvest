@@ -1,5 +1,5 @@
 // Load the API constants and make them global
-const apiModule = require('../public/js/api.js');
+const apiModule = require('../public/js/core/api-service.js');
 
 // Make constants available globally for testing
 global.API_IMAGE_GENERATE = '/image/generate';

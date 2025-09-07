@@ -90,7 +90,8 @@ export const rateLimitLogin = (req, res, next) => {
 
         return res.status(429).json({
             success: false,
-            message: `Account temporarily locked due to too many failed login attempts. Please try again in ${timeRemaining} minutes.`,
+            message: 'Account temporarily locked due to too many failed login attempts. ' +
+                `Please try again in ${timeRemaining} minutes.`,
             retryAfter: attempts.lockoutUntil
         });
     }
@@ -196,7 +197,8 @@ export const getRateLimitStatus = (ip, type = 'general') => {
         case 'login': {
             const loginData = loginAttempts.get(ip);
 
-            if (!loginData || (now > loginData.resetTime && (!loginData.lockoutUntil || now > loginData.lockoutUntil))) {
+            if (!loginData ||
+                (now > loginData.resetTime && (!loginData.lockoutUntil || now > loginData.lockoutUntil))) {
                 return { remaining: 5, resetTime: null, lockedOut: false };
             }
 

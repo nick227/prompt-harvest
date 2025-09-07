@@ -3,10 +3,10 @@ import nlp from 'compromise';
 import datamuse from 'datamuse';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
-import feed from '../src/feed.js';
+import _feed from './feed.js';
 
-const maxTokens = 15555;
-const openAiModel = 'gpt-3.5-turbo-16k';
+const _maxTokens = 15555;
+const _openAiModel = 'gpt-3.5-turbo-16k';
 const maxTokens4 = 3600;
 const openAiModel4 = 'gpt-4';
 
@@ -79,7 +79,7 @@ const addAiWordType = async word => {
         if (resObj && typeof resObj.types === 'object') {
             const { types } = resObj;
 
-            newRow = db.insert({ word, types }, (err, newDoc) => {
+            newRow = db.insert({ word, types }, (err, _newDoc) => {
                 if (err) {
                     console.error(`Failed to insert record: ${err}`);
                 }

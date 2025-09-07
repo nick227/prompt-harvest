@@ -3,7 +3,7 @@
  * Tests the complete login flow and persistence across page refreshes
  */
 
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 // Test configuration
 const TEST_CONFIG = {

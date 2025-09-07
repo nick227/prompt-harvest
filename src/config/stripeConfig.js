@@ -23,7 +23,9 @@ const getStripeSecretKey = () => {
     const expectedPrefix = isProduction ? 'sk_live_' : 'sk_test_';
 
     if (!key.startsWith(expectedPrefix)) {
-        throw new Error(`Invalid Stripe key format. Expected ${expectedPrefix}* for ${process.env.NODE_ENV} environment`);
+        throw new Error(
+            `Invalid Stripe key format. Expected ${expectedPrefix}* for ${process.env.NODE_ENV} environment`
+        );
     }
 
     return key;

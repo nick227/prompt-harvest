@@ -7,9 +7,9 @@ import CreditBalanceService from './CreditBalanceService.js';
 import CreditTransactionService from './CreditTransactionService.js';
 import PromoCodeService from './PromoCodeService.js';
 import CreditHistoryService from './CreditHistoryService.js';
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 export class SimplifiedCreditService {
 

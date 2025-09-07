@@ -9,6 +9,7 @@ export class TransactionService {
     // Log a new transaction
     async logTransaction(userId, provider, count = 1) {
         try {
+            // eslint-disable-next-line no-console
             console.log(`💰 TRANSACTION: Logging transaction for user ${userId}: provider=${provider}, count=${count}`);
 
             const transaction = await this.prisma.transaction.create({
@@ -21,6 +22,7 @@ export class TransactionService {
                 }
             });
 
+            // eslint-disable-next-line no-console
             console.log(`✅ TRANSACTION: Successfully logged transaction ${transaction.id}`);
 
             return transaction;

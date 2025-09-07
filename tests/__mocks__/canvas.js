@@ -1,5 +1,5 @@
 // Mock Canvas for Jest tests
-module.exports = {
+export default {
   createCanvas: jest.fn(() => ({
     getContext: jest.fn(() => ({
       fillRect: jest.fn(),

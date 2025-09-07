@@ -3,9 +3,9 @@
  * Handles credit history and ledger operations
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 export class CreditHistoryService {
 

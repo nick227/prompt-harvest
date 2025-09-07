@@ -3,9 +3,9 @@
  * Handles site activity monitoring and system health
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 class ActivityController {
     /**

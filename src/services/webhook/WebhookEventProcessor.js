@@ -3,10 +3,10 @@
  * Handles individual webhook event processing
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../../database/PrismaClient.js';
 import SimplifiedCreditService from '../credit/SimplifiedCreditService.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 export class WebhookEventProcessor {
 

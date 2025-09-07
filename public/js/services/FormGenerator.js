@@ -1,4 +1,8 @@
-/** * Declarative Form Generator * Generates forms from JSON schemas with validation and styling */class _FormGenerator {
+/**
+ * Declarative Form Generator
+ * Generates forms from JSON schemas with validation and styling
+ */
+class _FormGenerator {
     constructor(options = {}) {
         this.defaultOptions = {
             theme: 'admin',
@@ -10,7 +14,15 @@
         this.validators = this.initializeValidators();
         this.formatters = this.initializeFormatters();
         this.eventHandlers = new Map();
-    }    /**     * Generate form from schema     * @param {Object} schema - Form schema definition     * @param {HTMLElement} container - Container element     * @param {Object} data - Initial form data     * @returns {Object} Form instance with methods     */
+    }
+
+    /**
+     * Generate form from schema
+     * @param {Object} schema - Form schema definition
+     * @param {HTMLElement} container - Container element
+     * @param {Object} data - Initial form data
+     * @returns {Object} Form instance with methods
+     */
 
     generateForm(schema, container, data = {}) {
         this.validateSchema(schema);

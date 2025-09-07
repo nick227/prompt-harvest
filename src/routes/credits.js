@@ -11,8 +11,8 @@ import {
 } from '../middleware/creditValidation.js';
 import {
     basicApiSecurity,
-    strictApiSecurity,
-    paymentApiSecurity,
+    strictApiSecurity as _strictApiSecurity,
+    paymentApiSecurity as _paymentApiSecurity,
     validateContentType,
     strictRateLimit,
     paymentRateLimit

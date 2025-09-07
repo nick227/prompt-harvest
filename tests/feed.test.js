@@ -17,6 +17,12 @@ global.API_ENDPOINTS = {
     FEED: '/feed'
 };
 
+global.FEED_CONSTANTS = {
+    DEFAULTS: {
+        RETRY_DELAY: 1000
+    }
+};
+
 global.Utils = {
     dom: {
         get: jest.fn((selector) => {
@@ -37,7 +43,7 @@ global.Utils = {
     }
 };
 
-const FeedManager = require('../public/js/modules/feed/feed-manager.js');
+const FeedManager = require('../public/js/modules/feed/feed-manager-refactored.js');
 
 describe('FeedManager', () => {
     let feedManager;

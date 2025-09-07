@@ -3,9 +3,9 @@
  * Ensures only admin users can access admin routes
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../database/PrismaClient.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 /**
  * Middleware to verify admin access
@@ -246,6 +246,7 @@ export const logAdminActionMiddleware = action => (req, res, next) => {
     // Store original res.json to intercept response
     const originalJson = res.json;
 
+    // eslint-disable-next-line func-names
     res.json = function(data) {
         // Log the action if response was successful
         if (req.adminUser && (!data.error || data.success !== false)) {

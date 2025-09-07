@@ -21,16 +21,27 @@ export class ImageRepository extends PrismaBaseRepository {
     async findByUserId(userId, limit = 8, page = 0) {
         const skip = page * limit;
 
+        console.log('🔍 REPOSITORY: findByUserId called with:', {
+            userId,
+            limit,
+            page,
+            skip,
+            whereClause: userId ? { userId } : {}
+        });
+
+        // Handle anonymous access - return all images for public feed
+        const whereClause = userId ? { userId } : {};
+
         // Get images and total count for user
         const [images, total] = await Promise.all([
             this.prisma.image.findMany({
-                where: { userId: userId || 'undefined' },
+                where: whereClause,
                 orderBy: { createdAt: 'desc' },
                 take: limit,
                 skip
             }),
             this.prisma.image.count({
-                where: { userId: userId || 'undefined' }
+                where: whereClause
             })
         ]);
 
@@ -71,8 +82,11 @@ export class ImageRepository extends PrismaBaseRepository {
     }
 
     async countByUserId(userId) {
+        // Handle anonymous access - return total count for public feed
+        const whereClause = userId ? { userId } : {};
+
         return await this.prisma.image.count({
-            where: { userId: userId || 'undefined' }
+            where: whereClause
         });
     }
 

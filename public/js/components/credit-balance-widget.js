@@ -27,16 +27,22 @@ class CreditBalanceWidget {
             return;
         }
 
+        const coinIconPath1 = 'M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z';
+
+        const coinIconPath2 = 'M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.51-1.31c-.562-.649-1.413-1.076-2.353-1.253V5z';
+
         container.innerHTML = `
             <div class="credit-balance-widget flex items-center space-x-2 text-sm">
                 <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.51-1.31c-.562-.649-1.413-1.076-2.353-1.253V5z" clip-rule="evenodd"/>
+                    <path d="${coinIconPath1}"/>
+                    <path fill-rule="evenodd" d="${coinIconPath2}" clip-rule="evenodd"/>
                 </svg>
                 <span id="creditBalanceText" class="font-medium text-white">
                     <span class="animate-pulse">Loading...</span>
                 </span>
-                <button id="buyCreditsBtn" class="hidden px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors">
+                <button id="buyCreditsBtn"
+                        class="hidden px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-700
+                               text-white rounded transition-colors">
                     Buy Credits
                 </button>
             </div>
@@ -179,7 +185,7 @@ class CreditBalanceWidget {
 
         } catch (error) {
             console.error('Error loading purchase options:', error);
-            alert('Unable to load purchase options. Please try again.');
+            this.showError('Unable to load purchase options. Please try again.');
         }
     }
 
@@ -203,7 +209,8 @@ class CreditBalanceWidget {
                     <h3 class="text-lg font-semibold text-gray-900">Buy Credits</h3>
                     <button id="closePurchaseModal" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
@@ -211,7 +218,8 @@ class CreditBalanceWidget {
                 <div class="space-y-3">
                     ${packages.map(pkg => `
                         <button onclick="creditWidget.purchasePackage('${pkg.id}')"
-                                class="w-full p-3 border border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 text-left transition-colors">
+                                class="w-full p-3 border border-gray-300 rounded-lg hover:border-blue-500
+                                       hover:bg-blue-50 text-left transition-colors">
                             <div class="flex justify-between items-center">
                                 <div>
                                     <div class="font-medium text-gray-900">${pkg.name}</div>
@@ -270,7 +278,7 @@ class CreditBalanceWidget {
 
         } catch (error) {
             console.error('Purchase error:', error);
-            alert('Purchase failed. Please try again.');
+            this.showError('Purchase failed. Please try again.');
         }
     }
 
@@ -283,6 +291,21 @@ class CreditBalanceWidget {
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
         }
+    }
+
+    showError(message) {
+        // Create a simple error display
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        errorDiv.textContent = message;
+        document.body.appendChild(errorDiv);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+            }
+        }, 5000);
     }
 }
 

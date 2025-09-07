@@ -173,106 +173,41 @@ class ApiService {
             throw new Error('Service temporarily unavailable. Please try again later.');
         }
 
-        const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+        let url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+
+        // For GET requests, append query parameters from options
+        if (method === 'GET' && options && Object.keys(options).length > 0) {
+            const urlObj = new URL(url);
+            Object.keys(options).forEach(key => {
+                if (key !== 'headers') { // Don't add headers as query params
+                    urlObj.searchParams.append(key, options[key]);
+                }
+            });
+            url = urlObj.toString();
+        }
+
         const headers = { ...this.getAuthHeaders(), ...options.headers };
+
+        // Debug URL construction for feed requests
+        if (endpoint.includes('/api/feed')) {
+            console.log('🔗 API: Constructing URL for feed request:', {
+                baseUrl: this.baseUrl,
+                endpoint,
+                finalUrl: url,
+                options,
+                method,
+                optionsKeys: Object.keys(options || {}),
+                optionsValues: Object.values(options || {})
+            });
+        }
 
         // Only log headers for auth endpoints or when debugging
         if (endpoint.includes('/api/auth/') || window.location.search.includes('debug')) {
             console.log('🔑 API: Request headers for', endpoint, ':', headers);
         }
 
-        const requestOptions = {
-            method: method.toUpperCase(),
-            headers,
-            credentials: 'include',
-            ...options
-        };
-
-        if (data && method !== 'GET') {
-            requestOptions.body = JSON.stringify(data);
-        }
-
-        const requestFn = async () => {
-            const response = await Promise.race([
-                fetch(url, requestOptions),
-                this.createTimeoutPromise()
-            ]);
-
-            // Handle different response types
-            let responseData;
-            const contentType = response.headers.get('content-type');
-
-            if (contentType && contentType.includes('application/json')) {
-                responseData = await response.json();
-            } else {
-                responseData = await response.text();
-            }
-
-            // Handle authentication errors
-            if (response.status === 401) {
-                console.log('🔑 API: 401 Unauthorized - clearing auth token');
-
-                // Don't clear token immediately for profile endpoint (might be backend issue)
-                const isProfileEndpoint = url.includes('/api/auth/profile');
-
-                if (isProfileEndpoint) {
-                    console.log('🔑 API: Profile endpoint 401 - this might be a backend issue, not clearing token yet');
-                    // Only clear token if we get multiple 401s on profile endpoint
-                    if (this.profile401Count && this.profile401Count > 1) {
-                        console.log('🔑 API: Multiple profile 401s - clearing token');
-                        this.clearAuthToken();
-                    } else {
-                        this.profile401Count = (this.profile401Count || 0) + 1;
-                        console.log('🔑 API: Profile 401 count:', this.profile401Count);
-                    }
-                } else {
-                    this.clearAuthToken();
-                }
-
-                // Don't redirect for auth endpoints (login/register)
-                const isAuthEndpoint = url.includes('/api/auth/');
-
-                if (!isAuthEndpoint) {
-                    window.location.href = '/login';
-                }
-
-                throw new Error('Authentication required');
-            }
-
-            // Handle rate limiting
-            if (response.status === 429) {
-                const retryAfter = response.headers.get('retry-after');
-
-                throw new Error(`Rate limit exceeded. Please wait ${retryAfter || 60} seconds.`);
-            }
-
-            // Handle other errors
-            if (!response.ok) {
-                console.error('🔍 API Error Response Debug:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    contentType,
-                    responseData,
-                    url
-                });
-
-                // Log full response data for debugging
-                if (responseData && typeof responseData === 'object') {
-                    console.error('🔍 Full Server Response:', JSON.stringify(responseData, null, 2));
-                }
-
-                // Use the most descriptive error message available
-                const errorMessage = responseData?.message || responseData?.error || `HTTP ${response.status}`;
-                const error = new Error(errorMessage);
-
-                error.status = response.status;
-                error.data = responseData;
-                error.response = response;
-                throw error;
-            }
-
-            return responseData;
-        };
+        const requestOptions = this.buildRequestOptions(method, headers, data, options);
+        const requestFn = () => this.executeRequest(url, requestOptions);
 
         try {
             const _result = await this.retryRequest(requestFn);
@@ -284,6 +219,113 @@ class ApiService {
             this.recordFailure();
             throw error;
         }
+    }
+
+    buildRequestOptions(method, headers, data, options) {
+        const requestOptions = {
+            method: method.toUpperCase(),
+            headers,
+            credentials: 'include',
+            ...options
+        };
+
+        if (data && method !== 'GET') {
+            requestOptions.body = JSON.stringify(data);
+        }
+
+        return requestOptions;
+    }
+
+    async executeRequest(url, requestOptions) {
+        const response = await Promise.race([
+            fetch(url, requestOptions),
+            this.createTimeoutPromise()
+        ]);
+
+        const responseData = await this.parseResponseData(response);
+
+        this.handleResponseErrors(response, responseData, url);
+
+        return responseData;
+    }
+
+    async parseResponseData(response) {
+        const contentType = response.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+            return await response.json();
+        } else {
+            return await response.text();
+        }
+    }
+
+    handleResponseErrors(response, responseData, url) {
+        if (response.status === 401) {
+            this.handleAuthenticationError(url);
+        }
+
+        if (response.status === 429) {
+            this.handleRateLimitError(response);
+        }
+
+        if (!response.ok) {
+            this.handleGeneralError(response, responseData, url);
+        }
+    }
+
+    handleAuthenticationError(url) {
+        console.log('🔑 API: 401 Unauthorized - clearing auth token');
+
+        const isProfileEndpoint = url.includes('/api/auth/profile');
+
+        if (isProfileEndpoint) {
+            console.log('🔑 API: Profile endpoint 401 - this might be a backend issue, not clearing token yet');
+            if (this.profile401Count && this.profile401Count > 1) {
+                console.log('🔑 API: Multiple profile 401s - clearing token');
+                this.clearAuthToken();
+            } else {
+                this.profile401Count = (this.profile401Count || 0) + 1;
+                console.log('🔑 API: Profile 401 count:', this.profile401Count);
+            }
+        } else {
+            this.clearAuthToken();
+        }
+
+        const isAuthEndpoint = url.includes('/api/auth/');
+
+        if (!isAuthEndpoint) {
+            window.location.href = '/login';
+        }
+
+        throw new Error('Authentication required');
+    }
+
+    handleRateLimitError(response) {
+        const retryAfter = response.headers.get('retry-after');
+
+        throw new Error(`Rate limit exceeded. Please wait ${retryAfter || 60} seconds.`);
+    }
+
+    handleGeneralError(response, responseData, url) {
+        console.error('🔍 API Error Response Debug:', {
+            status: response.status,
+            statusText: response.statusText,
+            contentType: response.headers.get('content-type'),
+            responseData,
+            url
+        });
+
+        if (responseData && typeof responseData === 'object') {
+            console.error('🔍 Full Server Response:', JSON.stringify(responseData, null, 2));
+        }
+
+        const errorMessage = responseData?.message || responseData?.error || `HTTP ${response.status}`;
+        const error = new Error(errorMessage);
+
+        error.status = response.status;
+        error.data = responseData;
+        error.response = response;
+        throw error;
     }
 
     // Convenience methods
@@ -443,9 +485,12 @@ class UserApiService extends ApiService {
      * Validate email format
      */
     isValidEmail(email) {
-        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        // Email validation regex pattern
+        const localPart = /^([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+")$/;
+        const domainPart = /^(\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,})$/;
+        const emailRegex = new RegExp(`^${localPart.source}@${domainPart.source}$`);
 
-        return re.test(String(email).toLowerCase());
+        return emailRegex.test(String(email).toLowerCase());
     }
 
     /**

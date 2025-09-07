@@ -64,9 +64,9 @@ export class AIService {
     async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', req = null) {
         // This will be implemented when we extract the prompt service
         // For now, we'll import the feed module directly
-        const feed = await import('../../src/feed.js');
+        const feed = await import('../feed.js');
 
-        return await feed.default.prompt.build(
+        return await feed.default.buildPrompt(
             prompt,
             multiplier,
             mixup,

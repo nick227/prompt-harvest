@@ -117,7 +117,7 @@ export class SystemMonitor {
             this.metrics.performance.responseTimes.length;
     }
 
-    calculateAverageResponseTime(endpointStats) {
+    calculateAverageResponseTime(_endpointStats) {
         // This would need to be implemented with actual response time tracking per endpoint
         return this.metrics.performance.averageResponseTime;
     }
@@ -310,7 +310,7 @@ export class SystemMonitor {
             return;
         }
 
-        // Run health check every 30 seconds
+        // Run health check every 5 minutes (300 seconds) instead of 30 seconds
         setTimeout(async () => {
             try {
                 const health = await this.checkSystemHealth();
@@ -336,7 +336,7 @@ export class SystemMonitor {
 
             // Schedule next check
             this.scheduleHealthChecks();
-        }, 30000);
+        }, 300000); // 5 minutes instead of 30 seconds
     }
 
     formatBytes(bytes) {
