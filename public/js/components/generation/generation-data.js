@@ -91,7 +91,7 @@ class GenerationData {
             prompt: rawData.prompt?.trim() || '',
             providers: Array.isArray(rawData.providers) ? rawData.providers : [],
             guidance: parseInt(rawData.guidance) || this.validationRules.defaultGuidance,
-            multiplier: !!rawData.multiplier,
+            multiplier: rawData.multiplier || '',
             mixup: !!rawData.mixup,
             mashup: !!rawData.mashup,
             promptId: rawData.promptId || this.generatePromptId(),
@@ -137,7 +137,7 @@ class GenerationData {
             prompt: promptInput ? promptInput.value.trim() : '',
             providers: checkedProviders,
             guidance: guidanceData.guidance,
-            multiplier: !!(multiplierInput && multiplierInput.value.trim()),
+            multiplier: multiplierInput ? multiplierInput.value.trim() : '',
             mixup: mixupCheckbox ? mixupCheckbox.checked : false,
             mashup: mashupCheckbox ? mashupCheckbox.checked : false,
             original: promptInput ? promptInput.value.trim() : ''

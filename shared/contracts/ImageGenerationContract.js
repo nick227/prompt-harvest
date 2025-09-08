@@ -35,10 +35,10 @@ export const ImageGenerationContract = {
             transform: value => parseInt(value) || 10
         },
         multiplier: {
-            type: 'boolean',
+            type: 'string',
             required: false,
-            default: false,
-            transform: value => value === 'true' || value === true || value === 1
+            default: '',
+            transform: value => String(value || '').trim()
         },
         mixup: {
             type: 'boolean',

@@ -58,48 +58,18 @@ export class EnhancedImageService {
             console.log(`💾 Skipping database save - image already saved by feed.js [${requestId}]`);
 
             const duration = Date.now() - startTime;
-
-            // Extract the first successful result from the feed response
-            const firstResult = imageData.results && imageData.results.length > 0 ? imageData.results[0] : null;
-            const actualImageId = firstResult?.imageId;
-            const actualProvider = firstResult?.provider;
-            const actualImageUrl = firstResult?.imageUrl;
+            const result = this.extractImageResult(imageData, prompt, processedData.original, guidance, userId);
 
             console.log(`✅ Image generation completed [${requestId}] in ${duration}ms:`, {
-                imageId: actualImageId,
-                provider: actualProvider,
-                imageUrl: actualImageUrl,
+                imageId: result.id,
+                provider: result.provider,
+                imageUrl: result.imageUrl,
                 prompt: prompt ? `${prompt.substring(0, 30)}...` : 'undefined'
             });
 
-            // Log transaction for cost tracking
-            if (userId && userId !== null) {
-                try {
-                    await this.transactionService.logTransaction(userId, providers[0], 1);
-                    console.log(`💰 Transaction logged for user ${userId}: ${providers[0]}`);
-                } catch (transactionError) {
-                    console.error('❌ Failed to log transaction:', transactionError);
-                    // Don't fail the image generation for transaction logging errors
-                }
-            }
+            await this.logTransactionIfNeeded(userId, providers[0]);
 
-            // Return the processed result with proper structure that frontend expects
-            const serviceResult = {
-                id: actualImageId,
-                imageUrl: actualImageUrl,
-                prompt: prompt,
-                original: processedData.original,
-                provider: actualProvider,
-                guidance: guidance,
-                rating: 0,
-                userId: userId,
-                createdAt: new Date().toISOString(),
-                success: true,
-                results: imageData.results
-            };
-
-
-            return serviceResult;
+            return result;
 
         } catch (error) {
             const duration = Date.now() - startTime;
@@ -120,8 +90,8 @@ export class EnhancedImageService {
 
     // eslint-disable-next-line max-lines-per-function, max-statements
     async validateInputs(prompt, providers, guidance, userId) {
+        // eslint-disable-next-line max-lines-per-function, max-statements
         return await circuitBreakerManager.execute('validation', async () => {
-            // eslint-disable-next-line max-lines-per-function, max-statements
             const errors = [];
             const warnings = [];
 
@@ -368,6 +338,39 @@ export class EnhancedImageService {
         }
     }
 
+
+    extractImageResult(imageData, prompt, original, guidance, userId) {
+        const firstResult = imageData.results && imageData.results.length > 0 ? imageData.results[0] : null;
+        const actualImageId = firstResult?.imageId;
+        const actualProvider = firstResult?.provider;
+        const actualImageUrl = firstResult?.imageUrl;
+
+        return {
+            id: actualImageId,
+            imageUrl: actualImageUrl,
+            prompt,
+            original,
+            provider: actualProvider,
+            guidance,
+            rating: 0,
+            userId,
+            createdAt: new Date().toISOString(),
+            success: true,
+            results: imageData.results
+        };
+    }
+
+    async logTransactionIfNeeded(userId, provider) {
+        if (userId && userId !== null) {
+            try {
+                await this.transactionService.logTransaction(userId, provider, 1);
+                console.log(`💰 Transaction logged for user ${userId}: ${provider}`);
+            } catch (transactionError) {
+                console.error('❌ Failed to log transaction:', transactionError);
+                // Don't fail the image generation for transaction logging errors
+            }
+        }
+    }
 
     generateRequestId() {
         return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

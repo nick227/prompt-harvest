@@ -129,7 +129,7 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
                 ? req.body.providers
                 : req.body.providers.split(',').map(p => p.trim()),
             guidance: req.body.guidance ? parseInt(req.body.guidance) : 10,
-            multiplier: req.body.multiplier === 'true' || req.body.multiplier === true,
+            multiplier: req.body.multiplier || '',
             mixup: req.body.mixup === 'true' || req.body.mixup === true,
             mashup: req.body.mashup === 'true' || req.body.mashup === true,
             customVariables: req.body.customVariables || '',

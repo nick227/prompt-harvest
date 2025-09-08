@@ -144,6 +144,8 @@ class ImageGenerationAPI {
                     jsonData[key] = parseInt(value) || 10;
                     break;
                 case 'multiplier':
+                    jsonData[key] = value || '';
+                    break;
                 case 'mixup':
                 case 'mashup':
                     jsonData[key] = value === 'true' || value === true;
