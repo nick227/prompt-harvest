@@ -37,21 +37,58 @@ const MODEL_CONFIG = {
         size: '1024x1024'
     },
 
-    // Dezgo models
+    // Dezgo models - Updated to match working legacy implementation
     flux: {
         type: 'dezgo',
         url: 'https://api.dezgo.com/text2image_flux',
         model: 'flux_1_schnell'
     },
-    bluepencil: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'bluepencil'
-    },
+    // Working models from legacy implementation
     ink: {
         type: 'dezgo',
         url: 'https://api.dezgo.com/text2image',
-        model: 'ink'
+        model: 'inkpunk_diffusion'
+    },
+    synthwave: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'synthwavepunk_v2'
+    },
+    disco: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'disco_diffusion_style'
+    },
+    cyber: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'cyberrealistic_3_1'
+    },
+    lowpoly: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'lowpoly_world'
+    },
+    absolute: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'absolute_reality_1_8_1'
+    },
+    juggernaut: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image_sdxl',
+        model: 'juggernautxl_1024px'
+    },
+    tshirt: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image_sdxl',
+        model: 'tshirtdesignredmond_1024px'
+    },
+    // Additional models that might work
+    dreamshaper: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'dreamshaper_8'
     },
     nightmareshaper: {
         type: 'dezgo',
@@ -61,93 +98,7 @@ const MODEL_CONFIG = {
     openjourney: {
         type: 'dezgo',
         url: 'https://api.dezgo.com/text2image',
-        model: 'openjourney_2'
-    },
-    juggernautReborn: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'juggernaut_reborn'
-    },
-    redshift: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'redshift_diffusion_768px'
-    },
-    hasdx: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'hasdx'
-    },
-    realisticvision: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'realistic_vision_v5'
-    },
-    // Additional Dezgo models
-    juggernaut: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'juggernaut_reborn'
-    },
-    absolute: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'absolute_reality_v1_8_1'
-    },
-    icbinp: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'icbinp'
-    },
-    icbinp_seco: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'icbinp_seco'
-    },
-    dreamshaper: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'dreamshaper_8'
-    },
-    analogmadness: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'analog_madness_v1'
-    },
-    portraitplus: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'portrait_plus_v1'
-    },
-    tshirt: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'tshirt_v1'
-    },
-    abyssorange: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'abyss_orange_mix_v2'
-    },
-    cyber: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'cyber_realistic_v1'
-    },
-    disco: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'disco_mix_v1'
-    },
-    synthwave: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'synthwave_punk_v2'
-    },
-    lowpoly: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'lowpoly_v1'
+        model: 'openjourney'
     }
 };
 
@@ -160,6 +111,8 @@ const MODEL_CONFIG = {
  * @returns {string} Random ID
  */
 const generateId = () => Math.random().toString(36).substr(2, 9);
+
+const generateRandomNineCharNumber = () => Math.floor(Math.random() * 900000000) + 100000000;
 
 /**
  * Validate image generation parameters
@@ -250,6 +203,153 @@ const validateDezgoApiKey = () => {
     return null;
 };
 
+/**
+ * Create test parameters for different model types
+ * @param {string} url - API endpoint URL
+ * @param {string} model - Model name
+ * @returns {Object} Test parameters
+ */
+const createTestParams = (url, model) => {
+    if (url.includes('text2image_sdxl_lightning')) {
+        return {
+            prompt: 'test',
+            model,
+            width: 1024,
+            height: 1024,
+            steps: 4,
+            guidance: 1,
+            seed: 1,
+            output_format: 'jpeg'
+        };
+    } else if (url.includes('text2image_sdxl')) {
+        return {
+            prompt: 'test',
+            model,
+            width: 1024,
+            height: 1024,
+            steps: 20,
+            guidance: 7.5,
+            seed: 1,
+            output_format: 'jpeg'
+        };
+    } else {
+        return {
+            prompt: 'test',
+            model,
+            width: 512,
+            height: 512,
+            steps: 20,
+            guidance: 7.5,
+            seed: 1,
+            output_format: 'jpeg'
+        };
+    }
+};
+
+/**
+ * Test Flux model availability
+ * @param {string} url - API endpoint URL
+ * @returns {Promise<boolean>} True if model is available
+ */
+const testFluxModel = async url => {
+    const formData = new FormData();
+
+    formData.append('prompt', 'test');
+    formData.append('width', '512');
+    formData.append('height', '512');
+    formData.append('steps', '4');
+    formData.append('seed', '1');
+    formData.append('format', 'png');
+    formData.append('transparent_background', 'false');
+
+    const response = await axios.post(url, formData, {
+        headers: {
+            'X-Dezgo-Key': process.env.DEZGO_API_KEY,
+            accept: '*/*',
+            ...formData.getHeaders()
+        },
+        responseType: 'arraybuffer',
+        timeout: 30000
+    });
+
+    return response.status === 200;
+};
+
+/**
+ * Test standard model availability
+ * @param {string} url - API endpoint URL
+ * @param {string} model - Model name
+ * @returns {Promise<boolean>} True if model is available
+ */
+const testStandardModel = async (url, model) => {
+    const testParams = createTestParams(url, model);
+
+    const response = await axios.post(url, testParams, {
+        headers: {
+            'X-Dezgo-Key': process.env.DEZGO_API_KEY,
+            'Content-Type': 'application/json'
+        },
+        responseType: 'arraybuffer',
+        timeout: 30000
+    });
+
+    return response.status === 200;
+};
+
+/**
+ * Test if a specific Dezgo model is available
+ * @param {string} model - Model name to test
+ * @returns {Promise<boolean>} True if model is available
+ */
+const testDezgoModelAvailability = async model => {
+    try {
+        const keyValidation = validateDezgoApiKey();
+
+        if (keyValidation) {
+            return false;
+        }
+
+        const modelConfig = Object.values(MODEL_CONFIG).find(config => config.type === 'dezgo' && config.model === model
+        );
+
+        if (!modelConfig) {
+            return false;
+        }
+
+        const { url } = modelConfig;
+
+        if (url.includes('text2image_flux')) {
+            return await testFluxModel(url);
+        } else {
+            return await testStandardModel(url, model);
+        }
+    } catch (error) {
+        return false;
+    }
+};
+
+/**
+ * Get list of available Dezgo models
+ * @returns {Promise<Array>} Array of available model names
+ */
+const getAvailableDezgoModels = async () => {
+    const dezgoModels = Object.entries(MODEL_CONFIG)
+        .filter(([_, config]) => config.type === 'dezgo')
+        .map(([name, config]) => ({ name, model: config.model }));
+
+    const availableModels = [];
+
+    for (const { name, model } of dezgoModels) {
+        const isAvailable = await testDezgoModelAvailability(model);
+
+        if (isAvailable) {
+            availableModels.push(name);
+        }
+    }
+
+    return availableModels;
+};
+
 const handleDezgoError = error => {
     if (error.response) {
         if (error.response.status === 401) {
@@ -289,18 +389,8 @@ const createFluxFormData = prompt => {
     return formData;
 };
 
-const createStandardParams = (prompt, model, guidance) => ({
-    prompt,
-    model,
-    width: 1024,
-    height: 1024,
-    steps: 20,
-    guidance: guidance || 10,
-    seed: -1,
-    output_format: 'jpeg'
-});
 
-const makeDezgoRequest = async (url, prompt, model, guidance) => {
+const makeDezgoRequest = async (url, prompt, model, _guidance) => {
     if (url.includes('text2image_flux')) {
         const formData = createFluxFormData(prompt);
 
@@ -314,12 +404,19 @@ const makeDezgoRequest = async (url, prompt, model, guidance) => {
             timeout: 120000
         });
     } else {
-        const params = createStandardParams(prompt, model, guidance);
+        // Use legacy approach with form-urlencoded and fixed guidance
+        const params = {
+            prompt,
+            negative_prompt: '',
+            guidance: 8, // Fixed guidance like in legacy implementation
+            seed: generateRandomNineCharNumber(),
+            model
+        };
 
-        return await axios.post(url, params, {
+        return await axios.post(url, new URLSearchParams(params).toString(), {
             headers: {
                 'X-Dezgo-Key': process.env.DEZGO_API_KEY,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
             responseType: 'arraybuffer',
             timeout: 120000
@@ -334,15 +431,19 @@ const generateDezgoImage = async(prompt, guidance, url, model = 'flux_1_schnell'
         if (keyValidation) {
             return keyValidation;
         }
-
         const response = await makeDezgoRequest(url, prompt, model, guidance);
 
         if (!response.data) {
+            console.error('❌ DEZGO: Invalid response - no data:', response);
+
             return { error: 'Invalid response', details: response };
         }
 
+
         return Buffer.from(response.data).toString('base64');
     } catch (error) {
+        console.error('❌ DEZGO: Error in generateDezgoImage:', error.message);
+
         return handleDezgoError(error);
     }
 };
@@ -365,8 +466,14 @@ const generateWithProvider = async(config, prompt, guidance, userId) => {
     } else if (config.type === 'dezgo') {
         const result = await generateDezgoImage(prompt, guidance, config.url, config.model);
 
+
         if (result.skip) {
             return { error: 'Dezgo API key not configured', skip: true };
+        }
+
+        // Check if result is an error object
+        if (result && typeof result === 'object' && result.error) {
+            return { error: result.error, details: result.details };
         }
 
         return result;
@@ -404,12 +511,24 @@ const generateMultipleProviderImages = async(providers, prompt, guidance, userId
         providers.map(provider => generateProviderImage(provider, prompt, guidance, userId))
     );
 
-    return results.map((result, index) => ({
-        provider: providers[index],
-        success: result.status === 'fulfilled',
-        data: result.status === 'fulfilled' ? result.value : null,
-        error: result.status === 'rejected' ? result.reason : null
-    }));
+    return results.map((result, index) => {
+        let error = null;
+
+        if (result.status === 'rejected') {
+            error = result.reason;
+        } else if (result.status === 'fulfilled' && result.value?.error) {
+            const { error: valueError } = result.value;
+
+            error = valueError;
+        }
+
+        return {
+            provider: providers[index],
+            success: result.status === 'fulfilled' && result.value && !result.value.error,
+            data: result.status === 'fulfilled' ? result.value : null,
+            error
+        };
+    });
 };
 
 // ============================================================================
@@ -456,6 +575,10 @@ export {
     generateId,
     validateImageParams,
 
+    // Model testing functions
+    testDezgoModelAvailability,
+    getAvailableDezgoModels,
+
     // Configuration
     MODEL_CONFIG
 };
@@ -470,5 +593,7 @@ export default {
     isProviderAvailable,
     generateId,
     validateImageParams,
+    testDezgoModelAvailability,
+    getAvailableDezgoModels,
     MODEL_CONFIG
 };

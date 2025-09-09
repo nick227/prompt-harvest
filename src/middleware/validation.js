@@ -103,7 +103,8 @@ export const validateTag = (req, res, next) => {
 };
 
 export const validateWord = (req, res, next) => {
-    const { word } = req.params;
+    // Handle both GET (params) and POST (body) requests
+    const word = req.params.word || req.body.word;
 
     if (!word || typeof word !== 'string' || word.trim().length === 0) {
         return res.status(400).json({

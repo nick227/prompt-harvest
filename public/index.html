@@ -10,6 +10,55 @@
     <link rel="icon" href="/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom checkbox styles for drawer */
+        .checkbox-custom {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-custom::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 3px;
+            height: 6px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: translate(-50%, -60%) rotate(45deg);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        input[type="checkbox"]:checked + .checkbox-custom {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        input[type="checkbox"]:checked + .checkbox-custom::after {
+            opacity: 1;
+        }
+
+        /* Custom scrollbar for drawer */
+        #controls-drawer::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #controls-drawer::-webkit-scrollbar-track {
+            background: rgba(55, 65, 81, 0.3);
+        }
+
+        #controls-drawer::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+
+        #controls-drawer::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.7);
+        }
+
+    </style>
     <script>
         tailwind.config = {
             theme: {
@@ -26,130 +75,227 @@
 
 <body class="bg-gray-800 text-gray-200 w-full min-h-screen">
     <!-- Scroll to Top Button -->
-    <button type="button" class="fixed bottom-4 right-4 bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors z-50" aria-label="Scroll to top">top</button>
+    <button type="button"
+        class="fixed bottom-4 right-4 bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors z-50"
+        aria-label="Scroll to top">top</button>
+
+    <!-- Collapsible Side Drawer -->
+    <div id="controls-drawer" class="fixed left-0 top-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl border-r border-gray-700 sm:top-0 sm:h-full sm:border-r sm:border-gray-700 max-sm:top-auto max-sm:bottom-0 max-sm:h-[33vh] max-sm:w-full max-sm:border-r-0 max-sm:border-t max-sm:border-gray-700">
+        <div class="p-6 max-sm:p-4">
+            <!-- Drawer Header -->
+            <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-700 max-sm:mb-4 max-sm:pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center max-sm:w-6 max-sm:h-6">
+                        <svg class="w-5 h-5 text-white max-sm:w-4 max-sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-bold text-white max-sm:text-lg">Advanced Controls</h2>
+                </div>
+                <button id="toggle-drawer" class="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-700 max-sm:p-0.5">
+                    <svg class="w-5 h-5 max-sm:w-4 max-sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="mb-8 max-sm:mb-4" data-section="settings">
+                <div class="flex items-center gap-2 mb-4 max-sm:mb-2">
+                    <div class="w-6 h-6 bg-blue-500 rounded-md flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-blue-400 max-sm:text-base">Settings</h3>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative">
+                            <input type="checkbox" name="autoDownload" class="sr-only" />
+                            <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-blue-400 transition-colors checkbox-custom"></div>
+                        </div>
+                        <span class="text-gray-200 group-hover:text-white transition-colors">Auto Download</span>
+                        </label>
+                </div>
+            </div>
+
+            <!-- Providers Section -->
+            <div class="mb-8 max-sm:mb-4" data-section="providers">
+                <div class="flex items-center gap-2 mb-4 max-sm:mb-2">
+                    <div class="w-6 h-6 bg-green-500 rounded-md flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-green-400 max-sm:text-base">AI Providers</h3>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3">
+                    <div id="provider-list" class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                        <!-- Providers will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guidance Section -->
+            <div class="mb-8 max-sm:mb-4" data-section="guidance">
+                <div class="flex items-center gap-2 mb-4 max-sm:mb-2">
+                    <div class="w-6 h-6 bg-yellow-500 rounded-md flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-yellow-400 max-sm:text-base">Guidance Scale</h3>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4 max-sm:p-3 max-sm:space-y-3">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Bottom Guidance</label>
+                        <select class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" name="guidance-bottom">
+                            <option value>None</option>
+                            <option value="1">1 - Minimal</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            <option value="5">5 - Balanced</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                            <option value="10">10 - Strong</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                            <option value="20">20 - Maximum</option>
+                            </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Top Guidance</label>
+                        <select class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" name="guidance-top">
+                            <option value>None</option>
+                            <option value="1">1 - Minimal</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            <option value="5">5 - Balanced</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                            <option value="10">10 - Strong</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                            <option value="20">20 - Maximum</option>
+                            </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prompt Enhancement Section -->
+            <div class="mb-8 max-sm:mb-4" data-section="enhancement">
+                <div class="flex items-center gap-2 mb-4 max-sm:mb-2">
+                    <div class="w-6 h-6 bg-purple-500 rounded-md flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-purple-400 max-sm:text-base">Prompt Enhancement</h3>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4 max-sm:p-3 max-sm:space-y-3">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Multiplier Text</label>
+                        <input type="text" id="multiplier" placeholder="Enter enhancement text..."
+                            class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-400" />
+                    </div>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" name="mixup" class="sr-only" />
+                                <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom"></div>
+                            </div>
+                            <span class="text-gray-200 group-hover:text-white transition-colors">Mixup</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" name="mashup" class="sr-only" />
+                                <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom"></div>
+                            </div>
+                            <span class="text-gray-200 group-hover:text-white transition-colors">Mashup</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drawer Overlay (hidden - no dimming) -->
+    <div id="drawer-overlay" class="fixed inset-0 z-30 hidden"></div>
+
+    <!-- Drawer Toggle Button (when closed) -->
+    <button id="drawer-toggle-closed" class="fixed left-4 top-4 bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-700 transition-colors z-50 shadow-lg hidden max-sm:left-2 max-sm:top-2 max-sm:p-1.5">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+        </svg>
+    </button>
 
     <main class="flex-col gap-4 h-full max-w-[1020px] mx-auto">
-        <!-- Controls -->
-        <div class="w-full mb-4 flex flex-col gap-4 min-w-0">
-
-            <!-- Settings Row -->
-            <div class="flex items-center gap-2 text-sm">
-                <div class="w-full flex items-center gap-2">
-                    <label class="flex items-center gap-1 cursor-pointer label accent">
+        <!-- Main Controls Bar -->
+        <div class="w-full mb-4 flex flex-col gap-4">
+            <!-- Featured Controls Row -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <!-- Featured Settings -->
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-1 cursor-pointer label secondary">
+                            <input type="checkbox" name="auto-enhance" />
+                            <span>Enhance</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer label accent">
                             <input type="checkbox" name="auto-generate" />
                             <span>Auto</span>
                         </label>
-                    <input type="number" name="maxNum" class="w-24 bg-white text-gray-800 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="max" min="1" max="10" value="3" />
-
-
-                    <label class="flex items-center gap-1 cursor-pointer label secondary">
-                        <input type="checkbox" name="auto-enhance" />
-                        <span>Enhance</span>
-                    </label>
-
-
+                        <input type="number" name="maxNum"
+                            class="w-24 bg-white text-gray-800 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="max" min="1" max="10" value="3" />
+                    </div>
                 </div>
 
-                <label class="flex items-center gap-1 cursor-pointer ml-8">
-                        <input type="checkbox" name="autoDownload" />
-                        <span>download</span>
-                    </label>
+                <!-- Search / Replace -->
+                <div class="flex items-center gap-2">
+                    <input type="text" placeholder="search" name="search_term" id="search_term"
+                        class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input type="text" placeholder="replace" name="replace_term" id="replace_term"
+                        class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button class="btn-replace bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap">Replace</button>
+                </div>
+            </div>
             </div>
 
-            <!-- Provider List -->
-            <div id="provider-list" class="flex gap-2 text-sm max-h-48 overflow-y-auto pt-2 pb-4">
-                <!-- Providers will be populated by JavaScript -->
-            </div>
-
-            <!-- Tools Section -->
-            <div class="flex items-center gap-3 text-sm flex-wrap">
                 <!-- Enhanced Notification Display -->
                 <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
-            </div>
-<div class="w-full flex gap-4">
-
-            <!-- Search / Replace -->
-            <div>
-                <input type="text" placeholder="search" name="search_term" id="search_term" class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <input type="text" placeholder="replace" name="replace_term" id="replace_term" class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <button class="btn-replace bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap">Replace</button>
-            </div>
-            <!-- Guidance Section -->
-            <div class="flex gap-2">
-                <h6 class="ml-8">guidance</h6>
-                <label class="flex items-center gap-1">
-                        <select
-                            class="w-14 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            name="guidance-bottom">
-                            <option value>bottom</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                        </select>
-                    </label>
-                <label class="flex items-center gap-1">
-                        <select
-                            class="w-14 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            name="guidance-top">
-                            <option value>top</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                        </select>
-                    </label>
-                    <input type="text" id="multiplier" placeholder="Multiplier" class="w-24 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-
-                <label class="flex items-center gap-1 cursor-pointer">
-                        <input type="checkbox" name="mixup" />
-                        <span>mixup</span>
-                    </label>
-                <label class="flex items-center gap-1 cursor-pointer">
-                        <input type="checkbox" name="mashup" />
-                        <span>mashup</span>
-                    </label>
-                </div>
-</div>
 
             <!-- Prompt Textarea -->
-            <textarea id="prompt-textarea" class="w-full bg-white text-gray-800 px-3 py-2 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" rows="6" placeholder="Enter your prompt here..."></textarea>
+            <textarea id="prompt-textarea"
+                class="w-full bg-white text-gray-800 px-3 py-2 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="6" placeholder="Enter your prompt here..."></textarea>
 
             <!-- Generate Button -->
-            <div class="w-full">
-                <button type="button" class="btn-generate w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">START</button>
+            <div class="w-full mt-4">
+                <button type="button"
+                    class="btn-generate w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">START</button>
             </div>
 
             <!-- Matches -->
@@ -157,19 +303,24 @@
         </div>
 
         <!-- Image Display -->
-        <div class="w-full flex flex-col min-w-0">
+        <div class="w-full flex flex-col min-w-0 mt-4">
             <div class="flex flex-col h-full">
                 <!-- Controls Bar -->
                 <div class="flex items-center justify-between mb-4 flex-wrap gap-4">
                     <div class="search flex-1 max-w-xs">
-                        <input type="text" name="image-search" placeholder="search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <input type="text" name="image-search" placeholder="search"
+                            class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
 
                     <div class="owner-filter flex items-center gap-2 flex-wrap">
                         <!-- Owner Filter -->
-                        <label class="owner-btn bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-owner="site">
+                        <label
+                            class="owner-btn bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors"
+                            data-owner="site">
                             <input type="radio" name="owner" value="site"> Site</label>
-                        <label class="owner-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors" data-owner="1">
+                        <label
+                            class="owner-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors"
+                            data-owner="1">
                             <input type="radio" name="owner" value="user"> Mine</label>
                         <!-- Rating Filter -->
                         <span class="text-sm">Rating:</span>
@@ -187,6 +338,9 @@
 
     <!-- Header Component -->
     <script src="js/components/header-component.js"></script>
+
+    <!-- Controls Drawer Component -->
+    <script src="js/components/controls-drawer.js"></script>
 
     <!-- Transaction Stats Component -->
     <script src="js/components/transaction-stats-component.js"></script>
@@ -256,7 +410,6 @@
 
     <!-- Main application loader -->
     <script src="js/app.js"></script>
-
 
 
 </body>

@@ -182,11 +182,28 @@ export const formatErrorResponse = (error, requestId, duration = 0) => {
             };
 
         default:
+            // Debug logging for unknown errors
+            console.error('🔍 UNKNOWN ERROR DEBUG:', {
+                error,
+                errorType: typeof error,
+                errorKeys: error ? Object.keys(error) : 'null/undefined',
+                errorMessage: error?.message,
+                errorName: error?.name,
+                errorStringified: JSON.stringify(error, null, 2)
+            });
+
             return {
                 ...baseResponse,
                 error: {
                     type: 'UNKNOWN_ERROR',
-                    message: error.message || 'An unexpected error occurred'
+                    message: error?.message || 'An unexpected error occurred',
+                    name: error?.name || 'Unknown',
+                    stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined,
+                    debug: process.env.NODE_ENV === 'development' ? {
+                        errorType: typeof error,
+                        errorKeys: error ? Object.keys(error) : 'null/undefined',
+                        errorStringified: JSON.stringify(error, null, 2)
+                    } : undefined
                 },
                 statusCode: 500
             };

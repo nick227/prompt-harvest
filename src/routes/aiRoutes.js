@@ -27,6 +27,20 @@ export const setupAIRoutes = (app, aiController) => {
         aiController.addWordType.bind(aiController)
     );
 
+    // POST endpoint for adding words (frontend compatibility)
+    app.post('/ai/word/add',
+        validateWord,
+        apiRateLimit,
+        aiController.addWordTypePost.bind(aiController)
+    );
+
+    // DELETE endpoint for removing words
+    app.delete('/ai/word/delete/:word',
+        validateWord,
+        apiRateLimit,
+        aiController.deleteWordType.bind(aiController)
+    );
+
     // Cache Management
     app.get('/api/cache/stats', aiController.getCacheStats.bind(aiController));
     app.post('/api/cache/clear', aiController.clearCache.bind(aiController));

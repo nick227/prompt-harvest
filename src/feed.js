@@ -29,12 +29,6 @@ import FeedUtils from './utils/FeedUtils.js';
 // Configuration
 dotenv.config();
 
-// Debug: Log environment variables on feed load
-console.log('🔧 Feed system loaded with environment:', {
-    NODE_ENV: process.env.NODE_ENV,
-    DEZGO_API_KEY_EXISTS: !!process.env.DEZGO_API_KEY,
-    DEZGO_API_KEY_LENGTH: process.env.DEZGO_API_KEY ? process.env.DEZGO_API_KEY.length : 0
-});
 
 const DEFAULT_GUIDANCE_VALUE = 10;
 
@@ -61,7 +55,28 @@ const DEFAULT_GUIDANCE_VALUE = 10;
  * @returns {Promise<Object>} Generation result
  */
 // eslint-disable-next-line max-params
-const generate = async(prompt, original, promptId, providers, guidance, req) => {
+const handleGenerationError = async(requestId, error, startTime) => {
+    const duration = Date.now() - startTime;
+
+    // Debug logging for feed errors
+    console.error('🔍 FEED GENERATE ERROR DEBUG:', {
+        error,
+        errorType: typeof error,
+        errorMessage: error?.message,
+        errorName: error?.name,
+        errorStack: error?.stack?.substring(0, 500)
+    });
+
+    FeedUtils.logRequestError(requestId, error, duration);
+
+    // Cleanup on failure
+    await cleanupAfterFailure(requestId, error);
+
+    throw error;
+};
+
+const generate = async options => {
+    const { prompt, original, promptId, providers, guidance, req } = options;
     const requestId = FeedUtils.generateRequestId();
     const startTime = Date.now();
 
@@ -115,15 +130,7 @@ const generate = async(prompt, original, promptId, providers, guidance, req) => 
         };
 
     } catch (error) {
-        // Log error and cleanup
-        const duration = Date.now() - startTime;
-
-        FeedUtils.logRequestError(requestId, error, duration);
-
-        // Cleanup on failure
-        await cleanupAfterFailure(requestId, error);
-
-        throw error;
+        return await handleGenerationError(requestId, error, startTime);
     }
 };
 
@@ -151,7 +158,6 @@ const processGenerationResults = async(results, context) => {
                     userId: DatabaseService.getUserId(req)
                 });
 
-                console.log('🔍 Saved image result:', { _id: savedImage._id });
 
                 if (!savedImage._id) {
                     console.error('❌ CRITICAL: savedImage._id is undefined!', { savedImage });
@@ -399,3 +405,4 @@ export default {
     savePromptToDatabase,
     DEFAULT_GUIDANCE_VALUE
 };
+

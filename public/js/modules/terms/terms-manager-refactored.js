@@ -57,9 +57,9 @@ class TermsManager {
 
     // Handle term deleted event
     async handleTermDeleted(event) {
-        const { term } = event.detail;
+        const { termWord } = event.detail;
 
-        await this.deleteTerm(term);
+        await this.deleteTerm(termWord);
     }
 
     // Handle search performed event
@@ -177,6 +177,12 @@ class TermsManager {
             // Update UI
             this.updateTermsDisplay();
             this.updateTermCount();
+
+            // Update search results if there's an active search
+            const lastSearchQuery = this.cacheManager.getLastSearchQuery();
+            if (lastSearchQuery) {
+                await this.performSearch(lastSearchQuery);
+            }
 
             // Show success message
             this.uiManager.showMessage(

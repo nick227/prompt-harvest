@@ -17,8 +17,8 @@ export class AIService {
         });
         this.maxTokens = aiConfig.maxTokens;
         this.openAiModel = aiConfig.openAiModel;
-        this.maxTokens4 = aiConfig.maxTokens4;
-        this.openAiModel4 = aiConfig.openAiModel4;
+        this.maxTokens4 = aiConfig.maxTokens4 || 3600;
+        this.openAiModel4 = aiConfig.openAiModel4 || 'gpt-4';
         this.temperature = aiConfig.temperature;
         this.wordRepository = new WordRepository();
     }
@@ -157,5 +157,30 @@ export class AIService {
                 }
             }]
         };
+    }
+
+    // Delete word type and associated data
+    async deleteWordType(word) {
+        try {
+            if (!word || typeof word !== 'string') {
+                throw new Error('Invalid word parameter');
+            }
+
+            // Delete from database
+            const result = await this.wordRepository.deleteWordType(word);
+
+            return {
+                success: true,
+                message: `Word "${word}" and its associated types have been deleted`,
+                deletedWord: word,
+                result: result
+            };
+        } catch (error) {
+            console.error('❌ Delete word type error:', error);
+            return {
+                success: false,
+                error: error.message || 'Failed to delete word type'
+            };
+        }
     }
 }

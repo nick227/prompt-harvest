@@ -514,6 +514,64 @@
     border-color: #6b7280;
 }
 
+.term-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.term-delete {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #374151;
+    border: 1px solid #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #ef4444;
+}
+
+.term-delete:hover {
+    background: #ef4444;
+    border-color: #dc2626;
+    color: white;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Search Result Actions */
+.result-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.result-delete {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #374151;
+    border: 1px solid #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #ef4444;
+    font-size: 0.75rem;
+}
+
+.result-delete:hover {
+    background: #ef4444;
+    border-color: #dc2626;
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    transform: translateY(-1px);
+}
+
 .term-types {
     display: flex;
     flex-wrap: wrap;
@@ -641,6 +699,10 @@
     border-radius: 8px;
     border: 1px solid #60a5fa;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
 }
 
 .search-result-item:hover {
@@ -650,18 +712,25 @@
 
 .result-content {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
     flex-wrap: wrap;
+    flex: 1;
+    min-width: 0; /* Allow flex items to shrink below their content size */
 }
 
 .result-word {
     font-weight: 600;
+    flex-shrink: 0; /* Prevent the word from shrinking */
 }
 
 .result-types {
     color: #bfdbfe;
     font-size: 0.875rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .match-badge {
@@ -672,6 +741,7 @@
     font-size: 0.75rem;
     font-weight: 500;
     border: 1px solid rgba(255, 255, 255, 0.3);
+    flex-shrink: 0; /* Prevent the badge from shrinking */
 }
 
 /* Responsive Design */
@@ -695,6 +765,22 @@
     .term-type-tag {
         font-size: 0.7rem;
         padding: 0.2rem 0.6rem;
+    }
+
+    .search-result-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .result-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .result-actions {
+        align-self: flex-end;
     }
 }
 

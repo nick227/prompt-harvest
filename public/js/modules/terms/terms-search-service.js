@@ -58,6 +58,12 @@ class TermsSearchService {
 
         this.terms.forEach((term, index) => {
             const termWord = typeof term === 'string' ? term : term.word;
+
+            // Skip if termWord is undefined or null
+            if (!termWord) {
+                return;
+            }
+
             const types = this.getTermTypes(term);
 
             // Search in term word
@@ -97,6 +103,15 @@ class TermsSearchService {
 
     // Search in term word
     searchInTerm(termWord, query) {
+        // Validate inputs
+        if (!termWord || typeof termWord !== 'string') {
+            return null;
+        }
+
+        if (!query || typeof query !== 'string') {
+            return null;
+        }
+
         const lowerTerm = termWord.toLowerCase();
 
         // Exact match
@@ -140,6 +155,15 @@ class TermsSearchService {
 
     // Search in type
     searchInType(type, query) {
+        // Validate inputs
+        if (!type || typeof type !== 'string') {
+            return null;
+        }
+
+        if (!query || typeof query !== 'string') {
+            return null;
+        }
+
         const lowerType = type.toLowerCase();
 
         // Exact match

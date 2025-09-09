@@ -397,6 +397,44 @@ class TermsAPIManager {
 
         throw lastError;
     }
+
+    // Delete term via API
+    async deleteTerm(termWord) {
+        try {
+            const response = await fetch(`${this.baseURL}/ai/word/delete/${encodeURIComponent(termWord)}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return this.processDeleteTermResponse(data);
+        } catch (error) {
+            console.error('Error deleting term:', error);
+            throw error;
+        }
+    }
+
+    // Process delete term response
+    processDeleteTermResponse(response) {
+        if (response.success) {
+            return {
+                success: true,
+                message: response.message,
+                deletedWord: response.deletedWord
+            };
+        } else {
+            throw new Error(response.error || 'Failed to delete term');
+        }
+    }
 }
 
 // Export for global access

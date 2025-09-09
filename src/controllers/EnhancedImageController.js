@@ -84,7 +84,7 @@ export class EnhancedImageController {
 
 
             // Handle error response from service
-            if (result.error) {
+            if (result.error || result.success === false) {
                 const duration = Date.now() - startTime;
                 const errorResponse = formatErrorResponse(result, requestId, duration);
 
@@ -106,6 +106,16 @@ export class EnhancedImageController {
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
+            // Debug logging for image generation errors
+            console.error('🔍 IMAGE GENERATION ERROR DEBUG:', {
+                error,
+                errorType: typeof error,
+                errorMessage: error?.message,
+                errorName: error?.name,
+                errorStack: error?.stack?.substring(0, 500)
+            });
+
             const errorResponse = formatErrorResponse(error, requestId, duration);
 
             logRequestError(requestId, 'Image Generation', duration, error);

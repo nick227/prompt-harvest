@@ -86,4 +86,25 @@ export class WordRepository extends BaseRepository {
                 : 0
         };
     }
+
+    async deleteWordType(word) {
+        try {
+            // Import Prisma client
+            const databaseClient = await import('../database/PrismaClient.js');
+            const prisma = databaseClient.default.getClient();
+
+            // Delete from MySQL database
+            const result = await prisma.word_types.deleteMany({
+                where: { word: word.toLowerCase() }
+            });
+
+            return {
+                deletedCount: result.count || 0,
+                word: word
+            };
+        } catch (error) {
+            console.error('Error deleting word from MySQL:', error);
+            throw error;
+        }
+    }
 }

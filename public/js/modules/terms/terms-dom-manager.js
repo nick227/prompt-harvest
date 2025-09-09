@@ -186,7 +186,10 @@ class TermsDOMManager {
         row.innerHTML = `
             <div class="term-row-header">
                 <h2 class="term-word">${this.escapeHtml(termWord)}</h2>
-                <button class="term-toggle"><i class="fas fa-chevron-right"></i></button>
+                <div class="term-actions">
+                    <button class="term-toggle" title="Toggle types"><i class="fas fa-chevron-right"></i></button>
+                    <button class="term-delete" title="Delete term"><i class="fas fa-trash"></i></button>
+                </div>
             </div>
             ${typeTags ? `<div class="term-types hidden">${typeTags}</div>` : ''}
         `;
@@ -222,6 +225,32 @@ class TermsDOMManager {
                             ? 'fas fa-chevron-down'
                             : 'fas fa-chevron-right';
                     }
+                }
+            });
+        }
+
+        // Wire up the delete button click
+        const deleteButton = row.querySelector('.term-delete');
+
+        if (deleteButton) {
+            deleteButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent any parent click handlers
+
+                // Show confirmation dialog
+                const confirmed = confirm(`Are you sure you want to delete the term "${termWord}" and all its associated types?`);
+
+                if (confirmed) {
+                    // Dispatch custom event for term deletion
+                    const deleteEvent = new CustomEvent('termDeleted', {
+                        detail: {
+                            term: term,
+                            termWord: termWord,
+                            index: index,
+                            element: row
+                        }
+                    });
+
+                    document.dispatchEvent(deleteEvent);
                 }
             });
         }
@@ -273,7 +302,36 @@ class TermsDOMManager {
                 ${typeTags ? `<div class="result-types">${typeTags}</div>` : ''}
                 <span class="match-badge">${this.getMatchBadge(matchType)}</span>
             </div>
+            <div class="result-actions">
+                <button class="result-delete" title="Delete term"><i class="fas fa-trash"></i></button>
+            </div>
         `;
+
+        // Wire up the delete button click for search results
+        const deleteButton = item.querySelector('.result-delete');
+
+        if (deleteButton) {
+            deleteButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent the search result click handler
+
+                // Show confirmation dialog
+                const confirmed = confirm(`Are you sure you want to delete the term "${termWord}" and all its associated types?`);
+
+                if (confirmed) {
+                    // Dispatch custom event for term deletion
+                    const deleteEvent = new CustomEvent('termDeleted', {
+                        detail: {
+                            term: term,
+                            termWord: termWord,
+                            index: -1, // Search results don't have a specific index
+                            element: item
+                        }
+                    });
+
+                    document.dispatchEvent(deleteEvent);
+                }
+            });
+        }
 
         return item;
     }

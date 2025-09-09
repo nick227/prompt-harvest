@@ -12,6 +12,7 @@ import { aiEnhancementService } from './AIEnhancementService.js';
 
 export class EnhancedImageService {
     constructor(imageRepository, aiService) {
+        console.log('🔧 EnhancedImageService constructor called');
         this.imageRepository = imageRepository;
         this.aiService = aiService;
         this.prisma = databaseClient.getClient();
@@ -24,10 +25,12 @@ export class EnhancedImageService {
             database: { failureThreshold: 2, timeout: 10000 }, // Reduced from 3 to 2
             fileSystem: { failureThreshold: 1, timeout: 15000 } // Reduced from 2 to 1
         };
+        console.log('✅ EnhancedImageService constructor completed');
     }
 
     // eslint-disable-next-line max-params
     async generateImage(prompt, providers, guidance, userId, options = {}) {
+        console.log('🔧 EnhancedImageService.generateImage called');
         const startTime = Date.now();
         const requestId = this.generateRequestId();
 
@@ -131,11 +134,8 @@ export class EnhancedImageService {
             }
 
             // UserId validation
-            if (userId && userId !== 'undefined' && userId !== null) {
-                // Validate userId format if provided
-                if (typeof userId !== 'string' || userId.length < 3) {
-                    warnings.push('UserId format appears invalid, using anonymous');
-                }
+            if (userId && userId !== 'undefined' && userId !== null && (typeof userId !== 'string' || userId.length < 3)) {
+                warnings.push('UserId format appears invalid, using anonymous');
             }
 
             // Content policy validation
@@ -356,6 +356,9 @@ export class EnhancedImageService {
         const actualProvider = firstResult?.provider;
         const actualImageUrl = firstResult?.imageUrl;
 
+        // Check if the generation was actually successful
+        const generationSuccessful = firstResult && firstResult.success && actualImageUrl;
+
         return {
             id: actualImageId,
             imageUrl: actualImageUrl,
@@ -366,7 +369,7 @@ export class EnhancedImageService {
             rating: 0,
             userId,
             createdAt: new Date().toISOString(),
-            success: true,
+            success: generationSuccessful,
             results: imageData.results
         };
     }

@@ -62,6 +62,11 @@ class TermsCacheManager {
 
     // Check if term exists (with caching)
     termExists(termWord) {
+        // Validate input
+        if (!termWord || typeof termWord !== 'string') {
+            return false;
+        }
+
         const key = termWord.toLowerCase();
 
         if (this.duplicateCheckCache.has(key)) {
@@ -86,8 +91,18 @@ class TermsCacheManager {
 
     // Get term by word
     getTermByWord(termWord) {
+        // Validate input
+        if (!termWord || typeof termWord !== 'string') {
+            return null;
+        }
+
         return this.terms.find(term => {
             const existingWord = typeof term === 'string' ? term : term.word;
+
+            // Skip if existingWord is undefined or null
+            if (!existingWord) {
+                return false;
+            }
 
             return existingWord.toLowerCase() === termWord.toLowerCase();
         });
@@ -120,8 +135,18 @@ class TermsCacheManager {
 
     // Remove term from cache
     removeTerm(termWord) {
+        // Validate input
+        if (!termWord || typeof termWord !== 'string') {
+            return false;
+        }
+
         const index = this.terms.findIndex(term => {
             const existingWord = typeof term === 'string' ? term : term.word;
+
+            // Skip if existingWord is undefined or null
+            if (!existingWord) {
+                return false;
+            }
 
             return existingWord.toLowerCase() === termWord.toLowerCase();
         });
@@ -138,8 +163,18 @@ class TermsCacheManager {
 
     // Update term in cache
     updateTerm(termWord, updatedTerm) {
+        // Validate input
+        if (!termWord || typeof termWord !== 'string') {
+            return false;
+        }
+
         const index = this.terms.findIndex(term => {
             const existingWord = typeof term === 'string' ? term : term.word;
+
+            // Skip if existingWord is undefined or null
+            if (!existingWord) {
+                return false;
+            }
 
             return existingWord.toLowerCase() === termWord.toLowerCase();
         });

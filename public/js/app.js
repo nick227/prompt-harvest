@@ -45,7 +45,8 @@ class AppLoader {
             ['rating', () => window.ratingManager, ['Utils']],
             ['stats', () => window.statsManager, ['Utils']],
             ['prompts', () => window.promptsManager, ['Utils']],
-            ['images', () => window.imagesManager, ['Utils']]
+            ['images', () => window.imagesManager, ['Utils']],
+            ['controlsDrawer', () => new window.ControlsDrawer(), []]
         ];
 
         moduleConfigs.forEach(([name, module, dependencies]) => {

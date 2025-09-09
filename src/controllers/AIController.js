@@ -57,6 +57,36 @@ export class AIController {
         }
     }
 
+    async addWordTypePost(req, res) {
+        try {
+            const { word } = req.body;
+            if (!word) {
+                return res.status(400).json({ error: 'Word is required' });
+            }
+
+            const response = await this.aiService.addWordType(word);
+            res.json(response);
+        } catch (error) {
+            console.error('❌ Add word type POST error:', error);
+            res.status(500).json({ error: error.message || 'Failed to add word type' });
+        }
+    }
+
+    async deleteWordType(req, res) {
+        try {
+            const { word } = req.params;
+            if (!word) {
+                return res.status(400).json({ error: 'Word is required' });
+            }
+
+            const response = await this.aiService.deleteWordType(word);
+            res.json(response);
+        } catch (error) {
+            console.error('❌ Delete word type error:', error);
+            res.status(500).json({ error: error.message || 'Failed to delete word type' });
+        }
+    }
+
     // Cache Management
     async getCacheStats(req, res) {
         try {

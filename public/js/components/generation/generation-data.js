@@ -36,8 +36,8 @@ class GenerationData {
         if (promptObj.guidance &&
             (promptObj.guidance < this.validationRules.minGuidance ||
              promptObj.guidance > this.validationRules.maxGuidance)) {
-            const minGuidance = this.validationRules.minGuidance;
-            const maxGuidance = this.validationRules.maxGuidance;
+            const { minGuidance, maxGuidance } = this.validationRules;
+
             errors.push(`Guidance must be between ${minGuidance} and ${maxGuidance}`);
         }
 
@@ -69,15 +69,15 @@ class GenerationData {
 
         if (top && (top < this.validationRules.minGuidance ||
                    top > this.validationRules.maxGuidance)) {
-            const minGuidance = this.validationRules.minGuidance;
-            const maxGuidance = this.validationRules.maxGuidance;
+            const { minGuidance, maxGuidance } = this.validationRules;
+
             errors.push(`Top guidance must be between ${minGuidance} and ${maxGuidance}`);
         }
 
         if (bottom && (bottom < this.validationRules.minGuidance ||
                       bottom > this.validationRules.maxGuidance)) {
-            const minGuidance = this.validationRules.minGuidance;
-            const maxGuidance = this.validationRules.maxGuidance;
+            const { minGuidance, maxGuidance } = this.validationRules;
+
             errors.push(`Bottom guidance must be between ${minGuidance} and ${maxGuidance}`);
         }
 
