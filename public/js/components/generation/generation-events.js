@@ -1,4 +1,3 @@
-/* global _GenerationEvents */
 // Generation Event Layer - Event handling and user interactions for image generation
 class GenerationEvents {
     constructor(generationManager) {

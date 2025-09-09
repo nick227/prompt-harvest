@@ -151,7 +151,7 @@ const processGenerationResults = async(results, context) => {
                     userId: DatabaseService.getUserId(req)
                 });
 
-                console.log('🔍 Saved image result:', { savedImage, _id: savedImage._id });
+                console.log('🔍 Saved image result:', { _id: savedImage._id });
 
                 if (!savedImage._id) {
                     console.error('❌ CRITICAL: savedImage._id is undefined!', { savedImage });

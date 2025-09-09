@@ -212,6 +212,14 @@ class TextAreaManager {
         const replaceInput = Utils.dom.get(TEXTAREA_CONFIG.selectors.replaceTerm);
         const replaceButton = document.querySelector('.btn-replace');
 
+        console.log('🔍 SEARCH REPLACE: Setting up search and replace', {
+            searchInput: !!searchInput,
+            replaceInput: !!replaceInput,
+            replaceButton: !!replaceButton,
+            searchSelector: TEXTAREA_CONFIG.selectors.searchTerm,
+            replaceSelector: TEXTAREA_CONFIG.selectors.replaceTerm
+        });
+
         if (searchInput && replaceInput) {
             // add event listeners for search and replace
             searchInput.addEventListener('input', this.handleSearchInput.bind(this));
@@ -220,15 +228,27 @@ class TextAreaManager {
             // add keyboard shortcuts
             searchInput.addEventListener('keydown', this.handleSearchKeydown.bind(this));
             replaceInput.addEventListener('keydown', this.handleReplaceKeydown.bind(this));
+
+            console.log('✅ SEARCH REPLACE: Event listeners attached successfully');
+        } else {
+            console.warn('⚠️ SEARCH REPLACE: Search or replace inputs not found');
         }
 
         if (replaceButton) {
             replaceButton.addEventListener('click', this.performReplace.bind(this));
+            console.log('✅ SEARCH REPLACE: Replace button event listener attached');
+        } else {
+            console.warn('⚠️ SEARCH REPLACE: Replace button not found');
         }
     }
 
     handleSearchInput(e) {
         const searchTerm = e.target.value.trim();
+
+        console.log('🔍 SEARCH REPLACE: Search input changed', {
+            searchTerm,
+            hasTextArea: !!this.textArea
+        });
 
         if (searchTerm) {
             this.highlightSearchTerm(searchTerm);

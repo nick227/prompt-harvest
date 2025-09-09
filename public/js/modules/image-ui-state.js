@@ -94,6 +94,7 @@ class ImageUIState {
     showValidationErrors(errors) {
         errors.forEach(error => {
             console.warn(`⚠️ VALIDATION: ${error}`);
+            this.showError(error);
         });
 
         // Special handling for provider selection error
@@ -132,8 +133,8 @@ class ImageUIState {
                 }
             });
         } else {
-            // Fallback: simple alert
-            alert('Please select at least one AI provider to generate images.');
+            // Fallback: show error
+            this.showError('Please select at least one AI provider to generate images.');
         }
     }
 
@@ -147,8 +148,8 @@ class ImageUIState {
                 window.location.href = '/login.html';
             });
         } else {
-            // Fallback: simple alert
-            alert('Please log in to generate images.');
+            // Fallback: show error
+            this.showError('Please log in to generate images.');
             window.location.href = '/login.html';
         }
     }
@@ -209,6 +210,22 @@ class ImageUIState {
         if (generateBtn && this.boundHandleGenerateClick) {
             generateBtn.removeEventListener('click', this.boundHandleGenerateClick);
         }
+    }
+
+    showError(message) {
+        // Create a simple error display
+        const errorDiv = document.createElement('div');
+
+        errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        errorDiv.textContent = message;
+        document.body.appendChild(errorDiv);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+            }
+        }, 5000);
     }
 }
 

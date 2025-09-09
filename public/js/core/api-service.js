@@ -178,11 +178,13 @@ class ApiService {
         // For GET requests, append query parameters from options
         if (method === 'GET' && options && Object.keys(options).length > 0) {
             const urlObj = new URL(url);
+
             Object.keys(options).forEach(key => {
                 if (key !== 'headers') { // Don't add headers as query params
                     urlObj.searchParams.append(key, options[key]);
                 }
             });
+
             url = urlObj.toString();
         }
 

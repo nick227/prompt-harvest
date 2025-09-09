@@ -53,7 +53,8 @@ export class EnhancedImageController {
                 mashup,
                 customVariables,
                 promptId,
-                original
+                original,
+                'auto-enhance': autoEnhance
             } = req.validatedData || req.body;
 
             const userId = req.user?.id;
@@ -68,7 +69,8 @@ export class EnhancedImageController {
                 multiplier,
                 mixup,
                 mashup,
-                customVariables
+                customVariables,
+                autoEnhance
             };
 
             // Call service to generate image

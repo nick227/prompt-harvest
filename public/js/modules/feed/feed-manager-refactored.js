@@ -11,7 +11,7 @@ class FeedManager {
         this.domManager = new FeedDOMManager();
         this.apiManager = new FeedAPIManager();
         this.uiManager = new FeedUIManager(this.domManager);
-        this.filterManager = new FeedFilterManager(this.cacheManager);
+        this.filterManager = new FeedFilterManager(this.cacheManager, this);
 
         // Bind methods to maintain context
         this.handleFilterChanged = this.handleFilterChanged.bind(this);
@@ -161,6 +161,11 @@ class FeedManager {
             // Force grid layout
             this.uiManager.forceGridLayout();
 
+            // Refresh rating dropdown to include all loaded images' ratings
+            if (window.ratingManager && window.ratingManager.refreshRatingDropdown) {
+                window.ratingManager.refreshRatingDropdown();
+            }
+
         } catch (error) {
             console.error(`❌ Failed to load ${filter} images:`, error);
             this.uiManager.showErrorMessage();
@@ -232,6 +237,11 @@ class FeedManager {
 
             // Force grid layout
             this.uiManager.forceGridLayout();
+
+            // Refresh rating dropdown to include new image's rating
+            if (window.ratingManager && window.ratingManager.refreshRatingDropdown) {
+                window.ratingManager.refreshRatingDropdown();
+            }
 
             console.log(`🚀 FEED FLOW: addImageToOutput called for: ${imageData.id}`);
         } catch (error) {

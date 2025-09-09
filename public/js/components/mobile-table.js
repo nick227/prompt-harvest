@@ -1,4 +1,8 @@
-/** * Mobile-Optimized Table Component * Automatically converts tables to card layout on mobile devices */class MobileTable {
+/**
+ * Mobile-Optimized Table Component
+ * Automatically converts tables to card layout on mobile devices
+ */
+class MobileTable {
     constructor(tableElement, options = {}) {
         this.table = tableElement;
         this.options = {

@@ -1,4 +1,3 @@
-/* global _GenerationUI */
 // Generation UI Layer - Pure UI rendering and styling for image generation
 class GenerationUI {
     constructor() {

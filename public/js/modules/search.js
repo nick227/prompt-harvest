@@ -55,8 +55,8 @@ class SearchManager {
 
     // eslint-disable-next-line no-unused-vars
     getSearchItems(event) {
-        // look for image list items in the prompt output
-        const imageItems = Array.from(document.querySelectorAll('ul.prompt-output li'));
+        // look for image wrapper items in the prompt output
+        const imageItems = Array.from(document.querySelectorAll('.prompt-output .image-wrapper'));
 
         return imageItems.filter(item => item.querySelector('img') !== null);
     }
@@ -215,8 +215,6 @@ class SearchManager {
 
         suggestionsContainer.innerHTML = '';
         if (suggestions.length === 0) {
-            suggestionsContainer.innerHTML = '<div class="no-suggestions">No suggestions found</div>';
-
             return;
         }
 

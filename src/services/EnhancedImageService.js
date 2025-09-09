@@ -8,6 +8,7 @@ import { circuitBreakerManager } from '../utils/CircuitBreaker.js';
 import { TransactionService } from './TransactionService.js';
 import { formatErrorResponse } from '../utils/ResponseFormatter.js';
 import databaseClient from '../database/PrismaClient.js';
+import { aiEnhancementService } from './AIEnhancementService.js';
 
 export class EnhancedImageService {
     constructor(imageRepository, aiService) {
@@ -58,7 +59,7 @@ export class EnhancedImageService {
             console.log(`💾 Skipping database save - image already saved by feed.js [${requestId}]`);
 
             const duration = Date.now() - startTime;
-            const result = this.extractImageResult(imageData, prompt, processedData.original, guidance, userId);
+            const result = this.extractImageResult(imageData, processedData.prompt, processedData.original, guidance, userId);
 
             console.log(`✅ Image generation completed [${requestId}] in ${duration}ms:`, {
                 imageId: result.id,
@@ -183,44 +184,54 @@ export class EnhancedImageService {
                 multiplier = false,
                 mixup = false,
                 mashup = false,
-                customVariables = ''
+                customVariables = '',
+                autoEnhance = false
             } = options;
 
             // Check if prompt needs processing
             const hasVariables = (/\$\{[^}]+\}/).test(prompt);
             const needsProcessing = hasVariables || multiplier || mixup || mashup || customVariables;
 
-            if (!needsProcessing || !this.aiService) {
-                return {
-                    prompt,
-                    original: prompt,
-                    promptId: null
-                };
+            let processedPrompt = prompt;
+            let promptId = null;
+
+            // Step 1: Process prompt with existing logic (multiplier, mixup, mashup)
+            if (needsProcessing && this.aiService) {
+                try {
+                    const result = await this.aiService.processPrompt(
+                        prompt,
+                        multiplier,
+                        mixup,
+                        mashup,
+                        customVariables
+                    );
+
+                    processedPrompt = result.prompt;
+                    promptId = result.promptId;
+                } catch (error) {
+                    console.warn('⚠️ Prompt processing failed, using original:', error.message);
+                    processedPrompt = prompt;
+                }
             }
 
-            try {
-                const processedResult = await this.aiService.processPrompt(
-                    prompt,
-                    multiplier,
-                    mixup,
-                    mashup,
-                    customVariables
-                );
+            // Step 2: Apply AI enhancement if requested
+            if (autoEnhance && processedPrompt) {
+                try {
+                    console.log('🤖 AI ENHANCEMENT: Applying AI enhancement to processed prompt');
+                    const enhancedPrompt = await aiEnhancementService.enhancePrompt(processedPrompt);
 
-                return {
-                    prompt: processedResult.prompt,
-                    original: prompt,
-                    promptId: processedResult.promptId
-                };
-            } catch (error) {
-                console.warn('⚠️ Prompt processing failed, using original:', error.message);
-
-                return {
-                    prompt,
-                    original: prompt,
-                    promptId: null
-                };
+                    processedPrompt = enhancedPrompt;
+                } catch (error) {
+                    console.warn('⚠️ AI enhancement failed, using processed prompt:', error.message);
+                    // Keep the processed prompt if enhancement fails
+                }
             }
+
+            return {
+                prompt: processedPrompt,
+                original: prompt,
+                promptId
+            };
         }, this.breakerConfigs.aiService);
     }
 

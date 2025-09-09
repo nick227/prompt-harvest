@@ -33,8 +33,12 @@ class GenerationData {
             errors.push('At least one provider must be selected');
         }
 
-        if (promptObj.guidance && (promptObj.guidance < this.validationRules.minGuidance || promptObj.guidance > this.validationRules.maxGuidance)) {
-            errors.push(`Guidance must be between ${this.validationRules.minGuidance} and ${this.validationRules.maxGuidance}`);
+        if (promptObj.guidance &&
+            (promptObj.guidance < this.validationRules.minGuidance ||
+             promptObj.guidance > this.validationRules.maxGuidance)) {
+            const minGuidance = this.validationRules.minGuidance;
+            const maxGuidance = this.validationRules.maxGuidance;
+            errors.push(`Guidance must be between ${minGuidance} and ${maxGuidance}`);
         }
 
         return {
@@ -63,12 +67,18 @@ class GenerationData {
     validateGuidanceValues(top, bottom) {
         const errors = [];
 
-        if (top && (top < this.validationRules.minGuidance || top > this.validationRules.maxGuidance)) {
-            errors.push(`Top guidance must be between ${this.validationRules.minGuidance} and ${this.validationRules.maxGuidance}`);
+        if (top && (top < this.validationRules.minGuidance ||
+                   top > this.validationRules.maxGuidance)) {
+            const minGuidance = this.validationRules.minGuidance;
+            const maxGuidance = this.validationRules.maxGuidance;
+            errors.push(`Top guidance must be between ${minGuidance} and ${maxGuidance}`);
         }
 
-        if (bottom && (bottom < this.validationRules.minGuidance || bottom > this.validationRules.maxGuidance)) {
-            errors.push(`Bottom guidance must be between ${this.validationRules.minGuidance} and ${this.validationRules.maxGuidance}`);
+        if (bottom && (bottom < this.validationRules.minGuidance ||
+                      bottom > this.validationRules.maxGuidance)) {
+            const minGuidance = this.validationRules.minGuidance;
+            const maxGuidance = this.validationRules.maxGuidance;
+            errors.push(`Bottom guidance must be between ${minGuidance} and ${maxGuidance}`);
         }
 
         if (top && bottom && top < bottom) {
@@ -129,6 +139,7 @@ class GenerationData {
         const multiplierInput = document.querySelector('#multiplier');
         const mixupCheckbox = document.querySelector('input[name="mixup"]');
         const mashupCheckbox = document.querySelector('input[name="mashup"]');
+        const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
 
         // Calculate guidance
         // TODO: Refactor nested ternary
@@ -140,6 +151,7 @@ class GenerationData {
             multiplier: multiplierInput ? multiplierInput.value.trim() : '',
             mixup: mixupCheckbox ? mixupCheckbox.checked : false,
             mashup: mashupCheckbox ? mashupCheckbox.checked : false,
+            autoEnhance: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : false,
             original: promptInput ? promptInput.value.trim() : ''
         };
 

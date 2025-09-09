@@ -1,4 +1,3 @@
-/* global _GenerationManager */
 // Generation Manager - Business logic layer orchestrating UI, events, and data for image generation
 class GenerationManager {
     constructor() {

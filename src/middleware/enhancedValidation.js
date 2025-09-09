@@ -75,6 +75,12 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
             }
         }
 
+        if (req.body['auto-enhance'] !== undefined) {
+            if (typeof req.body['auto-enhance'] !== 'boolean' && typeof req.body['auto-enhance'] !== 'string') {
+                warnings.push('Auto-enhance should be a boolean or string value');
+            }
+        }
+
         // Content policy check (basic)
         if (req.body.prompt) {
             const sensitiveWords = ['nude', 'naked', 'explicit', 'porn', 'adult', 'nsfw'];
@@ -132,6 +138,7 @@ export const validateImageGenerationEnhanced = (req, res, next) => {
             multiplier: req.body.multiplier || '',
             mixup: req.body.mixup === 'true' || req.body.mixup === true,
             mashup: req.body.mashup === 'true' || req.body.mashup === true,
+            'auto-enhance': req.body['auto-enhance'] === 'true' || req.body['auto-enhance'] === true,
             customVariables: req.body.customVariables || '',
             promptId: req.body.promptId || null,
             original: req.body.original || req.body.prompt

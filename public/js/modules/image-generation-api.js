@@ -119,6 +119,14 @@ class ImageGenerationAPI {
             formData.append('mashup', 'true');
         }
 
+        // Get auto-enhance checkbox
+        const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
+
+        if (autoEnhanceCheckbox && autoEnhanceCheckbox.checked) {
+            console.log('📋 ENHANCEMENT: Adding auto-enhance: true');
+            formData.append('auto-enhance', 'true');
+        }
+
         console.log('📋 ENHANCEMENT: Enhancement parameters processed');
     }
 

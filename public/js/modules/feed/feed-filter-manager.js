@@ -1,7 +1,8 @@
 // Feed Filter Manager - Handles filter switching and state management
 class FeedFilterManager {
-    constructor(cacheManager) {
+    constructor(cacheManager, feedManager) {
         this.cacheManager = cacheManager;
+        this.feedManager = feedManager;
         this.currentFilter = FEED_CONSTANTS.DEFAULTS.CURRENT_FILTER;
         this.isInitialized = false;
     }
@@ -125,11 +126,13 @@ class FeedFilterManager {
         });
     }
 
-    // Load filter images (to be implemented by main manager)
-    async loadFilterImages(_filter) {
-        // This will be implemented by the main FeedManager
-        // It's here as a placeholder for the filter switching logic
-        throw new Error('loadFilterImages must be implemented by FeedManager');
+    // Load filter images using the main FeedManager
+    async loadFilterImages(filter) {
+        if (!this.feedManager) {
+            throw new Error('FeedManager instance not available');
+        }
+
+        return await this.feedManager.loadFilterImages(filter);
     }
 
     // Dispatch filter changed event

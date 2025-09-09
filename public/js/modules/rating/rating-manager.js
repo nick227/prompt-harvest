@@ -61,17 +61,29 @@ class RatingManager {
     }
 
     createRatingDropdown(_container) {
+        // Get existing ratings from current images
+        const existingRatings = this.getExistingRatings();
 
-        // Create rating options for the dropdown
+        // Create rating options for the dropdown - only show ratings that exist
         const ratingOptions = [
-            { id: 'all', label: 'All Ratings', rating: null },
-            { id: 'unrated', label: 'Unrated', rating: null },
-            { id: '1', label: '1 Star', rating: 1 },
-            { id: '2', label: '2 Stars', rating: 2 },
-            { id: '3', label: '3 Stars', rating: 3 },
-            { id: '4', label: '4 Stars', rating: 4 },
-            { id: '5', label: '5 Stars', rating: 5 }
+            { id: 'all', label: 'All Ratings', rating: null }
         ];
+
+        // Add unrated option if there are unrated images
+        if (existingRatings.has(0) || existingRatings.has(null)) {
+            ratingOptions.push({ id: 'unrated', label: 'Unrated', rating: 0 });
+        }
+
+        // Add star options only for ratings that exist
+        for (let i = 1; i <= 5; i++) {
+            if (existingRatings.has(i)) {
+                const starLabel = i === 1 ? '1 Star' : `${i} Stars`;
+
+                ratingOptions.push({ id: i.toString(), label: starLabel, rating: i });
+            }
+        }
+
+        console.log('⭐ RATING DROPDOWN: Created with options:', ratingOptions.map(opt => opt.label));
 
         // Initialize the multiselect dropdown
         this.ratingDropdown = new window.MultiSelectDropdown('rating-dropdown', {
@@ -91,6 +103,69 @@ class RatingManager {
 
         // Trigger initial filter
         this.filterByMultipleRatings(['all']);
+    }
+
+    getExistingRatings() {
+        const ratings = new Set();
+        const imageWrappers = document.querySelectorAll('.image-wrapper');
+
+        imageWrappers.forEach(wrapper => {
+            const ratingElement = wrapper.querySelector('.rating');
+
+            if (ratingElement) {
+                const rating = parseInt(ratingElement.dataset.rating || ratingElement.textContent);
+
+                if (!isNaN(rating)) {
+                    ratings.add(rating);
+                } else {
+                    ratings.add(0); // Unrated
+                }
+            } else {
+                ratings.add(0); // Unrated
+            }
+        });
+
+        console.log('⭐ RATING DROPDOWN: Found existing ratings:', Array.from(ratings));
+
+        return ratings;
+    }
+
+    refreshRatingDropdown() {
+        if (this.ratingDropdown) {
+            console.log('⭐ RATING DROPDOWN: Refreshing dropdown with current ratings');
+            const existingRatings = this.getExistingRatings();
+
+            // Create new rating options
+            const ratingOptions = [
+                { id: 'all', label: 'All Ratings', rating: null }
+            ];
+
+            // Add unrated option if there are unrated images
+            if (existingRatings.has(0) || existingRatings.has(null)) {
+                ratingOptions.push({ id: 'unrated', label: 'Unrated', rating: 0 });
+            }
+
+            // Add star options only for ratings that exist
+            for (let i = 1; i <= 5; i++) {
+                if (existingRatings.has(i)) {
+                    const starLabel = i === 1 ? '1 Star' : `${i} Stars`;
+
+                    ratingOptions.push({ id: i.toString(), label: starLabel, rating: i });
+                }
+            }
+
+            // Update the dropdown with new options
+            this.ratingDropdown.setItems(ratingOptions);
+
+            // Keep current selection if it still exists, otherwise default to "All"
+            const currentSelection = this.ratingDropdown.getSelectedItems();
+            const validSelection = currentSelection.filter(item => ratingOptions.some(opt => opt.id === item));
+
+            if (validSelection.length === 0) {
+                this.ratingDropdown.setSelectedItems(['all']);
+                this.filterByMultipleRatings(['all']);
+            }
+        }
     }
 
     async tagImage(rating) {
@@ -173,6 +248,9 @@ class RatingManager {
 
                 // Update the grid view rating display
                 this.updateGridRatingDisplay(id, rating);
+
+                // Refresh the rating dropdown to include the new rating
+                this.refreshRatingDropdown();
 
                 // Show success feedback
                 this.showRatingFeedback(rating);

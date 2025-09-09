@@ -56,13 +56,10 @@ class ImagesManager {
     async handleGenerateClick(e) {
         const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        console.log(`🎯 GENERATION FLOW [${requestId}]: Button clicked`);
-
         e.preventDefault();
 
         // Check authentication first
         if (!window.userApi || !window.userApi.isAuthenticated()) {
-            console.log(`🔒 AUTH CHECK [${requestId}]: User not authenticated, redirecting to login`);
             this.ui.showAuthRequiredMessage();
 
             return;
@@ -70,7 +67,7 @@ class ImagesManager {
 
         // Guard against duplicate calls
         if (this.ui.isGenerating) {
-            console.log(`⚠️ DUPLICATE CALL [${requestId}]: Generation already in progress, ignoring`);
+            this.ui.showValidationErrors(`⚠️ DUPLICATE CALL [${requestId}]: Generation already in progress, ignoring`);
 
             return;
         }
@@ -79,7 +76,6 @@ class ImagesManager {
         const validation = this.ui.validateGenerationInputs();
 
         if (!validation.isValid) {
-            console.log('❌ VALIDATION: Failed', validation.errors);
             this.ui.showValidationErrors(validation.errors);
 
             return;

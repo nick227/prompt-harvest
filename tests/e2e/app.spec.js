@@ -10,14 +10,20 @@ test.describe('AI Image Generation Platform', () => {
     });
 
     test('should load the main page successfully', async({ page }) => {
+        // Wait for header to be created by the header component
+        await page.waitForSelector('h1', { timeout: 10000 });
+
         // Check if the main elements are present
-        await expect(page.locator('h1, .title, .main-title')).toBeVisible();
+        await expect(page.locator('h1')).toBeVisible();
         await expect(page.locator('#prompt-textarea')).toBeVisible();
         await expect(page.locator('.btn-generate')).toBeVisible();
         await expect(page.locator('.prompt-output')).toBeVisible();
     });
 
     test('should display provider selection options', async({ page }) => {
+        // Wait for providers to be loaded by the provider manager
+        await page.waitForSelector('input[name="providers"]', { timeout: 10000 });
+
         // Check if provider checkboxes are present
         const providerCheckboxes = page.locator('input[name="providers"]');
         await expect(providerCheckboxes.first()).toBeVisible();
@@ -75,6 +81,9 @@ test.describe('AI Image Generation Platform', () => {
         // Click replace button
         await replaceButton.click();
 
+        // Wait a moment for the replacement to process
+        await page.waitForTimeout(1000);
+
         // Verify the replacement worked
         await expect(textarea).toHaveValue('A kitten and a dog');
     });
@@ -114,17 +123,22 @@ test.describe('AI Image Generation Platform', () => {
     test('should handle grid view layout', async({ page }) => {
         const imageGrid = page.locator('.prompt-output');
 
-        // Verify grid view is applied
-        await expect(imageGrid).toHaveClass(/grid-view/);
+        // Verify the grid container is visible and has proper classes
+        await expect(imageGrid).toBeVisible();
+        await expect(imageGrid).toHaveClass(/flex/);
 
-        // Check grid layout properties
-        const gridStyle = await imageGrid.getAttribute('style');
-        expect(gridStyle).toContain('display: grid');
+        // Check that it has the expected layout classes
+        const gridClasses = await imageGrid.getAttribute('class');
+        expect(gridClasses).toContain('flex');
+        expect(gridClasses).toContain('flex-wrap');
     });
 
     test('should show loading state when generating image', async({ page }) => {
         const generateButton = page.locator('.btn-generate');
         const textarea = page.locator('#prompt-textarea');
+
+        // Wait for providers to be loaded
+        await page.waitForSelector('input[name="providers"]', { timeout: 10000 });
 
         // Select a provider first
         const firstProvider = page.locator('input[name="providers"]').first();
@@ -288,6 +302,9 @@ test.describe('AI Image Generation Platform', () => {
     test('should maintain state across page interactions', async({ page }) => {
         const textarea = page.locator('#prompt-textarea');
         const testText = 'Persistent test text';
+
+        // Wait for providers to be loaded
+        await page.waitForSelector('input[name="providers"]', { timeout: 10000 });
 
         // Enter text
         await textarea.fill(testText);

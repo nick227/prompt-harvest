@@ -296,8 +296,10 @@ class CreditBalanceWidget {
     showError(message) {
         // Create a simple error display
         const errorDiv = document.createElement('div');
+
         errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
         errorDiv.textContent = message;
+
         document.body.appendChild(errorDiv);
 
         // Auto-remove after 5 seconds
