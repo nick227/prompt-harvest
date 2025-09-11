@@ -145,6 +145,11 @@ class FeedUIManager {
         // Only update intersection observer if a new image was actually added
         if (wasAdded) {
             this.updateIntersectionObserver();
+
+            // Add to tab service for intelligent filtering
+            if (window.feedManager && window.feedManager.tabService) {
+                window.feedManager.tabService.addImage(imageData);
+            }
         }
     }
 

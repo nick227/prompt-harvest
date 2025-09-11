@@ -110,6 +110,22 @@ class AppLoader {
         this.setupAutoGeneration();
         this.initializeComponents();
         this.setupGridView();
+        this.setupFeed();
+        this.initializePromptHistory();
+    }
+
+    initializePromptHistory() {
+        try {
+            console.log('🔍 APP: Initializing prompt history service');
+
+            // Create and initialize the prompt history service
+            window.promptHistoryService = new PromptHistoryService();
+            window.promptHistoryService.init('prompt-history');
+
+            console.log('✅ APP: Prompt history service initialized');
+        } catch (error) {
+            console.error('❌ APP: Failed to initialize prompt history service:', error);
+        }
     }
 
     initializeManagers() {
@@ -119,13 +135,20 @@ class AppLoader {
         ];
 
         managers.forEach(managerName => {
+            console.log(`🔍 APP: Checking manager ${managerName}:`, {
+                exists: !!window[managerName],
+                hasInit: !!(window[managerName]?.init)
+            });
+
             if (window[managerName]?.init) {
                 try {
                     window[managerName].init();
-
+                    console.log(`✅ APP: Initialized ${managerName}`);
                 } catch (error) {
                     console.error(`❌ Error initializing ${managerName}:`, error);
                 }
+            } else {
+                console.warn(`⚠️ APP: Manager ${managerName} not available or has no init method`);
             }
         });
     }
@@ -141,11 +164,11 @@ class AppLoader {
             window.imagesManager.init();
         }
 
-        // Legacy fallback
-        if (window.imageComponent && window.imageComponent.init) {
-            window.imageComponent.init();
-            window.imageComponent.reSetupEventDelegation?.();
-        }
+        // Legacy fallback - DISABLED to prevent conflicts with optimized navigation
+        // if (window.imageComponent && window.imageComponent.init) {
+        //     window.imageComponent.init();
+        //     window.imageComponent.reSetupEventDelegation?.();
+        // }
 
         this.initializeProviderManager();
     }
@@ -166,6 +189,68 @@ class AppLoader {
 
     setupGridView() {
         setTimeout(() => this.applyGridView(), 100);
+    }
+
+    async setupFeed() {
+        // Setup feed to load initial images with retry logic
+        const maxRetries = 5;
+        let retries = 0;
+
+        const trySetupFeed = async () => {
+            if (window.feedManager && window.feedManager.setupFeed) {
+                try {
+                    console.log('🔍 APP: Setting up feed... (attempt', retries + 1, ')');
+                    await window.feedManager.setupFeed();
+                    console.log('✅ APP: Feed setup completed');
+                    return true;
+                } catch (error) {
+                    console.error('❌ APP: Failed to setup feed:', error);
+                    return false;
+                }
+            } else {
+                console.warn('⚠️ APP: Feed manager not available for setup (attempt', retries + 1, ')');
+                return false;
+            }
+        };
+
+        while (retries < maxRetries) {
+            const success = await trySetupFeed();
+            if (success) {
+                return;
+            }
+
+            retries++;
+            if (retries < maxRetries) {
+                console.log('🔄 APP: Retrying feed setup in 500ms...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        console.error('❌ APP: Failed to setup feed after', maxRetries, 'attempts');
+    }
+
+    // Manual feed loading for testing
+    async manualLoadFeed() {
+        console.log('🔍 APP: Manual feed load triggered');
+        console.log('🔍 APP: Feed manager status:', {
+            exists: !!window.feedManager,
+            hasSetupFeed: !!(window.feedManager?.setupFeed),
+            hasForceFresh: !!(window.feedManager?.forceFreshFeedLoad),
+            hasInit: !!(window.feedManager?.init),
+            isInitialized: window.feedManager?.isInitialized
+        });
+
+        if (window.feedManager && window.feedManager.forceFreshFeedLoad) {
+            try {
+                console.log('🔍 APP: Calling feedManager.forceFreshFeedLoad()...');
+                await window.feedManager.forceFreshFeedLoad();
+                console.log('✅ APP: Manual feed load completed');
+            } catch (error) {
+                console.error('❌ APP: Manual feed load failed:', error);
+            }
+        } else {
+            console.error('❌ APP: Feed manager not available for manual load');
+        }
     }
 
     applyGridView() {
@@ -239,8 +324,35 @@ class AppLoader {
     }
 
     setupAutoGeneration() {
-        const _autoGenerateCheckbox = document.querySelector('input[name="auto-generate"]');
+        const autoGenerateCheckbox = document.querySelector('input[name="auto-generate"]');
+        const maxNumInput = document.querySelector('input[name="maxNum"]');
 
+        if (!autoGenerateCheckbox || !maxNumInput) {
+            console.warn('⚠️ AUTO-GENERATE: Required elements not found');
+            return;
+        }
+
+        // Function to update maxNum input state
+        const updateMaxNumState = () => {
+            maxNumInput.disabled = !autoGenerateCheckbox.checked;
+
+            // Add visual styling for disabled state
+            if (maxNumInput.disabled) {
+                maxNumInput.style.opacity = '0.5';
+                maxNumInput.style.cursor = 'not-allowed';
+            } else {
+                maxNumInput.style.opacity = '1';
+                maxNumInput.style.cursor = 'default';
+            }
+        };
+
+        // Set initial state
+        updateMaxNumState();
+
+        // Add event listener for checkbox changes
+        autoGenerateCheckbox.addEventListener('change', updateMaxNumState);
+
+        console.log('✅ AUTO-GENERATE: Setup completed - maxNum input disabled by default');
     }
 
     stopAutoGeneration() {
@@ -370,6 +482,13 @@ document.addEventListener('DOMContentLoaded', async() => {
 
         if (window.app) {
             window.app.checkAutoGenerationContinue();
+        }
+    };
+
+    // Manual feed loading for testing
+    window.manualLoadFeed = async () => {
+        if (window.app) {
+            await window.app.manualLoadFeed();
         }
     };
 });

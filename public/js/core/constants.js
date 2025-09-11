@@ -258,6 +258,13 @@ const SEARCH_CONFIG = {
     }
 };
 
+// prompt history configuration
+const PROMPT_HISTORY_CONFIG = {
+    selectors: {
+        promptHistory: '#prompt-history'
+    }
+};
+
 // export all constants to global scope for backward compatibility
 if (typeof window !== 'undefined') {
     window.API_ENDPOINTS = API_ENDPOINTS;
@@ -273,4 +280,5 @@ if (typeof window !== 'undefined') {
     window.IMAGE_CONFIG = IMAGE_CONFIG;
     window.PROVIDER_CONFIG = PROVIDER_CONFIG;
     window.SEARCH_CONFIG = SEARCH_CONFIG;
+    window.PROMPT_HISTORY_CONFIG = PROMPT_HISTORY_CONFIG;
 }

@@ -37,58 +37,96 @@ const MODEL_CONFIG = {
         size: '1024x1024'
     },
 
-    // Dezgo models - Updated to match working legacy implementation
+    // Dezgo models - Updated with correct model names
     flux: {
         type: 'dezgo',
         url: 'https://api.dezgo.com/text2image_flux',
         model: 'flux_1_schnell'
     },
-    // Working models from legacy implementation
-    ink: {
+    dreamshaperLighting: {
         type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'inkpunk_diffusion'
-    },
-    synthwave: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'synthwavepunk_v2'
-    },
-    disco: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'disco_diffusion_style'
-    },
-    cyber: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'cyberrealistic_3_1'
-    },
-    lowpoly: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'lowpoly_world'
-    },
-    absolute: {
-        type: 'dezgo',
-        url: 'https://api.dezgo.com/text2image',
-        model: 'absolute_reality_1_8_1'
+        url: 'https://api.dezgo.com/text2image_sdxl_lightning',
+        model: 'dreamshaperxl_lightning_1024px'
     },
     juggernaut: {
         type: 'dezgo',
         url: 'https://api.dezgo.com/text2image_sdxl',
         model: 'juggernautxl_1024px'
     },
+    absolute: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'absolute_reality_1_8_1'
+    },
     tshirt: {
         type: 'dezgo',
         url: 'https://api.dezgo.com/text2image_sdxl',
         model: 'tshirtdesignredmond_1024px'
     },
-    // Additional models that might work
-    dreamshaper: {
+    lowpoly: {
         type: 'dezgo',
         url: 'https://api.dezgo.com/text2image',
-        model: 'dreamshaper_8'
+        model: 'lowpoly_world'
+    },
+    cyber: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'cyberrealistic_3_1'
+    },
+    disco: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'disco_diffusion_style'
+    },
+    synthwave: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'synthwavepunk_v2'
+    },
+    ink: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'inkpunk_diffusion'
+    },
+    dreamshaper: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image_sdxl',
+        model: 'dreamshaperxl_1024px'
+    },
+    bluepencil: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image_sdxl',
+        model: 'bluepencilxl_1024px'
+    },
+    abyssorange: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'abyss_orange_mix_2'
+    },
+    icbinp: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'icbinp'
+    },
+    icbinp_seco: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'icbinp_seco'
+    },
+    analogmadness: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'analogmadness_7'
+    },
+    portraitplus: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'portrait_plus'
+    },
+    realisticvision: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'realistic_vision_5_1'
     },
     nightmareshaper: {
         type: 'dezgo',
@@ -98,7 +136,22 @@ const MODEL_CONFIG = {
     openjourney: {
         type: 'dezgo',
         url: 'https://api.dezgo.com/text2image',
-        model: 'openjourney'
+        model: 'openjourney_2'
+    },
+    juggernautReborn: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'juggernaut_reborn'
+    },
+    redshift: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'redshift_diffusion_768px'
+    },
+    hasdx: {
+        type: 'dezgo',
+        url: 'https://api.dezgo.com/text2image',
+        model: 'hasdx'
     }
 };
 
@@ -413,6 +466,14 @@ const makeDezgoRequest = async (url, prompt, model, _guidance) => {
             model
         };
 
+        console.log('🔍 DEZGO: Making request with params:', {
+            url,
+            model,
+            prompt: prompt.substring(0, 50) + '...',
+            guidance: params.guidance,
+            seed: params.seed
+        });
+
         return await axios.post(url, new URLSearchParams(params).toString(), {
             headers: {
                 'X-Dezgo-Key': process.env.DEZGO_API_KEY,
@@ -443,6 +504,16 @@ const generateDezgoImage = async(prompt, guidance, url, model = 'flux_1_schnell'
         return Buffer.from(response.data).toString('base64');
     } catch (error) {
         console.error('❌ DEZGO: Error in generateDezgoImage:', error.message);
+        console.error('❌ DEZGO: Full error details:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data ? error.response.data.toString() : 'No data',
+            config: {
+                url: error.config?.url,
+                method: error.config?.method,
+                data: error.config?.data
+            }
+        });
 
         return handleDezgoError(error);
     }

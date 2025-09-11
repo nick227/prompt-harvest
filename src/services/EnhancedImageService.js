@@ -48,11 +48,31 @@ export class EnhancedImageService {
             // Step 2: Process prompt with circuit breaker
             const processedData = await this.processPromptWithBreaker(prompt, options);
 
-            // Step 3: Generate image with circuit breaker
+            // Step 3: Save prompt to database if not already saved
+            let savedPromptId = processedData.promptId;
+            if (!savedPromptId && userId) {
+                console.log('💾 Saving prompt to database for authenticated user');
+                const feed = await import('../feed.js');
+                const req = { user: { id: userId } };
+
+                const savedPrompt = await feed.default.buildPrompt(
+                    processedData.prompt,
+                    false, // multiplier
+                    false, // mixup
+                    false, // mashup
+                    '', // customVariables
+                    req
+                );
+
+                savedPromptId = savedPrompt.promptId;
+                console.log('✅ Prompt saved with ID:', savedPromptId);
+            }
+
+            // Step 4: Generate image with circuit breaker
             const imageData = await this.generateImageWithBreaker(
                 processedData.prompt,
                 processedData.original,
-                processedData.promptId,
+                savedPromptId,
                 providers,
                 guidance,
                 userId
@@ -116,7 +136,7 @@ export class EnhancedImageService {
                 const validProviders = [
                     'flux', 'dalle', 'juggernaut', 'juggernautReborn', 'redshift',
                     'absolute', 'realisticvision', 'icbinp', 'icbinp_seco', 'hasdx',
-                    'dreamshaper', 'nightmareshaper', 'openjourney', 'analogmadness',
+                    'dreamshaper', 'dreamshaperLighting', 'nightmareshaper', 'openjourney', 'analogmadness',
                     'portraitplus', 'tshirt', 'abyssorange', 'cyber', 'disco',
                     'synthwave', 'lowpoly', 'bluepencil', 'ink'
                 ];
@@ -257,14 +277,14 @@ export class EnhancedImageService {
                 user: { id: validUserId }
             };
 
-            const generationPromise = feed.default.generate(
+            const generationPromise = feed.default.generate({
                 prompt,
                 original,
                 promptId,
                 providers,
                 guidance,
                 req
-            );
+            });
 
             // Race between generation and timeout
             const result = await Promise.race([generationPromise, timeoutPromise]);
@@ -319,7 +339,8 @@ export class EnhancedImageService {
                         provider: imageData.provider || imageData.providerName,
                         guidance: imageData.guidance || 10,
                         model: imageData.model || null,
-                        rating: imageData.rating || null
+                        rating: imageData.rating || null,
+                        isPublic: false // Default to private
                     }
                 });
 
@@ -435,6 +456,68 @@ export class EnhancedImageService {
         return { result, id: imageId, rating };
     }
 
+    async getImageById(imageId, userId) {
+        // Get the image from repository
+        const image = await this.imageRepository.findById(imageId);
+
+        if (!image) {
+            throw new Error('Image not found');
+        }
+
+        // Check if user can access this image
+        // - User can access their own images
+        // - Anyone can access public images
+        const canAccess = image.userId === userId || image.isPublic;
+
+        if (!canAccess) {
+            throw new Error('Access denied');
+        }
+
+        // Normalize image data
+        return {
+            id: image.id,
+            userId: image.userId,
+            prompt: image.prompt,
+            original: image.original,
+            imageUrl: image.imageUrl,
+            provider: image.provider,
+            guidance: image.guidance,
+            model: image.model,
+            rating: image.rating,
+            isPublic: image.isPublic,
+            createdAt: image.createdAt,
+            updatedAt: image.updatedAt
+        };
+    }
+
+    async updatePublicStatus(imageId, isPublic, userId) {
+        if (!imageId || typeof isPublic !== 'boolean') {
+            throw new ValidationError('Image ID and isPublic boolean are required');
+        }
+
+        if (!userId) {
+            throw new ValidationError('User ID is required to update public status');
+        }
+
+        // First, verify the user owns the image
+        const image = await this.imageRepository.findById(imageId);
+        if (!image) {
+            throw new NotFoundError('Image');
+        }
+
+        if (image.userId !== userId) {
+            throw new ValidationError('You can only update the public status of your own images');
+        }
+
+        const result = await this.imageRepository.updatePublicStatus(imageId, isPublic);
+
+        if (!result) {
+            throw new NotFoundError('Image');
+        }
+
+        return { result, id: imageId, isPublic };
+    }
+
     async deleteImage(imageId) {
         if (!imageId) {
             throw new ValidationError('Image ID is required');
@@ -446,7 +529,10 @@ export class EnhancedImageService {
     }
 
     async getImages(userId, limit = 8, page = 0) {
-        const result = await this.imageRepository.findByUserId(userId, limit, page);
+        // Use optimized method for anonymous users
+        const result = userId
+            ? await this.imageRepository.findByUserId(userId, limit, page)
+            : await this.imageRepository.findPublicImages(limit, page);
 
         // Normalize image data
         const normalizedImages = result.images.map(image => ({
@@ -459,6 +545,7 @@ export class EnhancedImageService {
             guidance: image.guidance,
             model: image.model,
             rating: image.rating,
+            isPublic: image.isPublic,
             createdAt: image.createdAt,
             updatedAt: image.updatedAt
         }));
@@ -473,6 +560,36 @@ export class EnhancedImageService {
     async getFeed(userId, limit = 8, page = 0) {
         // For now, feed is the same as images
         return await this.getImages(userId, limit, page);
+    }
+
+    async getUserOwnImages(userId, limit = 8, page = 0) {
+        if (!userId) {
+            throw new ValidationError('User ID is required for getting user own images');
+        }
+
+        const result = await this.imageRepository.findUserOwnImages(userId, limit, page);
+
+        // Normalize image data
+        const normalizedImages = result.images.map(image => ({
+            id: image.id,
+            userId: image.userId,
+            prompt: image.prompt,
+            original: image.original,
+            imageUrl: image.imageUrl,
+            provider: image.provider,
+            guidance: image.guidance,
+            model: image.model,
+            rating: image.rating,
+            isPublic: image.isPublic,
+            createdAt: image.createdAt,
+            updatedAt: image.updatedAt
+        }));
+
+        return {
+            images: normalizedImages,
+            totalCount: result.totalCount,
+            hasMore: (page + 1) * limit < result.totalCount
+        };
     }
 
     async getImageCount(userId) {

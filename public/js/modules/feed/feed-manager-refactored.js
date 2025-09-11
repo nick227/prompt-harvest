@@ -12,6 +12,8 @@ class FeedManager {
         this.apiManager = new FeedAPIManager();
         this.uiManager = new FeedUIManager(this.domManager);
         this.filterManager = new FeedFilterManager(this.cacheManager, this);
+        this.tabService = new HybridTabService();
+        this.viewManager = new FeedViewManager();
 
         // Bind methods to maintain context
         this.handleFilterChanged = this.handleFilterChanged.bind(this);
@@ -22,25 +24,37 @@ class FeedManager {
     // Initialize feed manager
     async init() {
         if (this.isInitialized) {
+            console.log('🔍 FEED MANAGER: Already initialized, returning existing instance');
             return this;
         }
 
         try {
+            console.log('🚀 FEED MANAGER: Initializing Feed Manager...');
+
             // Initialize sub-managers
+            console.log('🔍 FEED MANAGER: Initializing DOM Manager...');
             this.domManager.init();
+            console.log('🔍 FEED MANAGER: Initializing UI Manager...');
             this.uiManager.init();
+            console.log('🔍 FEED MANAGER: Initializing Filter Manager...');
             this.filterManager.init();
+            console.log('🔍 FEED MANAGER: Initializing Tab Service...');
+            await this.tabService.init();
+            console.log('🔍 FEED MANAGER: Initializing View Manager...');
+            this.viewManager.init();
 
             // Setup event listeners
+            console.log('🔍 FEED MANAGER: Setting up event listeners...');
             this.setupEventListeners();
 
             // Setup feed
+            console.log('🔍 FEED MANAGER: Setting up feed...');
             await this.setupFeed();
 
             this.isInitialized = true;
-            console.log('✅ Feed Manager initialized successfully');
+            console.log('✅ FEED MANAGER: Feed Manager initialized successfully');
         } catch (error) {
-            console.error('❌ Feed Manager initialization failed:', error);
+            console.error('❌ FEED MANAGER: Feed Manager initialization failed:', error);
             throw error;
         }
 
@@ -103,21 +117,34 @@ class FeedManager {
 
     // Setup feed
     async setupFeed() {
+        console.log('🔍 FEED MANAGER: setupFeed called');
         if (this.initialLoadPromise) {
+            console.log('🔍 FEED MANAGER: Using existing initial load promise');
             return this.initialLoadPromise;
         }
 
+        console.log('🔍 FEED MANAGER: Creating new initial load promise');
         this.initialLoadPromise = this.loadInitialFeed();
 
         return this.initialLoadPromise;
     }
 
+    // Force fresh feed load (for debugging/testing)
+    async forceFreshFeedLoad() {
+        console.log('🔄 FEED MANAGER: Force fresh feed load called');
+        this.initialLoadPromise = null; // Reset the cached promise
+        return this.setupFeed();
+    }
+
     // Load initial feed
     async loadInitialFeed() {
         try {
+            console.log('🔍 FEED MANAGER: loadInitialFeed called');
             const currentFilter = this.filterManager.getCurrentFilter();
+            console.log('🔍 FEED MANAGER: Current filter:', currentFilter);
 
             await this.loadFilterImages(currentFilter);
+            console.log('✅ FEED MANAGER: loadInitialFeed completed');
         } catch (error) {
             console.error('❌ Failed to load initial feed:', error);
             this.uiManager.showErrorMessage();
@@ -127,19 +154,28 @@ class FeedManager {
     // Load filter images
     async loadFilterImages(filter) {
         try {
+            console.log('🔍 FEED MANAGER: loadFilterImages called for filter:', filter);
             this.uiManager.showLoading();
 
             // Check if user can access user filter
             if (filter === FEED_CONSTANTS.FILTERS.USER && !this.apiManager.isUserAuthenticated()) {
+                console.log('⏹️ USER FILTER: User not authenticated, showing login prompt');
                 this.uiManager.showLoginPrompt();
 
                 return;
             }
 
             // Load images from API
+            console.log('🔍 FEED MANAGER: Calling apiManager.loadFeedImages');
             const result = await this.apiManager.loadFeedImages(filter, 0);
+            console.log('🔍 FEED MANAGER: API result:', {
+                hasImages: !!result.images,
+                imageCount: result.images?.length || 0,
+                hasMore: result.hasMore
+            });
 
             // Update cache
+            console.log('🔍 FEED MANAGER: Updating cache with', result.images?.length || 0, 'images');
             this.cacheManager.setCache(filter, {
                 images: result.images,
                 hasMore: result.hasMore,
@@ -148,23 +184,39 @@ class FeedManager {
             });
 
             // Clear and populate feed
+            console.log('🔍 FEED MANAGER: Clearing and populating feed');
             this.uiManager.clearFeedContent();
             result.images.forEach(image => {
+                console.log('🔍 FEED MANAGER: Adding image to feed:', {
+                    id: image.id,
+                    isPublic: image.isPublic,
+                    userId: image.userId
+                });
                 this.uiManager.addImageToFeed(image, filter);
             });
 
             // Show appropriate message if no images
             if (result.images.length === 0) {
+                console.log('🔍 FEED MANAGER: No images found, showing no images message');
                 this.uiManager.showNoImagesMessage();
             }
 
             // Force grid layout
+            console.log('🔍 FEED MANAGER: Forcing grid layout');
             this.uiManager.forceGridLayout();
 
             // Refresh rating dropdown to include all loaded images' ratings
             if (window.ratingManager && window.ratingManager.refreshRatingDropdown) {
                 window.ratingManager.refreshRatingDropdown();
             }
+
+            // Reapply view after images are loaded and enhanced
+            if (this.viewManager && this.viewManager.forceReapplyView) {
+                console.log('🔄 FEED MANAGER: Reapplying view after images loaded');
+                this.viewManager.forceReapplyView();
+            }
+
+            console.log('✅ FEED MANAGER: loadFilterImages completed successfully');
 
         } catch (error) {
             console.error(`❌ Failed to load ${filter} images:`, error);
@@ -202,6 +254,12 @@ class FeedManager {
             result.images.forEach(image => {
                 this.uiManager.addImageToFeed(image, filter);
             });
+
+            // Reapply view after new images are loaded
+            if (this.viewManager && this.viewManager.forceReapplyView) {
+                console.log('🔄 FEED MANAGER: Reapplying view after load more');
+                this.viewManager.forceReapplyView();
+            }
 
             console.log('📥 LOAD MORE: Completed successfully');
 

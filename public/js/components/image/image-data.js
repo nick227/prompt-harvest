@@ -7,7 +7,14 @@ class ImageData {
 
     // Data Validation Methods
     validateImageData(imageData) {
-        return !!(imageData && imageData.url);
+        // console.log('🔍 VALIDATE: Image data validation:', {
+        //     hasImageData: !!imageData,
+        //     hasId: !!imageData?.id,
+        //     hasUrl: !!imageData?.url,
+        //     hasImageUrl: !!imageData?.imageUrl,
+        //     isValid: hasRequiredFields
+        // });
+        return !!(imageData && (imageData.id || imageData.url || imageData.imageUrl));
     }
 
     validateImageId(imageId) {
@@ -16,6 +23,15 @@ class ImageData {
 
     validateRating(rating) {
         return typeof rating === 'number' && rating >= 0 && rating <= 5;
+    }
+
+    /**
+     * Validate public status value
+     * @param {*} isPublic - The public status value to validate
+     * @returns {boolean} True if valid boolean, false otherwise
+     */
+    validatePublicStatus(isPublic) {
+        return typeof isPublic === 'boolean';
     }
 
     // Data Transformation Methods
@@ -30,9 +46,13 @@ class ImageData {
             title: imageData.title || imageData.alt || 'Generated Image',
             prompt: imageData.prompt || '',
             original: imageData.original || imageData.prompt || '',
+            final: imageData.final || imageData.prompt || '', // ✅ Include final field
             provider: imageData.provider || imageData.providerName || 'unknown',
             guidance: imageData.guidance || '',
             rating: parseInt(imageData.rating) || 0,
+            isPublic: this.validatePublicStatus(imageData.isPublic) ? imageData.isPublic : false, // ✅ Include isPublic field with validation
+            userId: imageData.userId || null, // ✅ Include userId field
+            createdAt: imageData.createdAt || null, // ✅ Include createdAt field
             element: imageData.element || null
         };
     }
@@ -42,7 +62,7 @@ class ImageData {
             return null;
         }
 
-        return {
+        const extractedData = {
             id: img.dataset.id || img.dataset.imageId || 'unknown',
             url: img.src,
             title: img.alt || img.title || 'Generated Image',
@@ -50,29 +70,81 @@ class ImageData {
             original: img.dataset.original || '',
             provider: img.dataset.provider || '',
             guidance: img.dataset.guidance || '',
-            rating: parseInt(img.dataset.rating) || 0
+            rating: parseInt(img.dataset.rating) || 0,
+            isPublic: img.dataset.isPublic === 'true' || false, // ✅ Include isPublic from dataset
+            userId: img.dataset.userId || null, // ✅ Include userId from dataset
+            createdAt: img.dataset.createdAt || null // ✅ Include createdAt from dataset
+        };
+
+        // console.log('🔍 EXTRACT: Extracted data from DOM element:', {
+        //     id: extractedData.id,
+        //     isPublic: extractedData.isPublic,
+        //     userId: extractedData.userId,
+        //     dataset: {
+        //         isPublic: img.dataset.isPublic,
+        //         userId: img.dataset.userId,
+        //         createdAt: img.dataset.createdAt
+        //     }
+        // });
+
+        return {
+            id: img.dataset.id || img.dataset.imageId || 'unknown',
+            url: img.src,
+            title: img.alt || img.title || 'Generated Image',
+            prompt: img.dataset.prompt || img.alt || '',
+            original: img.dataset.original || '',
+            final: img.dataset.final || img.dataset.prompt || '', // ✅ Include final field
+            provider: img.dataset.provider || '',
+            guidance: img.dataset.guidance || '',
+            rating: parseInt(img.dataset.rating) || 0,
+            isPublic: img.dataset.isPublic === 'true' || false, // ✅ Include isPublic from dataset
+            userId: img.dataset.userId || null, // ✅ Include userId from dataset
+            createdAt: img.dataset.createdAt || null // ✅ Include createdAt from dataset
         };
     }
 
     // Cache Management Methods
     cacheImage(imageData) {
+        console.log('🔍 CACHE: Attempting to cache image:', {
+            id: imageData.id,
+            isPublic: imageData.isPublic,
+            userId: imageData.userId,
+            isValid: this.validateImageData(imageData)
+        });
+
         if (!this.validateImageData(imageData)) {
+            console.log('❌ CACHE: Image data validation failed');
             return false;
         }
 
         const normalizedData = this.normalizeImageData(imageData);
+        console.log('🔍 CACHE: Normalized data:', {
+            id: normalizedData.id,
+            isPublic: normalizedData.isPublic,
+            userId: normalizedData.userId
+        });
 
         this.imageCache.set(normalizedData.id, normalizedData);
+        console.log('✅ CACHE: Successfully cached image:', normalizedData.id);
 
         return true;
     }
 
     getCachedImage(imageId) {
         if (!this.validateImageId(imageId)) {
+            console.log('❌ CACHE: Invalid imageId for getCachedImage:', imageId);
             return null;
         }
 
-        return this.imageCache.get(imageId);
+        const cached = this.imageCache.get(imageId);
+        console.log('🔍 CACHE: getCachedImage result:', {
+            imageId,
+            found: !!cached,
+            isPublic: cached?.isPublic,
+            userId: cached?.userId
+        });
+
+        return cached;
     }
 
     updateCachedImage(imageId, updates) {
@@ -121,13 +193,22 @@ class ImageData {
             const imageData = this.extractImageDataFromElement(imgElement);
 
             if (imageData) {
-                // Merge with cached data if available
+                // Prioritize cached data over DOM-extracted data
                 const cached = this.getCachedImage(imageData.id);
 
                 if (cached) {
-                    Object.assign(imageData, cached);
+                    // Use cached data as the primary source, only fall back to DOM data for missing fields
+                    const finalData = { ...imageData, ...cached };
+                    images.push(finalData);
+                    // console.log('🔄 Using cached data for navigation:', imageData.id, {
+                    //     cachedIsPublic: cached.isPublic,
+                    //     domIsPublic: imageData.isPublic,
+                    //     finalIsPublic: finalData.isPublic
+                    // });
+                } else {
+                    images.push(imageData);
+                    // console.log('⚠️ No cached data found for navigation:', imageData.id);
                 }
-                images.push(imageData);
             }
         });
 

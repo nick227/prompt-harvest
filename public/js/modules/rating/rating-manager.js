@@ -216,38 +216,10 @@ class RatingManager {
                 // Update image dataset
                 img.dataset.rating = rating.toString();
 
-                // Update rating display in fullscreen info box
-                const infoBox = fullscreenContainer.querySelector('.info-box');
-
-                if (infoBox) {
-                    // Remove existing rating display
-                    const existingRating = infoBox.querySelector('.rating-display');
-
-                    if (existingRating) {
-                        existingRating.remove();
-                    }
-
-                    // Add new rating display
-                    const ratingElement = document.createElement('p');
-
-                    ratingElement.className = 'rating-display';
-                    ratingElement.textContent = `★ ${rating}`;
-                    ratingElement.style.marginBottom = '15px';
-                    ratingElement.style.lineHeight = '1.4';
-                    ratingElement.style.color = '#ffd700';
-                    ratingElement.style.fontSize = '16px';
-                    ratingElement.style.fontWeight = '600';
-
-                    infoBox.appendChild(ratingElement);
-                }
-
                 // Update the image component cache
                 if (window.imageComponent) {
                     window.imageComponent.updateImageRating(id, rating);
                 }
-
-                // Update the grid view rating display
-                this.updateGridRatingDisplay(id, rating);
 
                 // Refresh the rating dropdown to include the new rating
                 this.refreshRatingDropdown();
@@ -363,48 +335,6 @@ class RatingManager {
         }, 2000);
     }
 
-    updateGridRatingDisplay(imageId, rating) {
-        // Find the image in the grid and update its rating display
-        const gridImages = document.querySelectorAll('ul.prompt-output img[data-id]');
-
-        gridImages.forEach(img => {
-            if (img.dataset.id === imageId) {
-                // Update the dataset
-                img.dataset.rating = rating.toString();
-
-                // Find or create rating display in the wrapper
-                const wrapper = img.closest('.image-wrapper');
-
-                if (wrapper) {
-                    // Remove existing rating display
-                    const existingRating = wrapper.querySelector('.rating');
-
-                    if (existingRating) {
-                        existingRating.remove();
-                    }
-
-                    // Add new rating display if rating > 0
-                    if (rating > 0) {
-                        const ratingElement = document.createElement('div');
-
-                        ratingElement.className = 'rating';
-                        ratingElement.textContent = `★ ${rating}`;
-                        ratingElement.style.position = 'absolute';
-                        ratingElement.style.top = '5px';
-                        ratingElement.style.right = '5px';
-                        ratingElement.style.background = 'rgba(0, 0, 0, 0.7)';
-                        ratingElement.style.color = '#ffd700';
-                        ratingElement.style.padding = '2px 6px';
-                        ratingElement.style.borderRadius = '3px';
-                        ratingElement.style.fontSize = '12px';
-                        ratingElement.style.fontWeight = 'bold';
-
-                        wrapper.appendChild(ratingElement);
-                    }
-                }
-            }
-        });
-    }
 
     // utility methods for external access
     getCurrentFilter() {

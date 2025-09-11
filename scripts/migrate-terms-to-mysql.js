@@ -110,7 +110,6 @@ async function migrateWordTypes() {
                     id: generateId(),
                     word: doc.word.toLowerCase(),
                     types: types,
-                    examples: types, // Use types as examples initially
                     createdAt: doc.createdAt ? new Date(doc.createdAt) : new Date(),
                     updatedAt: new Date()
                 };
@@ -127,7 +126,6 @@ async function migrateWordTypes() {
                         where: { id: existingWord.id },
                         data: {
                             types: wordData.types,
-                            examples: wordData.examples,
                             updatedAt: wordData.updatedAt
                         }
                     });

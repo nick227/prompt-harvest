@@ -55,12 +55,7 @@ class ControlsDrawer {
         //     this.close();
         // });
 
-        // Close on escape key
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && this.isOpen) {
-                this.close();
-            }
-        });
+        // ESC key handler removed per user request
 
         // Prevent drawer content clicks from closing drawer
         this.drawer.addEventListener('click', e => {

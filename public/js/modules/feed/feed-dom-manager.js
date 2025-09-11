@@ -64,6 +64,38 @@ class FeedDOMManager {
         promptOutput.appendChild(wrapper);
         console.log('✅ DOM: Added new image:', imageData.id);
 
+        // Ensure view is applied after adding image
+        if (window.feedManager && window.feedManager.viewManager) {
+            window.feedManager.viewManager.ensureViewApplied();
+        }
+
+        // Cache the image data in the image data manager
+        console.log('🔍 DOM: Checking imageManager availability:', {
+            hasImageManager: !!window.imageManager,
+            hasData: !!(window.imageManager && window.imageManager.data),
+            imageData: {
+                id: imageData.id,
+                isPublic: imageData.isPublic,
+                userId: imageData.userId
+            }
+        });
+
+        if (window.imageManager && window.imageManager.data) {
+            const dataToCache = {
+                ...imageData,
+                element: wrapper
+            };
+            const cacheResult = window.imageManager.data.cacheImage(dataToCache);
+            console.log('📝 DOM: Cached image data for:', imageData.id, {
+                isPublic: imageData.isPublic,
+                userId: imageData.userId,
+                cachedData: dataToCache,
+                cacheResult: cacheResult
+            });
+        } else {
+            console.log('⚠️ DOM: No imageManager or data found for caching');
+        }
+
         return true;
     }
 
@@ -71,15 +103,30 @@ class FeedDOMManager {
     createImageWrapper(imageData, filter) {
         const wrapper = document.createElement('div');
 
+        // Debug logging
+        console.log('🔍 DOM: Creating image wrapper with data:', {
+            id: imageData.id,
+            isPublic: imageData.isPublic,
+            userId: imageData.userId,
+            allFields: Object.keys(imageData)
+        });
+
         wrapper.className = FEED_CONSTANTS.CLASSES.IMAGE_WRAPPER;
         wrapper.dataset.filter = filter;
         wrapper.dataset.imageId = imageData.id;
+        wrapper.dataset.userId = imageData.userId || '';
+        wrapper.dataset.isPublic = (imageData.isPublic || false).toString();
 
         // Create image element using image component
         if (window.imageComponent) {
             const imageElement = window.imageComponent.createImageElement(imageData);
 
             wrapper.appendChild(imageElement);
+        }
+
+        // Enhance wrapper with dual views if view manager is available
+        if (window.feedManager && window.feedManager.viewManager) {
+            window.feedManager.viewManager.enhanceNewImageWrapper(wrapper);
         }
 
         return wrapper;

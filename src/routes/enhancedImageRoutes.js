@@ -4,7 +4,7 @@ import {
     validateAuthentication
 } from '../middleware/enhancedValidation.js';
 import { sanitizeInput } from '../middleware/validation.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { authenticateToken, authenticateTokenRequired } from '../middleware/authMiddleware.js';
 
 // eslint-disable-next-line max-lines-per-function
 export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
@@ -15,7 +15,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
 
     // Image generation with enhanced validation and rate limiting
     app.post('/api/image/generate',
-        authenticateToken, // Add authentication middleware
+        authenticateTokenRequired, // Require authentication - no anonymous access
         sanitizeInput,
         enhancedRateLimit({
             windowMs: 15 * 60 * 1000, // 15 minutes
@@ -28,7 +28,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
 
     // Image management with authentication and validation
     app.put('/api/images/:id/rating',
-        validateAuthentication,
+        authenticateToken, // Use authenticateToken to set req.user
         enhancedRateLimit({
             windowMs: 5 * 60 * 1000, // 5 minutes
             maxRequests: 100, // 100 rating updates per 5 minutes
@@ -36,6 +36,17 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
         }),
         sanitizeInput,
         enhancedImageController.updateRating.bind(enhancedImageController)
+    );
+
+    app.put('/api/images/:id/public-status',
+        authenticateToken, // Use authenticateToken to set req.user
+        enhancedRateLimit({
+            windowMs: 5 * 60 * 1000, // 5 minutes
+            maxRequests: 50, // 50 public status updates per 5 minutes
+            message: 'Public status update rate limit exceeded'
+        }),
+        sanitizeInput,
+        enhancedImageController.updatePublicStatus.bind(enhancedImageController)
     );
 
     app.delete('/api/images/:id',
@@ -61,6 +72,18 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
         enhancedImageController.getImages.bind(enhancedImageController)
     );
 
+    // Get single image by ID
+    app.get('/api/images/:id',
+        authenticateToken, // Add authentication middleware
+        enhancedRateLimit({
+            windowMs: 1 * 60 * 1000, // 1 minute
+            maxRequests: 100, // 100 requests per minute
+            message: 'Single image retrieval rate limit exceeded'
+        }),
+        sanitizeInput,
+        enhancedImageController.getImageById.bind(enhancedImageController)
+    );
+
     app.get('/api/images/count',
         authenticateToken, // Add authentication middleware
         enhancedRateLimit({
@@ -82,6 +105,18 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
         }),
         sanitizeInput,
         enhancedImageController.getFeed.bind(enhancedImageController)
+    );
+
+    // User's own images endpoint - get only user's own images
+    app.get('/api/feed/user',
+        authenticateToken, // Add authentication middleware
+        enhancedRateLimit({
+            windowMs: 1 * 60 * 1000, // 1 minute
+            maxRequests: 300, // 300 requests per minute
+            message: 'User feed rate limit exceeded'
+        }),
+        sanitizeInput,
+        enhancedImageController.getUserOwnImages.bind(enhancedImageController)
     );
 
     // Circuit breaker status endpoint (admin only)

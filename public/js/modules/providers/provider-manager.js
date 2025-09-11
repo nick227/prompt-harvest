@@ -13,6 +13,7 @@ class ProviderManager {
             { value: 'icbinp_seco', label: 'Icbinp2' },
             { value: 'hasdx', label: 'Hasdx' },
             { value: 'dreamshaper', label: 'Dreamshaper' },
+            { value: 'dreamshaperLighting', label: 'Dreamshaper Lightning' },
             { value: 'nightmareshaper', label: 'Nightmare Shaper' },
             { value: 'openjourney', label: 'Open Journey' },
             { value: 'analogmadness', label: 'Analog Madness' },
@@ -115,6 +116,8 @@ class ProviderManager {
         setTimeout(() => {
             this.handleProviderCheckbox();
             this.updateButtonState();
+            // Sort providers after loading saved selections
+            this.sortProviderList();
         }, 0);
     }
 
@@ -125,15 +128,84 @@ class ProviderManager {
 
         // handle "all" checkbox functionality
         this.providerList.addEventListener('change', e => {
+            const wasChecked = e.target.checked;
+
             if (e.target.id === 'all') {
                 this.handleAllCheckbox(e.target.checked);
             } else if (e.target.name === 'providers') {
                 this.handleProviderCheckbox();
             }
 
+            // Always sort the list
+            this.sortProviderList();
+
+            // Only scroll to top when checking (not when unchecking)
+            if (wasChecked) {
+                this.scrollProviderList();
+            }
+
             // Save selections to localStorage whenever they change
             this.saveProviderSelections();
         });
+    }
+
+    sortProviderList() {
+        if (!this.providerList) {
+            return;
+        }
+
+        // Get all provider labels (which contain the checkboxes)
+        const providerLabels = Array.from(this.providerList.querySelectorAll('label'));
+
+        // Filter out the "all" label
+        const providerLabelsOnly = providerLabels.filter(label => {
+            const checkbox = label.querySelector('input[name="providers"]');
+
+            return checkbox !== null;
+        });
+
+        // Sort by checked status first (checked at top), then alphabetically
+        providerLabelsOnly.sort((a, b) => {
+            const checkboxA = a.querySelector('input[name="providers"]');
+            const checkboxB = b.querySelector('input[name="providers"]');
+
+            const isCheckedA = checkboxA.checked;
+            const isCheckedB = checkboxB.checked;
+
+            // If one is checked and the other isn't, checked comes first
+            if (isCheckedA && !isCheckedB) {
+                return -1;
+            }
+            if (!isCheckedA && isCheckedB) {
+                return 1;
+            }
+
+            // If both have same checked status, sort alphabetically by label text
+            const labelA = a.querySelector('span').textContent.toLowerCase();
+            const labelB = b.querySelector('span').textContent.toLowerCase();
+
+            return labelA.localeCompare(labelB);
+        });
+
+        // Re-append the sorted labels to maintain order
+        providerLabelsOnly.forEach(label => {
+            this.providerList.appendChild(label);
+        });
+    }
+
+    scrollProviderList() {
+        if (!this.providerList) {
+            return;
+        }
+
+        // Get the currently checked providers
+        const checkedProviders = this.providerList.querySelectorAll('input[name="providers"]:checked');
+
+        if (checkedProviders.length > 0) {
+            // If there are checked providers, scroll to the top to show them
+            this.providerList.scrollTop = 0;
+        }
+        // If no providers are checked, don't scroll (keep current position)
     }
 
     handleAllCheckbox(checked) {
@@ -142,6 +214,12 @@ class ProviderManager {
         providerCheckboxes.forEach(checkbox => {
             checkbox.checked = checked;
         });
+
+        // Sort and scroll after handling all checkbox
+        this.sortProviderList();
+        if (checked) {
+            this.scrollProviderList();
+        }
     }
 
     handleProviderCheckbox() {
@@ -259,6 +337,11 @@ class ProviderManager {
                 window.generationComponent.manager.updateProviderStatus();
             } else if (window.generationManager) {
                 window.generationManager.updateProviderStatus();
+            }
+
+            // Also trigger ImageUIState button update if available
+            if (window.imagesManager && window.imagesManager.ui && window.imagesManager.ui.updateButtonState) {
+                window.imagesManager.ui.updateButtonState();
             }
         }, 100);
     }

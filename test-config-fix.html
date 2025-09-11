@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config Fix Test</title>
+</head>
+<body>
+    <h1>Config Fix Test</h1>
+    <div id="test-results"></div>
+
+    <!-- Load the standalone ImageUI -->
+    <script src="public/js/components/image/image-ui-standalone.js"></script>
+
+    <script>
+        // Test if ImageUI config is properly structured
+        const results = document.getElementById('test-results');
+
+        try {
+            if (typeof ImageUI !== 'undefined') {
+                results.innerHTML += '<p style="color: green;">✅ ImageUI class is defined</p>';
+
+                // Test creating an instance
+                const imageUI = new ImageUI();
+                results.innerHTML += '<p style="color: green;">✅ ImageUI instance created successfully</p>';
+
+                // Test config structure
+                console.log('Config object:', imageUI.config);
+                console.log('Config selectors:', imageUI.config.selectors);
+                console.log('Config classes:', imageUI.config.classes);
+
+                if (imageUI.config && imageUI.config.selectors) {
+                    results.innerHTML += '<p style="color: green;">✅ config.selectors is defined</p>';
+
+                    if (imageUI.config.selectors.fullscreenContainer) {
+                        results.innerHTML += '<p style="color: green;">✅ config.selectors.fullscreenContainer is defined</p>';
+                        results.innerHTML += `<p style="color: blue;">Value: ${imageUI.config.selectors.fullscreenContainer}</p>`;
+                    } else {
+                        results.innerHTML += '<p style="color: red;">❌ config.selectors.fullscreenContainer is undefined</p>';
+                    }
+                } else {
+                    results.innerHTML += '<p style="color: red;">❌ config.selectors is undefined</p>';
+                }
+
+                if (imageUI.config && imageUI.config.classes) {
+                    results.innerHTML += '<p style="color: green;">✅ config.classes is defined</p>';
+
+                    if (imageUI.config.classes.rating) {
+                        results.innerHTML += '<p style="color: green;">✅ config.classes.rating is defined</p>';
+                        results.innerHTML += `<p style="color: blue;">Value: ${imageUI.config.classes.rating}</p>`;
+                    } else {
+                        results.innerHTML += '<p style="color: red;">❌ config.classes.rating is undefined</p>';
+                    }
+                } else {
+                    results.innerHTML += '<p style="color: red;">❌ config.classes is undefined</p>';
+                }
+
+                // Test getConfig method
+                const configFromMethod = imageUI.getConfig();
+                if (configFromMethod && configFromMethod.selectors) {
+                    results.innerHTML += '<p style="color: green;">✅ getConfig() method returns proper structure</p>';
+                } else {
+                    results.innerHTML += '<p style="color: red;">❌ getConfig() method returns incorrect structure</p>';
+                }
+
+                results.innerHTML += '<p style="color: green; font-weight: bold;">🎉 Config structure test completed!</p>';
+
+            } else {
+                results.innerHTML += '<p style="color: red;">❌ ImageUI class is not defined</p>';
+            }
+        } catch (error) {
+            results.innerHTML += `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            console.error('Test error:', error);
+        }
+    </script>
+</body>
+</html>

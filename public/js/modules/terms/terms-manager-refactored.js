@@ -32,7 +32,7 @@ class TermsManager {
             await this.loadTerms();
 
             this.isInitialized = true;
-            console.log('Terms Manager initialized successfully');
+
         } catch (error) {
             console.error('Error initializing Terms Manager:', error);
             throw error;
@@ -41,11 +41,13 @@ class TermsManager {
 
     // Setup event listeners
     setupEventListeners() {
+
         // Listen for custom events
         document.addEventListener(window.TERMS_CONSTANTS.EVENTS.TERM_ADDED, this.handleTermAdded);
         document.addEventListener('termDeleted', this.handleTermDeleted);
         document.addEventListener(window.TERMS_CONSTANTS.EVENTS.SEARCH_PERFORMED, this.handleSearchPerformed);
         document.addEventListener(window.TERMS_CONSTANTS.EVENTS.DUPLICATE_DETECTED, this.handleDuplicateDetected);
+
     }
 
     // Handle term added event
@@ -116,21 +118,27 @@ class TermsManager {
     // Add term
     async addTerm(termWord) {
         try {
+
             // Validate term
             const validatedTerm = this.apiManager.validateTermWord(termWord);
+            console.log('✅ MANAGER: Term validated:', validatedTerm);
 
             // Check for duplicates
             if (this.cacheManager.termExists(validatedTerm)) {
+                console.log('⚠️ MANAGER: Duplicate term detected:', validatedTerm);
                 this.dispatchEvent(window.TERMS_CONSTANTS.EVENTS.DUPLICATE_DETECTED, { term: validatedTerm });
 
                 return;
             }
 
+            console.log('🔄 MANAGER: Setting loading state...');
             this.cacheManager.setLoading(true);
             this.uiManager.showLoading();
 
             // Add term via API
+            console.log('📡 MANAGER: Calling API to add term...');
             const addedTerm = await this.apiManager.addTerm(validatedTerm);
+            console.log('✅ MANAGER: Term added successfully:', addedTerm);
 
             // Add to cache
             this.cacheManager.addTerm(addedTerm);
@@ -272,15 +280,18 @@ class TermsManager {
         const terms = this.cacheManager.getTerms();
 
         if (terms.length === 0) {
+            console.log('📭 MANAGER: No terms, showing empty state');
             this.domManager.showEmptyState();
 
             return;
         }
 
+        console.log('🔄 MANAGER: Updating display with', terms.length, 'terms');
         this.domManager.hideEmptyState();
         this.domManager.clearTermsList();
 
         // Add skeleton rows for progressive loading
+        console.log('🔄 MANAGER: Adding skeleton rows');
         this.domManager.addSkeletonRows();
 
         // Add terms progressively
@@ -288,6 +299,7 @@ class TermsManager {
             setTimeout(() => {
                 // Remove skeleton rows only once for the first term
                 if (index === 0) {
+                    console.log('🔄 MANAGER: Removing skeleton rows');
                     this.domManager.removeSkeletonRows();
                 }
                 this.domManager.addTermToList(term, index);

@@ -168,6 +168,57 @@ export class EnhancedImageController {
         }
     }
 
+    /**
+     * Update public status endpoint
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async updatePublicStatus(req, res) {
+        const requestId = req.id || generateRequestId();
+        const startTime = Date.now();
+
+        try {
+            // Extract parameters
+            const { id } = req.params;
+            const { isPublic } = req.body;
+
+            // Validate parameters
+            validateImageId(id);
+
+            if (typeof isPublic !== 'boolean') {
+                throw new Error('isPublic must be a boolean value');
+            }
+
+            // Get user ID from request
+            const userId = req.user?.id;
+
+            if (!userId) {
+                throw new Error('Authentication required to update public status');
+            }
+
+            // Call service to update public status (service will verify ownership)
+            const result = await this.imageService.updatePublicStatus(id, isPublic, userId);
+
+            // Format success response
+            const duration = Date.now() - startTime;
+            const response = formatSuccessResponse(result, requestId, duration, 'Public status updated successfully');
+
+            logRequestSuccess(requestId, 'Public Status Update', duration, {
+                imageId: id,
+                isPublic
+            });
+
+            res.json(response);
+
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
+
+            logRequestError(requestId, 'Public Status Update', duration, error);
+            res.status(errorResponse.statusCode || 500).json(errorResponse);
+        }
+    }
+
     // ============================================================================
     // IMAGE DELETION
     // ============================================================================
@@ -251,6 +302,47 @@ export class EnhancedImageController {
             const errorResponse = formatErrorResponse(error, requestId, duration);
 
             logRequestError(requestId, 'Get Images', duration, error);
+            res.status(errorResponse.statusCode || 500).json(errorResponse);
+        }
+    }
+
+    /**
+     * Get single image by ID endpoint
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async getImageById(req, res) {
+        const requestId = req.id || generateRequestId();
+        const startTime = Date.now();
+
+        try {
+            // Extract and validate parameters
+            console.log('🔍 DEBUG: req.params:', req.params);
+            console.log('🔍 DEBUG: req.params.id:', req.params.id);
+            const imageId = validateImageId(req.params.id);
+
+            console.log('🔍 DEBUG: validated imageId:', imageId);
+            const userId = req.user?.id;
+
+            // Call service to get image
+            const image = await this.imageService.getImageById(imageId, userId);
+
+            // Format response
+            const duration = Date.now() - startTime;
+            const response = formatSuccessResponse(image, requestId, duration);
+
+            logRequestSuccess(requestId, 'Get Image By ID', duration, {
+                imageId,
+                userId: userId || 'anonymous'
+            });
+
+            res.json(response);
+
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
+
+            logRequestError(requestId, 'Get Image By ID', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
@@ -367,6 +459,59 @@ export class EnhancedImageController {
         } catch (error) {
             const errorResponse = formatErrorResponse(error, 'health_check', 0);
 
+            res.status(errorResponse.statusCode || 500).json(errorResponse);
+        }
+    }
+
+    async getUserOwnImages(req, res) {
+        const requestId = req.id || generateRequestId();
+        const startTime = Date.now();
+
+        try {
+            const userId = req.user?.id;
+            const { page = 0, limit = 20 } = req.query;
+
+            console.log('🔍 BACKEND: getUserOwnImages called with:', {
+                requestId,
+                userId,
+                query: req.query,
+                pagination: { limit: parseInt(limit), page: parseInt(page) },
+                userAgent: req.get('User-Agent')
+            });
+
+            if (!userId) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Authentication required',
+                    statusCode: 401
+                });
+            }
+
+            const result = await this.imageService.getUserOwnImages(userId, parseInt(limit), parseInt(page));
+
+            const response = formatSuccessResponse({
+                items: result.images,
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total: result.totalCount,
+                    count: result.images.length
+                }
+            }, requestId, Date.now() - startTime);
+
+            logRequestSuccess(requestId, 'Get User Own Images', Date.now() - startTime, {
+                userId,
+                count: result.images.length,
+                totalCount: result.totalCount
+            });
+
+            res.json(response);
+
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
+
+            logRequestError(requestId, 'Get User Own Images', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }

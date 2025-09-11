@@ -76,7 +76,7 @@ class FeedFilterManager {
         this.currentFilter = filter;
     }
 
-    // Switch filter with caching logic
+    // Switch filter with intelligent tab service
     async switchFilter(newFilter) {
         console.log(`🔄 FILTER: Switching from '${this.currentFilter}' to '${newFilter}'`);
         console.log('📊 FILTER: Cache state before switch:', this.cacheManager.getCacheStats());
@@ -84,20 +84,36 @@ class FeedFilterManager {
         // Save current scroll position
         this.cacheManager.saveScrollPosition(this.currentFilter);
 
-        // Hide current filter's images
-        this.hideFilterImages(this.currentFilter);
+        // Use intelligent tab service for efficient filtering
+        console.log('🔍 FILTER DEBUG: Checking tab service availability:', {
+            hasWindow: typeof window !== 'undefined',
+            hasFeedManager: !!window.feedManager,
+            hasTabService: !!(window.feedManager && window.feedManager.tabService),
+            feedManagerType: typeof window.feedManager,
+            tabServiceType: typeof (window.feedManager && window.feedManager.tabService)
+        });
+
+        if (window.feedManager && window.feedManager.tabService) {
+            console.log('🚀 FILTER: Using intelligent tab service for filtering');
+            const result = window.feedManager.tabService.switchToFilter(newFilter);
+            console.log('✅ FILTER: Tab service switch completed:', result);
+        } else {
+            // Fallback to old method
+            console.log('⚠️ FILTER: Tab service not available, using fallback method');
+            this.hideFilterImages(this.currentFilter);
+            this.showFilterImages(newFilter);
+        }
 
         // Update current filter
         this.currentFilter = newFilter;
 
-        // Show new filter's images (load if needed)
-        if (this.cacheManager.isFilterLoaded(newFilter)) {
-            console.log(`✅ FILTER: Showing cached '${newFilter}' images`);
-            this.showFilterImages(newFilter);
-            this.cacheManager.restoreScrollPosition(newFilter);
-        } else {
+        // Load images if needed (for first time access)
+        if (!this.cacheManager.isFilterLoaded(newFilter)) {
             console.log(`📥 FILTER: Loading '${newFilter}' images for first time`);
             await this.loadFilterImages(newFilter);
+        } else {
+            console.log(`✅ FILTER: Using cached '${newFilter}' images`);
+            this.cacheManager.restoreScrollPosition(newFilter);
         }
 
         // Dispatch filter changed event

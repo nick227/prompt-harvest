@@ -47,6 +47,55 @@ class ImageUIState {
         }
     }
 
+    updateButtonState() {
+        const generateBtn = document.querySelector('.btn-generate');
+
+        if (!generateBtn) {
+            return;
+        }
+
+        const hasProviders = this.isProviderSelected();
+        const hasPrompt = this.getCurrentPrompt().length > 0;
+        const isAuthenticated = window.userApi && window.userApi.isAuthenticated();
+
+        // Don't update if currently generating
+        if (this.isGenerating) {
+            return;
+        }
+
+        if (!isAuthenticated) {
+            // Button disabled for auth reasons
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'LOGIN REQUIRED';
+            generateBtn.style.cssText = `
+                opacity: 0.6;
+                cursor: not-allowed;
+                background: #6b7280;
+            `;
+        } else if (!hasProviders) {
+            // Button disabled for missing providers
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'SELECT PROVIDERS';
+            generateBtn.style.cssText = `
+                opacity: 0.6;
+                cursor: not-allowed;
+                background: #ef4444;
+            `;
+        } else if (!hasPrompt) {
+            // Button disabled for missing prompt
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'ENTER PROMPT';
+            generateBtn.style.cssText = `
+                opacity: 0.6;
+                cursor: not-allowed;
+                background: #f59e0b;
+            `;
+        } else {
+            // Button enabled
+            this.enableGenerateButton();
+        }
+    }
+
     isProviderSelected() {
         const checkedProviders = Array.from(
             document.querySelectorAll('input[name="providers"]:checked')
@@ -187,8 +236,41 @@ class ImageUIState {
             // Remove any existing listeners to avoid duplicates
             generateBtn.removeEventListener('click', this.boundHandleGenerateClick);
 
-            // Add the click listener
-            generateBtn.addEventListener('click', this.boundHandleGenerateClick);
+            // Add the click listener with validation check
+            generateBtn.addEventListener('click', e => {
+                // Check if button is disabled due to missing providers
+                if (generateBtn.disabled && !this.isProviderSelected()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.showProviderSelectionAlert();
+
+                    return;
+                }
+
+                // Check if button is disabled due to missing prompt
+                if (generateBtn.disabled && !this.getCurrentPrompt()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.showError('Please enter a prompt before generating images.');
+
+                    return;
+                }
+
+                // Check if button is disabled due to authentication
+                if (generateBtn.disabled && (!window.userApi || !window.userApi.isAuthenticated())) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.showAuthRequiredMessage();
+
+                    return;
+                }
+
+                // Call the original handler
+                this.boundHandleGenerateClick(e);
+            });
+
+            // Set up real-time button state updates
+            this.setupButtonStateListeners();
         } else {
             console.error('❌ ImageUIState: Generate button not found');
 
@@ -202,6 +284,29 @@ class ImageUIState {
                 console.error('❌ ImageUIState: Max retries reached, giving up on button setup');
             }
         }
+    }
+
+    setupButtonStateListeners() {
+        // Listen for provider changes
+        document.addEventListener('change', e => {
+            if (e.target.name === 'providers') {
+                this.updateButtonState();
+            }
+        });
+
+        // Listen for prompt changes
+        const promptTextarea = document.querySelector('#prompt-textarea');
+
+        if (promptTextarea) {
+            promptTextarea.addEventListener('input', () => {
+                this.updateButtonState();
+            });
+        }
+
+        // Delay initial button state update to allow providers to load from localStorage
+        setTimeout(() => {
+            this.updateButtonState();
+        }, 200);
     }
 
     cleanup() {

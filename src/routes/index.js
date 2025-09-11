@@ -10,6 +10,7 @@ import { setupAuthRoutes } from './authRoutes.js';
 // import { setupImageRatingRoutes } from './imageRatingRoutes.js'; // Removed - redundant with enhancedImageRoutes.js
 import { setupTransactionRoutes } from './transactionRoutes.js';
 import { setupWordRoutes } from './wordRoutes.js';
+import { setupPromptRoutes } from './promptRoutes.js';
 import stripeModule from '../stripe.js';
 import express from 'express';
 import { EnhancedImageController } from '../controllers/EnhancedImageController.js';
@@ -18,6 +19,7 @@ import { ConfigController } from '../controllers/ConfigController.js';
 import { LikeController } from '../controllers/LikeController.js';
 import { TagController } from '../controllers/TagController.js';
 import { TransactionController } from '../controllers/TransactionController.js';
+import { PromptController } from '../controllers/PromptController.js';
 import { EnhancedImageService } from '../services/EnhancedImageService.js';
 import { AIService } from '../services/AIService.js';
 import { LikeService } from '../services/LikeService.js';
@@ -71,6 +73,7 @@ export const setupRoutes = async app => {
     let likeController;
     let tagController;
     let transactionController;
+    let promptController;
 
     try {
         aiController = new AIController(aiService);
@@ -79,6 +82,7 @@ export const setupRoutes = async app => {
         likeController = new LikeController(likeService);
         tagController = new TagController(tagService);
         transactionController = new TransactionController();
+        promptController = new PromptController();
     } catch (error) {
         console.error('❌ Failed to initialize controllers:', error.message);
         process.exit(1);
@@ -97,6 +101,7 @@ export const setupRoutes = async app => {
     setupMonitoringRoutes(app); // System monitoring routes
     setupTransactionRoutes(app, transactionController); // Transaction accounting routes
     setupWordRoutes(app); // Word types and examples routes
+    setupPromptRoutes(app, promptController); // User prompts routes
     stripeModule.init(app, express); // Stripe payment routes
 
     // Apply JWT authentication middleware to protected routes only
@@ -108,10 +113,10 @@ export const setupRoutes = async app => {
     app.use('/api/tags', authenticateTokenRequired);
     app.use('/api/rating', authenticateTokenRequired);
     app.use('/api/transactions', authenticateTokenRequired);
+    app.use('/api/prompts', authenticateTokenRequired);
     app.use('/api/stripe', authenticateTokenRequired);
 
     // Additional route setups will be added here as we refactor other domains
-    // setupPromptRoutes(app, promptController);
     // setupWordRoutes(app, wordController);
     // setupFeedRoutes(app, feedController);
 

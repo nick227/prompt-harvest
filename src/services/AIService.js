@@ -44,8 +44,12 @@ export class AIService {
 
     async addWordType(word) {
         const decodedWord = decodeURIComponent(word).toLowerCase();
+        console.log('🔍 AI SERVICE: addWordType called with:', decodedWord);
 
-        return await this._addAiWordType(decodedWord);
+        const result = await this._addAiWordType(decodedWord);
+        console.log('✅ AI SERVICE: _addAiWordType result:', result);
+
+        return result;
     }
 
     // Cache Management
@@ -86,10 +90,22 @@ export class AIService {
             if (resObj && typeof resObj.types === 'object') {
                 const { types } = resObj;
 
-                await this.wordRepository.addWordType(word, types);
+                // Save the word type to database
+                const savedTerm = await this.wordRepository.addWordType(word, types);
+
+                // Return the saved term data instead of raw AI response
+                return {
+                    success: true,
+                    term: {
+                        word: word,
+                        types: types,
+                        id: savedTerm._id || savedTerm.id,
+                        createdAt: savedTerm.createdAt || new Date().toISOString()
+                    }
+                };
             }
 
-            return res;
+            return { error: 'Failed to extract types from AI response' };
         } catch (error) {
             console.error(error);
 

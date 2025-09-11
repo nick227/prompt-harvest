@@ -255,12 +255,37 @@ class ImageDOMManager {
         console.log('🖼️ DOM INSERT: addImageToOutput called', { _results, download });
 
         try {
+            // Handle auto download first
+            this.handleAutoDownload(null, _results, download);
+
+            // Use feed manager's rendering system for consistent card structure
+            if (window.feedManager && window.feedManager.uiManager) {
+                console.log('🖼️ DOM INSERT: Using feed manager rendering system');
+
+                // Normalize the image data to match feed format
+                const normalizedImageData = this.normalizeImageDataForFeed(_results);
+
+                // Get current filter
+                const currentFilter = window.feedManager.filterManager?.getCurrentFilter() || 'site';
+
+                // Use feed manager's addImageToFeed method
+                const wasAdded = window.feedManager.uiManager.addImageToFeed(normalizedImageData, currentFilter);
+
+                if (wasAdded) {
+                    console.log('✅ DOM INSERT: Image added via feed manager');
+                    return normalizedImageData;
+                } else {
+                    console.log('⚠️ DOM INSERT: Feed manager failed to add image, falling back to simple method');
+                }
+            }
+
+            // Fallback to simple method if feed manager is not available
+            console.log('🖼️ DOM INSERT: Using fallback simple rendering');
+
             // Create the image element
             const img = this.createImageElement(_results);
 
             console.log('🖼️ DOM INSERT: Image element created', !!img);
-
-            this.handleAutoDownload(img, _results, download);
 
             // Find the container and loading placeholder
             const container = document.querySelector('.prompt-output');
@@ -316,7 +341,37 @@ class ImageDOMManager {
                 // Replace loading placeholder if it exists, otherwise append to end
                 if (loadingPlaceholder) {
                     console.log('🔄 Replacing loading placeholder with generated image');
-                    container.replaceChild(listItem, loadingPlaceholder);
+
+                    // If the loading placeholder has dual views, we need to preserve the structure
+                    const loadingWrapper = loadingPlaceholder.querySelector('.image-wrapper');
+                    if (loadingWrapper && loadingWrapper.querySelector('.compact-view') && loadingWrapper.querySelector('.list-view')) {
+                        console.log('🔄 Loading placeholder has dual views, preserving structure');
+
+                        // Replace the loading placeholder content with the new image
+                        // but keep the wrapper structure
+                        const newWrapper = listItem.querySelector('.image-wrapper');
+                        if (newWrapper) {
+                            // Copy the new image element to the existing wrapper
+                            const newImg = newWrapper.querySelector('img');
+                            if (newImg) {
+                                // Clear the existing content
+                                loadingWrapper.innerHTML = '';
+
+                                // Add the new image element
+                                loadingWrapper.appendChild(newImg);
+
+                                // Re-enhance the wrapper to get proper dual views
+                                if (window.feedManager && window.feedManager.viewManager) {
+                                    window.feedManager.viewManager.enhanceNewImageWrapper(loadingWrapper);
+                                }
+
+                                console.log('✅ Loading placeholder replaced with enhanced structure');
+                            }
+                        }
+                    } else {
+                        // Simple replacement for non-dual-view placeholders
+                        container.replaceChild(listItem, loadingPlaceholder);
+                    }
                 } else {
                     console.log('📝 No loading placeholder found, appending to end');
                     container.appendChild(listItem);
@@ -343,6 +398,49 @@ class ImageDOMManager {
         if (download && autoDownload) {
             this.downloadImage(img, _results);
         }
+    }
+
+    /**
+     * Normalize image data to match feed format
+     * @param {Object} _results - Raw image generation results
+     * @returns {Object} Normalized image data for feed
+     */
+    normalizeImageDataForFeed(_results) {
+        // Get current user for proper filtering
+        const currentUser = this.getCurrentUser();
+
+        // Normalize image URL to ensure consistent format
+        let imageUrl = _results.imageUrl || _results.image || _results.url || '';
+
+        // Don't modify base64 data - it should be handled by the image component
+        // Only add leading slash for actual URL paths
+        if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/') &&
+            !imageUrl.startsWith('iVBORw0KGgo') && !imageUrl.startsWith('/9j/')) {
+            imageUrl = `/${imageUrl}`;
+        }
+
+        return {
+            id: _results.id || _results._id || this.generateId(),
+            url: imageUrl,
+            title: _results.prompt || 'Generated Image',
+            prompt: _results.prompt || '',
+            original: _results.original || _results.prompt || '',
+            provider: _results.provider || _results.providerName || 'unknown',
+            guidance: _results.guidance || '',
+            rating: parseInt(_results.rating) || 0,
+            isPublic: _results.isPublic || false,
+            userId: _results.userId || (currentUser ? currentUser.id : null),
+            createdAt: _results.createdAt || new Date().toISOString(),
+            filter: currentUser ? 'user' : 'site'
+        };
+    }
+
+    /**
+     * Generate a unique ID for images
+     * @returns {string} Unique ID
+     */
+    generateId() {
+        return 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
 
     createWrapperWithObserver(img) {
@@ -463,36 +561,49 @@ class ImageDOMManager {
         const li = Utils.dom.createElement('li', 'image-item loading-placeholder');
         const wrapper = Utils.dom.createElement('div', 'image-wrapper loading');
 
-        wrapper.style.width = '100%';
-        wrapper.style.height = '150px';
-        wrapper.style.display = 'flex';
-        wrapper.style.justifyContent = 'center';
-        wrapper.style.alignItems = 'center';
-        wrapper.style.backgroundColor = '#f5f5f5';
-        wrapper.style.borderRadius = '3px';
-        wrapper.style.position = 'relative';
-        wrapper.style.border = '2px dashed #ccc';
+        // Set up wrapper with proper data attributes for filtering
+        const currentUser = this.getCurrentUser();
+        const userId = currentUser ? currentUser.id : 'unknown';
+        const filterType = currentUser ? 'user' : 'site';
+
+        wrapper.dataset.filter = filterType;
+        wrapper.dataset.userId = userId;
+        wrapper.dataset.isPublic = 'false';
+        wrapper.dataset.imageId = 'loading_' + Date.now();
+
+        // Create dual view structure (compact and list)
+        const compactView = Utils.dom.createElement('div', 'compact-view');
+        const listView = Utils.dom.createElement('div', 'list-view');
+
+        // Set up compact view (original loading placeholder)
+        compactView.style.cssText = `
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+            border: 2px dashed #ccc;
+        `;
 
         const loadingContent = Utils.dom.createElement('div', 'loading-content');
-
         loadingContent.style.textAlign = 'center';
         loadingContent.style.color = '#666';
 
         const spinner = Utils.dom.createElement('div', 'spinner');
-
         spinner.innerHTML = '⏳';
         spinner.style.fontSize = '24px';
         spinner.style.marginBottom = '8px';
         spinner.style.animation = 'spin 1s linear infinite';
 
         const text = Utils.dom.createElement('div', 'loading-text');
-
         text.textContent = 'Generating...';
         text.style.fontSize = '12px';
         text.style.fontWeight = 'bold';
 
         const promptPreview = Utils.dom.createElement('div', 'prompt-preview');
-
         promptPreview.textContent = promptObj.prompt.length > 30 ?
             `${promptObj.prompt.substring(0, 30)}...` :
             promptObj.prompt;
@@ -503,10 +614,159 @@ class ImageDOMManager {
         loadingContent.appendChild(spinner);
         loadingContent.appendChild(text);
         loadingContent.appendChild(promptPreview);
-        wrapper.appendChild(loadingContent);
-        li.appendChild(wrapper);
+        compactView.appendChild(loadingContent);
 
+        // Set up list view (shows metadata while loading)
+        listView.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            min-height: 100px;
+        `;
+
+        // Create loading thumbnail placeholder
+        const imageThumb = Utils.dom.createElement('div', 'list-image-thumb');
+        imageThumb.style.cssText = `
+            width: 100px;
+            height: 100px;
+            background: rgba(75, 85, 99, 0.5);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 24px;
+        `;
+        imageThumb.innerHTML = '⏳';
+
+        // Create content area with metadata
+        const content = Utils.dom.createElement('div', 'list-content');
+        content.style.flex = '1';
+
+        // Header with title and loading indicator
+        const header = Utils.dom.createElement('div', 'list-header');
+        header.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        `;
+
+        const title = Utils.dom.createElement('h3', 'list-title');
+        title.textContent = 'Generating Image...';
+        title.style.cssText = `
+            margin: 0;
+            color: #f9fafb;
+            font-size: 16px;
+        `;
+
+        const loadingIndicator = Utils.dom.createElement('div', 'list-loading');
+        loadingIndicator.innerHTML = '⏳';
+        loadingIndicator.style.cssText = `
+            color: #10b981;
+            font-size: 16px;
+            animation: spin 1s linear infinite;
+        `;
+
+        header.appendChild(title);
+        header.appendChild(loadingIndicator);
+
+        // Prompt section
+        const promptSection = Utils.dom.createElement('div', 'list-prompt-section');
+        promptSection.style.marginBottom = '8px';
+
+        const promptLabel = Utils.dom.createElement('span', 'list-prompt-label');
+        promptLabel.textContent = 'Prompt:';
+        promptLabel.style.cssText = `
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        `;
+
+        const promptText = Utils.dom.createElement('div', 'list-prompt-text');
+        promptText.textContent = promptObj.prompt || 'No prompt available';
+        promptText.style.cssText = `
+            color: #d1d5db;
+            font-size: 14px;
+            margin-top: 4px;
+        `;
+
+        promptSection.appendChild(promptLabel);
+        promptSection.appendChild(promptText);
+
+        // Metadata row
+        const metadata = Utils.dom.createElement('div', 'list-metadata');
+        metadata.style.cssText = `
+            display: flex;
+            gap: 16px;
+            color: #9ca3af;
+            font-size: 12px;
+        `;
+
+        const provider = Utils.dom.createElement('span');
+        provider.textContent = `Provider: ${promptObj.providers?.[0] || 'Unknown'}`;
+
+        const status = Utils.dom.createElement('span');
+        status.textContent = 'Generating...';
+        status.style.color = '#10b981';
+
+        const date = Utils.dom.createElement('span');
+        date.textContent = `Created: ${new Date().toLocaleDateString()}`;
+
+        metadata.appendChild(provider);
+        metadata.appendChild(status);
+        metadata.appendChild(date);
+
+        // Assemble content
+        content.appendChild(header);
+        content.appendChild(promptSection);
+        content.appendChild(metadata);
+
+        // Assemble list view
+        listView.appendChild(imageThumb);
+        listView.appendChild(content);
+
+        // Add both views to wrapper
+        wrapper.appendChild(compactView);
+        wrapper.appendChild(listView);
+
+        // Set initial visibility based on current view
+        if (window.feedManager && window.feedManager.viewManager) {
+            const currentView = window.feedManager.viewManager.currentView || 'compact';
+            this.updateWrapperView(wrapper, currentView);
+        } else {
+            // Default to compact view
+            this.updateWrapperView(wrapper, 'compact');
+        }
+
+        li.appendChild(wrapper);
         return li;
+    }
+
+    /**
+     * Update wrapper view visibility
+     * @param {HTMLElement} wrapper - Wrapper element
+     * @param {string} viewType - View type ('compact' or 'list')
+     */
+    updateWrapperView(wrapper, viewType) {
+        const compactView = wrapper.querySelector('.compact-view');
+        const listView = wrapper.querySelector('.list-view');
+
+        if (compactView && listView) {
+            if (viewType === 'list') {
+                compactView.style.display = 'none';
+                listView.style.display = 'flex';
+            } else {
+                compactView.style.display = 'flex';
+                listView.style.display = 'none';
+            }
+        }
     }
 
     showLoadingPlaceholder(promptObj) {

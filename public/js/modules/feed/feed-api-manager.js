@@ -6,10 +6,12 @@ class FeedAPIManager {
 
     // Load feed images for specific filter
     async loadFeedImages(filter, page = 1) {
+        console.log('🔍 FEED: Loading feed images for filter:', filter, 'page:', page);
         try {
             const endpoint = this.getEndpointForFilter(filter);
             const params = this.buildRequestParams(filter, page);
 
+            console.log('🔍 FEED: Making API request to:', endpoint, 'with params:', params);
             const response = await this.makeAPIRequest(endpoint, params);
 
             return this.processAPIResponse(response, filter);
@@ -82,6 +84,7 @@ class FeedAPIManager {
 
     // Process API response
     processAPIResponse(response, filter) {
+        console.log('🔍 FEED: Processing API response for filter:', filter);
         try {
             // Handle different response structures
             let images = [];
@@ -106,6 +109,17 @@ class FeedAPIManager {
             // Handle the new API response structure: {success: true, data: {items: [...], pagination: {...}}}
             if (response.data && Array.isArray(response.data.items)) {
                 images = response.data.items;
+
+                // Debug: Log the first image to see what fields are included
+                if (images.length > 0) {
+                    console.log('🔍 API: First image data from server:', {
+                        id: images[0].id,
+                        isPublic: images[0].isPublic,
+                        userId: images[0].userId,
+                        hasIsPublic: 'isPublic' in images[0],
+                        allFields: Object.keys(images[0])
+                    });
+                }
                 totalCount = response.data.pagination?.total || images.length;
                 const currentPage = response.data.pagination?.page || 0;
                 const limit = response.data.pagination?.limit || 20;
@@ -191,6 +205,8 @@ class FeedAPIManager {
             provider: image.provider || 'unknown',
             original: image.original || '',
             guidance: image.guidance || '',
+            isPublic: image.isPublic || false,
+            userId: image.userId || null,
             filter,
             createdAt: image.createdAt || image.created_at || new Date().toISOString()
         };

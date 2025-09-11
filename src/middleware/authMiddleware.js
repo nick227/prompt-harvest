@@ -31,7 +31,8 @@ export const authenticateToken = async (req, res, next) => {
         });
 
         if (!user) {
-            // Invalid user ID in token
+            // Invalid user ID in token - user may have been deleted
+            console.log('🔐 BACKEND: User not found for token, treating as anonymous access');
             req.user = null;
 
             return next();
@@ -42,6 +43,7 @@ export const authenticateToken = async (req, res, next) => {
     } catch (error) {
         if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
             // JWT verification failed - allow anonymous access
+            console.log('🔐 BACKEND: JWT verification failed, allowing anonymous access');
             req.user = null;
 
             return next();

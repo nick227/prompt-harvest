@@ -351,11 +351,11 @@ class TermsDOMManager {
         const termsList = this.getElement('termsList');
 
         if (!termsList) {
+            console.error('❌ DOM: Terms list element not found');
             return;
         }
 
         const row = this.createTermRow(term, index);
-
         termsList.appendChild(row);
     }
 
@@ -364,12 +364,12 @@ class TermsDOMManager {
         const termsList = this.getElement('termsList');
 
         if (!termsList) {
+            console.error('❌ DOM: Terms list element not found');
             return;
         }
 
         for (let i = 0; i < count; i++) {
             const skeletonRow = this.createSkeletonRow();
-
             termsList.appendChild(skeletonRow);
         }
     }

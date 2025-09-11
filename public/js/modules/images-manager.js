@@ -26,6 +26,12 @@ class ImagesManager {
     async generateImage(prompt, providers = []) {
         console.log('🚀 MANAGER: generateImage started', { prompt, providers });
 
+        // Check if user is authenticated
+        if (!window.userApi || !window.userApi.isAuthenticated()) {
+            console.error('❌ MANAGER: User must be logged in to generate images');
+            throw new Error('You must be logged in to generate images. Please log in and try again.');
+        }
+
         try {
             // Generate image via API
             const imageData = await this.api.generateImage(prompt, providers);

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageUI Fix Test</title>
+</head>
+<body>
+    <h1>ImageUI Fix Test</h1>
+    <div id="test-results"></div>
+
+    <!-- Load the standalone ImageUI -->
+    <script src="public/js/components/image/image-ui-standalone.js"></script>
+
+    <script>
+        // Test if ImageUI is properly defined
+        const results = document.getElementById('test-results');
+
+        try {
+            if (typeof ImageUI !== 'undefined') {
+                results.innerHTML += '<p style="color: green;">✅ ImageUI class is defined</p>';
+
+                // Test creating an instance
+                const imageUI = new ImageUI();
+                results.innerHTML += '<p style="color: green;">✅ ImageUI instance created successfully</p>';
+
+                // Test basic methods
+                const config = imageUI.getConfig();
+                results.innerHTML += '<p style="color: green;">✅ getConfig() method works</p>';
+
+                const element = imageUI.createElement('div', 'test-class');
+                results.innerHTML += '<p style="color: green;">✅ createElement() method works</p>';
+
+                // Test with mock image data
+                const mockImageData = {
+                    id: 'test-123',
+                    url: 'https://via.placeholder.com/150',
+                    title: 'Test Image',
+                    rating: 5,
+                    isPublic: false
+                };
+
+                const imageElement = imageUI.createImageElement(mockImageData);
+                results.innerHTML += '<p style="color: green;">✅ createImageElement() method works</p>';
+
+                const imageWrapper = imageUI.createImageWrapper(mockImageData);
+                results.innerHTML += '<p style="color: green;">✅ createImageWrapper() method works</p>';
+
+                results.innerHTML += '<p style="color: green; font-weight: bold;">🎉 All tests passed! ImageUI is working correctly.</p>';
+
+            } else {
+                results.innerHTML += '<p style="color: red;">❌ ImageUI class is not defined</p>';
+            }
+        } catch (error) {
+            results.innerHTML += `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            console.error('Test error:', error);
+        }
+    </script>
+</body>
+</html>

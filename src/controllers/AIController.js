@@ -60,11 +60,15 @@ export class AIController {
     async addWordTypePost(req, res) {
         try {
             const { word } = req.body;
+            console.log('🔍 AI CONTROLLER: addWordTypePost called with word:', word);
+
             if (!word) {
                 return res.status(400).json({ error: 'Word is required' });
             }
 
             const response = await this.aiService.addWordType(word);
+            console.log('✅ AI CONTROLLER: Service response:', response);
+
             res.json(response);
         } catch (error) {
             console.error('❌ Add word type POST error:', error);

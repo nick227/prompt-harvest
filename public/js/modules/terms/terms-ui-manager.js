@@ -110,24 +110,32 @@ class TermsUIManager {
 
     // Handle add term
     handleAddTerm() {
+        console.log('🎯 UI: handleAddTerm called');
+
         if (this.isProcessing) {
+            console.log('⚠️ UI: Already processing, ignoring request');
             return;
         }
 
         const termInput = this.domManager.getElement('termInput');
+        console.log('🔍 UI: Term input element:', termInput);
 
         if (!termInput) {
+            console.error('❌ UI: Term input element not found');
             return;
         }
 
         const termWord = termInput.value.trim();
+        console.log('📝 UI: Term word extracted:', termWord);
 
         if (!termWord) {
+            console.log('⚠️ UI: Empty term word, showing error message');
             this.showMessage(window.TERMS_CONSTANTS.MESSAGE_TYPES.ERROR, 'Please enter a term');
 
             return;
         }
 
+        console.log('🚀 UI: Dispatching TERM_ADDED event with term:', termWord);
         // Dispatch custom event
         this.dispatchEvent(window.TERMS_CONSTANTS.EVENTS.TERM_ADDED, { term: termWord });
     }

@@ -6,10 +6,11 @@ class ImageComponent {
     }
 
     init() {
-
         this.manager.init();
         this.isInitialized = true;
 
+        // Expose manager to global scope for other components
+        window.imageManager = this.manager;
     }
 
     // Public method to re-setup event delegation (useful for debugging)
@@ -56,6 +57,10 @@ class ImageComponent {
 
     updateImageRating(imageId, rating) {
         return this.manager.updateImageRating(imageId, rating);
+    }
+
+    updateImagePublicStatus(imageId, isPublic) {
+        return this.manager.updateImagePublicStatus(imageId, isPublic);
     }
 
     rateImageInFullscreen(rating) {

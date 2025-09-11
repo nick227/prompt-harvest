@@ -32,6 +32,9 @@ class TermsAPIManager {
     // Add term via API
     async addTerm(termWord) {
         try {
+            console.log('🚀 API: Starting addTerm request for:', termWord);
+            console.log('🔍 API: Request URL:', `${this.baseURL}${window.TERMS_CONSTANTS.ENDPOINTS.ADD_TERM}`);
+
             const response = await fetch(`${this.baseURL}${window.TERMS_CONSTANTS.ENDPOINTS.ADD_TERM}`, {
                 method: 'POST',
                 headers: {
@@ -42,6 +45,12 @@ class TermsAPIManager {
                 body: JSON.stringify({
                     word: termWord.trim()
                 })
+            });
+
+            console.log('📡 API: Response received:', {
+                status: response.status,
+                ok: response.ok,
+                statusText: response.statusText
             });
 
             if (!response.ok) {

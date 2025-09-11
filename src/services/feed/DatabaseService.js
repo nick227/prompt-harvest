@@ -13,6 +13,7 @@
 
 import databaseClient from '../../database/PrismaClient.js';
 import { FileSystemManager } from '../../utils/FileSystemManager.js';
+import { generateId } from '../../utils/FeedUtils.js';
 
 // ============================================================================
 // DATABASE CONNECTION
@@ -71,7 +72,8 @@ const saveImageToDatabase = async imageData => {
                 original: imageData.original,
                 provider: imageData.provider,
                 imageUrl: imageUrl, // Store file path, not base64 data
-                userId: imageData.userId // Can be null for anonymous users
+                userId: imageData.userId, // Can be null for anonymous users
+                isPublic: false // Default to private
             }
         });
 
@@ -175,6 +177,7 @@ const savePromptToDatabase = async promptData => {
 
         const prompt = await prisma.prompts.create({
             data: {
+                id: generateId(),
                 original: promptData.original,
                 prompt: promptData.prompt,
                 provider: promptData.provider || 'unknown',

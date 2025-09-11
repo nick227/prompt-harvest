@@ -20,7 +20,7 @@ export const ImageGenerationContract = {
             allowedValues: [
                 'flux', 'dalle', 'juggernaut', 'juggernautReborn', 'redshift',
                 'absolute', 'realisticvision', 'icbinp', 'icbinp_seco', 'hasdx',
-                'dreamshaper', 'nightmareshaper', 'openjourney', 'analogmadness',
+                'dreamshaper', 'dreamshaperLighting', 'nightmareshaper', 'openjourney', 'analogmadness',
                 'portraitplus', 'tshirt', 'abyssorange', 'cyber', 'disco',
                 'synthwave', 'lowpoly', 'bluepencil', 'ink'
             ],

@@ -582,6 +582,22 @@ class ImageApiService extends ApiService {
     }
 
     /**
+     * Update image public status
+     */
+    async updatePublicStatus(id, isPublic) {
+        if (!id) {
+            throw new Error('Image ID is required');
+        }
+
+        if (typeof isPublic !== 'boolean') {
+            throw new Error('isPublic must be a boolean value');
+        }
+
+        // Note: User authentication is handled by the backend via JWT token
+        return this.put(`/api/images/${id}/public-status`, { isPublic });
+    }
+
+    /**
      * Get image statistics
      */
     async getImageStats() {
