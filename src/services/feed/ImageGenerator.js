@@ -457,14 +457,21 @@ const makeDezgoRequest = async (url, prompt, model, _guidance) => {
             timeout: 120000
         });
     } else {
-        // Use legacy approach with form-urlencoded and fixed guidance
+        // Use legacy approach with form-urlencoded and model-specific guidance
         const params = {
             prompt,
             negative_prompt: '',
-            guidance: 8, // Fixed guidance like in legacy implementation
             seed: generateRandomNineCharNumber(),
             model
         };
+
+        // Model-specific guidance handling
+        if (url.includes('text2image_sdxl_lightning') || model.includes('lightning')) {
+            // Lightning models have different guidance limits
+            params.guidance = 1; // Use minimal guidance for lightning models
+        } else {
+            params.guidance = 8; // Standard guidance for other models
+        }
 
         console.log('🔍 DEZGO: Making request with params:', {
             url,
