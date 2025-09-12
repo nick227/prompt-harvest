@@ -118,49 +118,49 @@ class TermsManager {
     // Add term
     async addTerm(termWord) {
         try {
-
-            // Validate term
+            // Step 1: Validate term
+            this.uiManager.updateProgressMessage(`Validating "${termWord}"...`);
             const validatedTerm = this.apiManager.validateTermWord(termWord);
             console.log('✅ MANAGER: Term validated:', validatedTerm);
 
-            // Check for duplicates
+            // Step 2: Check for duplicates
+            this.uiManager.updateProgressMessage(`Checking for duplicates...`);
             if (this.cacheManager.termExists(validatedTerm)) {
                 console.log('⚠️ MANAGER: Duplicate term detected:', validatedTerm);
+                this.uiManager.completeProcessingError(`Term "${validatedTerm}" already exists`);
                 this.dispatchEvent(window.TERMS_CONSTANTS.EVENTS.DUPLICATE_DETECTED, { term: validatedTerm });
-
                 return;
             }
 
+            // Step 3: Prepare for API call
+            this.uiManager.updateProgressMessage(`Preparing to add "${validatedTerm}"...`);
             console.log('🔄 MANAGER: Setting loading state...');
             this.cacheManager.setLoading(true);
             this.uiManager.showLoading();
 
-            // Add term via API
+            // Step 4: Add term via API
+            this.uiManager.updateProgressMessage(`Adding "${validatedTerm}" to database...`);
             console.log('📡 MANAGER: Calling API to add term...');
             const addedTerm = await this.apiManager.addTerm(validatedTerm);
             console.log('✅ MANAGER: Term added successfully:', addedTerm);
 
-            // Add to cache
+            // Step 5: Update cache and search
+            this.uiManager.updateProgressMessage(`Updating search index...`);
             this.cacheManager.addTerm(addedTerm);
             this.searchService.setTerms(this.cacheManager.getTerms());
 
-            // Update UI
+            // Step 6: Update UI
+            this.uiManager.updateProgressMessage(`Refreshing display...`);
             this.updateTermsDisplay();
             this.updateTermCount();
 
-            // Clear input
+            // Step 7: Clear input and complete
             this.domManager.clearValue('termInput');
-
-            // Show success message
-            this.uiManager.showMessage(
-                window.TERMS_CONSTANTS.MESSAGE_TYPES.SUCCESS,
-                `Term "${validatedTerm}" added successfully`
-            );
+            this.uiManager.completeProcessingSuccess(`Term "${validatedTerm}" added successfully!`);
 
         } catch (error) {
             console.error('Error adding term:', error);
-            this.uiManager.showMessage(
-                window.TERMS_CONSTANTS.MESSAGE_TYPES.ERROR,
+            this.uiManager.completeProcessingError(
                 error.message || 'Failed to add term. Please try again.'
             );
         } finally {

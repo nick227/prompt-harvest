@@ -11,6 +11,7 @@ import { setupAuthRoutes } from './authRoutes.js';
 import { setupTransactionRoutes } from './transactionRoutes.js';
 import { setupWordRoutes } from './wordRoutes.js';
 import { setupPromptRoutes } from './promptRoutes.js';
+import setupViolationRoutes from './violationRoutes.js';
 import stripeModule from '../stripe.js';
 import express from 'express';
 import { EnhancedImageController } from '../controllers/EnhancedImageController.js';
@@ -102,6 +103,7 @@ export const setupRoutes = async app => {
     setupTransactionRoutes(app, transactionController); // Transaction accounting routes
     setupWordRoutes(app); // Word types and examples routes
     setupPromptRoutes(app, promptController); // User prompts routes
+    app.use('/api/violations', setupViolationRoutes); // Violation tracking routes
     stripeModule.init(app, express); // Stripe payment routes
 
     // Apply JWT authentication middleware to protected routes only

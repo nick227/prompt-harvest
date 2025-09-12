@@ -12,6 +12,7 @@
         --color-secondary: rgb(22, 177, 22);
         --color-rating: #ffd700;
         --top-bar-height: 5.6rem;
+        --top-margin-height: 7rem;
     }
 
     /* ==========================================================================
@@ -29,10 +30,15 @@
     /* Header */
 
     header {
-        position: relative;
+        position: fixed;
         z-index: 2;
         width: 100%;
         height: var(--top-bar-height);
+        top: 0;
+    }
+
+    main {
+        margin-top: var(--top-margin-height);
     }
 
     .accent {
@@ -278,6 +284,7 @@
         font-weight: 500;
         transition: all 0.3s ease;
         white-space: nowrap;
+        margin: 0 5px;
     }
 
     .fullscreen-controls button:hover {
@@ -349,8 +356,8 @@
 
     .info-box-content {
         padding: 16px;
-        max-height: 400px;
         overflow-y: auto;
+        width: 400px;
     }
 
     .info-box-content.collapsed {
@@ -1295,8 +1302,8 @@
     .list-image-thumb {
         flex-shrink: 0;
         width: 33%;
-        min-width: 200px;
-        height: 250px;
+        min-width: 345px;
+        height: 252px !important;
         border-radius: 8px;
         overflow: hidden;
         background: rgba(55, 65, 81, 0.5);

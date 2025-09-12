@@ -2,6 +2,7 @@ import express from 'express';
 import { setupRoutes } from './src/routes/index.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { moderateBadWordFilter } from './src/middleware/badWordFilter.js';
 
 dotenv.config();
 
@@ -15,6 +16,9 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Bad word filter - apply early to catch violations before processing
+app.use('/api', moderateBadWordFilter);
 
 // Serve static files BEFORE setting up routes
 app.use(express.static('public'));

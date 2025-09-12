@@ -77,6 +77,25 @@ class SimplifiedNavigation {
     }
 
     /**
+    * Download image
+     */
+    downloadImage() {
+        if (this.currentImageElement) {
+            // Create a temporary link element for download
+            const link = document.createElement('a');
+
+            link.href = this.currentImageElement.src;
+            link.download = this.currentImageElement.alt || 'image';
+            link.target = '_blank';
+
+            // Append to body, click, and remove
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
+    /**
      * Get the next image element in DOM order
      * @returns {HTMLElement|null} Next image element or null
      */
@@ -356,10 +375,8 @@ class SimplifiedNavigation {
         const items = [
             { label: 'Provider', value: imageData.provider || 'Unknown' },
             { label: 'Public', value: this.createPublicToggle(imageData) },
-            { label: 'Model', value: imageData.model || 'Unknown' },
+            { label: 'Creator', value: imageData.username || imageData.creator || 'Unknown' },
             { label: 'Guidance', value: imageData.guidance || 'N/A' },
-            { label: 'Steps', value: imageData.steps || 'N/A' },
-            { label: 'Seed', value: imageData.seed || 'N/A' },
             { label: 'Rating', value: this.formatRating(imageData.rating) },
             { label: 'Created', value: this.formatDate(imageData.createdAt) }
         ];
@@ -511,12 +528,14 @@ class SimplifiedNavigation {
 
         controls.className = 'fullscreen-controls';
 
-        const prevBtn = this.createButton('Previous', '←', () => this.navigatePrevious());
-        const nextBtn = this.createButton('Next', '→', () => this.navigateNext());
-        const closeBtn = this.createButton('Close', '×', () => this.closeFullscreen());
+        const prevBtn = this.createButton('Previous', 'Previous', () => this.navigatePrevious());
+        const nextBtn = this.createButton('Next', 'Next', () => this.navigateNext());
+        const closeBtn = this.createButton('Close', 'Close', () => this.closeFullscreen());
+        const downloadBtn = this.createButton('Download', 'Download', () => this.downloadImage());
 
         controls.appendChild(prevBtn);
         controls.appendChild(nextBtn);
+        controls.appendChild(downloadBtn);
         controls.appendChild(closeBtn);
 
         return controls;

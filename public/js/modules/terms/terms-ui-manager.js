@@ -131,9 +131,15 @@ class TermsUIManager {
         if (!termWord) {
             console.log('⚠️ UI: Empty term word, showing error message');
             this.showMessage(window.TERMS_CONSTANTS.MESSAGE_TYPES.ERROR, 'Please enter a term');
-
             return;
         }
+
+        // Set processing state immediately
+        this.isProcessing = true;
+        this.setProcessingState(true);
+
+        // Show immediate feedback
+        this.showMessage('info', `Adding "${termWord}"...`, 0); // 0 = no auto-hide
 
         console.log('🚀 UI: Dispatching TERM_ADDED event with term:', termWord);
         // Dispatch custom event
@@ -602,6 +608,47 @@ class TermsUIManager {
         } else {
             this.domManager.removeClass('termsList', 'mobile-layout');
         }
+    }
+
+    // Set processing state for form elements
+    setProcessingState(isProcessing) {
+        const addButton = this.domManager.getElement('addButton');
+        const termInput = this.domManager.getElement('termInput');
+
+        if (addButton) {
+            if (isProcessing) {
+                addButton.disabled = true;
+                addButton.textContent = 'Adding...';
+                addButton.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                addButton.disabled = false;
+                addButton.textContent = 'Add Term';
+                addButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        if (termInput) {
+            termInput.disabled = isProcessing;
+        }
+    }
+
+    // Update progress message
+    updateProgressMessage(message) {
+        this.showMessage('info', message, 0); // 0 = no auto-hide
+    }
+
+    // Complete processing with success
+    completeProcessingSuccess(message) {
+        this.isProcessing = false;
+        this.setProcessingState(false);
+        this.showMessage(window.TERMS_CONSTANTS.MESSAGE_TYPES.SUCCESS, message);
+    }
+
+    // Complete processing with error
+    completeProcessingError(message) {
+        this.isProcessing = false;
+        this.setProcessingState(false);
+        this.showMessage(window.TERMS_CONSTANTS.MESSAGE_TYPES.ERROR, message);
     }
 
     // Dispatch custom event

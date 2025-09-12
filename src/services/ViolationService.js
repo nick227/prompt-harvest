@@ -1,0 +1,342 @@
+import databaseClient from '../database/PrismaClient.js';
+
+const prisma = databaseClient.getClient();
+
+/**
+ * Service for managing content policy violations
+ */
+class ViolationService {
+    /**
+     * Get violation statistics
+     * @param {Object} options - Query options
+     * @param {string} options.userId - Filter by user ID
+     * @param {string} options.severity - Filter by severity
+     * @param {Date} options.startDate - Start date filter
+     * @param {Date} options.endDate - End date filter
+     * @param {number} options.limit - Limit results
+     * @param {number} options.offset - Offset for pagination
+     * @returns {Object} - Violation statistics and data
+     */
+    async getViolationStats(options = {}) {
+        const {
+            userId = null,
+            severity = null,
+            startDate = null,
+            endDate = null,
+            limit = 100,
+            offset = 0
+        } = options;
+
+        try {
+            // Build where clause
+            const where = {};
+
+            if (userId) {
+                where.userId = userId;
+            }
+            if (severity) {
+                where.severity = severity;
+            }
+            if (startDate || endDate) {
+                where.createdAt = {};
+                if (startDate) {
+                    where.createdAt.gte = startDate;
+                }
+                if (endDate) {
+                    where.createdAt.lte = endDate;
+                }
+            }
+
+            // Get total count
+            const totalCount = await prisma.violations.count({ where });
+
+            // Get violations with pagination
+            const violations = await prisma.violations.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                skip: offset,
+                select: {
+                    id: true,
+                    userId: true,
+                    userEmail: true,
+                    username: true,
+                    violationType: true,
+                    detectedWords: true,
+                    severity: true,
+                    endpoint: true,
+                    isBlocked: true,
+                    createdAt: true
+                }
+            });
+
+            // Get severity breakdown
+            const severityStats = await prisma.violations.groupBy({
+                by: ['severity'],
+                where,
+                _count: { severity: true }
+            });
+
+            // Get top violating users
+            const topViolators = await prisma.violations.groupBy({
+                by: ['userId', 'userEmail', 'username'],
+                where: { userId: { not: null } },
+                _count: { userId: true },
+                orderBy: { _count: { userId: 'desc' } },
+                take: 10
+            });
+
+            // Get top endpoints with violations
+            const topEndpoints = await prisma.violations.groupBy({
+                by: ['endpoint'],
+                where,
+                _count: { endpoint: true },
+                orderBy: { _count: { endpoint: 'desc' } },
+                take: 10
+            });
+
+            // Get recent violations (last 24 hours)
+            const recentViolations = await prisma.violations.count({
+                where: {
+                    ...where,
+                    createdAt: {
+                        gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
+                    }
+                }
+            });
+
+            return {
+                totalCount,
+                violations,
+                severityStats: severityStats.map(stat => ({
+                    severity: stat.severity,
+                    count: stat._count.severity
+                })),
+                topViolators: topViolators.map(violator => ({
+                    userId: violator.userId,
+                    userEmail: violator.userEmail,
+                    username: violator.username,
+                    violationCount: violator._count.userId
+                })),
+                topEndpoints: topEndpoints.map(endpoint => ({
+                    endpoint: endpoint.endpoint,
+                    violationCount: endpoint._count.endpoint
+                })),
+                recentViolations,
+                pagination: {
+                    limit,
+                    offset,
+                    hasMore: offset + limit < totalCount
+                }
+            };
+        } catch (error) {
+            console.error('❌ Error getting violation stats:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get violations for a specific user
+     * @param {string} userId - User ID
+     * @param {Object} options - Query options
+     * @returns {Array} - User violations
+     */
+    async getUserViolations(userId, options = {}) {
+        const { limit = 50, offset = 0 } = options;
+
+        try {
+            return await prisma.violations.findMany({
+                where: { userId },
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                skip: offset,
+                select: {
+                    id: true,
+                    violationType: true,
+                    detectedWords: true,
+                    severity: true,
+                    endpoint: true,
+                    isBlocked: true,
+                    createdAt: true
+                }
+            });
+        } catch (error) {
+            console.error('❌ Error getting user violations:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get violation details by ID
+     * @param {string} violationId - Violation ID
+     * @returns {Object} - Violation details
+     */
+    async getViolationById(violationId) {
+        try {
+            return await prisma.violations.findUnique({
+                where: { id: violationId },
+                select: {
+                    id: true,
+                    userId: true,
+                    userEmail: true,
+                    username: true,
+                    violationType: true,
+                    detectedWords: true,
+                    originalContent: true,
+                    sanitizedContent: true,
+                    severity: true,
+                    ipAddress: true,
+                    userAgent: true,
+                    endpoint: true,
+                    requestId: true,
+                    isBlocked: true,
+                    createdAt: true
+                }
+            });
+        } catch (error) {
+            console.error('❌ Error getting violation by ID:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Delete old violations (cleanup)
+     * @param {number} daysOld - Delete violations older than this many days
+     * @returns {number} - Number of violations deleted
+     */
+    async cleanupOldViolations(daysOld = 90) {
+        try {
+            const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
+
+            const result = await prisma.violations.deleteMany({
+                where: {
+                    createdAt: {
+                        lt: cutoffDate
+                    }
+                }
+            });
+
+            console.log(`🧹 Cleaned up ${result.count} violations older than ${daysOld} days`);
+            return result.count;
+        } catch (error) {
+            console.error('❌ Error cleaning up old violations:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get violation trends over time
+     * @param {Object} options - Query options
+     * @param {number} options.days - Number of days to analyze
+     * @param {string} options.groupBy - Group by 'day', 'hour', or 'week'
+     * @returns {Array} - Trend data
+     */
+    async getViolationTrends(options = {}) {
+        const { days = 30, groupBy = 'day' } = options;
+
+        try {
+            const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+            // This would require raw SQL for proper date grouping
+            // For now, we'll get daily counts
+            const violations = await prisma.violations.findMany({
+                where: {
+                    createdAt: {
+                        gte: startDate
+                    }
+                },
+                select: {
+                    createdAt: true,
+                    severity: true,
+                    isBlocked: true
+                },
+                orderBy: { createdAt: 'asc' }
+            });
+
+            // Group by date
+            const trends = {};
+            violations.forEach(violation => {
+                const date = violation.createdAt.toISOString().split('T')[0];
+                if (!trends[date]) {
+                    trends[date] = {
+                        date,
+                        total: 0,
+                        blocked: 0,
+                        severity: {}
+                    };
+                }
+
+                trends[date].total++;
+                if (violation.isBlocked) {
+                    trends[date].blocked++;
+                }
+
+                if (!trends[date].severity[violation.severity]) {
+                    trends[date].severity[violation.severity] = 0;
+                }
+                trends[date].severity[violation.severity]++;
+            });
+
+            return Object.values(trends);
+        } catch (error) {
+            console.error('❌ Error getting violation trends:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Check if user should be temporarily banned
+     * @param {string} userId - User ID
+     * @param {Object} options - Ban criteria
+     * @returns {Object} - Ban recommendation
+     */
+    async checkUserBanStatus(userId, options = {}) {
+        const {
+            criticalThreshold = 5, // 5 critical violations
+            highThreshold = 10,    // 10 high severity violations
+            timeWindow = 24 * 60 * 60 * 1000 // 24 hours
+        } = options;
+
+        try {
+            const startDate = new Date(Date.now() - timeWindow);
+
+            const violations = await prisma.violations.findMany({
+                where: {
+                    userId,
+                    createdAt: {
+                        gte: startDate
+                    }
+                },
+                select: {
+                    severity: true,
+                    isBlocked: true
+                }
+            });
+
+            const criticalCount = violations.filter(v => v.severity === 'critical').length;
+            const highCount = violations.filter(v => v.severity === 'high').length;
+            const totalCount = violations.length;
+
+            const shouldBan = criticalCount >= criticalThreshold || highCount >= highThreshold;
+            const banReason = shouldBan
+                ? `User has ${criticalCount} critical and ${highCount} high severity violations in the last 24 hours`
+                : null;
+
+            return {
+                shouldBan,
+                banReason,
+                stats: {
+                    criticalCount,
+                    highCount,
+                    totalCount,
+                    timeWindow: timeWindow / (24 * 60 * 60 * 1000) // Convert to days
+                }
+            };
+        } catch (error) {
+            console.error('❌ Error checking user ban status:', error);
+            throw error;
+        }
+    }
+}
+
+export default ViolationService;

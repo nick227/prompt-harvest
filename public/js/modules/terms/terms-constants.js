@@ -40,7 +40,8 @@ const TERMS_CONSTANTS = {
     },
     MESSAGE_TYPES: {
         SUCCESS: 'success',
-        ERROR: 'error'
+        ERROR: 'error',
+        INFO: 'info'
     },
     SEARCH: {
         MIN_SEARCH_LENGTH: 2,

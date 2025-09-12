@@ -28,7 +28,6 @@ export class EnhancedImageService {
         console.log('✅ EnhancedImageService constructor completed');
     }
 
-    // eslint-disable-next-line max-params
     async generateImage(prompt, providers, guidance, userId, options = {}) {
         console.log('🔧 EnhancedImageService.generateImage called');
         const startTime = Date.now();
@@ -42,47 +41,8 @@ export class EnhancedImageService {
         });
 
         try {
-            // Step 1: Validate inputs with circuit breaker
-            await this.validateInputs(prompt, providers, guidance, userId);
-
-            // Step 2: Process prompt with circuit breaker
-            const processedData = await this.processPromptWithBreaker(prompt, options);
-
-            // Step 3: Save prompt to database if not already saved
-            let savedPromptId = processedData.promptId;
-            if (!savedPromptId && userId) {
-                console.log('💾 Saving prompt to database for authenticated user');
-                const feed = await import('../feed.js');
-                const req = { user: { id: userId } };
-
-                const savedPrompt = await feed.default.buildPrompt(
-                    processedData.prompt,
-                    false, // multiplier
-                    false, // mixup
-                    false, // mashup
-                    '', // customVariables
-                    req
-                );
-
-                savedPromptId = savedPrompt.promptId;
-                console.log('✅ Prompt saved with ID:', savedPromptId);
-            }
-
-            // Step 4: Generate image with circuit breaker
-            const imageData = await this.generateImageWithBreaker(
-                processedData.prompt,
-                processedData.original,
-                savedPromptId,
-                providers,
-                guidance,
-                userId
-            );
-
-            // Step 4: Image is already saved by feed.js, just return the result
-            console.log(`💾 Skipping database save - image already saved by feed.js [${requestId}]`);
-
+            const result = await this.executeImageGeneration(prompt, providers, guidance, userId, options, requestId);
             const duration = Date.now() - startTime;
-            const result = this.extractImageResult(imageData, processedData.prompt, processedData.original, guidance, userId);
 
             console.log(`✅ Image generation completed [${requestId}] in ${duration}ms:`, {
                 imageId: result.id,
@@ -104,12 +64,53 @@ export class EnhancedImageService {
                 userId: userId || null
             });
 
-            // Clean up any partial resources
             await this.cleanupOnFailure(error, requestId);
 
-            // Return appropriate error response
             return formatErrorResponse(error, requestId, Date.now() - startTime);
         }
+    }
+
+    async executeImageGeneration(prompt, providers, guidance, userId, options, requestId) {
+        // Step 1: Validate inputs with circuit breaker
+        await this.validateInputs(prompt, providers, guidance, userId);
+
+        // Step 2: Process prompt with circuit breaker
+        const processedData = await this.processPromptWithBreaker(prompt, options);
+
+        // Step 3: Save prompt to database if not already saved
+        let savedPromptId = processedData.promptId;
+
+        if (!savedPromptId && userId) {
+            console.log('💾 Saving prompt to database for authenticated user');
+            const feed = await import('../feed.js');
+            const req = { user: { id: userId } };
+
+            const savedPrompt = await feed.default.buildPrompt(
+                processedData.prompt,
+                false, // multiplier
+                false, // mixup
+                false, // mashup
+                '', // customVariables
+                req
+            );
+
+            savedPromptId = savedPrompt.promptId;
+            console.log('✅ Prompt saved with ID:', savedPromptId);
+        }
+
+        // Step 4: Generate image with circuit breaker
+        const imageData = await this.generateImageWithBreaker(
+            processedData.prompt,
+            processedData.original,
+            savedPromptId,
+            providers,
+            guidance,
+            userId
+        );
+
+        console.log(`💾 Skipping database save - image already saved by feed.js [${requestId}]`);
+
+        return this.extractImageResult(imageData, processedData.prompt, processedData.original, guidance, userId);
     }
 
     // eslint-disable-next-line max-lines-per-function, max-statements
@@ -501,6 +502,7 @@ export class EnhancedImageService {
 
         // First, verify the user owns the image
         const image = await this.imageRepository.findById(imageId);
+
         if (!image) {
             throw new NotFoundError('Image');
         }
@@ -534,10 +536,19 @@ export class EnhancedImageService {
             ? await this.imageRepository.findByUserId(userId, limit, page)
             : await this.imageRepository.findPublicImages(limit, page);
 
+        // Get unique user IDs and fetch usernames
+        const userIds = [...new Set(result.images.map(img => img.userId))];
+        const users = await this.prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, username: true }
+        });
+        const userMap = new Map(users.map(user => [user.id, user.username]));
+
         // Normalize image data
         const normalizedImages = result.images.map(image => ({
             id: image.id,
             userId: image.userId, // ✅ Added userId for client-side filtering
+            username: userMap.get(image.userId) || 'Unknown', // ✅ Added username from user map
             prompt: image.prompt,
             original: image.original,
             imageUrl: image.imageUrl,
@@ -569,10 +580,19 @@ export class EnhancedImageService {
 
         const result = await this.imageRepository.findUserOwnImages(userId, limit, page);
 
+        // Get unique user IDs and fetch usernames
+        const userIds = [...new Set(result.images.map(img => img.userId))];
+        const users = await this.prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, username: true }
+        });
+        const userMap = new Map(users.map(user => [user.id, user.username]));
+
         // Normalize image data
         const normalizedImages = result.images.map(image => ({
             id: image.id,
             userId: image.userId,
+            username: userMap.get(image.userId) || 'Unknown', // ✅ Added username from user map
             prompt: image.prompt,
             original: image.original,
             imageUrl: image.imageUrl,

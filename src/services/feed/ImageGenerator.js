@@ -444,6 +444,7 @@ const createFluxFormData = prompt => {
 
 
 const makeDezgoRequest = async (url, prompt, model, _guidance) => {
+
     if (url.includes('text2image_flux')) {
         const formData = createFluxFormData(prompt);
 
@@ -476,7 +477,7 @@ const makeDezgoRequest = async (url, prompt, model, _guidance) => {
         console.log('🔍 DEZGO: Making request with params:', {
             url,
             model,
-            prompt: prompt.substring(0, 50) + '...',
+            prompt: `${prompt.substring(0, 50)}...`,
             guidance: params.guidance,
             seed: params.seed
         });
