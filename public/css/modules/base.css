@@ -1,0 +1,54 @@
+/* ==========================================================================
+   BASE STYLES - Essential global styles and resets
+   ========================================================================== */
+
+/* Header */
+header {
+    position: fixed;
+    z-index: 2;
+    width: 100%;
+    height: var(--top-bar-height);
+    top: 0;
+}
+
+main {
+    margin-top: var(--top-margin-height);
+}
+
+/* Color utility classes */
+.accent {
+    background-color: var(--color-accent);
+}
+
+.secondary {
+    background-color: var(--color-secondary);
+}
+
+/* Button base styles */
+.btn {
+    font-size: 13px;
+}
+
+.btn-primary {
+    background: var(--color-accent);
+    color: white;
+}
+
+/* Label styles */
+.label {
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+.label span {
+    font-size: 26px;
+    padding: 0 3px;
+    font-weight: 700;
+}
+
+/* Input styles */
+input[type="number"] {
+    height: 48px;
+    font-size: 24px;
+    font-weight: 900;
+}

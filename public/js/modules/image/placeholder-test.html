@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Placeholder Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .prompt-output {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .image-item {
+            margin-bottom: 20px;
+        }
+
+        .image-wrapper {
+            position: relative;
+        }
+
+        .compact-view {
+            display: none;
+        }
+
+        .list-view {
+            display: none;
+        }
+
+        .image-wrapper.compact .compact-view {
+            display: block;
+        }
+
+        .image-wrapper.list .list-view {
+            display: block;
+        }
+
+        .view-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .test-controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="test-controls">
+        <h3 class="font-bold mb-2">Test Controls</h3>
+        <button id="addPlaceholder" class="bg-blue-500 text-white px-4 py-2 rounded mr-2 mb-2">
+            Add Placeholder
+        </button>
+        <button id="removePlaceholder" class="bg-red-500 text-white px-4 py-2 rounded mr-2 mb-2">
+            Remove Placeholder
+        </button>
+        <button id="addMultiple" class="bg-green-500 text-white px-4 py-2 rounded mr-2 mb-2">
+            Add Multiple
+        </button>
+    </div>
+
+    <div class="view-toggle">
+        <button id="toggleView" class="bg-purple-500 text-white px-4 py-2 rounded">
+            Switch to List View
+        </button>
+    </div>
+
+    <div class="prompt-output">
+        <h1 class="text-2xl font-bold mb-6 text-center">Loading Placeholder Test</h1>
+        <p class="text-gray-600 text-center mb-8">
+            Test the loading placeholders in both compact and list views
+        </p>
+    </div>
+
+    <script>
+        // Mock the required dependencies
+        window.ImageDOMUtils = {
+            createImageElement: () => document.createElement('img'),
+            createImageListItem: () => document.createElement('li'),
+            createWrapperElement: () => document.createElement('div'),
+            getCurrentUser: () => ({ id: 'test-user', name: 'Test User' })
+        };
+
+        window.ImageViewUtils = {
+            updateWrapperView: (wrapper, view) => {
+                wrapper.className = wrapper.className.replace(/compact|list/g, '');
+                wrapper.classList.add(view);
+            }
+        };
+
+        window.Utils = {
+            dom: {
+                createElement: (tagName, className) => {
+                    const element = document.createElement(tagName);
+                    if (className) element.className = className;
+                    return element;
+                }
+            }
+        };
+
+        window.feedManager = {
+            viewManager: {
+                currentView: 'compact'
+            }
+        };
+
+        // Load the LoadingPlaceholderFactory
+        const script = document.createElement('script');
+        script.src = 'LoadingPlaceholderFactory.js';
+        document.head.appendChild(script);
+
+        script.onload = () => {
+            const factory = new window.LoadingPlaceholderFactory();
+            let currentView = 'compact';
+            let placeholderCount = 0;
+
+            // Test data
+            const testPrompts = [
+                {
+                    prompt: "A beautiful sunset over mountains",
+                    original: "sunset mountains",
+                    final: "A beautiful sunset over mountains with golden light",
+                    providers: ["DALL-E", "Midjourney"]
+                },
+                {
+                    prompt: "Abstract art with vibrant colors",
+                    original: "abstract art",
+                    final: "Abstract art with vibrant colors and geometric shapes",
+                    providers: ["Stable Diffusion"]
+                },
+                {
+                    prompt: "Portrait of a cat wearing a hat",
+                    original: "cat hat",
+                    final: "Portrait of a cat wearing a stylish hat",
+                    providers: ["DALL-E"]
+                }
+            ];
+
+            // Add placeholder function
+            function addPlaceholder() {
+                const promptObj = testPrompts[placeholderCount % testPrompts.length];
+                const placeholder = factory.showLoadingPlaceholder(promptObj);
+
+                if (placeholder) {
+                    console.log('✅ Placeholder added successfully');
+                    placeholderCount++;
+                } else {
+                    console.error('❌ Failed to add placeholder');
+                }
+            }
+
+            // Remove placeholder function
+            function removePlaceholder() {
+                factory.removeLoadingPlaceholder();
+                console.log('🗑️ Placeholder removed');
+            }
+
+            // Add multiple placeholders
+            function addMultiplePlaceholders() {
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        addPlaceholder();
+                    }, i * 500);
+                }
+            }
+
+            // Toggle view function
+            function toggleView() {
+                currentView = currentView === 'compact' ? 'list' : 'compact';
+
+                // Update all placeholders
+                const placeholders = document.querySelectorAll('.loading-placeholder .image-wrapper');
+                placeholders.forEach(wrapper => {
+                    wrapper.className = wrapper.className.replace(/compact|list/g, '');
+                    wrapper.classList.add(currentView);
+                });
+
+                // Update button text
+                const button = document.getElementById('toggleView');
+                button.textContent = currentView === 'compact' ? 'Switch to List View' : 'Switch to Compact View';
+
+                console.log(`🔄 Switched to ${currentView} view`);
+            }
+
+            // Event listeners
+            document.getElementById('addPlaceholder').addEventListener('click', addPlaceholder);
+            document.getElementById('removePlaceholder').addEventListener('click', removePlaceholder);
+            document.getElementById('addMultiple').addEventListener('click', addMultiplePlaceholders);
+            document.getElementById('toggleView').addEventListener('click', toggleView);
+
+            console.log('🧪 Placeholder test environment ready!');
+            console.log('📋 Available commands:');
+            console.log('  - Click "Add Placeholder" to test single placeholder');
+            console.log('  - Click "Add Multiple" to test multiple placeholders');
+            console.log('  - Click "Remove Placeholder" to test removal');
+            console.log('  - Click "Switch View" to test view switching');
+        };
+    </script>
+</body>
+</html>

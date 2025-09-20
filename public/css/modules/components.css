@@ -1,0 +1,183 @@
+/* ==========================================================================
+   COMPONENT STYLES - UI components like buttons, forms, checkboxes, etc.
+   ========================================================================== */
+
+/* Matches Items - Rounded Minimal Buttons */
+#matches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    max-height: 8rem;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+
+#matches li {
+    background-color: var(--color-gray-600);
+    color: var(--color-text-secondary);
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    user-select: none;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#matches li:hover {
+    background-color: var(--color-gray-500);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#matches li:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Selected state for matches */
+#matches li.selected {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(84, 147, 240, 0.3);
+}
+
+/* Scrollbar styling for matches container */
+#matches::-webkit-scrollbar {
+    width: 6px;
+}
+
+#matches::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+#matches::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+#matches::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Public checkbox styles */
+.public-checkbox-container input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-status-success);
+    margin: 0;
+}
+
+.public-checkbox-container label {
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+.public-checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* List view public checkbox styles */
+.list-public-checkbox-container input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--color-status-success);
+    margin: 0;
+}
+
+.list-public-checkbox-container label {
+    font-size: 11px;
+    color: white;
+    cursor: pointer;
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+.list-public-checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Compact view public checkbox styles */
+.compact-public-checkbox-container input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--color-status-success);
+    margin: 0;
+}
+
+.compact-public-checkbox-container label {
+    font-size: 11px;
+    color: white;
+    cursor: pointer;
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+.compact-public-checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Custom Checkbox Styles for Controls Drawer */
+.checkbox-custom {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.checkbox-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background-color: transparent;
+    border-radius: 1px;
+    transition: all 0.2s ease;
+    opacity: 0;
+}
+
+/* Checked state for custom checkboxes */
+input[type="checkbox"]:checked + .checkbox-custom {
+    background-color: var(--color-purple-500);
+    border-color: var(--color-purple-500);
+}
+
+input[type="checkbox"]:checked + .checkbox-custom::after {
+    background-color: white;
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 4px;
+    height: 8px;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    border-radius: 0;
+}
+
+/* Hover state for custom checkboxes */
+.checkbox-custom:hover {
+    border-color: var(--color-purple-400);
+}
+
+/* Focus state for accessibility */
+input[type="checkbox"]:focus + .checkbox-custom {
+    outline: 2px solid var(--color-purple-500);
+    outline-offset: 2px;
+}

@@ -1,0 +1,8 @@
+# Ignore files that contain optional chaining to prevent breaking syntax
+**/*.js
+src/**/*.js
+public/js/**/*.js
+
+# Only format specific files that don't use optional chaining
+!package.json
+!package-lock.json

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoImage - AI Image Generator</title>
+    <link rel="stylesheet" href="css/optimized.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
+    <link rel="icon" href="/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        custom: '#123456',
+                    },
+                },
+            },
+        }
+
+        // Validation functions for maxNum input
+        function validateMaxNum(input) {
+            const value = parseInt(input.value);
+
+            // Clear any non-numeric characters
+            input.value = input.value.replace(/[^0-9]/g, '');
+
+            // Enforce maximum value of 10
+            if (value > 10) {
+                input.value = '10';
+            }
+
+            // Enforce minimum value of 1
+            if (value < 1 && input.value !== '') {
+                input.value = '1';
+            }
+        }
+
+        function preventInvalidChars(event) {
+            const char = String.fromCharCode(event.which);
+
+            // Allow: backspace, delete, tab, escape, enter, home, end, left, right, up, down
+            if ([8, 9, 27, 13, 46, 35, 36, 37, 38, 39, 40].indexOf(event.keyCode) !== -1 ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (event.keyCode === 65 && event.ctrlKey === true) ||
+                (event.keyCode === 67 && event.ctrlKey === true) ||
+                (event.keyCode === 86 && event.ctrlKey === true) ||
+                (event.keyCode === 88 && event.ctrlKey === true)) {
+                return;
+            }
+
+            // Only allow digits 0-9
+            if (!/[0-9]/.test(char)) {
+                event.preventDefault();
+                return false;
+            }
+        }
+
+        function handleMaxNumPaste(event) {
+            event.preventDefault();
+
+            // Get pasted text
+            const paste = (event.clipboardData || window.clipboardData).getData('text');
+
+            // Extract only digits
+            const digitsOnly = paste.replace(/[^0-9]/g, '');
+
+            // Limit to maximum value of 10
+            const numValue = parseInt(digitsOnly);
+            const finalValue = numValue > 10 ? '10' : (numValue < 1 ? '1' : digitsOnly);
+
+            // Set the value
+            event.target.value = finalValue;
+
+            // Trigger validation
+            validateMaxNum(event.target);
+        }
+    </script>
+
+</head>
+
+<body class="bg-gray-800 text-gray-200 w-full min-h-screen">
+
+    <!-- Unified Drawer Components (Desktop & Mobile) -->
+    <!-- These will be dynamically created by the UnifiedDrawerComponent -->
+    <div id="controls-drawer"
+        class="fixed left-0 top-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl border-r border-gray-700" style="display: none;">
+        <div class="p-6">
+
+            <!-- Search Section -->
+            <div class="mb-8 max-sm:mb-4" data-section="providers">
+                <div class="flex items-stretch gap-2 mb-4 max-sm:mb-2 w-full">
+                    <h3 class="text-lg font-semibold text-green-400 max-sm:text-base">Search</h3>
+                </div>
+                <div class="flex gap-2 sub-controls">
+                    <!-- Search -->
+                    <div class="search">
+                        <input type="text" name="image-search" placeholder="search"
+                            class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Providers Section -->
+            <div class="mb-8 max-sm:mb-4" data-section="providers">
+                <div class="flex items-stretch gap-2 mb-4 max-sm:mb-2 w-full">
+                    <h3 class="text-lg font-semibold text-green-400 max-sm:text-base">Models</h3>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3">
+                    <div id="provider-list" class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                        <!-- Providers will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="mb-8 max-sm:mb-4" data-section="settings">
+                <div class="flex items-center gap-2 mb-4 max-sm:mb-2">
+                    <h3 class="text-lg font-semibold text-blue-400 max-sm:text-base">Settings</h3>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative">
+                            <input type="checkbox" name="autoDownload" class="sr-only" />
+                            <div
+                                class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-blue-400 transition-colors checkbox-custom">
+                            </div>
+                        </div>
+                        <span class="text-gray-200 group-hover:text-white transition-colors">Auto Download</span>
+                    </label>
+                </div>
+                <!-- Guidance Section -->
+                <div
+                    class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4 max-sm:p-3 max-sm:space-y-3">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Bottom Guidance</label>
+                        <select
+                            class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                            name="guidance-bottom">
+                            <option value>None</option>
+                            <option value="1">1 - Minimal</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 - Balanced</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10 - Strong</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20 - Maximum</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Top Guidance</label>
+                        <select
+                            class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                            name="guidance-top">
+                            <option value>None</option>
+                            <option value="1">1 - Minimal</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 - Balanced</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10 - Strong</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20 - Maximum</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Prompt Enhancement Section -->
+                <div
+                    class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4 max-sm:p-3 max-sm:space-y-3">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Multiplier Text</label>
+                        <input type="text" id="multiplier" placeholder="Enter enhancement text..."
+                            class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-400" />
+                    </div>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" name="mixup" class="sr-only" />
+                                <div
+                                    class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom">
+                                </div>
+                            </div>
+                            <span class="text-gray-200 group-hover:text-white transition-colors">Mixup</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" name="mashup" class="sr-only" />
+                                <div
+                                    class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom">
+                                </div>
+                            </div>
+                            <span class="text-gray-200 group-hover:text-white transition-colors">Mashup</span>
+                        </label>
+                    </div>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" name="photogenic" class="sr-only" />
+                                <div
+                                    class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom">
+                                </div>
+                            </div>
+                            <span class="text-gray-200 group-hover:text-white transition-colors">Photogenic</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" name="artistic" class="sr-only" />
+                                <div
+                                    class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom">
+                                </div>
+                            </div>
+                            <span class="text-gray-200 group-hover:text-white transition-colors">Artistic</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Section -->
+            <div class="mb-8 max-sm:mb-4" data-section="theme">
+                <div class="flex items-center gap-2 mb-4 max-sm:mb-2">
+                    <h3 class="text-lg font-semibold text-purple-400 max-sm:text-base">🎨 Theme</h3>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3">
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-gray-300">Choose Theme</label>
+                        <select id="theme-select"
+                                class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                            <option value="default">🌙 Default Dark</option>
+                            <option value="professional">💼 Professional</option>
+                            <option value="discord">💬 Discord</option>
+                            <option value="apple">🍎 Apple</option>
+                            <option value="monokai">🎨 Monokai</option>
+                            <option value="highContrast">⚫ High Contrast</option>
+                        </select>
+                        <div class="text-xs text-gray-400 mt-2">
+                            Themes instantly change all site colors
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prompt History Section -->
+            <div class="mb-8 max-sm:mb-4" data-section="settings">
+                <div class="flex items-center gap-2 mb-4 max-sm:mb-2">
+                    <h3 class="text-lg font-semibold text-blue-400 max-sm:text-base">History</h3>
+                </div>
+                <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3">
+                    <div id="prompt-history" class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                        <!-- Prompt history will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Full-Screen Controls Overlay (will be created by UnifiedDrawerComponent) -->
+    <div id="mobile-controls-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden mobile-only" style="display: none;">
+        <div id="mobile-controls-drawer"
+            class="fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+            <!-- Mobile Header with Close Button -->
+            <div class="flex items-center justify-between p-4 border-b border-gray-700">
+                <h2 class="text-xl font-semibold text-white justify-center align-center flex w-full">Controls</h2>
+                <button id="mobile-close-btn" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Mobile Controls Content (same as desktop drawer) -->
+            <div class="p-6">
+                <!-- Providers Section -->
+                <div class="mb-8" data-section="providers">
+                    <div class="flex items-stretch gap-2 mb-4 w-full">
+                        <h3 class="text-lg font-semibold text-green-400">Models</h3>
+                    </div>
+                    <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                        <div id="mobile-provider-list" class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                            <!-- Providers will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div class="mb-8" data-section="settings">
+                    <div class="flex items-center gap-2 mb-4">
+                        <h3 class="text-lg font-semibold text-blue-400">Settings</h3>
+                    </div>
+                    <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" name="autoDownload" class="sr-only" />
+                                <div
+                                    class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-blue-400 transition-colors checkbox-custom">
+                                </div>
+                            </div>
+                            <span class="text-gray-200 group-hover:text-white transition-colors">Auto Download</span>
+                        </label>
+                    </div>
+                    <!-- Guidance Section -->
+                    <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-300">Bottom Guidance</label>
+                            <select
+                                class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                                name="guidance-bottom">
+                                <option value>None</option>
+                                <option value="1">1 - Minimal</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5 - Balanced</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10 - Strong</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20 - Maximum</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-300">Top Guidance</label>
+                            <select
+                                class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                                name="guidance-top">
+                                <option value>None</option>
+                                <option value="1">1 - Minimal</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5 - Balanced</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10 - Strong</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20 - Maximum</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Prompt Enhancement Section -->
+                    <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-300">Multiplier Text</label>
+                            <input type="text" id="mobile-multiplier" placeholder="Enter enhancement text..."
+                                class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-400" />
+                        </div>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative">
+                                    <input type="checkbox" name="mixup" class="sr-only" />
+                                    <div
+                                        class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom">
+                                    </div>
+                                </div>
+                                <span class="text-gray-200 group-hover:text-white transition-colors">Mixup</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative">
+                                    <input type="checkbox" name="mashup" class="sr-only" />
+                                    <div
+                                        class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom">
+                                    </div>
+                                </div>
+                                <span class="text-gray-200 group-hover:text-white transition-colors">Mashup</span>
+                            </label>
+                        </div>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative">
+                                    <input type="checkbox" name="photogenic" class="sr-only" />
+                                    <div
+                                        class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom">
+                                    </div>
+                                </div>
+                                <span class="text-gray-200 group-hover:text-white transition-colors">Photogenic</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative">
+                                    <input type="checkbox" name="artistic" class="sr-only" />
+                                    <div
+                                        class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom">
+                                    </div>
+                                </div>
+                                <span class="text-gray-200 group-hover:text-white transition-colors">Artistic</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Section -->
+                <div class="mb-8" data-section="theme">
+                    <div class="flex items-center gap-2 mb-4">
+                        <h3 class="text-lg font-semibold text-purple-400">🎨 Theme</h3>
+                    </div>
+                    <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                        <div class="space-y-3">
+                            <label class="block text-sm font-medium text-gray-300">Choose Theme</label>
+                            <select id="mobile-theme-select"
+                                    class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                                <option value="default">🌙 Default Dark</option>
+                                <option value="professional">💼 Professional</option>
+                                <option value="discord">💬 Discord</option>
+                                <option value="apple">🍎 Apple</option>
+                                <option value="monokai">🎨 Monokai</option>
+                                <option value="highContrast">⚫ High Contrast</option>
+                            </select>
+                            <div class="text-xs text-gray-400 mt-2">
+                                Themes instantly change all site colors
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prompt History Section -->
+                <div class="mb-8" data-section="settings">
+                    <div class="flex items-center gap-2 mb-4">
+                        <h3 class="text-lg font-semibold text-blue-400">History</h3>
+                    </div>
+                    <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                        <div id="mobile-prompt-history" class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                            <!-- Prompt history will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drawer Toggle Button (when closed) -->
+    <button id="drawer-toggle-closed"
+        class="fixed left-4 top-4 bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-700 transition-colors z-50 shadow-lg hidden max-sm:left-2 max-sm:top-2 max-sm:p-1.5">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+        </svg>
+    </button>
+
+    <!-- Mobile Hamburger Menu Button (mobile only) -->
+    <button id="mobile-hamburger"
+        class="fixed left-4 top-4 bg-gray-800 text-white p-3 rounded-lg hover:bg-gray-700 transition-colors z-50 shadow-lg mobile-only">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+
+    <main class="flex-col gap-4 h-full max-w-[1080px] mx-auto main-container">
+        <!-- Main Controls Bar -->
+        <div class="w-full mb-4 flex flex-col gap-4 main-controls-container">
+            <!-- Featured Controls Row -->
+            <div class="flex items-end justify-between">
+                <div class="flex items-center gap-4">
+                    <!-- Featured Settings -->
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-1 cursor-pointer label secondary">
+                            <input type="checkbox" name="auto-enhance" />
+                            <span>Enhance</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer label accent">
+                            <input type="checkbox" name="auto-generate" />
+                            <span>Auto</span>
+                        </label>
+                        <input type="number" name="maxNum" id="maxNum"
+                            class="w-24 bg-white text-gray-800 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="max" min="1" max="10" value="3"
+                            oninput="validateMaxNum(this)"
+                            onkeypress="preventInvalidChars(event)"
+                            onpaste="handleMaxNumPaste(event)" />
+                    </div>
+                </div>
+
+                <!-- Search / Replace -->
+                <div class="flex items-center gap-2 search-replace">
+                    <input type="text" placeholder="search" name="search_term" id="search_term"
+                        class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input type="text" placeholder="replace" name="replace_term" id="replace_term"
+                        class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button
+                        class="btn-replace bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap">Replace</button>
+                    <button
+                        class="btn-record bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap"><i
+                            class="fas fa-microphone"></i></button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Enhanced Notification Display -->
+        <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+        <!-- Prompt Textarea -->
+        <textarea id="prompt-textarea"
+            class="w-full bg-white text-gray-800 px-3 py-2 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="6" placeholder="Enter your prompt here..."></textarea>
+
+        <!-- Generate Button -->
+        <div class="w-full mt-4">
+            <button type="button"
+                class="btn-generate w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">START</button>
+        </div>
+
+        <!-- Matches -->
+        <ul id="matches" class="matches flex flex-wrap gap-2 max-h-32 overflow-y-auto"></ul>
+        </div>
+
+        <!-- Image Display -->
+        <div class="w-full flex flex-col min-w-0 mt-4">
+            <div class="flex flex-col h-full">
+                <!-- Controls Bar -->
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-4 flex-wrap">
+
+                    <div class="view-switch flex items-center gap-2 flex-wrap">
+                        <!-- View Switch -->
+                        <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors">
+                            <input type="radio" name="view" value="list"> List</label>
+                        <label class="bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors"
+                            data-owner="1">
+                            <input type="radio" name="view" value="compact" checked> Compact</label>
+                        <!-- Owner Filter Dropdown -->
+                        <select name="owner" class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="site">Public</option>
+                            <option value="user" selected>Private</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Image Grid -->
+                <ul class="prompt-output flex flex-wrap gap-2 pb-16 h-full overflow-y-auto"></ul>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+
+    <!-- Header Component -->
+    <script src="js/components/header-component.js"></script>
+
+    <!-- Theme Service (must load before unified drawer) -->
+    <script src="js/services/ThemeService.js"></script>
+
+    <!-- Unified Drawer Component -->
+    <script src="js/components/unified-drawer-component.js"></script>
+
+    <!-- Theme Manager (must load after unified drawer) -->
+    <script src="js/components/theme-manager.js"></script>
+
+    <!-- Controls Drawer Component -->
+    <script src="js/components/controls-drawer.js"></script>
+
+    <!-- Mobile Controls Manager -->
+    <script src="js/components/mobile-controls-manager.js"></script>
+
+    <!-- Services (must load before components that use them) -->
+    <script src="js/services/stats-service.js"></script>
+
+    <!-- Transaction Stats Component -->
+    <script src="js/components/transaction-stats-component.js"></script>
+
+    <!-- Core modules -->
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/utils.js"></script>
+
+    <!-- Authentication utilities (must load early) -->
+    <script src="js/core/auth-utils.js"></script>
+
+    <!-- Load api-service first -->
+    <script src="js/core/api-service.js"></script>
+
+    <!-- Notification Service -->
+    <script src="js/core/notification-service.js"></script>
+
+    <!-- Prompt History Service -->
+    <script src="js/core/prompt-history-service.js"></script>
+
+
+
+    <!-- Unified User System (replaces all user management) -->
+    <script src="js/core/user-system.js"></script>
+
+    <!-- Services -->
+    <script src="js/services/speech-to-text-service.js"></script>
+
+    <!-- Image Component (Refactored Architecture) -->
+    <script src="js/components/image/ui-config.js"></script>
+    <!-- Image Event Dependencies (must load before image-events.js) -->
+    <script src="js/modules/ImageDetection.js"></script>
+    <script src="js/modules/AuthUtils.js"></script>
+    <script src="js/modules/NotificationManager.js"></script>
+    <script src="js/modules/TouchEventHandler.js"></script>
+
+    <script src="js/components/image/image-placeholder-handler.js"></script>
+    <script src="js/components/image/image-elements.js"></script>
+    <script src="js/components/image/navigation-controls.js"></script>
+    <script src="js/components/image/fullscreen-components.js"></script>
+    <script src="js/components/image/image-ui-manager.js"></script>
+    <script src="js/components/image/image-events.js"></script>
+    <script src="js/components/image/image-data.js"></script>
+    <script src="js/components/image/image-manager.js"></script>
+    <script src="js/components/image/image-component.js"></script>
+
+    <!-- Unified Info Box Component -->
+    <script src="js/components/image/unified-info-box.js"></script>
+
+    <!-- Simplified Navigation System -->
+    <script src="js/components/image/simplified-navigation.js"></script>
+    <script src="js/components/image/navigation-integration.js"></script>
+
+    <!-- Component modules -->
+    <script src="js/components/multiselect-dropdown.js"></script>
+
+    <!-- Feature modules -->
+    <!-- TextArea Module (Refactored) -->
+    <script src="js/modules/textarea/text-utils.js"></script>
+    <script src="js/modules/textarea/match-processor.js"></script>
+    <script src="js/modules/textarea/search-replace.js"></script>
+    <script src="js/modules/textarea/textarea-manager.js"></script>
+    <script src="js/modules/textarea.js"></script>
+    <script src="js/modules/search.js"></script>
+    <!-- Refactored Feed System -->
+    <script src="js/modules/feed/feed-constants.js"></script>
+    <script src="js/modules/feed/feed-cache-manager.js"></script>
+    <script src="js/modules/feed/hybrid-tab-service.js"></script>
+    <script src="js/modules/feed/image-count-manager.js"></script>
+    <script src="js/modules/feed/feed-filter-manager.js"></script>
+    <script src="js/modules/feed/feed-dom-manager.js"></script>
+    <script src="js/modules/feed/feed-api-manager.js"></script>
+    <script src="js/modules/feed/feed-ui-manager.js"></script>
+    <script src="js/modules/feed/feed-view-manager.js"></script>
+    <script src="js/modules/feed/fill-to-bottom-manager.js"></script>
+    <script src="js/modules/feed/feed-manager-refactored.js"></script>
+    <script src="js/modules/guidance/guidance-manager.js"></script>
+
+    <!-- Rating Buttons Component (must load before rating-manager) -->
+    <script src="js/components/rating-buttons.js"></script>
+
+    <script src="js/modules/rating/rating-manager.js"></script>
+    <script src="js/modules/stats/stats-manager.js"></script>
+    <script src="js/modules/providers/provider-manager.js"></script>
+
+    <!-- Core modules -->
+    <script src="js/tools.js"></script>
+
+    <!-- Shared Utilities (must be loaded first) -->
+    <script src="js/modules/shared/image-dom-utils.js"></script>
+    <script src="js/modules/shared/image-view-utils.js"></script>
+
+    <!-- Image DOM Components (must load before image-dom-manager) -->
+    <script src="js/modules/image/ImageDOMContracts.js"></script>
+    <script src="js/modules/image/ImageElementFactory.js"></script>
+    <script src="js/modules/image/LoadingPlaceholderFactory.js"></script>
+    <script src="js/modules/image/ImageViewManager.js"></script>
+    <script src="js/modules/image/ImageDataManager.js"></script>
+
+    <!-- Modular Images System -->
+    <script src="js/modules/image-generation-api.js"></script>
+    <script src="js/modules/image-dom-manager.js"></script>
+    <script src="js/modules/image-ui-state.js"></script>
+    <script src="js/modules/images-manager.js"></script>
+
+    <!-- Generation Component (Separated Architecture) -->
+    <script src="js/components/generation/generation-ui.js"></script>
+    <script src="js/components/generation/generation-events.js"></script>
+    <script src="js/components/generation/generation-data.js"></script>
+    <script src="js/components/generation/generation-manager.js"></script>
+    <script src="js/components/generation/generation-component.js"></script>
+
+    <!-- Test Scripts removed -->
+
+    <!-- Main application loader -->
+    <script src="js/app.js"></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "starter",
+    "name": "Starter Pack",
+    "credits": 10,
+    "price": 999,
+    "description": "Perfect for trying out AI image generation",
+    "popular": false,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "created_by": "system",
+    "version": 1
+  },
+  {
+    "id": "pro",
+    "name": "Pro Pack",
+    "credits": 50,
+    "price": 3999,
+    "description": "Great for regular users",
+    "popular": true,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "created_by": "system",
+    "version": 1
+  },
+  {
+    "id": "enterprise",
+    "name": "Enterprise Pack",
+    "credits": 200,
+    "price": 14999,
+    "description": "For power users and businesses",
+    "popular": false,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "created_by": "system",
+    "version": 1
+  }
+]

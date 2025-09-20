@@ -1,0 +1,12 @@
+tests/
+coverage/
+playwright-report/
+node_modules/@playwright/
+node_modules/playwright/
+node_modules/canvas/
+node_modules/jsdom/
+node_modules/puppeteer/
+scripts/test-*.js
+public/tests/
+playwright.config.js
+jest.config.js

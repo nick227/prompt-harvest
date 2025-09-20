@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Terms Library - AutoImage</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="css/optimized.css">
+        <link rel="icon" href="images/favicon.png" type="image/png">
+        <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E40AF',
+                        accent: '#F59E0B',
+                        success: '#10B981',
+                        danger: '#EF4444',
+                        dark: '#1F2937',
+                        light: '#F9FAFB'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS for skeleton loading animations -->
+    <style>
+        @keyframes slideInTerm {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .skeleton-row {
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        /* Enhanced pulse animation for skeletons */
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Message styles */
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .message-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .message-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .message-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3B82F6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .message-info::before {
+            content: "⏳";
+            font-size: 14px;
+        }
+
+        .message-success::before {
+            content: "✅";
+            font-size: 14px;
+        }
+
+        .message-error::before {
+            content: "❌";
+            font-size: 14px;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+    </head>
+
+    <body class="bg-gray-800 text-gray-200 min-h-screen">
+
+        <!-- Header -->
+        <header class="bg-gray-900 border-b border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <!-- Logo and Navigation -->
+                    <div class="flex items-center space-x-8">
+                        <a href="/" class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <span class="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">AutoImage</span>
+                        </a>
+                        <nav class="hidden md:flex space-x-6">
+                            <a href="/" class="text-gray-300 hover:text-white transition-colors duration-200">Home</a>
+                            <a href="/terms.html" class="text-purple-400 font-medium">Terms</a>
+                        </nav>
+                    </div>
+
+                    <!-- Authentication - Handled by header component -->
+                    <div id="authentication" class="flex items-center space-x-2 text-sm">
+                        <!-- Will be populated by header component -->
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-[1020px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Page Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-200 mb-2">Terms Library
+                </h1>
+                <p class="text-gray-400">Browse and manage your AI-generated
+                    terms and variables</p>
+            </div>
+
+            <!-- Add New Term Section -->
+            <div
+                class="bg-gray-700 rounded-lg shadow-sm border border-gray-600 p-6 mb-8">
+                <h2 class="text-xl font-semibold text-gray-200 mb-4">Add New
+                    Term
+                </h2>
+
+                                <div class="flex space-x-4">
+                    <div class="flex-1">
+                        <label for="newTerm"
+                            class="block text-sm font-medium text-gray-300 mb-2">Term</label>
+                        <input type="text" id="newTerm"
+                            placeholder="e.g., cat, dog, landscape"
+                            class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <div class="flex items-end">
+                        <button id="addTerm"
+                            class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                            Add Term
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Subtle Message Container -->
+                <div id="termMessageContainer" class="mt-4 hidden" style="scroll-margin: 0; contain: layout;">
+                    <!-- Clean, minimal feedback area -->
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div
+                class="bg-gray-700 rounded-lg shadow-sm border border-gray-600 p-6 mb-8">
+                <h2 class="text-xl font-semibold text-gray-200 mb-4">Search
+                    Terms
+                </h2>
+                <div class="flex space-x-4">
+                    <div class="flex-1">
+                        <input type="text" id="searchInput"
+                            placeholder="Type to filter terms instantly..."
+                            class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <button id="clearSearch"
+                        class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors font-medium">
+                        Clear
+                    </button>
+                </div>
+                <div id="searchResults" class="mt-4 hidden">
+                    <div
+                        class="bg-blue-900 border border-blue-700 rounded-md p-4">
+                        <h3
+                            class="text-sm font-medium text-blue-200 mb-2">Search
+                            Results
+                        </h3>
+                        <div id="searchResultsContent"
+                            class="text-sm text-blue-100"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms Library -->
+            <div
+                class="bg-gray-700 rounded-lg shadow-sm border border-gray-600 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-200">Terms Library</h2>
+                    <div class="flex items-center space-x-4">
+                        <!-- Term Count -->
+                        <div class="text-sm text-gray-400">
+                            Total: <span id="termCount" class="font-medium text-gray-200">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms List - New Full-Width Row Layout -->
+                <div id="termsList" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Terms will be populated here as full-width rows -->
+                    <div id="emptyState" class="text-center text-gray-400 py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-500" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p class="mt-2">No terms found</p>
+                        <p class="text-sm">Add your first term above to get started</p>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+
+        <!-- Loading overlay removed - now using skeleton loading -->
+
+        <!-- Core Scripts -->
+        <script src="js/core/constants.js"></script>
+        <script src="js/core/utils.js"></script>
+        <script src="js/core/api-service.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+
+        <!-- Header Component -->
+        <script src="js/components/header-component.js"></script>
+
+        <!-- User Management (includes authentication) -->
+        <script src="js/core/user-system.js"></script>
+
+        <!-- Refactored Terms System -->
+        <script src="js/modules/terms/terms-constants.js"></script>
+        <script src="js/modules/terms/terms-search-service.js"></script>
+        <script src="js/modules/terms/terms-cache-manager.js"></script>
+        <script src="js/modules/terms/terms-dom-manager.js"></script>
+        <script src="js/modules/terms/terms-api-manager.js"></script>
+        <script src="js/modules/terms/terms-ui-manager.js"></script>
+        <script src="js/modules/terms/terms-manager-refactored.js"></script>
+
+        <script>
+        // Debug: Check if components are loaded
+        window.addEventListener('load', () => {
+            console.log('Terms page loaded, checking components...');
+
+            if (window.headerComponent) {
+                console.log('Header component found:', window.headerComponent);
+            } else {
+                console.error('Header component not found!');
+            }
+
+            if (window.authComponent) {
+                console.log('Auth component found:', window.authComponent);
+            } else {
+                console.error('Auth component not found!');
+            }
+
+            if (window.termsManager) {
+                console.log('Terms manager found:', window.termsManager);
+            } else {
+                console.error('Terms manager not found!');
+            }
+
+            if (window.TermsManager) {
+                console.log('TermsManager class found:', window.TermsManager);
+            } else {
+                console.error('TermsManager class not found!');
+            }
+
+            // Check if header element exists
+            const header = document.querySelector('header');
+            if (header) {
+                console.log('Header element found:', header);
+            } else {
+                console.error('Header element not found!');
+            }
+
+            // Note: Authentication is now handled by the dynamic header component
+            console.log('Authentication handled by header component');
+
+            // Initialize terms manager
+            if (typeof initTermsManager === 'function') {
+                console.log('Initializing terms manager...');
+                initTermsManager();
+            } else {
+                console.error('initTermsManager function not found!');
+            }
+        });
+    </script>
+    </body>
+
+</html>

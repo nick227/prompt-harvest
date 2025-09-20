@@ -1,0 +1,37 @@
+/* ==========================================================================
+   OPTIMIZED CSS - Modular CSS Architecture
+   ========================================================================== */
+
+/* Import all modular CSS files in logical order */
+
+/* 1. CSS Variables - Must be first for other modules to use */
+@import url('./modules/variables.css');
+
+/* 2. Base styles - Global styles and resets */
+@import url('./modules/base.css');
+
+/* 3. Layout styles - Grid layouts and structural elements */
+@import url('./modules/layout.css');
+
+/* 4. Component styles - UI components like buttons, forms, checkboxes */
+@import url('./modules/components.css');
+
+/* 4.1. Rating buttons - Plus/minus rating buttons */
+@import url('./modules/rating-buttons.css');
+
+/* 5. Image styles - Image display and image-related components */
+@import url('./modules/images.css');
+
+/* 6. Fullscreen styles - Fullscreen modal and overlay styles */
+@import url('./modules/fullscreen.css');
+
+/* 7. Animations - Loading spinners, processing animations, transitions */
+@import url('./modules/animations.css');
+
+/* 8. Messaging styles - Admin messaging system and notifications */
+@import url('./modules/messaging.css');
+
+
+/* ==========================================================================
+   END OF MODULAR CSS IMPORTS
+   ========================================================================== */

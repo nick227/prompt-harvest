@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - AutoImage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/optimized.css">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+
+    <!-- Header Component - Load early -->
+    <script src="js/components/header-component.js"></script>
+
+    <!-- Core Scripts -->
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/api-service.js"></script>
+    <script src="js/core/user-system.js"></script>
+    <script src="js/shared/auth-messaging.js"></script>
+    <script src="js/auth-forms.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E40AF',
+                        accent: '#F59E0B',
+                        success: '#10B981',
+                        danger: '#EF4444',
+                        dark: '#1F2937',
+                        light: '#F9FAFB'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="text-gray-900 min-h-screen overflow-x-hidden">
+    <!-- Background Layer -->
+    <div class="fixed inset-0 flex">
+        <div class="w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700"></div>
+        <div class="w-1/2 bg-white"></div>
+    </div>
+
+    <!-- Content Layer -->
+    <div class="min-h-screen relative flex items-center justify-center px-4 py-8">
+        <div class="w-full max-w-[1020px] flex">
+            <!-- Left Column - Visual Features and Copy -->
+            <div class="hidden lg:flex lg:w-1/2 relative">
+                <!-- Content -->
+                <div class="flex flex-col justify-center items-center px-6 py-8 w-full">
+                    <!-- AI Generated Image Placeholder -->
+                    <div class="mb-6 w-56 h-56 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
+                        <div class="text-white/60 text-center">
+                            <div class="text-4xl mb-2">🎨</div>
+                            <div class="text-sm">AI Generated Image</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Heading -->
+                    <h1 class="text-4xl font-light text-white mb-4 leading-tight tracking-tight text-center">
+                        Welcome Back to
+                        <span class="block font-bold text-emerald-100">AutoImage</span>
+                    </h1>
+
+                    <!-- Subtitle -->
+                    <p class="text-lg text-emerald-100 leading-relaxed font-light text-center max-w-md">
+                        Continue generating AI images with controlled randomization and prompt management.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Column - Form -->
+            <div class="w-full lg:w-1/2 flex items-center justify-center">
+                <div class="w-full max-w-sm">
+                    <!-- Mobile Logo (hidden on desktop) -->
+                    <div class="lg:hidden text-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center mx-auto">
+                            <div class="text-white text-xl">🎨</div>
+                        </div>
+                    </div>
+
+                    <!-- Form Header -->
+                    <div class="text-center mb-6">
+                        <h2 class="text-3xl font-light text-gray-900 mb-2 tracking-tight">Welcome Back</h2>
+                        <p class="text-gray-600">Sign in to continue</p>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div class="bg-white border border-gray-100 p-5">
+                        <!-- Error Message Display -->
+                        <div id="authError" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
+
+                        <!-- Success Message Display -->
+                        <div id="authSuccess" class="hidden mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm"></div>
+
+                        <form id="loginForm" method="post" action="#" class="space-y-5">
+                            <!-- Email Field -->
+                            <div class="relative">
+                                <input id="loginEmail" name="email" type="email" required
+                                    class="block w-full px-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+                                    placeholder="Enter your email">
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="relative">
+                                <input id="loginPassword" name="password" type="password" required
+                                    class="block w-full px-3 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300 pr-10"
+                                    placeholder="Enter your password">
+                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                                    <svg id="eyeIcon" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="button" id="loginSubmitBtn"
+                                class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300">
+                                Sign In
+                            </button>
+
+                            <!-- Google Login Button -->
+                            <button type="button" id="googleLoginBtn"
+                                class="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300">
+                                <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                                Continue with Google
+                            </button>
+
+                            <!-- Forgot Password Link -->
+                            <div class="text-center mt-4">
+                                <a href="forgot-password.html" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium transition-colors duration-200">
+                                    Forgot your password?
+                                </a>
+                            </div>
+                        </form>
+
+                        <!-- Divider -->
+                        <div class="relative my-5">
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-gray-200"></div>
+                            </div>
+                            <div class="relative flex justify-center text-sm">
+                                <span class="px-4 bg-white text-gray-500">New to AutoImage?</span>
+                            </div>
+                        </div>
+
+                        <!-- Register Link -->
+                        <div class="text-center">
+                            <a href="/register.html" class="inline-flex items-center text-emerald-600 hover:text-emerald-700 transition-colors duration-300 group font-medium">
+                                <span class="mr-2">Create your account</span>
+                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Feature Highlights -->
+                    <div class="text-center pt-4">
+                        <div class="flex items-center justify-center space-x-6 text-sm text-gray-500">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                                <span>AI Generation</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-teal-500 rounded-full"></div>
+                                <span>Prompt Management</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password toggle functionality
+        function setupPasswordToggle() {
+            const toggleBtn = document.getElementById('togglePassword');
+            const input = document.getElementById('loginPassword');
+            const icon = document.getElementById('eyeIcon');
+
+            if (toggleBtn && input && icon) {
+                toggleBtn.addEventListener('click', () => {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+
+                    if (type === 'text') {
+                        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />`;
+                    } else {
+                        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+                    }
+                });
+            }
+        }
+
+        // Google Login functionality
+        function setupGoogleLogin() {
+            const googleLoginBtn = document.getElementById('googleLoginBtn');
+
+            if (googleLoginBtn) {
+                googleLoginBtn.addEventListener('click', () => {
+                    console.log('🔐 GOOGLE LOGIN: Initiating Google OAuth...');
+                    // Redirect to Google OAuth endpoint
+                    window.location.href = '/api/auth/google';
+                });
+            }
+        }
+
+        // Handle Google OAuth callback
+        function handleGoogleCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const success = urlParams.get('success');
+            const error = urlParams.get('error');
+
+            if (success === 'google_login' && token) {
+                console.log('🔐 GOOGLE LOGIN: Success callback received');
+
+                // Store the token
+                if (window.userApi) {
+                    window.userApi.setAuthToken(token, true);
+                    console.log('🔐 GOOGLE LOGIN: Token stored successfully');
+
+                    // Refresh authentication state
+                    if (window.userSystem) {
+                        window.userSystem.checkAuthState().then(() => {
+                            console.log('🔐 GOOGLE LOGIN: Authentication state refreshed');
+                        });
+                    }
+                } else {
+                    console.error('❌ GOOGLE LOGIN: userApi not available');
+                }
+
+                // Show success message
+                const successDiv = document.getElementById('authSuccess');
+                if (successDiv) {
+                    successDiv.textContent = 'Successfully signed in with Google!';
+                    successDiv.classList.remove('hidden');
+                }
+
+                // Redirect to homepage after a short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } else if (error === 'google_auth_failed') {
+                console.log('🔐 GOOGLE LOGIN: Failed callback received');
+
+                // Show error message
+                const errorDiv = document.getElementById('authError');
+                if (errorDiv) {
+                    errorDiv.textContent = 'Google sign-in failed. Please try again.';
+                    errorDiv.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Initialize password toggle and Google login
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🔐 LOGIN: Setting up password toggle...');
+            setupPasswordToggle();
+
+            console.log('🔐 LOGIN: Setting up Google login...');
+            setupGoogleLogin();
+
+            console.log('🔐 LOGIN: Handling Google callback...');
+            handleGoogleCallback();
+        });
+
+        // Check if user is already authenticated (redirect to homepage if so)
+        if (window.userSystem && window.userSystem.isAuthenticated()) {
+            console.log('🔐 LOGIN: User already authenticated, redirecting to homepage');
+            window.location.href = '/';
+        }
+
+        // Simple debugging - check if systems are available
+        setTimeout(() => {
+            console.log('🔐 LOGIN: System status check:', {
+                userSystem: !!window.userSystem,
+                authMessaging: !!window.authMessaging,
+                authFormsHandler: !!window.authFormsHandler
+            });
+        }, 1000);
+    </script>
+</body>
+
+</html>

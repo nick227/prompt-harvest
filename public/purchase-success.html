@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Successful - Image Harvest</title>
+    <link rel="stylesheet" href="css/optimized.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
+    <link rel="icon" href="/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        custom: '#123456',
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .success-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .success-card {
+            background: rgba(31, 41, 55, 0.9);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #059669;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-title {
+            font-size: 2rem;
+            color: #f9fafb;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .success-message {
+            color: #d1d5db;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .credit-info {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .credit-amount {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #059669;
+            margin-bottom: 0.5rem;
+        }
+
+        .credit-label {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(55, 65, 81, 0.8);
+            color: #d1d5db;
+            border: 1px solid rgba(75, 85, 99, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(55, 65, 81, 1);
+            border-color: #9ca3af;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f4f6;
+            border-radius: 50%;
+            border-top-color: #3b82f6;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .processing-message {
+            color: #6b7280;
+            font-style: italic;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-800 text-gray-200 w-full min-h-screen">
+    <!-- Header Component -->
+    <div id="header-container"></div>
+
+    <div class="success-container">
+        <div class="success-card">
+            <div id="success-content">
+                <i class="fas fa-check-circle success-icon"></i>
+                <h1 class="success-title">Payment Successful!</h1>
+                <p class="success-message">
+                    Thank you for your purchase. Your credits have been added to your account and are ready to use.
+                </p>
+
+                <div class="credit-info">
+                    <div id="credits-added" class="credit-amount">
+                        <span class="loading-spinner"></span>
+                    </div>
+                    <div class="credit-label">Credits Added to Your Account</div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="/billing.html" class="btn btn-secondary">
+                        <i class="fas fa-receipt"></i> View Billing
+                    </a>
+                    <a href="/index.html" class="btn btn-primary">
+                        <i class="fas fa-magic"></i> Start Creating Images
+                    </a>
+                </div>
+
+                <div id="processing-message" class="processing-message">
+                    <span class="loading-spinner"></span>
+                    Processing your payment and updating your account...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Component -->
+    <script src="js/components/header-component.js"></script>
+
+    <!-- Core modules -->
+    <script src="js/core/api-service.js"></script>
+    <script src="js/core/user-system.js"></script>
+
+    <script type="module">
+
+        class PurchaseSuccessManager {
+            constructor() {
+                this.sessionId = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('✅ SUCCESS: Initializing purchase success page...');
+
+                // Initialize header component
+                this.initializeHeader();
+
+                // Get session ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                this.sessionId = urlParams.get('session_id');
+
+                if (!this.sessionId) {
+                    console.warn('⚠️ SUCCESS: No session ID found, redirecting to billing');
+                    setTimeout(() => {
+                        window.location.href = '/billing.html';
+                    }, 2000);
+                    return;
+                }
+
+                // Wait a moment for scripts to load, then verify payment
+                setTimeout(async () => {
+                    await this.verifyPayment();
+                }, 500);
+            }
+
+            initializeHeader() {
+                try {
+                    if (window.HeaderComponent) {
+                        const headerContainer = document.getElementById('header-container');
+                        if (headerContainer) {
+                            const headerComponent = new window.HeaderComponent();
+                            headerComponent.init();
+                            console.log('✅ SUCCESS: Header component initialized');
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ SUCCESS: Failed to initialize header component:', error);
+                }
+            }
+
+            async verifyPayment() {
+                try {
+                    console.log('🔍 SUCCESS: Verifying payment session:', this.sessionId);
+
+                    if (!window.apiService) {
+                        console.warn('⚠️ SUCCESS: API service not available, showing fallback display');
+                        this.displayFallback();
+                        return;
+                    }
+
+                    const response = await window.apiService.post('/api/credits/verify-payment', {
+                        sessionId: this.sessionId
+                    });
+
+                    if (response.success) {
+                        this.displaySuccess(response.payment);
+                    } else {
+                        throw new Error(response.message || 'Payment verification failed');
+                    }
+                } catch (error) {
+                    console.error('❌ SUCCESS: Payment verification failed:', error);
+                    this.displayError();
+                }
+            }
+
+            displaySuccess(payment) {
+                console.log('✅ SUCCESS: Payment verified:', payment);
+
+                // Update credits display
+                const creditsElement = document.getElementById('credits-added');
+                if (creditsElement && payment.credits) {
+                    creditsElement.textContent = payment.credits.toLocaleString();
+                }
+
+                // Hide processing message
+                const processingMessage = document.getElementById('processing-message');
+                if (processingMessage) {
+                    processingMessage.style.display = 'none';
+                }
+
+                // Auto-redirect to billing after 10 seconds
+                setTimeout(() => {
+                    window.location.href = '/billing.html?success=true&package=' + (payment.packageId || '');
+                }, 10000);
+            }
+
+            displayFallback() {
+                console.log('📋 SUCCESS: Displaying fallback success message');
+
+                // Update credits display with fallback message
+                const creditsElement = document.getElementById('credits-added');
+                if (creditsElement) {
+                    creditsElement.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i>Credits Added';
+                }
+
+                // Hide processing message
+                const processingMessage = document.getElementById('processing-message');
+                if (processingMessage) {
+                    processingMessage.innerHTML = `
+                        <i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i>
+                        Your payment was successful! Credits have been added to your account.
+                    `;
+                }
+            }
+
+            displayError() {
+                const successContent = document.getElementById('success-content');
+                if (successContent) {
+                    successContent.innerHTML = `
+                        <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #dc2626; margin-bottom: 1.5rem;"></i>
+                        <h1 class="success-title" style="color: #dc2626;">Payment Verification Failed</h1>
+                        <p class="success-message">
+                            We're having trouble verifying your payment. Don't worry - if you were charged, your credits will be added shortly.
+                        </p>
+                        <div class="action-buttons">
+                            <a href="/billing.html" class="btn btn-primary">
+                                <i class="fas fa-receipt"></i> Check Billing
+                            </a>
+                        </div>
+                    `;
+                }
+
+                // Redirect to billing after 5 seconds
+                setTimeout(() => {
+                    window.location.href = '/billing.html';
+                }, 5000);
+            }
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                new PurchaseSuccessManager();
+            });
+        } else {
+            new PurchaseSuccessManager();
+        }
+    </script>
+</body>
+</html>

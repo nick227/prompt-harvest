@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Test - AutoImage</title>
+    <link rel="stylesheet" href="css/optimized.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    <link rel="icon" href="/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Test styles to show theme changes */
+        .test-card {
+            background: var(--color-surface-primary);
+            border: 1px solid var(--color-border-primary);
+            color: var(--color-text-primary);
+        }
+        .test-button {
+            background: var(--color-accent-primary);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-accent-primary);
+        }
+        .test-button:hover {
+            background: var(--color-interactive-primary-hover);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto p-8">
+        <h1 class="text-4xl font-bold mb-8 text-center">🎨 Theme System Test</h1>
+
+        <div class="max-w-4xl mx-auto">
+            <!-- Theme Selector -->
+            <div class="test-card p-6 rounded-lg mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Theme Selector</h2>
+                <select id="theme-test-select" class="w-full bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="default">🌙 Default Dark</option>
+                    <option value="midnight">🌌 Midnight Blue</option>
+                    <option value="forest">🌲 Forest Green</option>
+                    <option value="sunset">🌅 Sunset Orange</option>
+                    <option value="ocean">🌊 Ocean Teal</option>
+                </select>
+                <p class="text-sm text-gray-400 mt-2">Select a theme to see instant color changes</p>
+            </div>
+
+            <!-- Test Components -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Card 1 -->
+                <div class="test-card p-6 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-3">Sample Card</h3>
+                    <p class="text-gray-300 mb-4">This card demonstrates how theme colors affect the background, borders, and text.</p>
+                    <button class="test-button px-4 py-2 rounded-lg transition-colors">Sample Button</button>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="test-card p-6 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-3">Color Variables</h3>
+                    <div class="space-y-2 text-sm">
+                        <div>Background: <span class="font-mono" id="bg-color">--</span></div>
+                        <div>Surface: <span class="font-mono" id="surface-color">--</span></div>
+                        <div>Accent: <span class="font-mono" id="accent-color">--</span></div>
+                        <div>Border: <span class="font-mono" id="border-color">--</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Theme Info -->
+            <div class="test-card p-6 rounded-lg mt-6">
+                <h3 class="text-xl font-semibold mb-3">Current Theme Info</h3>
+                <div id="theme-info" class="text-gray-300">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Service -->
+    <script src="js/services/ThemeService.js"></script>
+
+    <script>
+        // Wait for theme service to load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (window.themeService) {
+                    initializeThemeTest();
+                } else {
+                    console.error('Theme service not loaded');
+                }
+            }, 100);
+        });
+
+        function initializeThemeTest() {
+            const themeSelect = document.getElementById('theme-test-select');
+            const themeInfo = document.getElementById('theme-info');
+
+            // Set initial theme
+            const currentTheme = window.themeService.getCurrentTheme();
+            themeSelect.value = currentTheme;
+            updateThemeInfo();
+
+            // Listen for theme changes
+            themeSelect.addEventListener('change', (e) => {
+                window.themeService.switchTheme(e.target.value);
+                updateThemeInfo();
+            });
+
+            // Listen for theme service events
+            document.addEventListener('themeChanged', () => {
+                updateThemeInfo();
+            });
+
+            function updateThemeInfo() {
+                const currentTheme = window.themeService.getCurrentTheme();
+                const themeData = window.themeService.getCurrentThemeData();
+
+                themeInfo.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <strong>Current Theme:</strong> ${themeData.name}<br>
+                            <strong>Description:</strong> ${themeData.description}
+                        </div>
+                        <div>
+                            <strong>Theme ID:</strong> ${currentTheme}<br>
+                            <strong>Colors Applied:</strong> ${Object.keys(themeData.colors).length}
+                        </div>
+                    </div>
+                `;
+
+                // Update color display
+                updateColorDisplay();
+            }
+
+            function updateColorDisplay() {
+                const computedStyle = getComputedStyle(document.documentElement);
+
+                document.getElementById('bg-color').textContent = computedStyle.getPropertyValue('--color-background-primary').trim();
+                document.getElementById('surface-color').textContent = computedStyle.getPropertyValue('--color-surface-primary').trim();
+                document.getElementById('accent-color').textContent = computedStyle.getPropertyValue('--color-accent-primary').trim();
+                document.getElementById('border-color').textContent = computedStyle.getPropertyValue('--color-border-primary').trim();
+            }
+
+            // Initial update
+            updateColorDisplay();
+        }
+    </script>
+</body>
+</html>

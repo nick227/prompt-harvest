@@ -1,0 +1,338 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid()) @db.VarChar(25)
+  email           String   @db.VarChar(255)
+  username        String   @db.VarChar(100)
+  password        String?  @db.VarChar(255) // Made optional for OAuth users
+  googleId        String?  @unique @db.VarChar(50) // Google OAuth ID
+  name            String?  @db.VarChar(100) // Full name from Google
+  picture         String?  @db.VarChar(500) // Profile picture URL
+  isEmailVerified Boolean  @default(false) // Email verification status
+  resetToken      String?  @db.VarChar(500)
+  isAdmin         Boolean  @default(false)
+  isSuspended     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  creditBalance   Int      @default(0)
+  images          Image[]
+  stripePayments  StripePayment[]
+  messages        Message[]
+  adminMessages   Message[] @relation("AdminMessages")
+
+  @@unique([email]) // Ensure email uniqueness
+  @@map("users")
+}
+
+model Image {
+  id              String    @id @default(cuid()) @db.VarChar(25)
+  userId          String    @db.VarChar(25)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt          String    @db.Text
+  original        String    @db.Text
+  imageUrl        String    @db.VarChar(500)
+  provider        String    @db.VarChar(50)
+  guidance        Int       @default(10)
+  model           String?   @db.VarChar(100)
+  rating          Int?
+  isPublic        Boolean   @default(false)
+  isHidden        Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  modelId         String?   @db.VarChar(25)
+  taggedAt        DateTime?
+  taggingMetadata Json?
+  tags            Json?
+
+  @@index([userId], map: "userId")
+  @@index([isPublic], map: "isPublic")
+  @@index([isHidden], map: "isHidden")
+  @@index([userId, isPublic], map: "userId_isPublic")
+  @@index([userId, isHidden], map: "userId_isHidden")
+  @@index([modelId])
+  @@index([taggedAt], map: "taggedAt")
+  @@map("images")
+}
+
+model Transaction {
+  id        String   @id @default(cuid()) @db.VarChar(25)
+  userId    String   @db.VarChar(25)
+  provider  String   @db.VarChar(50)
+  count     Int      @default(1)
+  cost      Float    @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([userId], map: "userId")
+  @@index([provider], map: "provider")
+  @@index([createdAt], map: "createdAt")
+  @@map("transactions")
+}
+
+model categories {
+  id          String   @id @db.VarChar(25)
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model likes {
+  id        String   @id @db.VarChar(25)
+  userId    String   @db.VarChar(25)
+  imageId   String   @db.VarChar(25)
+  createdAt DateTime @default(now())
+
+  @@index([imageId], map: "imageId")
+  @@index([userId], map: "userId")
+}
+
+model multipliers {
+  id        String   @id @db.VarChar(25)
+  name      String   @db.VarChar(100)
+  value     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model prompt_clauses {
+  id        String   @id @db.VarChar(25)
+  clause    String   @db.VarChar(255)
+  category  String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model prompts {
+  id        String   @id @db.VarChar(25)
+  userId    String   @db.VarChar(25)
+  prompt    String   @db.Text
+  original  String   @db.Text
+  provider  String   @db.VarChar(50)
+  guidance  Int      @default(10)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId], map: "userId")
+}
+
+model tags {
+  id        String   @id @db.VarChar(25)
+  userId    String   @db.VarChar(25)
+  imageId   String   @db.VarChar(25)
+  tag       String   @db.VarChar(100)
+  createdAt DateTime @default(now())
+
+  @@index([imageId], map: "imageId")
+  @@index([userId], map: "userId")
+}
+
+model word_types {
+  id        String   @id @default(cuid()) @db.VarChar(25)
+  word      String   @unique @db.VarChar(100)
+  types     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([word], map: "word")
+}
+
+model StripePayment {
+  stripeSessionId       String   @unique @db.VarChar(100)
+  userId                String   @db.VarChar(25)
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount                Float
+  credits               Int
+  status                String   @default("pending") @db.VarChar(50)
+  stripePaymentIntentId String?  @db.VarChar(100)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  id                    String   @id @default(cuid()) @db.VarChar(25)
+  metadata              Json?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("stripe_payments")
+}
+
+model CreditLedger {
+  id              String   @id @default(cuid()) @db.VarChar(25)
+  userId          String   @db.VarChar(25)
+  type            String   @db.VarChar(50)
+  amount          Int
+  description     String   @db.VarChar(255)
+  stripePaymentId String?  @db.VarChar(25)
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  promoCodeId     String?  @db.VarChar(25)
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([promoCodeId], map: "credit_ledger_promoCodeId_fkey")
+  @@index([stripePaymentId], map: "credit_ledger_stripePaymentId_fkey")
+  @@map("credit_ledger")
+}
+
+model Violations {
+  id               String   @id @default(cuid()) @db.VarChar(25)
+  userId           String?  @db.VarChar(25)
+  userEmail        String?  @db.VarChar(255)
+  username         String?  @db.VarChar(100)
+  violationType    String   @default("bad_word") @db.VarChar(50)
+  detectedWords    String   @db.Text
+  originalContent  String   @db.Text
+  sanitizedContent String?  @db.Text
+  severity         String   @default("medium") @db.VarChar(20)
+  ipAddress        String?  @db.VarChar(45)
+  userAgent        String?  @db.Text
+  endpoint         String   @db.VarChar(255)
+  requestId        String?  @db.VarChar(100)
+  isBlocked        Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  @@index([userId])
+  @@index([violationType])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([isBlocked])
+  @@index([endpoint(length: 250)])
+  @@map("violations")
+}
+
+model PromoCode {
+  id                 String    @id @default(cuid()) @db.VarChar(25)
+  code               String    @unique @db.VarChar(50)
+  credits            Int
+  description        String?   @db.VarChar(255)
+  isActive           Boolean   @default(true)
+  maxRedemptions     Int?
+  currentRedemptions Int       @default(0)
+  expiresAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  redemptions        PromoRedemption[]
+
+  @@index([code])
+  @@index([isActive])
+  @@index([expiresAt])
+  @@map("promo_codes")
+}
+
+model PromoRedemption {
+  id          String   @id @default(cuid()) @db.VarChar(25)
+  userId      String   @db.VarChar(25)
+  promoCodeId String   @db.VarChar(25)
+  credits     Int
+  createdAt   DateTime @default(now())
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promoCodeId], map: "userId_promoCodeId")
+  @@index([userId])
+  @@index([promoCodeId])
+  @@index([createdAt])
+  @@map("promo_redemptions")
+}
+
+model Model {
+  id           String   @id @default(cuid()) @db.VarChar(25)
+  provider     String   @db.VarChar(50)
+  providerId   String?  @db.VarChar(50)
+  providerRef  Provider? @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name         String   @db.VarChar(100)
+  displayName  String   @db.VarChar(100)
+  description  String?  @db.Text
+  costPerImage Float    @default(1)
+  isActive     Boolean  @default(true)
+  apiUrl       String?  @db.VarChar(500)
+  apiModel     String?  @db.VarChar(100)
+  apiSize      String?  @db.VarChar(20)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([provider, name], map: "provider_name")
+  @@index([provider])
+  @@index([name])
+  @@index([isActive])
+  @@index([costPerImage])
+  @@map("models")
+}
+
+model Provider {
+  id          String   @id @default(cuid()) @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  displayName String   @db.VarChar(100)
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  models      Model[]
+
+  @@index([name])
+  @@index([isActive])
+  @@map("providers")
+}
+
+model Package {
+  id          String   @id @default(cuid()) @db.VarChar(25)
+  name        String   @unique @db.VarChar(100)
+  displayName String   @db.VarChar(100)
+  description String?  @db.Text
+  credits     Int
+  price       Int
+  isActive    Boolean  @default(true)
+  isPopular   Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("packages")
+}
+
+model SystemSettings {
+  id          String   @id @default(cuid()) @db.VarChar(25)
+  key         String   @unique @db.VarChar(100)
+  value       String   @db.Text
+  description String?  @db.VarChar(255)
+  dataType    String   @default("string") @db.VarChar(20) // string, number, boolean, json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+  @@index([isActive])
+  @@map("system_settings")
+}
+
+model Message {
+  id          String   @id @default(cuid()) @db.VarChar(25)
+  userId      String   @db.VarChar(25)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adminId     String?  @db.VarChar(25)
+  admin       User?    @relation("AdminMessages", fields: [adminId], references: [id], onDelete: SetNull)
+  message     String   @db.Text
+  isFromUser  Boolean  @default(true)
+  isRead      Boolean  @default(false)
+  parentId    String?  @db.VarChar(25)
+  parent      Message? @relation("MessageReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Message[] @relation("MessageReplies")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([adminId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([parentId])
+  @@map("messages")
+}

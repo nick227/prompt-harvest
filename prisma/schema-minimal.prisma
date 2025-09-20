@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("MYSQL_URL")
+}
+
+// User Management
+model User {
+  id        String   @id @default(cuid()) @db.VarChar(25)
+  email     String   @db.VarChar(255)
+  username  String   @db.VarChar(100)
+  password  String   @db.VarChar(255)
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  images    Image[]
+
+  @@map("users")
+}
+
+// Image Management
+model Image {
+  id          String   @id @default(cuid()) @db.VarChar(25)
+  userId      String   @db.VarChar(25)
+  prompt      String   @db.Text
+  original    String   @db.Text
+  imageUrl    String   @db.VarChar(500)
+  provider    String   @db.VarChar(50)
+  guidance    Int      @default(10)
+  model       String?  @db.VarChar(100)
+  rating      Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("images")
+}

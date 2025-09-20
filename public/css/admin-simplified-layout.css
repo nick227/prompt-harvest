@@ -1,0 +1,144 @@
+/**
+ * Admin Simplified Layout - Image Harvest Admin Dashboard
+ * Open, spacious layout without sidebar
+ */
+
+/* ===== ADMIN LAYOUT STRUCTURE ===== */
+
+.admin-dashboard {
+  min-height: 100vh;
+  background-color: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
+}
+
+.admin-main {
+  margin: 0 auto;
+  padding: 0 var(--space-8);
+  transition: var(--transition-all);
+}
+
+/* ===== SITE HEADER INTEGRATION ===== */
+
+/* Override site header styles for admin context */
+header {
+  position: relative !important;
+  z-index: 10;
+  width: 100%;
+  top: 0;
+}
+
+/* Admin-specific header adjustments */
+#admin-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+#admin-user-info .badge {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  border: none;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ===== CONTENT AREA ===== */
+
+.admin-dashboard-content {
+  padding: 0;
+  min-height: calc(100vh - 200px);
+  background: transparent;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+@media (max-width: 1200px) {
+  .admin-main {
+    max-width: 100%;
+    padding: 0 var(--space-6);
+  }
+
+  .header-content {
+    padding: 0 var(--space-6);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-main {
+    padding: 0 var(--space-4);
+  }
+
+  /* Site header responsive adjustments */
+  header .max-w-\[1020px\] {
+    padding: 0 var(--space-4);
+  }
+
+  header .flex {
+    flex-direction: column;
+    gap: var(--space-4);
+    text-align: center;
+  }
+
+  #admin-user-info {
+    flex-direction: column;
+    gap: var(--space-2);
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-main {
+    padding: 0 var(--space-3);
+  }
+
+  .header-content {
+    padding: 0 var(--space-3);
+  }
+
+  .nav-brand {
+    font-size: var(--font-size-lg);
+  }
+
+  .nav-brand i {
+    font-size: var(--font-size-xl);
+  }
+
+  .header-right {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-main {
+    transition: none;
+  }
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+@media (prefers-contrast: high) {
+  .admin-header {
+    border-bottom-width: 2px;
+  }
+
+  .admin-user-info {
+    border-width: 2px;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .admin-header {
+    display: none;
+  }
+
+  .admin-main {
+    padding: 0;
+    max-width: none;
+  }
+}

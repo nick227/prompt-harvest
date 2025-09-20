@@ -1,0 +1,96 @@
+/* Rating Buttons Component Styles */
+.rating-buttons {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.rating-btn {
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--color-gray-600);
+    border-radius: 3px;
+    background: var(--color-gray-800);
+    color: var(--color-gray-400);
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.rating-btn:hover {
+    background: var(--color-gray-600);
+    color: var(--color-gray-200);
+    border-color: var(--color-gray-500);
+}
+
+.rating-btn.active {
+    background: var(--color-gray-600);
+    color: var(--color-gray-200);
+    border-color: var(--color-gray-500);
+}
+
+/* Info box specific styling */
+.info-box .rating-buttons {
+    margin-left: 8px;
+}
+
+.info-box .rating-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+}
+
+/* List view specific styling */
+.list-rating-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.list-rating-container .rating-buttons {
+    margin-left: 4px;
+}
+
+.list-rating-container .rating-btn {
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+}
+
+/* Compact view styling */
+.compact-view .rating-buttons {
+    margin-left: 4px;
+}
+
+.compact-view .rating-btn {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .rating-btn {
+        width: 18px;
+        height: 18px;
+        font-size: 11px;
+    }
+
+    .list-rating-container .rating-btn {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    .compact-view .rating-btn {
+        width: 14px;
+        height: 14px;
+        font-size: 9px;
+    }
+}
