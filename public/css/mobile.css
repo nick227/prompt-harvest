@@ -41,6 +41,10 @@
         width: calc(100vw - 40px);
         margin: 0 auto;
     }
+
+    .hide-on-mobile {
+        display: none !important;
+    }
 }
 
 /* ==========================================================================

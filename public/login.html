@@ -7,6 +7,7 @@
     <title>Sign In - AutoImage</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/optimized.css">
+    <link rel="stylesheet" href="css/mobile.css">
     <link rel="icon" href="images/favicon.png" type="image/png">
 
     <!-- Header Component - Load early -->
@@ -41,13 +42,13 @@
 
 <body class="text-gray-900 min-h-screen overflow-x-hidden">
     <!-- Background Layer -->
-    <div class="fixed inset-0 flex">
-        <div class="w-1/2 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700"></div>
+    <div class="fixed inset-0 flex hide-on-mobile">
+        <div class="w-1/2 bg-indigo-900"></div>
         <div class="w-1/2 bg-white"></div>
     </div>
 
     <!-- Content Layer -->
-    <div class="min-h-screen relative flex items-center justify-center px-4 py-8">
+    <div class="min-h-screen relative flex items-center justify-center px-4 py-8 mt-12">
         <div class="w-full max-w-[1020px] flex">
             <!-- Left Column - Visual Features and Copy -->
             <div class="hidden lg:flex lg:w-1/2 relative">
