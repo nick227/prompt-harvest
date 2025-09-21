@@ -418,9 +418,11 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 // Google OAuth routes
-export const googleAuth = passport.authenticate('google', {
-    scope: ['profile', 'email']
-});
+export const googleAuth = (req, res, next) => {
+    passport.authenticate('google', {
+        scope: ['profile', 'email']
+    })(req, res, next);
+};
 
 export const googleCallback = [
     passport.authenticate('google', { failureRedirect: '/login?error=google_auth_failed' }),
@@ -433,6 +435,7 @@ export const googleCallback = [
 
             if (!user) {
                 console.log('❌ GOOGLE OAUTH CALLBACK: No user found in request');
+
                 return res.redirect('/login?error=google_auth_failed');
             }
 
@@ -444,6 +447,7 @@ export const googleCallback = [
 
             // Generate JWT token for the user
             const token = generateToken(user.id);
+
             console.log('🔐 GOOGLE OAUTH CALLBACK: Token generated');
 
             // Redirect to frontend with token
@@ -462,32 +466,64 @@ export const googleCallback = [
 
 // Setup auth routes
 export const setupAuthRoutes = app => {
-    app.post('/api/auth/register', register);
-    app.post('/api/auth/login', rateLimitLogin, login);
-    app.get('/api/auth/profile', authenticateTokenRequired, getProfile);
-    app.put('/api/auth/profile', authenticateTokenRequired, updateProfile);
-    app.post('/api/auth/change-password', authenticateTokenRequired, changePassword);
-    app.post('/api/auth/forgot-password', rateLimitPasswordReset, requestPasswordReset);
-    app.post('/api/auth/reset-password', resetPassword);
-    app.post('/api/auth/logout', logout);
+    console.log('🔧 AUTH ROUTES: Starting auth routes setup...');
 
-    // Google OAuth routes
-    app.get('/api/auth/google', googleAuth);
-    app.get('/api/auth/google/callback', googleCallback);
+    try {
+        console.log('🔧 AUTH ROUTES: Step 1 - Registering basic auth routes...');
+        app.post('/api/auth/register', register);
+        console.log('✅ AUTH ROUTES: POST /api/auth/register registered');
 
-    // Email service diagnostic endpoint
-    app.get('/api/auth/email-status', async (req, res) => {
-        try {
-            const emailService = await import('../services/EmailService.js');
-            const status = await emailService.default.testConfiguration();
+        app.post('/api/auth/login', rateLimitLogin, login);
+        console.log('✅ AUTH ROUTES: POST /api/auth/login registered');
 
-            res.json(status);
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Failed to check email service status',
-                error: error.message
-            });
-        }
-    });
+        app.get('/api/auth/profile', authenticateTokenRequired, getProfile);
+        console.log('✅ AUTH ROUTES: GET /api/auth/profile registered');
+
+        app.put('/api/auth/profile', authenticateTokenRequired, updateProfile);
+        console.log('✅ AUTH ROUTES: PUT /api/auth/profile registered');
+
+        app.post('/api/auth/change-password', authenticateTokenRequired, changePassword);
+        console.log('✅ AUTH ROUTES: POST /api/auth/change-password registered');
+
+        app.post('/api/auth/forgot-password', rateLimitPasswordReset, requestPasswordReset);
+        console.log('✅ AUTH ROUTES: POST /api/auth/forgot-password registered');
+
+        app.post('/api/auth/reset-password', resetPassword);
+        console.log('✅ AUTH ROUTES: POST /api/auth/reset-password registered');
+
+        app.post('/api/auth/logout', logout);
+        console.log('✅ AUTH ROUTES: POST /api/auth/logout registered');
+
+        console.log('🔧 AUTH ROUTES: Step 2 - Registering Google OAuth routes...');
+        app.get('/api/auth/google', googleAuth);
+        console.log('✅ AUTH ROUTES: GET /api/auth/google registered');
+
+        app.get('/api/auth/google/callback', googleCallback);
+        console.log('✅ AUTH ROUTES: GET /api/auth/google/callback registered');
+
+        console.log('🔧 AUTH ROUTES: Step 3 - Registering diagnostic routes...');
+        // Email service diagnostic endpoint
+        app.get('/api/auth/email-status', async (req, res) => {
+            try {
+                const emailService = await import('../services/EmailService.js');
+                const status = await emailService.default.testConfiguration();
+
+                res.json(status);
+            } catch (error) {
+                res.status(500).json({
+                    success: false,
+                    message: 'Failed to check email service status',
+                    error: error.message
+                });
+            }
+        });
+        console.log('✅ AUTH ROUTES: GET /api/auth/email-status registered');
+
+        console.log('🎉 AUTH ROUTES: All auth routes registered successfully!');
+
+    } catch (error) {
+        console.error('❌ AUTH ROUTES: Error during route registration:', error);
+        console.error('❌ AUTH ROUTES: Error stack:', error.stack);
+        throw error; // Re-throw to prevent silent failures
+    }
 };

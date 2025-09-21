@@ -6,37 +6,104 @@ import session from 'express-session';
 import passport from './src/config/passport.js';
 import { moderateBadWordFilter } from './src/middleware/badWordFilter.js';
 import { authenticateToken } from './src/middleware/authMiddleware.js';
-import { spawn } from 'child_process';
+import databaseClient from './src/database/PrismaClient.js';
+import PrismaSessionStore from './src/config/PrismaSessionStore.js';
 
 dotenv.config();
-
-// Debug: Log environment variables
-console.log('🔍 SERVER STARTUP: Environment Variables');
-console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
-console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET');
 
 const app = express();
 
 // Enable CORS for all routes
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' ? [process.env.FRONTEND_URL || 'https://dialogica.up.railway.app'] : ['http://localhost:3000', 'http://localhost:3200', 'http://127.0.0.1:3000', 'http://127.0.0.1:3200'],
+    origin: process.env.NODE_ENV === 'production' ? [process.env.FRONTEND_URL || 'https://autoimage.up.railway.app'] : ['http://localhost:3000', 'http://localhost:3200', 'http://127.0.0.1:3000', 'http://127.0.0.1:3200'],
     credentials: true
 }));
 
-// Session configuration for OAuth
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-}));
+// Session configuration for OAuth with Prisma store
+let sessionStore;
 
-// Initialize Passport
-app.use(passport.initialize());
-app.use(passport.session());
+// Initialize database connection first
+const initializeDatabase = async () => {
+    try {
+        await databaseClient.connect();
+        console.log('✅ Database connected successfully');
+
+        // Get the connected Prisma client
+        const prismaClient = databaseClient.getClient();
+
+        // Test the connection before creating session store
+        await prismaClient.$connect();
+        console.log('✅ Prisma client connected and ready');
+
+        sessionStore = new PrismaSessionStore({
+            prisma: prismaClient,
+            ttl: 86400 // 24 hours
+        });
+
+        // Configure session middleware
+        app.use(session({
+            store: sessionStore,
+            secret: process.env.SESSION_SECRET || 'your-secret-key',
+            resave: false,
+            saveUninitialized: false,
+            rolling: true, // Reset expiration on activity
+            cookie: {
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 24 * 60 * 60 * 1000, // 24 hours
+                httpOnly: true,
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+            }
+        }));
+
+        return true;
+    } catch (error) {
+        console.error('❌ Database initialization failed:', error);
+
+        return false;
+    }
+};
+
+// Session cleanup with best practices
+const scheduleSessionCleanup = () => {
+    if (!sessionStore) {
+        return;
+    }
+
+    console.log('🕐 Scheduling session cleanup with best practices');
+
+    // Clean up after a short delay to ensure everything is initialized
+    setTimeout(performSessionCleanup, 2000);
+
+    // Schedule regular cleanup every 30 minutes (more frequent for better performance)
+    setInterval(performSessionCleanup, 30 * 60 * 1000); // 30 minutes
+
+    // Log session stats every hour
+    setInterval(logSessionStats, 60 * 60 * 1000); // 1 hour
+};
+
+const performSessionCleanup = async () => {
+    try {
+        const result = await sessionStore.cleanup();
+
+        if (result.success && result.deletedCount > 0) {
+            console.log(`🧹 Session cleanup: removed ${result.deletedCount} expired sessions`);
+        }
+    } catch (error) {
+        console.error('Session cleanup failed:', error);
+    }
+};
+
+const logSessionStats = async () => {
+    try {
+        const stats = await sessionStore.getStats();
+
+        if (stats) {
+            console.log(`📊 Session stats: ${stats.active} active, ${stats.expired} expired, ${stats.total} total`);
+        }
+    } catch (error) {
+        console.error('Session stats logging failed:', error);
+    }
+};
 
 // CRITICAL: Mount webhook routes BEFORE express.json() middleware
 // Webhooks need raw body for signature verification
@@ -104,71 +171,49 @@ app.get('/uploads/:filename', authenticateToken, async (req, res) => {
 
 const port = process.env.PORT || 3200;
 
-// Railway deployment process
-async function runRailwayDeployment() {
-    if (process.env.RAILWAY_ENVIRONMENT) {
-        console.log('🚀 RAILWAY DEPLOYMENT START');
-        console.log('============================');
-        console.log(`DATABASE_URL=${process.env.DATABASE_URL ? 'Set' : 'Not set'}`);
+// Simplified server startup - no migration needed since Railway DB is ready
 
-        try {
-            // Step 1: Push schema
-            console.log('📋 Step 1: Pushing schema...');
-            await runCommand('npx', ['prisma', 'db', 'push', '--accept-data-loss']);
-            console.log('✅ Schema pushed successfully');
+// Initialize database and start server
+const startServer = async () => {
+    try {
+        // Step 1: Initialize database connection
+        console.log('🔗 Initializing database connection...');
+        const dbConnected = await initializeDatabase();
 
-            // Step 2: Seed data
-            console.log('🌱 Step 2: Seeding data...');
-            await runCommand('node', ['railway-deploy-clean.js']);
-            console.log('✅ Data seeded successfully');
-
-            // Step 3: Migrate models
-            console.log('🔄 Step 3: Migrating models...');
-            await runCommand('node', ['scripts/railway-service-migration.js']);
-            console.log('✅ Models migrated successfully');
-
-            console.log('============================');
-            console.log('🎉 RAILWAY DEPLOYMENT COMPLETE');
-            console.log('============================');
-
-        } catch (error) {
-            console.error('❌ RAILWAY DEPLOYMENT FAILED:', error.message);
+        if (!dbConnected) {
+            console.error('❌ Failed to initialize database');
             process.exit(1);
         }
-    }
-}
 
-function runCommand(command, args) {
-    return new Promise((resolve, reject) => {
-        const process = spawn(command, args, {
-            stdio: 'inherit',
-            shell: true
-        });
+        // Step 2: Initialize Passport after database is ready
+        console.log('🔐 Initializing Passport...');
+        app.use(passport.initialize());
+        app.use(passport.session());
 
-        process.on('close', (code) => {
-            if (code === 0) {
-                resolve();
-            } else {
-                reject(new Error(`Command failed with code ${code}`));
-            }
-        });
-    });
-}
+        // Step 3: Initialize WordTypeManager cache
+        console.log('📚 Initializing WordTypeManager...');
+        const { default: wordTypeManager } = await import('./lib/word-type-manager.js');
 
-// Run deployment and start server
-runRailwayDeployment().then(() => {
-    // Setup routes and start server
-    setupRoutes(app).then(() => {
+        await wordTypeManager.initializeCache();
+
+        // Step 4: Schedule session cleanup
+        scheduleSessionCleanup();
+
+        // Step 5: Setup routes and start server
+        console.log('🛣️ Setting up routes...');
+        await setupRoutes(app);
+
         app.listen(port, () => {
             console.log(`Prompt app listening on port ${port}!`);
         });
-    }).catch(error => {
-        console.error('Failed to setup routes:', error);
+
+    } catch (error) {
+        console.error('❌ Server startup failed:', error);
         process.exit(1);
-    });
-}).catch(error => {
-    console.error('Failed to run deployment:', error);
-    process.exit(1);
-});
+    }
+};
+
+// Start the server
+startServer();
 
 export default app;

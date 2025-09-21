@@ -13,25 +13,34 @@ import { execSync } from 'child_process';
 const prisma = new PrismaClient();
 
 async function railwayDeployClean() {
-    console.log('🚀 RAILWAY DEPLOYMENT START');
-    console.log('============================');
+    // Check if called from server.js (skip schema push)
+    const skipSchemaPush = process.argv.includes('--skip-schema');
+
+    if (!skipSchemaPush) {
+        console.log('🚀 RAILWAY DEPLOYMENT START');
+        console.log('============================');
+    }
 
     try {
-        // Step 1: Push schema
-        console.log('📋 Step 1: Pushing schema...');
-        await pushSchema();
-        console.log('✅ Schema pushed successfully');
+        // Step 1: Push schema (only if not skipped)
+        if (!skipSchemaPush) {
+            console.log('📋 Step 1: Pushing schema...');
+            await pushSchema();
+            console.log('✅ Schema pushed successfully');
+        }
 
         // Step 2: Seed essential data
-        console.log('🌱 Step 2: Seeding essential data...');
+        console.log('🌱 Seeding essential data...');
         await seedEssentialData();
 
         // Step 3: Verify deployment
-        console.log('🔍 Step 3: Verifying deployment...');
+        console.log('🔍 Verifying deployment...');
         await verifyDeployment();
 
-        console.log('============================');
-        console.log('🎉 RAILWAY DEPLOYMENT COMPLETE');
+        if (!skipSchemaPush) {
+            console.log('============================');
+            console.log('🎉 RAILWAY DEPLOYMENT COMPLETE');
+        }
 
     } catch (error) {
         console.log('============================');

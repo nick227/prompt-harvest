@@ -18,7 +18,6 @@ import packagesRouter from './packages.js';
 import providersRouter from './providers.js';
 import stripeModule from '../stripe.js';
 import adminRouter from './admin.js';
-import webhooksRouter from './webhooks.js';
 import messageRouter from './messageRoutes.js';
 import express from 'express';
 import { EnhancedImageController } from '../controllers/EnhancedImageController.js';
@@ -97,9 +96,17 @@ export const setupRoutes = async app => {
     }
 
     // Setup routes
+    console.log('🔧 MAIN ROUTES: Starting route setup...');
+
     setupPageRoutes(app); // Must be first to handle frontend pages
+    console.log('✅ MAIN ROUTES: Page routes setup completed');
+
+    console.log('🔧 MAIN ROUTES: Setting up auth routes...');
     setupAuthRoutes(app); // Authentication routes (no middleware needed)
+    console.log('✅ MAIN ROUTES: Auth routes setup completed');
+
     setupEnhancedImageRoutes(app, enhancedImageController); // Enhanced routes with circuit breakers
+    console.log('✅ MAIN ROUTES: Enhanced image routes setup completed');
     setupFeedRoutes(app, enhancedImageController);
     setupAIRoutes(app, aiController);
     setupConfigRoutes(app, configController);
@@ -117,8 +124,9 @@ export const setupRoutes = async app => {
     app.use('/api/providers', providersRouter); // Provider and model management routes
     app.use('/api/admin', adminRouter); // Admin dashboard routes
     app.use('/api/messages', messageRouter); // User-admin messaging routes
+
     // Note: /webhooks routes are mounted in server.js BEFORE express.json() middleware
-    stripeModule.init(app, express); // Stripe payment routes
+    stripeModule.init(app, express); // Stripe payment routes (includes legacy webhook at /webhook)
 
     // Apply JWT authentication middleware to protected routes only
     // Note: Auth routes (/api/auth/*) are handled separately and don't need this middleware

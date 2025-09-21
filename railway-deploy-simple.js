@@ -316,18 +316,48 @@ async function seedPackages() {
     console.log(`Seeded ${packages.length} packages`);
 }
 
+async function createSessionsTable() {
+    try {
+        console.log('Creating sessions table...');
+        await prisma.$executeRaw`
+            CREATE TABLE IF NOT EXISTS sessions (
+                sid VARCHAR(128) PRIMARY KEY,
+                data TEXT,
+                expiresAt DATETIME,
+                createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_expiresAt (expiresAt)
+            )
+        `;
+        console.log('✅ Sessions table created successfully');
+    } catch (error) {
+        console.error('❌ Failed to create sessions table:', error.message);
+        throw error;
+    }
+}
+
 async function verifyDeployment() {
     try {
         // Test database connection
         await prisma.$queryRaw`SELECT 1 as test`;
         console.log('Database connection verified');
 
+        // Verify sessions table exists
+        try {
+            await prisma.$queryRaw`SELECT 1 FROM sessions LIMIT 1`;
+            console.log('✅ Sessions table verified');
+        } catch (sessionsError) {
+            console.log('⚠️ Sessions table not found, creating...');
+            await createSessionsTable();
+        }
+
         // Check essential data
         const counts = {
             users: await prisma.user.count(),
             models: await prisma.model.count(),
             systemSettings: await prisma.systemSettings.count(),
-            packages: await prisma.package.count()
+            packages: await prisma.package.count(),
+            sessions: await prisma.session.count()
         };
 
         console.log('Deployment verification:');
