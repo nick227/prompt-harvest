@@ -24,6 +24,7 @@ export const requireAdmin = async (req, res, next) => {
         if (token) {
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+
                 userId = decoded.userId;
                 console.log('🔐 ADMIN-AUTH: JWT token authentication successful');
             } catch (jwtError) {
@@ -39,6 +40,7 @@ export const requireAdmin = async (req, res, next) => {
 
         if (!userId) {
             console.log('🔐 ADMIN-AUTH: No valid authentication found');
+
             return res.status(401).json({
                 success: false,
                 error: 'Authentication required',
@@ -116,6 +118,7 @@ export const verifyAdmin = async (req, res, _next) => {
         if (token) {
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+
                 userId = decoded.userId;
             } catch (jwtError) {
                 // JWT token invalid, continue to check session
@@ -187,23 +190,21 @@ export const verifyAdmin = async (req, res, _next) => {
  * Middleware to log admin actions for audit trail
  * Logs all admin actions with user, action, and timestamp
  */
-export const logAdminActionMiddleware = (action) => {
-    return (req, res, next) => {
-        // Log the admin action
-        console.log(`🔍 ADMIN-AUDIT: ${req.adminUser?.email || 'Unknown'} performed action: ${action}`, {
-            userId: req.adminUser?.id,
-            userEmail: req.adminUser?.email,
-            action,
-            timestamp: new Date().toISOString(),
-            ip: req.ip,
-            userAgent: req.get('User-Agent'),
-            url: req.originalUrl,
-            method: req.method
-        });
+export const logAdminActionMiddleware = action => (req, res, next) => {
+    // Log the admin action
+    console.log(`🔍 ADMIN-AUDIT: ${req.adminUser?.email || 'Unknown'} performed action: ${action}`, {
+        userId: req.adminUser?.id,
+        userEmail: req.adminUser?.email,
+        action,
+        timestamp: new Date().toISOString(),
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        url: req.originalUrl,
+        method: req.method
+    });
 
-        // Continue to next middleware
-        next();
-    };
+    // Continue to next middleware
+    next();
 };
 
 /**

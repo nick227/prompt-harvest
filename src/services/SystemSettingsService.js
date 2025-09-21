@@ -49,6 +49,7 @@ class SystemSettingsService {
             return convertedValue;
         } catch (error) {
             console.error(`❌ SYSTEM-SETTINGS: Error getting setting "${key}":`, error);
+
             return defaultValue;
         }
     }
@@ -86,6 +87,7 @@ class SystemSettingsService {
             this.cacheExpiry.set(key, Date.now() + this.CACHE_TTL);
 
             console.log(`✅ SYSTEM-SETTINGS: Updated setting "${key}" = ${value}`);
+
             return setting;
         } catch (error) {
             console.error(`❌ SYSTEM-SETTINGS: Error setting "${key}":`, error);
@@ -131,6 +133,7 @@ class SystemSettingsService {
             this.cacheExpiry.delete(key);
 
             console.log(`✅ SYSTEM-SETTINGS: Deleted setting "${key}"`);
+
             return true;
         } catch (error) {
             console.error(`❌ SYSTEM-SETTINGS: Error deleting setting "${key}":`, error);

@@ -6,7 +6,7 @@ export class ImageRepository extends PrismaBaseRepository {
         super('image');
     }
 
-async findById(id) {
+    async findById(id) {
         const image = await this.prisma.image.findUnique({
             where: { id }
         });
@@ -204,11 +204,14 @@ async findById(id) {
 
         // Safety check: verify all returned images are actually public
         const nonPublicImages = images.filter(img => !img.isPublic);
+
         if (nonPublicImages.length > 0) {
             console.error('🚨 REPOSITORY PRIVACY VIOLATION: Non-public images returned from findPublicImages!', nonPublicImages);
             // Filter out non-public images as safety measure
             const safeImages = images.filter(img => img.isPublic);
+
             console.log(`🔧 REPOSITORY: Filtered out ${nonPublicImages.length} non-public images, returning ${safeImages.length} safe images`);
+
             return {
                 images: safeImages,
                 hasMore: skip + limit < total,
@@ -217,6 +220,7 @@ async findById(id) {
         }
 
         console.log(`✅ REPOSITORY: findPublicImages returning ${images.length} public images${tags.length > 0 ? ` filtered by tags: ${tags.join(', ')}` : ''}`);
+
         return {
             images,
             hasMore: skip + limit < total,
@@ -224,21 +228,13 @@ async findById(id) {
         };
     }
 
-    async findUserImages(userId, limit = 8, page = 0, tags = []) {
-        const skip = page * limit;
-
-        console.log('🔄 IMAGE-REPOSITORY: findUserImages called with:', { userId, limit, page, skip, tags });
-
-        // First, let's check if ANY images exist for this user
-        const totalImagesForUser = await this.prisma.image.count({ where: { userId } });
-        console.log('🔍 IMAGE-REPOSITORY: Total images in database for user:', totalImagesForUser);
-
+    /**
+     * Build where clause for user images with optional tag filtering
+     */
+    buildUserImagesWhereClause(userId, tags = []) {
         const whereClause = { userId };
 
-        // Add tag filtering if tags are provided
         if (tags && tags.length > 0) {
-            // Use JSON_CONTAINS to find images that contain ALL specified tags
-            // This implements AND logic: image must contain all selected tags
             whereClause.AND = tags.map(tag => ({
                 tags: {
                     path: '$',
@@ -247,51 +243,89 @@ async findById(id) {
             }));
         }
 
-        console.log('🔄 IMAGE-REPOSITORY: Using whereClause:', whereClause);
+        return whereClause;
+    }
 
-        const [images, totalCount] = await Promise.all([
+    /**
+     * Fetch images and count with pagination
+     */
+    async fetchUserImagesWithPagination(whereClause, limit, skip) {
+        return await Promise.all([
             this.prisma.image.findMany({
                 where: whereClause,
                 orderBy: { createdAt: 'desc' },
                 take: limit,
-                skip: skip
+                skip
             }),
-            this.prisma.image.count({
-                where: whereClause
-            })
+            this.prisma.image.count({ where: whereClause })
         ]);
+    }
 
-        // Safety check: verify all returned images belong to the user
+    /**
+     * Validate privacy and filter out other users' images
+     */
+    validateAndFilterUserImages(images, userId, totalCount) {
         const otherUserImages = images.filter(img => img.userId !== userId);
+
         if (otherUserImages.length > 0) {
             console.error('🚨 REPOSITORY PRIVACY VIOLATION: Other users images returned from findUserImages!', otherUserImages);
-            // Filter out other users' images as safety measure
             const safeImages = images.filter(img => img.userId === userId);
             console.log(`🔧 REPOSITORY: Filtered out ${otherUserImages.length} other users images, returning ${safeImages.length} safe images`);
+
             return {
                 images: safeImages,
-                hasMore: skip + limit < totalCount,
                 totalCount: totalCount - otherUserImages.length
             };
         }
 
+        return { images, totalCount };
+    }
+
+    /**
+     * Format and log results
+     */
+    logUserImagesResults(images, totalCount, hasMore, tags, _skip, _limit) {
         console.log(`✅ IMAGE-REPOSITORY: findUserImages returning ${images.length} user images${tags.length > 0 ? ` filtered by tags: ${tags.join(', ')}` : ''}:`, {
             imagesFound: images.length,
             totalCount,
-            hasMore: skip + limit < totalCount,
-            firstImage: images[0] ? {
-                id: images[0].id,
-                userId: images[0].userId,
-                provider: images[0].provider,
-                model: images[0].model,
-                createdAt: images[0].createdAt
-            } : null
+            hasMore,
+            firstImage: images[0]
+                ? {
+                    id: images[0].id,
+                    userId: images[0].userId,
+                    provider: images[0].provider,
+                    model: images[0].model,
+                    createdAt: images[0].createdAt
+                }
+                : null
         });
+    }
+
+    async findUserImages(userId, limit = 8, page = 0, tags = []) {
+        const skip = page * limit;
+
+        console.log('🔄 IMAGE-REPOSITORY: findUserImages called with:', { userId, limit, page, skip, tags });
+
+        // Check total images for user
+        const totalImagesForUser = await this.prisma.image.count({ where: { userId } });
+        console.log('🔍 IMAGE-REPOSITORY: Total images in database for user:', totalImagesForUser);
+
+        // Build where clause and fetch data
+        const whereClause = this.buildUserImagesWhereClause(userId, tags);
+        console.log('🔄 IMAGE-REPOSITORY: Using whereClause:', whereClause);
+
+        const [images, totalCount] = await this.fetchUserImagesWithPagination(whereClause, limit, skip);
+
+        // Validate privacy and filter
+        const { images: safeImages, totalCount: safeTotalCount } = this.validateAndFilterUserImages(images, userId, totalCount);
+
+        const hasMore = skip + limit < safeTotalCount;
+        this.logUserImagesResults(safeImages, safeTotalCount, hasMore, tags, skip, limit);
 
         return {
-            images,
-            hasMore: skip + limit < totalCount,
-            totalCount
+            images: safeImages,
+            hasMore,
+            totalCount: safeTotalCount
         };
     }
 

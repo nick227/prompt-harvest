@@ -235,13 +235,14 @@ export class TransactionController {
             // Use unified credit cost system
             const costMatrix = {};
             const providers = ['dalle', 'dalle3', 'dalle2', 'flux', 'juggernaut', 'juggernautReborn',
-                             'redshift', 'absolute', 'realisticvision', 'icbinp', 'icbinp_seco', 'hasdx',
-                             'dreamshaper', 'nightmareshaper', 'openjourney', 'analogmadness', 'portraitplus',
-                             'tshirt', 'abyssorange', 'cyber', 'disco', 'synthwave', 'lowpoly', 'bluepencil', 'ink',
-                             'stability', 'midjourney'];
+                'redshift', 'absolute', 'realisticvision', 'icbinp', 'icbinp_seco', 'hasdx',
+                'dreamshaper', 'nightmareshaper', 'openjourney', 'analogmadness', 'portraitplus',
+                'tshirt', 'abyssorange', 'cyber', 'disco', 'synthwave', 'lowpoly', 'bluepencil', 'ink',
+                'stability', 'midjourney'];
 
             // Build cost matrix from SimplifiedCreditService
             const SimplifiedCreditService = (await import('../services/credit/SimplifiedCreditService.js')).default;
+
             providers.forEach(provider => {
                 costMatrix[provider] = SimplifiedCreditService.getCreditCost(provider);
             });

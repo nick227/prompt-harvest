@@ -145,6 +145,7 @@ export const validateImageGenerationParams = params => {
 export const validateImageId = id => {
     validateRequired(id, 'Image ID');
     validateNonEmptyString(id, 'Image ID');
+
     return id; // Return the validated ID
 };
 

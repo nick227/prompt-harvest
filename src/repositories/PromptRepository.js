@@ -25,6 +25,7 @@ export class PromptRepository extends PrismaBaseRepository {
 
         // Handle anonymous users - get recent prompts from anonymous users
         let whereClause = { userId };
+
         if (userId === 'anonymous' || userId?.startsWith('anonymous_')) {
             // For anonymous users, get recent prompts from all anonymous users
             whereClause = {
@@ -71,7 +72,7 @@ export class PromptRepository extends PrismaBaseRepository {
                 samplePrompts: recentPrompts.map(p => ({
                     id: p.id,
                     userId: p.userId,
-                    prompt: p.prompt?.substring(0, 50) + '...',
+                    prompt: `${p.prompt?.substring(0, 50)}...`,
                     createdAt: p.createdAt
                 }))
             });
@@ -104,12 +105,14 @@ export class PromptRepository extends PrismaBaseRepository {
             total,
             hasMore: (skip + prompts.length) < total,
             whereClause,
-            samplePrompt: prompts.length > 0 ? {
-                id: prompts[0].id,
-                userId: prompts[0].userId,
-                prompt: prompts[0].prompt?.substring(0, 50) + '...',
-                createdAt: prompts[0].createdAt
-            } : 'no prompts'
+            samplePrompt: prompts.length > 0
+                ? {
+                    id: prompts[0].id,
+                    userId: prompts[0].userId,
+                    prompt: `${prompts[0].prompt?.substring(0, 50)}...`,
+                    createdAt: prompts[0].createdAt
+                }
+                : 'no prompts'
         });
 
         return {

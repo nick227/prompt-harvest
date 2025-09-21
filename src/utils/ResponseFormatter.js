@@ -199,11 +199,13 @@ export const formatErrorResponse = (error, requestId, duration = 0) => {
                     message: error?.message || 'An unexpected error occurred',
                     name: error?.name || 'Unknown',
                     stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined,
-                    debug: process.env.NODE_ENV === 'development' ? {
-                        errorType: typeof error,
-                        errorKeys: error ? Object.keys(error) : 'null/undefined',
-                        errorStringified: JSON.stringify(error, null, 2)
-                    } : undefined
+                    debug: process.env.NODE_ENV === 'development'
+                        ? {
+                            errorType: typeof error,
+                            errorKeys: error ? Object.keys(error) : 'null/undefined',
+                            errorStringified: JSON.stringify(error, null, 2)
+                        }
+                        : undefined
                 },
                 statusCode: 500
             };

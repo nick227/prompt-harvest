@@ -336,35 +336,30 @@ export const STATIC_MODELS = {
  * Get all static models as an array
  * @returns {Array} Array of model configurations
  */
-export const getAllStaticModels = () => {
-    return Object.values(STATIC_MODELS);
-};
+export const getAllStaticModels = () => Object.values(STATIC_MODELS);
 
 /**
  * Get static model by name
  * @param {string} modelName - Model name
  * @returns {Object|null} Model configuration or null if not found
  */
-export const getStaticModel = (modelName) => {
-    return STATIC_MODELS[modelName] || null;
-};
+export const getStaticModel = modelName => STATIC_MODELS[modelName] || null;
 
 /**
  * Get static models by provider
  * @param {string} provider - Provider name
  * @returns {Array} Array of models for the provider
  */
-export const getStaticModelsByProvider = (provider) => {
-    return Object.values(STATIC_MODELS).filter(model => model.provider === provider);
-};
+export const getStaticModelsByProvider = provider => Object.values(STATIC_MODELS).filter(model => model.provider === provider);
 
 /**
  * Get ImageGenerator-compatible config from static model
  * @param {string} modelName - Model name
  * @returns {Object|null} ImageGenerator-compatible config
  */
-export const getStaticImageGeneratorConfig = (modelName) => {
+export const getStaticImageGeneratorConfig = modelName => {
     const model = getStaticModel(modelName);
+
     if (!model || !model.isActive) {
         return null;
     }
@@ -382,8 +377,9 @@ export const getStaticImageGeneratorConfig = (modelName) => {
  * @param {string} modelName - Model name
  * @returns {number} Credit cost (default: 1)
  */
-export const getStaticCreditCost = (modelName) => {
+export const getStaticCreditCost = modelName => {
     const model = getStaticModel(modelName);
+
     return model ? model.costPerImage : 1;
 };
 
@@ -391,28 +387,25 @@ export const getStaticCreditCost = (modelName) => {
  * Get all valid model names from static config
  * @returns {Array} Array of valid model names
  */
-export const getStaticValidModelNames = () => {
-    return Object.keys(STATIC_MODELS);
-};
+export const getStaticValidModelNames = () => Object.keys(STATIC_MODELS);
 
 /**
  * Get frontend provider list from static config
  * @returns {Array} Array of {value, label} objects
  */
-export const getStaticFrontendProviderList = () => {
-    return Object.values(STATIC_MODELS).map(model => ({
-        value: model.name,
-        label: model.displayName
-    }));
-};
+export const getStaticFrontendProviderList = () => Object.values(STATIC_MODELS).map(model => ({
+    value: model.name,
+    label: model.displayName
+}));
 
 /**
  * Check if static model exists and is active
  * @param {string} modelName - Model name
  * @returns {boolean} True if model exists and is active
  */
-export const isStaticModelValid = (modelName) => {
+export const isStaticModelValid = modelName => {
     const model = getStaticModel(modelName);
+
     return model && model.isActive;
 };
 
@@ -427,6 +420,7 @@ export const getStaticCostBreakdown = () => {
         // Convert credit cost to USD approximation
         // Flux (1 credit) ≈ $0.0228, so 1 credit = $0.0228
         const usdCost = model.costPerImage * 0.0228;
+
         breakdown[model.name] = {
             credits: model.costPerImage,
             usd: usdCost,

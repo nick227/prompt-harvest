@@ -99,6 +99,16 @@ class AdminUIRenderer {
             if (this.systemSettingsManager) {
                 this.systemSettingsManager.init();
             }
+
+            // Setup queue event listeners
+            if (this.eventHandler) {
+                this.eventHandler.setupQueueEventListeners();
+            }
+
+            // Update queue display if data is available
+            if (snapshotData?.queue) {
+                this.updateQueueDisplay(snapshotData.queue);
+            }
         } catch (error) {
             console.error('❌ ADMIN-UI: Failed to render summary tab:', error);
             summaryTab.innerHTML = '<div class="error-message">Failed to load summary data.</div>';
@@ -600,6 +610,23 @@ class AdminUIRenderer {
         }, 5000);
     }
 
+
+    /**
+     * Update queue display with new data
+     * @param {Object} queueData - Queue status data
+     */
+    updateQueueDisplay(queueData) {
+        try {
+            if (this.summaryRenderer && this.summaryRenderer.updateQueueStatus) {
+                this.summaryRenderer.updateQueueStatus(queueData);
+                console.log('✅ ADMIN-UI: Queue display updated successfully');
+            } else {
+                console.warn('⚠️ ADMIN-UI: Summary renderer not available for queue update');
+            }
+        } catch (error) {
+            console.error('❌ ADMIN-UI: Failed to update queue display:', error);
+        }
+    }
 
     destroy() {
         this.sharedTable.destroy();

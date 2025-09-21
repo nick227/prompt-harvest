@@ -28,7 +28,100 @@ const queue = [];
 let isProcessing = false;
 
 /**
- * Get current queue status
+ * Get comprehensive queue data (status, stats, and health) in one call
+ * @returns {Object} Complete queue information
+ */
+const getQueueData = () => {
+    const now = new Date();
+    const queueLength = queue.length;
+
+    // Process queue once for all data
+    const requests = queue.map(req => {
+        const age = now - new Date(req.timestamp);
+
+        return {
+            id: req.id,
+            age,
+            prompt: `${req.prompt?.substring(0, 50)}...`,
+            providers: req.providers,
+            timestamp: req.timestamp
+        };
+    });
+
+    // Calculate stats
+    const oldestRequest = requests.length > 0 ? Math.max(...requests.map(r => r.age)) : 0;
+    const averageAge = requests.length > 0 ? requests.reduce((sum, r) => sum + r.age, 0) / requests.length : 0;
+
+    // Calculate health
+    const health = { status: 'healthy', issues: [] };
+
+    // Check for very old requests (older than 15 minutes) - critical
+    if (oldestRequest > 900000) { // 15 minutes
+        health.status = 'error';
+        health.issues.push('Very old requests in queue');
+    } else if (oldestRequest > 300000) { // 5 minutes
+        health.status = 'warning';
+        health.issues.push('Old requests in queue');
+    }
+
+    // Check for very large queue (more than 50 requests) - critical
+    if (queueLength > 50) {
+        health.status = 'error';
+        health.issues.push('Very large queue size');
+    } else if (queueLength > 10) {
+        health.status = health.status === 'error' ? 'error' : 'warning';
+        health.issues.push('Large queue size');
+    }
+
+    // Check for processing stuck (processing but no requests)
+    if (isProcessing && queueLength === 0) {
+        health.status = 'error';
+        health.issues.push('Processing stuck');
+    }
+
+    // Check for high average age (more than 2 minutes)
+    if (averageAge > 120000) { // 2 minutes
+        health.status = health.status === 'error' ? 'error' : 'warning';
+        health.issues.push('High average wait time');
+    }
+
+    return {
+        status: {
+            length: queueLength,
+            isProcessing,
+            pendingRequests: requests.map(req => ({
+                id: req.id,
+                prompt: req.prompt,
+                providers: req.providers,
+                timestamp: req.timestamp
+            }))
+        },
+        stats: {
+            totalRequests: queueLength,
+            isProcessing,
+            oldestRequest,
+            averageAge,
+            requests: requests.map(req => ({
+                id: req.id,
+                age: req.age,
+                prompt: `${req.prompt.substring(0, 30)}...`,
+                providers: req.providers
+            }))
+        },
+        health: {
+            ...health,
+            stats: {
+                totalRequests: queueLength,
+                isProcessing,
+                oldestRequest,
+                averageAge
+            }
+        }
+    };
+};
+
+/**
+ * Get current queue status (legacy compatibility)
  * @returns {Object} Queue status information
  */
 const getQueueStatus = () => ({
@@ -55,6 +148,26 @@ const clearQueue = () => {
 
     return clearedCount;
 };
+
+// ============================================================================
+// QUEUE POSITION TRACKING
+// ============================================================================
+
+/**
+ * Calculate estimated wait time based on queue position
+ * @param {number} position - Position in queue (1-based)
+ * @returns {number} Estimated wait time in seconds
+ */
+const calculateEstimatedWaitTime = position => {
+    // Average processing time per request (in seconds)
+    const avgProcessingTime = 15; // 15 seconds per image generation
+
+    // If currently processing, subtract 1 from position
+    const effectivePosition = isProcessing ? position - 1 : position;
+
+    return Math.max(0, effectivePosition * avgProcessingTime);
+};
+
 
 // ============================================================================
 // QUEUE OPERATIONS
@@ -85,11 +198,15 @@ const addToQueue = requestData => new Promise((resolve, reject) => {
     };
 
     queue.push(queueItem);
+    const position = queue.length;
+    const estimatedWaitTime = calculateEstimatedWaitTime(position);
 
     console.log(`📥 Request queued [${requestId}]:`, {
         prompt: `${requestData.prompt?.substring(0, 50)}...`,
         providers: requestData.providers,
         queueLength: queue.length,
+        position,
+        estimatedWaitTime: `${estimatedWaitTime}s`,
         wasEmpty
     });
 
@@ -207,51 +324,7 @@ const processQueueWithRetry = async(processRequest, maxRetries = 3) => {
     try {
         while (queue.length > 0) {
             const request = queue.shift();
-            const { id, prompt, original, promptId, providers, guidance, resolve, reject } = request;
-
-            console.log(`⚡ Processing request [${id}] (attempt 1/${maxRetries + 1}):`, {
-                prompt: `${prompt?.substring(0, 50)}...`,
-                providers,
-                queueRemaining: queue.length
-            });
-
-            let lastError = null;
-            let success = false;
-
-            // Try processing with retries
-            for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
-                try {
-                    const response = await processRequest({
-                        prompt,
-                        original,
-                        promptId,
-                        providers,
-                        guidance,
-                        requestId: id,
-                        attempt
-                    });
-
-                    console.log(`✅ Request completed [${id}] on attempt ${attempt}`);
-                    resolve(response);
-                    success = true;
-                    break;
-                } catch (error) {
-                    lastError = error;
-                    console.warn(`⚠️ Request attempt ${attempt} failed [${id}]:`, error.message);
-
-                    if (attempt <= maxRetries) {
-                        const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
-
-                        console.log(`⏳ Retrying in ${delay}ms...`);
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                    }
-                }
-            }
-
-            if (!success) {
-                console.error(`❌ Request failed after ${maxRetries + 1} attempts [${id}]:`, lastError);
-                reject(lastError);
-            }
+            await processRequestWithRetry(request, maxRetries);
         }
     } catch (error) {
         console.error('❌ Queue processing error:', error);
@@ -266,60 +339,23 @@ const processQueueWithRetry = async(processRequest, maxRetries = 3) => {
 // ============================================================================
 
 /**
- * Get queue statistics
+ * Get queue statistics (legacy compatibility)
  * @returns {Object} Queue statistics
  */
 const getQueueStats = () => {
-    const now = new Date();
-    const requests = queue.map(req => ({
-        id: req.id,
-        age: now - new Date(req.timestamp),
-        prompt: `${req.prompt?.substring(0, 30)}...`,
-        providers: req.providers
-    }));
+    const data = getQueueData();
 
-    return {
-        totalRequests: queue.length,
-        isProcessing,
-        oldestRequest: requests.length > 0 ? Math.max(...requests.map(r => r.age)) : 0,
-        averageAge: requests.length > 0 ? requests.reduce((sum, r) => sum + r.age, 0) / requests.length : 0,
-        requests
-    };
+    return data.stats;
 };
 
 /**
- * Monitor queue health
+ * Monitor queue health (legacy compatibility)
  * @returns {Object} Queue health status
  */
 const getQueueHealth = () => {
-    const stats = getQueueStats();
-    const health = {
-        status: 'healthy',
-        issues: []
-    };
+    const data = getQueueData();
 
-    // Check for stuck requests (older than 5 minutes)
-    if (stats.oldestRequest > 300000) { // 5 minutes
-        health.status = 'warning';
-        health.issues.push('Old requests in queue');
-    }
-
-    // Check for large queue
-    if (stats.totalRequests > 10) {
-        health.status = 'warning';
-        health.issues.push('Large queue size');
-    }
-
-    // Check for processing stuck
-    if (isProcessing && stats.totalRequests === 0) {
-        health.status = 'error';
-        health.issues.push('Processing stuck');
-    }
-
-    return {
-        ...health,
-        stats
-    };
+    return data.health;
 };
 
 // ============================================================================
@@ -334,25 +370,88 @@ export {
     processQueueWithRetry,
 
     // Queue state
+    getQueueData,
     getQueueStatus,
     getQueueStats,
     getQueueHealth,
     clearQueue,
+
+    // Queue utilities
+    calculateEstimatedWaitTime,
 
     // State access
     queue,
     isProcessing
 };
 
+/**
+ * Process a single request with retry logic
+ */
+async function processRequestWithRetry(request, maxRetries) {
+    const { id, prompt, original, promptId, providers, guidance, resolve, reject } = request;
+
+    console.log(`⚡ Processing request [${id}] (attempt 1/${maxRetries + 1}):`, {
+        prompt: `${prompt?.substring(0, 50)}...`,
+        providers,
+        queueRemaining: queue.length
+    });
+
+    let lastError = null;
+    let success = false;
+
+    // Try processing with retries
+    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+        try {
+            const response = await processRequest({
+                prompt,
+                original,
+                promptId,
+                providers,
+                guidance,
+                requestId: id,
+                attempt
+            });
+
+            console.log(`✅ Request completed [${id}] on attempt ${attempt}`);
+            resolve(response);
+            success = true;
+            break;
+        } catch (error) {
+            lastError = error;
+            console.warn(`⚠️ Request attempt ${attempt} failed [${id}]:`, error.message);
+
+            if (attempt <= maxRetries) {
+                await waitForRetry(attempt);
+            }
+        }
+    }
+
+    if (!success) {
+        console.error(`❌ Request failed after ${maxRetries + 1} attempts [${id}]:`, lastError);
+        reject(lastError);
+    }
+}
+
+/**
+ * Wait for retry with exponential backoff
+ */
+async function waitForRetry(attempt) {
+    const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+    console.log(`⏳ Retrying in ${delay}ms...`);
+    await new Promise(resolve => setTimeout(resolve, delay));
+}
+
 export default {
     addToQueue,
     removeFromQueue,
     processQueue,
     processQueueWithRetry,
+    getQueueData,
     getQueueStatus,
     getQueueStats,
     getQueueHealth,
     clearQueue,
+    calculateEstimatedWaitTime,
     queue,
     isProcessing
 };

@@ -8,7 +8,7 @@ import { ValidationError } from '../errors/CustomErrors.js';
 import AdminPromoService from '../services/AdminPromoService.js';
 import { requireJWTAdmin } from '../middleware/jwtAdminMiddleware.js';
 
-export const setupAdminPromoRoutes = (app) => {
+export const setupAdminPromoRoutes = app => {
     // All routes require admin authentication
     app.use('/api/admin/promo', requireJWTAdmin);
 

@@ -5,6 +5,7 @@
 
 import express from 'express';
 import { requireAdmin, verifyAdmin, logAdminActionMiddleware } from '../middleware/AdminAuthMiddleware.js';
+import { AdminDashboardService } from '../services/AdminDashboardService.js';
 
 // Import admin controllers (to be created)
 import PaymentsController from '../controllers/admin/PaymentsController.js';
@@ -617,6 +618,68 @@ router.get('/system-settings/cache-stats',
     SystemSettingsController.getCacheStats
 );
 
+// ===========================================
+// QUEUE MANAGEMENT ADMIN ROUTES
+// ===========================================
+
+/**
+ * Get queue status and statistics
+ * GET /api/admin/queue/status
+ */
+router.get('/queue/status', requireAdmin, async (req, res) => {
+    try {
+        // Import QueueManager dynamically
+        const QueueManager = await import('../services/feed/QueueManager.js');
+
+        // Get all queue data in one optimized call
+        const queueData = QueueManager.default.getQueueData();
+
+        res.json({
+            success: true,
+            data: {
+                ...queueData,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue status error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get queue status',
+            message: error.message
+        });
+    }
+});
+
+
+/**
+ * Clear the queue (admin only)
+ * POST /api/admin/queue/clear
+ */
+router.post('/queue/clear', requireAdmin, async (req, res) => {
+    try {
+        // Import QueueManager dynamically
+        const QueueManager = await import('../services/feed/QueueManager.js');
+
+        const clearedCount = QueueManager.default.clearQueue();
+
+        res.json({
+            success: true,
+            data: {
+                clearedCount,
+                message: `Cleared ${clearedCount} requests from queue`
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue clear error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to clear queue',
+            message: error.message
+        });
+    }
+});
+
 /**
  * Clear system settings cache
  * POST /api/admin/system-settings/clear-cache
@@ -637,136 +700,8 @@ router.post('/system-settings/clear-cache',
  */
 router.get('/dashboard', requireAdmin, async (req, res) => {
     try {
-        const prisma = req.app.locals.prisma || (await import('../database/PrismaClient.js')).default.getClient();
-
-        // Get dashboard statistics
-        const [
-            totalUsers,
-            totalImages,
-            totalTransactions,
-            totalStripePayments,
-            totalRevenue,
-            recentUsers,
-            recentImages,
-            systemStats
-        ] = await Promise.all([
-            // Total users count
-            prisma.user.count(),
-
-            // Total images count
-            prisma.image.count(),
-
-            // Total transactions count (generation transactions)
-            prisma.transaction.count(),
-
-            // Total successful Stripe payments
-            prisma.stripePayment.count({
-                where: { status: 'completed' }
-            }),
-
-            // Calculate total revenue from successful payments
-            prisma.stripePayment.aggregate({
-                where: { status: 'completed' },
-                _sum: { amount: true }
-            }),
-
-            // Recent users (last 7 days)
-            prisma.user.count({
-                where: {
-                    createdAt: {
-                        gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-                    }
-                }
-            }),
-
-            // Recent images (last 24 hours)
-            prisma.image.count({
-                where: {
-                    createdAt: {
-                        gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
-                    }
-                }
-            }),
-
-            // System stats (mock for now - can be enhanced with real metrics)
-            Promise.resolve({
-                avgResponseTime: 245,
-                successRate: 98.5,
-                cpuUsage: 35.2,
-                memoryUsage: 67.8
-            })
-        ]);
-
-        // Get recent activity (without relations for now)
-        const recentActivity = await prisma.image.findMany({
-            take: 5,
-            orderBy: { createdAt: 'desc' }
-        });
-
-        // Get user data for recent images manually
-        const userIds = [...new Set(recentActivity.map(img => img.userId))];
-        const users = await prisma.user.findMany({
-            where: { id: { in: userIds } },
-            select: { id: true, email: true, username: true }
-        });
-
-        // Map users to images
-        const userMap = new Map(users.map(user => [user.id, user]));
-        const recentActivityWithUsers = recentActivity.map(image => ({
-            ...image,
-            user: userMap.get(image.userId) || { email: 'Unknown', username: 'Unknown' }
-        }));
-
-        const activityList = (recentActivityWithUsers || []).map(image => ({
-            type: 'image_generation',
-            description: `Image generated by ${image.user.email}`,
-            timestamp: image.createdAt
-        }));
-
-        // Get the most recent image with full details
-        const mostRecentImage = recentActivityWithUsers && recentActivityWithUsers.length > 0 ? recentActivityWithUsers[0] : null;
-
-        const dashboardData = {
-            stats: {
-                totalUsers,
-                totalImages,
-                totalTransactions,
-                activeSessions: recentUsers, // Recent users as proxy for active sessions
-                totalRevenue: totalRevenue._sum.amount || 0, // Real revenue from Stripe payments
-                totalPayments: totalStripePayments, // Number of successful payments
-                recentImages24h: recentImages // Images generated in last 24 hours
-            },
-            metrics: {
-                avgResponseTime: systemStats.avgResponseTime,
-                successRate: systemStats.successRate,
-                recentActivity: activityList,
-                conversionRate: totalUsers > 0 ? ((totalStripePayments / totalUsers) * 100).toFixed(1) : 0 // Payment conversion rate
-            },
-            recentImage: mostRecentImage ? {
-                id: mostRecentImage.id,
-                imageUrl: mostRecentImage.imageUrl,
-                prompt: mostRecentImage.prompt,
-                provider: mostRecentImage.provider,
-                model: mostRecentImage.model,
-                createdAt: mostRecentImage.createdAt,
-                user: {
-                    email: mostRecentImage.user.email,
-                    username: mostRecentImage.user.username
-                }
-            } : null,
-            health: {
-                cpuUsage: systemStats.cpuUsage,
-                memoryUsage: systemStats.memoryUsage,
-                uptime: process.uptime(), // Server uptime in seconds
-                memoryUsageMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) // Memory usage in MB
-            },
-            timestamp: new Date().toISOString(),
-            adminUser: {
-                id: req.adminUser.id,
-                email: req.adminUser.email,
-                username: req.adminUser.username
-            }
-        };
+        const dashboardService = new AdminDashboardService();
+        const dashboardData = await dashboardService.getDashboardData(req.adminUser);
 
         res.json({
             success: true,

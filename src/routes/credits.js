@@ -10,6 +10,7 @@ import {
 } from '../middleware/creditValidation.js';
 
 const prisma = databaseClient.getClient();
+
 import { validatePagination } from '../middleware/validation.js';
 import { promoRedemptionRateLimit } from '../middleware/rateLimiting.js';
 import {
@@ -154,6 +155,7 @@ router.get('/stats', async (req, res) => {
 
         // Get monthly usage (images generated this month)
         const startOfMonth = new Date();
+
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
 
@@ -187,6 +189,7 @@ router.get('/stats', async (req, res) => {
         });
     } catch (error) {
         console.error('💳 CREDITS-API: Error getting user stats:', error);
+
         return res.status(500).json({
             error: 'Failed to get user statistics',
             message: error.message

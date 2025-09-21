@@ -9,6 +9,8 @@ import { formatErrorResponse } from '../utils/ResponseFormatter.js';
 import databaseClient from '../database/PrismaClient.js';
 import { aiEnhancementService } from './AIEnhancementService.js';
 import SimplifiedCreditService from './credit/SimplifiedCreditService.js';
+import { CreditManagementService } from './credit/CreditManagementService.js';
+import { ImageManagementService } from './ImageManagementService.js';
 import {
     applyMultiplierSafely,
     shufflePrompt,
@@ -23,6 +25,8 @@ export class EnhancedImageService {
         this.aiService = aiService;
         this.prisma = databaseClient.getClient();
         this.transactionService = new TransactionService();
+        this.creditService = new CreditManagementService();
+        this.imageService = new ImageManagementService();
 
         // Circuit breaker configurations - more conservative
         this.breakerConfigs = {
@@ -94,7 +98,7 @@ export class EnhancedImageService {
         const processedData = await this.processPromptWithBreaker(prompt, options);
 
         // Step 3: Fire-and-forget prompt saving (non-blocking side effect)
-        let savedPromptId = processedData.promptId;
+        const savedPromptId = processedData.promptId;
 
         if (!savedPromptId) {
             // Fire-and-forget prompt saving - intentionally non-blocking
@@ -615,17 +619,19 @@ export class EnhancedImageService {
      * @param {Array} tags - Array of tags to filter by
      * @returns {Promise<Object>} User images with cost information
      */
-    async getUserImages(userId, limit = 50, page = 0, tags = []) {
-        console.log('🔄 ENHANCED-IMAGE-SERVICE: getUserImages called with:', { userId, limit, page, tags });
-
+    /**
+     * Validate user ID input
+     */
+    validateUserInput(userId) {
         if (!userId) {
             throw new Error('User ID is required');
         }
+    }
 
-        // Get user's images only (not including other users' public images)
-        console.log('🔄 ENHANCED-IMAGE-SERVICE: Calling findUserImages...');
-        const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
-
+    /**
+     * Log user images fetch results
+     */
+    logUserImagesResults(result) {
         console.log('✅ ENHANCED-IMAGE-SERVICE: findUserImages result:', {
             imagesCount: result.images?.length || 0,
             totalCount: result.totalCount,
@@ -640,9 +646,13 @@ export class EnhancedImageService {
                 }
                 : null
         });
+    }
 
-        // Get model cost information
-        const models = await this.prisma.model.findMany({
+    /**
+     * Get active models with cost information
+     */
+    async getActiveModels() {
+        return await this.prisma.model.findMany({
             where: { isActive: true },
             select: {
                 provider: true,
@@ -651,21 +661,30 @@ export class EnhancedImageService {
                 displayName: true
             }
         });
+    }
 
-        // Create model cost map
+    /**
+     * Create model cost mapping
+     */
+    createModelCostMap(models) {
         const modelCostMap = new Map();
 
         models.forEach(model => {
             const key = `${model.provider}-${model.name}`;
-
             modelCostMap.set(key, {
                 costPerImage: model.costPerImage,
                 displayName: model.displayName
             });
         });
 
-        // Normalize image data with cost information
-        const normalizedImages = result.images.map(image => {
+        return modelCostMap;
+    }
+
+    /**
+     * Normalize image data with cost information
+     */
+    normalizeImagesWithCosts(images, modelCostMap) {
+        return images.map(image => {
             const modelKey = `${image.provider}-${image.model}`;
             const modelInfo = modelCostMap.get(modelKey);
 
@@ -685,6 +704,21 @@ export class EnhancedImageService {
                 updatedAt: image.updatedAt
             };
         });
+    }
+
+    async getUserImages(userId, limit = 50, page = 0, tags = []) {
+        console.log('🔄 ENHANCED-IMAGE-SERVICE: getUserImages called with:', { userId, limit, page, tags });
+
+        this.validateUserInput(userId);
+
+        console.log('🔄 ENHANCED-IMAGE-SERVICE: Calling findUserImages...');
+        const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
+
+        this.logUserImagesResults(result);
+
+        const models = await this.getActiveModels();
+        const modelCostMap = this.createModelCostMap(models);
+        const normalizedImages = this.normalizeImagesWithCosts(result.images, modelCostMap);
 
         return {
             images: normalizedImages,
@@ -701,6 +735,7 @@ export class EnhancedImageService {
 
         // Double-check that all returned images are public
         const nonPublicImages = result.images.filter(img => !img.isPublic);
+
         if (nonPublicImages.length > 0) {
             console.error('🚨 PRIVACY VIOLATION: Non-public images found in site feed!', nonPublicImages);
             // Remove non-public images as a safety measure
@@ -757,6 +792,7 @@ export class EnhancedImageService {
 
         // Double-check that all returned images belong to the user
         const otherUserImages = result.images.filter(img => img.userId !== userId);
+
         if (otherUserImages.length > 0) {
             console.error('🚨 PRIVACY VIOLATION: Other users images found in user feed!', otherUserImages);
             // Remove other users' images as a safety measure
@@ -814,49 +850,7 @@ export class EnhancedImageService {
      * @returns {Promise<number>} Cost in credits
      */
     async getModelCost(providerName) {
-        try {
-            // Try to find by exact model name
-            const model = await this.prisma.model.findFirst({
-                where: {
-                    name: providerName,
-                    isActive: true
-                }
-            });
-
-            if (model) {
-                console.log(`💰 COST: Using database cost for ${model.name}: ${model.costPerImage} credits`);
-
-                return model.costPerImage;
-            }
-
-            // If not found, try to find by provider name and get the cheapest model
-            const models = await this.prisma.model.findMany({
-                where: {
-                    provider: providerName,
-                    isActive: true
-                },
-                orderBy: { costPerImage: 'asc' }
-            });
-
-            if (models.length > 0) {
-                const cheapestModel = models[0];
-
-                console.log(`💰 COST: Using cheapest model from ${providerName}: ${cheapestModel.name} (${cheapestModel.costPerImage} credits)`);
-
-                return cheapestModel.costPerImage;
-            }
-
-            // Fallback to hardcoded costs if not found in database
-            console.warn(`⚠️ COST: Model ${providerName} not found in database, using fallback cost`);
-
-            return SimplifiedCreditService.getCreditCost(providerName);
-
-        } catch (error) {
-            console.error(`❌ COST: Error getting model cost for ${providerName}:`, error);
-
-            // Fallback to hardcoded costs
-            return SimplifiedCreditService.getCreditCost(providerName);
-        }
+        return await this.creditService.getModelCost(providerName);
     }
 
     /**
@@ -867,41 +861,7 @@ export class EnhancedImageService {
      * @param {string} requestId - Request ID for tracking
      */
     async refundCreditsOnFailure(userId, providers, error, requestId) {
-        if (!userId) {
-            console.log(`⚠️ CREDITS: No user ID provided, skipping refund [${requestId}]`);
-
-            return;
-        }
-
-        try {
-            const [primaryProvider] = providers;
-            const cost = await this.getModelCost(primaryProvider);
-
-            if (cost <= 0) {
-                console.log(`⚠️ CREDITS: No cost to refund for provider ${primaryProvider} [${requestId}]`);
-
-                return;
-            }
-
-            // Refund credits
-            await SimplifiedCreditService.refundCredits(
-                userId,
-                cost,
-                `Image generation failed - Refund for ${primaryProvider}`,
-                {
-                    providers,
-                    error: error.message,
-                    requestId,
-                    timestamp: new Date().toISOString()
-                }
-            );
-
-            console.log(`💳 CREDITS: Refunded ${cost} credits to user ${userId} due to generation failure [${requestId}]`);
-
-        } catch (refundError) {
-            console.error(`❌ CREDITS: Error refunding credits for user ${userId} [${requestId}]:`, refundError);
-            // Don't throw - this is a cleanup operation
-        }
+        return await this.creditService.refundCreditsOnFailure(userId, providers, error, requestId);
     }
 
     /**
@@ -912,38 +872,7 @@ export class EnhancedImageService {
      * @param {string} requestId - Request ID for tracking
      */
     async deductCreditsForGeneration(userId, providers, prompt, requestId) {
-        try {
-            // Calculate cost based on primary provider using database model costs
-            const [primaryProvider] = providers;
-            const cost = await this.getModelCost(primaryProvider);
-
-            if (cost <= 0) {
-                console.warn(`⚠️ CREDITS: Invalid cost calculation for provider ${primaryProvider} [${requestId}]`);
-
-                return;
-            }
-
-            // Deduct credits
-            await SimplifiedCreditService.debitCredits(
-                userId,
-                cost,
-                `Image generation - ${primaryProvider}`,
-                {
-                    providers,
-                    prompt: prompt ? prompt.substring(0, 100) : '',
-                    requestId,
-                    timestamp: new Date().toISOString()
-                }
-            );
-
-            const creditMessage = `💳 CREDITS: Deducted ${cost} credits from user ${userId} for ${primaryProvider} generation [${requestId}]`;
-
-            console.log(creditMessage);
-
-        } catch (error) {
-            console.error(`❌ CREDITS: Error deducting credits for user ${userId} [${requestId}]:`, error);
-            // Don't throw error - generation was successful, credit deduction failure shouldn't break the flow
-        }
+        return await this.creditService.deductCreditsForGeneration(userId, providers, prompt, requestId);
     }
 
     // Health check method

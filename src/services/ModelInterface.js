@@ -41,6 +41,7 @@ class ModelInterface {
         } catch (error) {
             console.warn('⚠️ MODEL-INTERFACE: Database unavailable, using static fallback:', error.message);
             this.fallbackActive = true;
+
             return this.getStaticModels();
         }
     }
@@ -60,6 +61,7 @@ class ModelInterface {
         } catch (error) {
             console.warn(`⚠️ MODEL-INTERFACE: Database unavailable for ${modelName}, using static fallback:`, error.message);
             this.fallbackActive = true;
+
             return this.getStaticModel(modelName);
         }
     }
@@ -79,6 +81,7 @@ class ModelInterface {
         } catch (error) {
             console.warn(`⚠️ MODEL-INTERFACE: Database unavailable for ${provider}, using static fallback:`, error.message);
             this.fallbackActive = true;
+
             return this.getStaticModelsByProvider(provider);
         }
     }
@@ -90,6 +93,7 @@ class ModelInterface {
      */
     async getImageGeneratorConfig(modelName) {
         const model = await this.getModel(modelName);
+
         if (!model || !model.isActive) {
             return null;
         }
@@ -109,6 +113,7 @@ class ModelInterface {
      */
     async getCreditCost(modelName) {
         const model = await this.getModel(modelName);
+
         return model ? model.costPerImage : 1;
     }
 
@@ -119,6 +124,7 @@ class ModelInterface {
      */
     async isModelValid(modelName) {
         const model = await this.getModel(modelName);
+
         return model && model.isActive;
     }
 
@@ -128,6 +134,7 @@ class ModelInterface {
      */
     async getValidModelNames() {
         const models = await this.getAllModels();
+
         return models.map(model => model.name);
     }
 
@@ -137,6 +144,7 @@ class ModelInterface {
      */
     async getFrontendProviderList() {
         const models = await this.getAllModels();
+
         return models.map(model => ({
             value: model.name,
             label: model.displayName
@@ -153,6 +161,7 @@ class ModelInterface {
 
         models.forEach(model => {
             const usdCost = model.costPerImage * 0.0228; // Flux baseline
+
             breakdown[model.name] = {
                 credits: model.costPerImage,
                 usd: usdCost,
@@ -169,11 +178,13 @@ class ModelInterface {
      */
     async getModelsByProviderGrouped() {
         const models = await this.getAllModels();
+
         return models.reduce((acc, model) => {
             if (!acc[model.provider]) {
                 acc[model.provider] = [];
             }
             acc[model.provider].push(model);
+
             return acc;
         }, {});
     }
@@ -202,6 +213,7 @@ class ModelInterface {
         if (this.shouldRefreshCache()) {
             await this.refreshDatabaseCache();
         }
+
         return Array.from(this.cache.values());
     }
 
@@ -211,6 +223,7 @@ class ModelInterface {
      */
     async getDatabaseModel(modelName) {
         const models = await this.getDatabaseModels();
+
         return models.find(model => model.name === modelName) || null;
     }
 
@@ -220,6 +233,7 @@ class ModelInterface {
      */
     async getDatabaseModelsByProvider(provider) {
         const models = await this.getDatabaseModels();
+
         return models.filter(model => model.provider === provider);
     }
 
@@ -283,6 +297,7 @@ class ModelInterface {
         this.cache.clear();
         this.lastCacheUpdate = 0;
         this.fallbackActive = false;
+
         return await this.getAllModels();
     }
 
@@ -328,6 +343,7 @@ class ModelInterface {
             if (this.useDatabase && !this.fallbackActive) {
                 try {
                     const models = await this.getDatabaseModels();
+
                     results.database = { status: 'healthy', count: models.length };
                 } catch (error) {
                     results.database = { status: 'failed', error: error.message };
@@ -339,6 +355,7 @@ class ModelInterface {
             // Test static configuration
             try {
                 const staticModels = this.getStaticModels();
+
                 results.static = { status: 'healthy', count: staticModels.length };
             } catch (error) {
                 results.static = { status: 'failed', error: error.message };
@@ -346,6 +363,7 @@ class ModelInterface {
 
             // Test cache
             const cacheStatus = this.getCacheStatus();
+
             results.cache = {
                 status: cacheStatus.cacheSize > 0 ? 'populated' : 'empty',
                 size: cacheStatus.cacheSize,

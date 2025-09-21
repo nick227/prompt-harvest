@@ -81,6 +81,7 @@ export const authenticateTokenRequired = async (req, res, next) => {
         if (!token) {
             console.log('🔐 BACKEND: No token provided');
             const error = new AuthenticationError('Authentication token required');
+
             return next(error);
         }
 
@@ -106,11 +107,13 @@ export const authenticateTokenRequired = async (req, res, next) => {
 
         if (!user) {
             console.log('🔐 BACKEND: User not found in database for ID:', decoded.userId);
+
             return next(new AuthenticationError('Invalid token - user not found'));
         }
 
         if (user.isSuspended) {
             console.log('🔐 BACKEND: User is suspended:', { id: user.id, email: user.email });
+
             return next(new AuthenticationError('Account suspended'));
         }
 

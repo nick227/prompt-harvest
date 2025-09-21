@@ -4,6 +4,7 @@
  */
 
 import databaseClient from '../../database/PrismaClient.js';
+import { AdminImageManagementService } from '../../services/admin/AdminImageManagementService.js';
 
 const prisma = databaseClient.getClient();
 
@@ -73,6 +74,7 @@ class ImagesController {
 
             // Build order by
             const orderBy = {};
+
             orderBy[sortBy] = sortOrder;
 
             // Calculate pagination
@@ -383,6 +385,7 @@ class ImagesController {
                     image.createdAt.toISOString(),
                     image.imageUrl || ''
                 ];
+
                 return row.join(',');
             });
 

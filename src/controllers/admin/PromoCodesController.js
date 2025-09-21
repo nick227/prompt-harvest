@@ -4,6 +4,7 @@
  */
 
 import databaseClient from '../../database/PrismaClient.js';
+import { PromoCodeManagementService } from '../../services/admin/PromoCodeManagementService.js';
 
 const prisma = databaseClient.getClient();
 
@@ -686,6 +687,7 @@ class PromoCodesController {
         try {
             const { days = 30 } = req.query;
             const startDate = new Date();
+
             startDate.setDate(startDate.getDate() - parseInt(days));
 
             // Get daily redemption data

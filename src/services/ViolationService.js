@@ -1,4 +1,5 @@
 import databaseClient from '../database/PrismaClient.js';
+import { ViolationStatsService } from './ViolationStatsService.js';
 
 const prisma = databaseClient.getClient();
 
@@ -18,121 +19,8 @@ class ViolationService {
      * @returns {Object} - Violation statistics and data
      */
     async getViolationStats(options = {}) {
-        const {
-            userId = null,
-            severity = null,
-            startDate = null,
-            endDate = null,
-            limit = 100,
-            offset = 0
-        } = options;
-
-        try {
-            // Build where clause
-            const where = {};
-
-            if (userId) {
-                where.userId = userId;
-            }
-            if (severity) {
-                where.severity = severity;
-            }
-            if (startDate || endDate) {
-                where.createdAt = {};
-                if (startDate) {
-                    where.createdAt.gte = startDate;
-                }
-                if (endDate) {
-                    where.createdAt.lte = endDate;
-                }
-            }
-
-            // Get total count
-            const totalCount = await prisma.violations.count({ where });
-
-            // Get violations with pagination
-            const violations = await prisma.violations.findMany({
-                where,
-                orderBy: { createdAt: 'desc' },
-                take: limit,
-                skip: offset,
-                select: {
-                    id: true,
-                    userId: true,
-                    userEmail: true,
-                    username: true,
-                    violationType: true,
-                    detectedWords: true,
-                    severity: true,
-                    endpoint: true,
-                    isBlocked: true,
-                    createdAt: true
-                }
-            });
-
-            // Get severity breakdown
-            const severityStats = await prisma.violations.groupBy({
-                by: ['severity'],
-                where,
-                _count: { severity: true }
-            });
-
-            // Get top violating users
-            const topViolators = await prisma.violations.groupBy({
-                by: ['userId', 'userEmail', 'username'],
-                where: { userId: { not: null } },
-                _count: { userId: true },
-                orderBy: { _count: { userId: 'desc' } },
-                take: 10
-            });
-
-            // Get top endpoints with violations
-            const topEndpoints = await prisma.violations.groupBy({
-                by: ['endpoint'],
-                where,
-                _count: { endpoint: true },
-                orderBy: { _count: { endpoint: 'desc' } },
-                take: 10
-            });
-
-            // Get recent violations (last 24 hours)
-            const recentViolations = await prisma.violations.count({
-                where: {
-                    ...where,
-                    createdAt: {
-                        gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
-                    }
-                }
-            });
-
-            return {
-                totalCount,
-                violations,
-                severityStats: severityStats.map(stat => ({
-                    severity: stat.severity,
-                    count: stat._count.severity
-                })),
-                topViolators: topViolators.map(violator => ({
-                    userId: violator.userId,
-                    userEmail: violator.userEmail,
-                    username: violator.username,
-                    violationCount: violator._count.userId
-                })),
-                topEndpoints: topEndpoints.map(endpoint => ({
-                    endpoint: endpoint.endpoint,
-                    violationCount: endpoint._count.endpoint
-                })),
-                recentViolations,
-                pagination: {
-                    limit,
-                    offset,
-                    hasMore: offset + limit < totalCount
-                }
-            };
-        } catch (error) {
-            console.error('❌ Error getting violation stats:', error);
-            throw error;
-        }
+        const statsService = new ViolationStatsService();
+        return await statsService.getViolationStats(options);
     }
 
     /**
@@ -217,6 +105,7 @@ class ViolationService {
             });
 
             console.log(`🧹 Cleaned up ${result.count} violations older than ${daysOld} days`);
+
             return result.count;
         } catch (error) {
             console.error('❌ Error cleaning up old violations:', error);
@@ -255,8 +144,10 @@ class ViolationService {
 
             // Group by date
             const trends = {};
+
             violations.forEach(violation => {
                 const date = violation.createdAt.toISOString().split('T')[0];
+
                 if (!trends[date]) {
                     trends[date] = {
                         date,

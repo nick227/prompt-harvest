@@ -100,7 +100,7 @@ export class WordRepository extends BaseRepository {
 
             return {
                 deletedCount: result.count || 0,
-                word: word
+                word
             };
         } catch (error) {
             console.error('Error deleting word from MySQL:', error);

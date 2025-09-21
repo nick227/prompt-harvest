@@ -124,6 +124,7 @@ class DezgoCostCalculator {
      */
     getMegapixels(resolution) {
         const [width, height] = resolution.split('x').map(Number);
+
         return (width * height) / 1000000; // Convert to megapixels
     }
 
@@ -134,6 +135,7 @@ class DezgoCostCalculator {
         const sdxlModels = [
             'juggernaut', 'dreamshaper', 'bluepencil', 'tshirt', 'dreamshaperlighting'
         ];
+
         return sdxlModels.some(model => provider.includes(model));
     }
 
@@ -146,6 +148,7 @@ class DezgoCostCalculator {
             'analogmadness', 'portraitplus', 'nightmareshaper', 'openjourney',
             'abyssorange', 'cyber', 'disco', 'synthwave', 'lowpoly', 'ink'
         ];
+
         return sdModels.some(model => provider.includes(model));
     }
 
@@ -183,6 +186,7 @@ class DezgoCostCalculator {
         if (this.isSDModel(provider)) {
             return 'SD 1/2';
         }
+
         return 'Unknown';
     }
 
@@ -231,6 +235,7 @@ class DezgoCostCalculator {
         if (creditCost <= 4) {
             return 4;
         }
+
         return Math.ceil(creditCost); // Round up for very expensive models
     }
 }

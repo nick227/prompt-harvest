@@ -183,6 +183,7 @@ class CostAnalysisController {
             };
         } catch (error) {
             console.warn('⚠️ ADMIN-COST-ANALYSIS: Could not load pricing config, using defaults');
+
             return {
                 openai_cost: 0.02,
                 stability_cost: 0.015,
@@ -199,6 +200,7 @@ class CostAnalysisController {
         try {
             const packagesPath = path.join(process.cwd(), 'data', 'packages.json');
             const data = await fs.readFile(packagesPath, 'utf8');
+
             return JSON.parse(data);
         } catch (error) {
             // Return default packages if file doesn't exist

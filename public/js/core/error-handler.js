@@ -78,8 +78,11 @@ class ErrorHandler {
     }
 
     static showInsufficientCreditsNotification(message, shortfall) {
-        // Use notification service if available
-        if (window.notificationService) {
+        // Use the new CreditsModalService if available
+        if (window.creditsModalService) {
+            window.creditsModalService.showCreditsModal({ shortfall });
+        } else if (window.notificationService) {
+            // Fallback to notification service if available
             const notification = document.createElement('div');
             notification.className = 'fixed top-4 right-4 bg-orange-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-md';
 

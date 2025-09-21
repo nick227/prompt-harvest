@@ -76,6 +76,7 @@ class CostCalculatorService {
 
         } catch (error) {
             console.error('❌ COST-CALCULATOR: Error getting provider breakdown:', error);
+
             // Fallback to empty array if database fails
             return [];
         }
@@ -88,9 +89,10 @@ class CostCalculatorService {
      */
     getProviderCategory(provider) {
         const categories = {
-            'openai': 'Premium',
-            'dezgo': 'Standard'
+            openai: 'Premium',
+            dezgo: 'Standard'
         };
+
         return categories[provider] || 'Standard';
     }
 
@@ -108,6 +110,7 @@ class CostCalculatorService {
                 acc[provider.category] = [];
             }
             acc[provider.category].push(provider);
+
             return acc;
         }, {});
 

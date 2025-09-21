@@ -78,7 +78,7 @@ export class PromptService {
         console.log('🔍 PROMPT SERVICE: createPrompt called with:', {
             promptData: {
                 ...promptData,
-                prompt: promptData.prompt?.substring(0, 50) + '...'
+                prompt: `${promptData.prompt?.substring(0, 50)}...`
             },
             userId
         });
@@ -89,6 +89,7 @@ export class PromptService {
         };
 
         const prompt = await this.promptRepository.create(data);
+
         return this.normalizePromptData(prompt);
     }
 
@@ -110,6 +111,7 @@ export class PromptService {
         await this.getPromptById(promptId, userId);
 
         const prompt = await this.promptRepository.update(promptId, updateData);
+
         return this.normalizePromptData(prompt);
     }
 
@@ -129,6 +131,7 @@ export class PromptService {
         await this.getPromptById(promptId, userId);
 
         await this.promptRepository.delete(promptId);
+
         return { success: true, message: 'Prompt deleted successfully' };
     }
 

@@ -44,6 +44,7 @@ export const DEFAULT_COST = 0.005;
 // DEPRECATED: Use SimplifiedCreditService.getCreditCost() instead
 export const calculateCost = provider => {
     console.warn('⚠️ DEPRECATED: calculateCost() is deprecated. Use SimplifiedCreditService.getCreditCost() instead.');
+
     return SimplifiedCreditService.getCreditCost(provider);
 };
 
@@ -53,6 +54,7 @@ export const calculateBatchCost = providers => {
     if (!Array.isArray(providers) || providers.length === 0) {
         return 0;
     }
+
     return providers.reduce((total, provider) => total + SimplifiedCreditService.getCreditCost(provider), 0);
 };
 

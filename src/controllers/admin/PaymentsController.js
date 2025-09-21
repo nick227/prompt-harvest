@@ -91,6 +91,7 @@ class PaymentsController {
             // Format response data
             const formattedPayments = payments.map(payment => {
                 const user = userMap.get(payment.userId);
+
                 return {
                     id: payment.stripeSessionId,
                     userId: payment.userId,

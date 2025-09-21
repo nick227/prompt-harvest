@@ -5,14 +5,13 @@
 
 import databaseClient from '../database/PrismaClient.js';
 
-const prisma = databaseClient.getClient();
-
 // In-memory store for rate limiting (can be replaced with Redis in production)
 const rateLimitStore = new Map();
 
 // Clean up old entries every 5 minutes
 setInterval(() => {
     const now = Date.now();
+
     for (const [key, data] of rateLimitStore.entries()) {
         if (now - data.lastAttempt > data.windowMs) {
             rateLimitStore.delete(key);
@@ -34,7 +33,7 @@ export const createRateLimit = (options = {}) => {
         windowMs = 15 * 60 * 1000, // 15 minutes default
         maxRequests = 100, // 100 requests default
         message = 'Too many requests, please try again later',
-        keyGenerator = (req) => `rate_limit_${req.ip || 'unknown'}`
+        keyGenerator = req => `rate_limit_${req.ip || 'unknown'}`
     } = options;
 
     return async (req, res, next) => {
@@ -97,12 +96,10 @@ export const createRateLimit = (options = {}) => {
  * @param {Object} options - Rate limiting options
  * @returns {Function} Express middleware
  */
-export const createUserRateLimit = (options = {}) => {
-    return createRateLimit({
-        ...options,
-        keyGenerator: (req) => `user_rate_limit_${req.user?.id || req.ip || 'anonymous'}`
-    });
-};
+export const createUserRateLimit = (options = {}) => createRateLimit({
+    ...options,
+    keyGenerator: req => `user_rate_limit_${req.user?.id || req.ip || 'anonymous'}`
+});
 
 /**
  * Checkout-specific rate limiting (stricter limits for payment operations)

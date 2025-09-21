@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { EventEmitter } from 'events';
+import { sync } from 'uid-safe';
 
 class PrismaSessionStore extends EventEmitter {
     constructor(options = {}) {
@@ -15,6 +16,10 @@ class PrismaSessionStore extends EventEmitter {
 
     async get(sid, callback) {
         try {
+            if (!callback) {
+                return;
+            }
+
             if (!this.prisma || !this.prisma.session) {
                 return callback(null, null);
             }
@@ -30,11 +35,22 @@ class PrismaSessionStore extends EventEmitter {
             // Check if session is expired
             if (session.expiresAt < new Date()) {
                 await this.destroy(sid);
+
                 return callback(null, null);
             }
 
-            const data = JSON.parse(session.data);
-            callback(null, data);
+            try {
+                JSON.parse(session.data);
+            } catch (parseError) {
+                console.error('Session data parse error:', parseError);
+                // If data is corrupted, destroy the session
+                await this.destroy(sid);
+
+                return callback(null, null);
+            }
+
+            // Return null to let express-session handle as new session
+            callback(null, null);
         } catch (error) {
             console.error('Session get error:', error);
             callback(error);
@@ -44,7 +60,11 @@ class PrismaSessionStore extends EventEmitter {
     async set(sid, session, callback) {
         try {
             if (!this.prisma || !this.prisma.session) {
-                return callback(null);
+                if (callback && typeof callback === 'function') {
+                    return callback(null);
+                }
+
+                return;
             }
 
             const expiresAt = new Date(Date.now() + (this.ttl * 1000));
@@ -63,33 +83,50 @@ class PrismaSessionStore extends EventEmitter {
                 }
             });
 
-            callback(null);
+            if (callback && typeof callback === 'function') {
+                callback(null);
+            }
         } catch (error) {
             console.error('Session set error:', error);
-            callback(error);
+            if (callback && typeof callback === 'function') {
+                callback(error);
+            }
         }
     }
 
     async destroy(sid, callback) {
         try {
             if (!this.prisma || !this.prisma.session) {
-                return callback(null);
+                if (callback && typeof callback === 'function') {
+                    return callback(null);
+                }
+
+                return;
             }
 
             await this.prisma.session.deleteMany({
                 where: { sid }
             });
-            callback(null);
+
+            if (callback && typeof callback === 'function') {
+                callback(null);
+            }
         } catch (error) {
             console.error('Session destroy error:', error);
-            callback(error);
+            if (callback && typeof callback === 'function') {
+                callback(error);
+            }
         }
     }
 
     async touch(sid, session, callback) {
         try {
             if (!this.prisma || !this.prisma.session) {
-                return callback(null);
+                if (callback && typeof callback === 'function') {
+                    return callback(null);
+                }
+
+                return;
             }
 
             const expiresAt = new Date(Date.now() + (this.ttl * 1000));
@@ -99,19 +136,53 @@ class PrismaSessionStore extends EventEmitter {
                 data: { expiresAt }
             });
 
-            callback(null);
+            if (callback && typeof callback === 'function') {
+                callback(null);
+            }
         } catch (error) {
             console.error('Session touch error:', error);
-            callback(error);
+            if (callback && typeof callback === 'function') {
+                callback(error);
+            }
         }
     }
 
     // Create a new session (required by express-session)
     createSession(req, sess) {
-        const session = Object.create(null);
-        Object.assign(session, sess);
-        session.id = req.sessionID;
-        return session;
+        try {
+            // Handle both cases: req object with sessionID or just sessionID string
+            const sessionID = req.sessionID || req;
+
+            const session = { ...sess || {} };
+
+            session.id = sessionID;
+
+            // Attach session methods to the session object
+
+            const self = this;
+
+            session.save = callback => {
+                self.save({ sessionID }, callback);
+            };
+            session.touch = callback => {
+                self.touch({ sessionID }, callback);
+            };
+            session.reload = callback => {
+                self.get(sessionID, callback);
+            };
+            session.destroy = callback => {
+                self.destroy(sessionID, callback);
+            };
+            session.regenerate = callback => {
+                self.regenerate({ sessionID }, callback);
+            };
+
+            return session;
+        } catch (error) {
+            console.error('Error creating session object:', error);
+
+            return null;
+        }
     }
 
     // Regenerate session ID (required by express-session)
@@ -120,12 +191,12 @@ class PrismaSessionStore extends EventEmitter {
         const originalSid = req.sessionID;
 
         // Create new session ID
-        req.sessionID = require('uid-safe').sync(24);
+        req.sessionID = sync(24);
         req.session = this.createSession(req, req.session || {});
 
         // Delete old session if it exists
         if (originalSid) {
-            this.destroy(originalSid, (destroyErr) => {
+            this.destroy(originalSid, destroyErr => {
                 if (destroyErr) {
                     console.error('Error destroying old session during regenerate:', destroyErr);
                 }
@@ -134,6 +205,47 @@ class PrismaSessionStore extends EventEmitter {
         } else {
             callback(null);
         }
+    }
+
+    // Save session (required by express-session)
+    save(req, callback) {
+        if (!req.sessionID) {
+            req.sessionID = sync(24);
+        }
+
+        const session = req.session || {};
+
+        session.id = req.sessionID;
+
+        this.set(req.sessionID, session, err => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null);
+        });
+    }
+
+    // Touch session (required by express-session)
+    touch(req, callback) {
+        if (!callback) {
+            return;
+        }
+
+        if (!req.sessionID) {
+            return callback(null);
+        }
+
+        this.get(req.sessionID, (err, session) => {
+            if (err) {
+                return callback(err);
+            }
+            if (!session) {
+                return callback(null);
+            }
+
+            // Update the session with new expiration
+            this.set(req.sessionID, session, callback);
+        });
     }
 
     // Clean up expired sessions
@@ -149,6 +261,7 @@ class PrismaSessionStore extends EventEmitter {
             // Check if session model exists
             if (!this.prisma.session) {
                 console.log('⚠️ Session model not available in Prisma client - skipping cleanup');
+
                 return { success: false, error: 'Session model not available - Prisma client needs regeneration' };
             }
 
@@ -167,6 +280,7 @@ class PrismaSessionStore extends EventEmitter {
             };
         } catch (error) {
             console.error('Session cleanup error:', error);
+
             return {
                 success: false,
                 error: error.message,
@@ -185,6 +299,7 @@ class PrismaSessionStore extends EventEmitter {
             // Check if session model exists
             if (!this.prisma.session) {
                 console.log('⚠️ Session model not available in Prisma client - skipping stats');
+
                 return { error: 'Session model not available - Prisma client needs regeneration' };
             }
 
@@ -207,6 +322,7 @@ class PrismaSessionStore extends EventEmitter {
             };
         } catch (error) {
             console.error('Session stats error:', error);
+
             return null;
         }
     }

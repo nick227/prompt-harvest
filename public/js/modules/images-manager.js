@@ -55,6 +55,14 @@ class ImagesManager {
             return img;
         } catch (error) {
             console.error('❌ MANAGER: Generation failed', error);
+
+            // Handle 402 Payment Required error specifically
+            if (error.status === 402) {
+                this.handleInsufficientCredits(error);
+
+                return; // Don't throw, we've handled it
+            }
+
             throw error;
         }
     }
@@ -126,6 +134,29 @@ class ImagesManager {
         } finally {
             this.ui.setGeneratingState(false);
             console.log('🔧 FLOW: UI reset from generating state');
+        }
+    }
+
+    /**
+     * Handle insufficient credits error (402)
+     * @param {Error} error - Error object with status 402
+     */
+    handleInsufficientCredits(error) {
+        console.log('💳 MANAGER: Handling insufficient credits error', error);
+
+        // Use the credits modal service to show the modal
+        if (window.creditsModalService) {
+            window.creditsModalService.showCreditsModal(error.data);
+        } else {
+            console.error('❌ MANAGER: CreditsModalService not available');
+
+            // Fallback to basic alert
+            const required = error.data?.required || 1;
+            const current = error.data?.current || 0;
+            const message = `Insufficient Credits!\n\nYou need ${required} credits to generate this image, ` +
+                `but you only have ${current} credits.\n\nPlease add more credits to continue.`;
+
+            alert(message);
         }
     }
 

@@ -12,6 +12,7 @@ class AdminDashboardManager {
         this.historyManager = null;
         this.uiRenderer = null;
         this.eventBus = null;
+        this.queueService = null;
 
         this.isInitialized = false;
         this.currentTab = 'summary';
@@ -43,6 +44,7 @@ class AdminDashboardManager {
             this.snapshotService = new AdminSnapshotService();
             this.historyManager = new AdminHistoryManager();
             this.uiRenderer = new AdminUIRenderer();
+            this.queueService = new AdminQueueService();
 
             // Initialize sub-managers
             await this.snapshotService.init();
@@ -54,6 +56,9 @@ class AdminDashboardManager {
 
             // Load initial snapshot data
             await this.loadSiteSnapshot();
+
+            // Load queue status
+            await this.loadQueueStatus();
 
             // Render initial UI
             this.renderDashboard();
@@ -86,6 +91,7 @@ class AdminDashboardManager {
         // Refresh events
         this.eventBus.on('refresh-snapshot', this.loadSiteSnapshot.bind(this));
         this.eventBus.on('refresh-history', this.handleHistoryRefresh.bind(this));
+        this.eventBus.on('refresh-queue', this.loadQueueStatus.bind(this));
     }
 
     async loadSiteSnapshot() {
@@ -246,11 +252,55 @@ class AdminDashboardManager {
         return this.tabs[tabName];
     }
 
+    async loadQueueStatus() {
+        try {
+            console.log('📊 ADMIN-DASHBOARD: Loading queue status...');
+
+            if (!this.queueService) {
+                throw new Error('Queue service not initialized');
+            }
+
+            const queueData = await this.queueService.getQueueStatus();
+
+            // Add queue data to summary tab data
+            if (this.tabs.summary.data) {
+                this.tabs.summary.data.queue = queueData;
+            }
+
+            // Update UI if summary tab is currently active
+            if (this.currentTab === 'summary' && this.uiRenderer) {
+                this.uiRenderer.updateQueueDisplay(queueData);
+            }
+
+            if (this.eventBus) {
+                this.eventBus.emit('queue-loaded', queueData);
+            }
+
+            console.log('✅ ADMIN-DASHBOARD: Queue status loaded successfully');
+
+        } catch (error) {
+            console.error('❌ ADMIN-DASHBOARD: Failed to load queue status:', error);
+
+            // Show error in UI if summary tab is active
+            if (this.currentTab === 'summary' && this.uiRenderer) {
+                this.uiRenderer.updateQueueDisplay(null);
+            }
+
+            if (this.eventBus) {
+                this.eventBus.emit('error', { message: 'Failed to load queue status', error });
+            }
+        }
+    }
+
+
     async refreshAll() {
         console.log('🔄 ADMIN-DASHBOARD: Refreshing all data...');
 
         // Refresh snapshot
         await this.loadSiteSnapshot();
+
+        // Refresh queue status
+        await this.loadQueueStatus();
 
         // Refresh current tab if it's a history tab
         if (this.currentTab !== 'summary' && this.tabs[this.currentTab].loaded) {

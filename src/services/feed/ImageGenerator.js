@@ -336,6 +336,7 @@ const testDezgoModelAvailability = async model => {
 
         if (!url) {
             console.error(`❌ DEZGO: No API URL configured for model: ${model}`);
+
             return false;
         }
 

@@ -44,55 +44,18 @@ class PackageController {
             const newPackage = req.body;
             const { adminUser } = req;
 
-            // Debug logging
-            console.log('📦 ADMIN-PACKAGES-BACKEND: Received package data:', newPackage);
-            console.log('📦 ADMIN-PACKAGES-BACKEND: Data types:', {
-                name: typeof newPackage.name,
-                credits: typeof newPackage.credits,
-                price: typeof newPackage.price,
-                description: typeof newPackage.description,
-                popular: typeof newPackage.popular
-            });
+            this.logPackageCreationRequest(newPackage);
 
-            // Validate package data
-            const validation = PackageController.validatePackageData(newPackage);
-            if (!validation.isValid) {
-                console.log('❌ ADMIN-PACKAGES-BACKEND: Validation failed:', validation.errors);
-                return res.status(400).json({
-                    success: false,
-                    error: 'Invalid package data',
-                    message: validation.errors.join(', ')
-                });
+            if (!this.validatePackageCreation(newPackage, res)) {
+                return;
             }
 
-            // Check if package name already exists
-            const existingPackage = await prisma.package.findUnique({
-                where: { name: newPackage.name }
-            });
-
-            if (existingPackage) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Package name already exists',
-                    message: `Package with name '${newPackage.name}' already exists`
-                });
+            if (!(await this.checkPackageNameExists(newPackage.name, res))) {
+                return;
             }
 
-            // Create new package in database
-            const createdPackage = await prisma.package.create({
-                data: {
-                    name: newPackage.name,
-                    displayName: newPackage.name, // Use name as displayName for now
-                    description: newPackage.description,
-                    credits: newPackage.credits,
-                    price: Math.round(newPackage.price * 100), // Convert to cents
-                    isActive: true,
-                    isPopular: newPackage.popular || false,
-                    sortOrder: 0 // Will be updated later if needed
-                }
-            });
-
-            console.log(`✅ ADMIN-PACKAGES: Package '${newPackage.name}' created by ${adminUser.email}`);
+            const createdPackage = await this.createPackageInDatabase(newPackage);
+            this.logPackageCreationSuccess(newPackage.name, adminUser.email);
 
             res.status(201).json({
                 success: true,
@@ -122,6 +85,7 @@ class PackageController {
 
             // Validate package data
             const validation = PackageController.validatePackageData(updateData, true);
+
             if (!validation.isValid) {
                 return res.status(400).json({
                     success: false,
@@ -145,12 +109,13 @@ class PackageController {
 
             // Prepare update data
             const updateFields = {};
-            if (updateData.name !== undefined) updateFields.name = updateData.name;
-            if (updateData.displayName !== undefined) updateFields.displayName = updateData.displayName;
-            if (updateData.description !== undefined) updateFields.description = updateData.description;
-            if (updateData.credits !== undefined) updateFields.credits = updateData.credits;
-            if (updateData.price !== undefined) updateFields.price = Math.round(updateData.price * 100); // Convert to cents
-            if (updateData.popular !== undefined) updateFields.isPopular = updateData.popular;
+
+            if (updateData.name !== undefined) { updateFields.name = updateData.name; }
+            if (updateData.displayName !== undefined) { updateFields.displayName = updateData.displayName; }
+            if (updateData.description !== undefined) { updateFields.description = updateData.description; }
+            if (updateData.credits !== undefined) { updateFields.credits = updateData.credits; }
+            if (updateData.price !== undefined) { updateFields.price = Math.round(updateData.price * 100); } // Convert to cents
+            if (updateData.popular !== undefined) { updateFields.isPopular = updateData.popular; }
 
             // Update package in database
             const updatedPackage = await prisma.package.update({
@@ -255,9 +220,7 @@ class PackageController {
                     min: Math.min(...packages.map(pkg => pkg.credits)),
                     max: Math.max(...packages.map(pkg => pkg.credits))
                 },
-                averagePricePerCredit: packages.reduce((sum, pkg) => {
-                    return sum + (pkg.price / 100 / pkg.credits);
-                }, 0) / packages.length,
+                averagePricePerCredit: packages.reduce((sum, pkg) => sum + (pkg.price / 100 / pkg.credits), 0) / packages.length,
                 popularPackages: packages.filter(pkg => pkg.isPopular).length
             };
 
@@ -285,10 +248,8 @@ class PackageController {
         const errors = [];
 
         // Required fields for creation
-        if (!isUpdate) {
-            if (!packageData.name || typeof packageData.name !== 'string') {
-                errors.push('Package name is required and must be a string');
-            }
+        if (!isUpdate && (!packageData.name || typeof packageData.name !== 'string')) {
+            errors.push('Package name is required and must be a string');
         }
 
         // Validate credits
@@ -317,6 +278,83 @@ class PackageController {
             isValid: errors.length === 0,
             errors
         };
+    }
+
+    /**
+     * Log package creation request details
+     */
+    static logPackageCreationRequest(newPackage) {
+        console.log('📦 ADMIN-PACKAGES-BACKEND: Received package data:', newPackage);
+        console.log('📦 ADMIN-PACKAGES-BACKEND: Data types:', {
+            name: typeof newPackage.name,
+            credits: typeof newPackage.credits,
+            price: typeof newPackage.price,
+            description: typeof newPackage.description,
+            popular: typeof newPackage.popular
+        });
+    }
+
+    /**
+     * Validate package creation data
+     */
+    static validatePackageCreation(newPackage, res) {
+        const validation = PackageController.validatePackageData(newPackage);
+
+        if (!validation.isValid) {
+            console.log('❌ ADMIN-PACKAGES-BACKEND: Validation failed:', validation.errors);
+
+            res.status(400).json({
+                success: false,
+                error: 'Invalid package data',
+                message: validation.errors.join(', ')
+            });
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Check if package name already exists
+     */
+    static async checkPackageNameExists(name, res) {
+        const existingPackage = await prisma.package.findUnique({
+            where: { name }
+        });
+
+        if (existingPackage) {
+            res.status(400).json({
+                success: false,
+                error: 'Package name already exists',
+                message: `Package with name '${name}' already exists`
+            });
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Create package in database
+     */
+    static async createPackageInDatabase(newPackage) {
+        return await prisma.package.create({
+            data: {
+                name: newPackage.name,
+                displayName: newPackage.name,
+                description: newPackage.description,
+                credits: newPackage.credits,
+                price: Math.round(newPackage.price * 100),
+                isActive: true,
+                isPopular: newPackage.popular || false,
+                sortOrder: 0
+            }
+        });
+    }
+
+    /**
+     * Log successful package creation
+     */
+    static logPackageCreationSuccess(name, adminEmail) {
+        console.log(`✅ ADMIN-PACKAGES: Package '${name}' created by ${adminEmail}`);
     }
 }
 

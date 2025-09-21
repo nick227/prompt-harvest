@@ -1,6 +1,6 @@
 /**
  * CloudflareR2Config - Configuration Service
- * 
+ *
  * Handles configuration and validation for Cloudflare R2 storage.
  * Provides a clean interface for R2 settings and validation.
  */
@@ -41,7 +41,7 @@ export class CloudflareR2Config {
     validateConfig() {
         const required = [
             'accountId',
-            'accessKeyId', 
+            'accessKeyId',
             'secretAccessKey',
             'bucketName',
             'publicUrl',
@@ -94,12 +94,12 @@ export class CloudflareR2Config {
      * @returns {string} Public URL
      */
     getPublicUrl(key) {
-        const baseUrl = this.config.publicUrl.endsWith('/') 
-            ? this.config.publicUrl.slice(0, -1) 
+        const baseUrl = this.config.publicUrl.endsWith('/')
+            ? this.config.publicUrl.slice(0, -1)
             : this.config.publicUrl;
-        
+
         const cleanKey = key.startsWith('/') ? key.slice(1) : key;
-        
+
         return `${baseUrl}/${cleanKey}`;
     }
 
@@ -110,6 +110,7 @@ export class CloudflareR2Config {
     isConfigured() {
         try {
             this.validateConfig();
+
             return true;
         } catch (error) {
             return false;

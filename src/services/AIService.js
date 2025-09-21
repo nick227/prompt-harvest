@@ -27,9 +27,11 @@ export class AIService {
         // Use the new wordTypeManager system instead of old database files
         try {
             const replacement = await wordTypeManager.getWordReplacement(`$${decodedWord}`);
+
             return [replacement]; // Return as array for compatibility
         } catch (error) {
             console.error('Error getting word type:', error);
+
             return [decodedWord]; // Return original word on error
         }
     }
@@ -40,6 +42,7 @@ export class AIService {
         // Use wordTypeManager for examples - return empty array for now
         // This functionality can be enhanced later if needed
         console.log(`getWordExamples called for: ${decodedWord} (limit: ${limit})`);
+
         return [];
     }
 
@@ -49,18 +52,22 @@ export class AIService {
         // Use wordTypeManager for word types
         try {
             const replacement = await wordTypeManager.getWordReplacement(`$${decodedWord}`);
+
             return [replacement]; // Return as array for compatibility
         } catch (error) {
             console.error('Error getting word types:', error);
+
             return [decodedWord]; // Return original word on error
         }
     }
 
     async addWordType(word) {
         const decodedWord = decodeURIComponent(word).toLowerCase();
+
         console.log('🔍 AI SERVICE: addWordType called with:', decodedWord);
 
         const result = await this._addAiWordType(decodedWord);
+
         console.log('✅ AI SERVICE: _addAiWordType result:', result);
 
         return result;
@@ -113,8 +120,8 @@ export class AIService {
                 return {
                     success: true,
                     term: {
-                        word: word,
-                        types: types,
+                        word,
+                        types,
                         id: savedTerm._id || savedTerm.id,
                         createdAt: savedTerm.createdAt || new Date().toISOString()
                     }
@@ -205,10 +212,11 @@ export class AIService {
                 success: true,
                 message: `Word "${word}" and its associated types have been deleted`,
                 deletedWord: word,
-                result: result
+                result
             };
         } catch (error) {
             console.error('❌ Delete word type error:', error);
+
             return {
                 success: false,
                 error: error.message || 'Failed to delete word type'

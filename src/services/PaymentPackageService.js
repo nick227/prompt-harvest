@@ -16,7 +16,7 @@ const getAllPackages = async () => {
             where: { isActive: true },
             orderBy: { sortOrder: 'asc' }
         });
-        
+
         // Transform to match expected format
         return packages.map(pkg => ({
             id: pkg.id,
@@ -28,6 +28,7 @@ const getAllPackages = async () => {
         }));
     } catch (error) {
         console.error('❌ PAYMENT-PACKAGES: Error getting packages from database:', error);
+
         // Return empty array if database fails
         return [];
     }
@@ -39,16 +40,16 @@ const getAllPackages = async () => {
 const getPackage = async packageId => {
     try {
         const package_ = await prisma.package.findUnique({
-            where: { 
+            where: {
                 id: packageId,
-                isActive: true 
+                isActive: true
             }
         });
-        
+
         if (!package_) {
             throw new Error(`Package not found: ${packageId}`);
         }
-        
+
         // Transform to match expected format
         return {
             id: package_.id,
@@ -71,13 +72,13 @@ const getDefaultPackage = async () => {
     try {
         // Try to get popular package first
         let package_ = await prisma.package.findFirst({
-            where: { 
+            where: {
                 isActive: true,
-                isPopular: true 
+                isPopular: true
             },
             orderBy: { sortOrder: 'asc' }
         });
-        
+
         // If no popular package, get first active package
         if (!package_) {
             package_ = await prisma.package.findFirst({
@@ -85,11 +86,11 @@ const getDefaultPackage = async () => {
                 orderBy: { sortOrder: 'asc' }
             });
         }
-        
+
         if (!package_) {
             throw new Error('No active packages found');
         }
-        
+
         // Transform to match expected format
         return {
             id: package_.id,
@@ -111,7 +112,7 @@ const getDefaultPackage = async () => {
 const getPackagePricing = async () => {
     try {
         const packages = await getAllPackages();
-        
+
         return packages.map(pkg => ({
             id: pkg.id,
             name: pkg.name,
@@ -123,6 +124,7 @@ const getPackagePricing = async () => {
         }));
     } catch (error) {
         console.error('❌ PAYMENT-PACKAGES: Error getting package pricing:', error);
+
         return [];
     }
 };

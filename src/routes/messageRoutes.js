@@ -2,47 +2,45 @@ import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateTokenRequired } from '../middleware/authMiddleware.js';
 
-const router = express.Router();
+const router = new express.Router();
 const prisma = new PrismaClient();
 
 // Rate limiting store (in production, use Redis)
 const rateLimitStore = new Map();
 
 // Rate limiting middleware
-const rateLimit = (maxRequests = 10, windowMs = 60000) => {
-    return (req, res, next) => {
-        const userId = req.user?.id;
-        const key = `messages_${userId}`;
-        const now = Date.now();
+const rateLimit = (maxRequests = 10, windowMs = 60000) => (req, res, next) => {
+    const userId = req.user?.id;
+    const key = `messages_${userId}`;
+    const now = Date.now();
 
-        if (!rateLimitStore.has(key)) {
-            rateLimitStore.set(key, { count: 0, resetTime: now + windowMs });
-        }
+    if (!rateLimitStore.has(key)) {
+        rateLimitStore.set(key, { count: 0, resetTime: now + windowMs });
+    }
 
-        const userLimit = rateLimitStore.get(key);
+    const userLimit = rateLimitStore.get(key);
 
-        if (now > userLimit.resetTime) {
-            userLimit.count = 0;
-            userLimit.resetTime = now + windowMs;
-        }
+    if (now > userLimit.resetTime) {
+        userLimit.count = 0;
+        userLimit.resetTime = now + windowMs;
+    }
 
-        if (userLimit.count >= maxRequests) {
-            return res.status(429).json({
-                error: 'Too many requests. Please wait before sending another message.',
-                retryAfter: Math.ceil((userLimit.resetTime - now) / 1000)
-            });
-        }
+    if (userLimit.count >= maxRequests) {
+        return res.status(429).json({
+            error: 'Too many requests. Please wait before sending another message.',
+            retryAfter: Math.ceil((userLimit.resetTime - now) / 1000)
+        });
+    }
 
-        userLimit.count++;
-        next();
-    };
+    userLimit.count++;
+    next();
 };
 
 // Middleware to verify admin access (using JWT authentication)
 const verifyAdmin = async (req, res, next) => {
     try {
         // Use the existing JWT authentication middleware
-        await authenticateTokenRequired(req, res, (error) => {
+        await authenticateTokenRequired(req, res, error => {
             if (error) {
                 return res.status(401).json({ error: error.message || 'Authentication required' });
             }
@@ -66,7 +64,7 @@ const verifyAdmin = async (req, res, next) => {
 const verifyUser = async (req, res, next) => {
     try {
         // Use the existing JWT authentication middleware
-        await authenticateTokenRequired(req, res, (error) => {
+        await authenticateTokenRequired(req, res, error => {
             if (error) {
                 return res.status(401).json({ error: error.message || 'Authentication required' });
             }
@@ -152,6 +150,7 @@ router.get('/admin', verifyAdmin, async (req, res) => {
         // Group messages by user for admin view
         const groupedMessages = messages.reduce((acc, message) => {
             const { userId } = message;
+
             if (!acc[userId]) {
                 acc[userId] = {
                     user: message.user,

@@ -2,7 +2,7 @@
 
 /**
  * E2E Test Runner
- * 
+ *
  * Simple script to run the end-to-end test for Dezgo AI + Cloudflare R2 + Database
  */
 
@@ -14,17 +14,17 @@ runE2ETest()
     .then(result => {
         if (result.success) {
             console.log('\n✅ E2E Test Result: SUCCESS');
-            console.log(`📊 Test Summary:`);
+            console.log('📊 Test Summary:');
             console.log(`   Duration: ${result.duration}ms`);
             console.log(`   Image ID: ${result.imageId}`);
             console.log(`   Image URL: ${result.imageUrl}`);
-            console.log(`   Database: ✅ Valid row created`);
-            console.log(`   Cloudflare R2: ✅ Image uploaded`);
-            console.log(`   Dezgo AI: ✅ Image generated`);
+            console.log('   Database: ✅ Valid row created');
+            console.log('   Cloudflare R2: ✅ Image uploaded');
+            console.log('   Dezgo AI: ✅ Image generated');
             process.exit(0);
         } else {
             console.log('\n❌ E2E Test Result: FAILED');
-            console.log(`📊 Test Summary:`);
+            console.log('📊 Test Summary:');
             console.log(`   Duration: ${result.duration}ms`);
             console.log(`   Error: ${result.error}`);
             console.log(`   Steps Completed: ${Object.keys(result.steps || {}).length}`);

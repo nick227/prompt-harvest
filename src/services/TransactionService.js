@@ -1,5 +1,6 @@
 import databaseClient from '../database/PrismaClient.js';
 import SimplifiedCreditService from './credit/SimplifiedCreditService.js';
+import { calculateUserCosts } from '../config/costMatrix.js';
 
 export class TransactionService {
     constructor() {

@@ -1,6 +1,6 @@
 /**
  * CloudflareR2Service - Cloudflare R2 Storage Implementation
- * 
+ *
  * Implements image storage operations using Cloudflare R2 (S3-compatible).
  * Uses AWS SDK for S3 operations with R2-specific configuration.
  */
@@ -15,7 +15,7 @@ export class CloudflareR2Service {
         this.awsConfig = null;
         this.s3Client = null;
         this.initialized = false;
-        
+
         // Only initialize if configuration is available
         if (cloudflareR2Config.isConfigured()) {
             this.initialize();
@@ -32,7 +32,7 @@ export class CloudflareR2Service {
             this.awsConfig = cloudflareR2Config.getAwsConfig();
             this.s3Client = new S3Client(this.awsConfig);
             this.initialized = true;
-            
+
             console.log('🔧 CloudflareR2Service initialized');
         } catch (error) {
             console.warn('⚠️ CloudflareR2Service initialization failed:', error.message);
@@ -76,7 +76,7 @@ export class CloudflareR2Service {
 
             // Determine content type
             const contentType = this.getContentType(key, options.contentType);
-            
+
             const command = new PutObjectCommand({
                 Bucket: this.config.bucketName,
                 Key: key,
@@ -92,6 +92,7 @@ export class CloudflareR2Service {
             await this.s3Client.send(command);
 
             const publicUrl = cloudflareR2Config.getPublicUrl(key);
+
             console.log(`✅ Image uploaded to Cloudflare R2: ${publicUrl}`);
 
             return publicUrl;
@@ -131,9 +132,11 @@ export class CloudflareR2Service {
             await this.s3Client.send(command);
 
             console.log(`✅ Image deleted from Cloudflare R2: ${key}`);
+
             return true;
         } catch (error) {
-            console.error(`❌ Failed to delete image from Cloudflare R2:`, error.message);
+            console.error('❌ Failed to delete image from Cloudflare R2:', error.message);
+
             return false;
         }
     }
@@ -171,7 +174,7 @@ export class CloudflareR2Service {
                 metadata: response.Metadata || {}
             };
         } catch (error) {
-            console.error(`❌ Failed to get image info from Cloudflare R2:`, error.message);
+            console.error('❌ Failed to get image info from Cloudflare R2:', error.message);
             throw new Error(`Cloudflare R2 info failed: ${error.message}`);
         }
     }
@@ -193,12 +196,14 @@ export class CloudflareR2Service {
             });
 
             await this.s3Client.send(command);
+
             return true;
         } catch (error) {
             if (error.name === 'NotFound') {
                 return false;
             }
-            console.error(`❌ Error checking image existence in Cloudflare R2:`, error.message);
+            console.error('❌ Error checking image existence in Cloudflare R2:', error.message);
+
             return false;
         }
     }
@@ -222,7 +227,7 @@ export class CloudflareR2Service {
 
             return await getSignedUrl(this.s3Client, command, { expiresIn });
         } catch (error) {
-            console.error(`❌ Failed to generate presigned URL:`, error.message);
+            console.error('❌ Failed to generate presigned URL:', error.message);
             throw new Error(`Presigned URL generation failed: ${error.message}`);
         }
     }
@@ -240,12 +245,12 @@ export class CloudflareR2Service {
 
         const extension = filename.toLowerCase().split('.').pop();
         const contentTypes = {
-            'jpg': 'image/jpeg',
-            'jpeg': 'image/jpeg',
-            'png': 'image/png',
-            'gif': 'image/gif',
-            'webp': 'image/webp',
-            'svg': 'image/svg+xml'
+            jpg: 'image/jpeg',
+            jpeg: 'image/jpeg',
+            png: 'image/png',
+            gif: 'image/gif',
+            webp: 'image/webp',
+            svg: 'image/svg+xml'
         };
 
         return contentTypes[extension] || 'image/jpeg';
@@ -264,11 +269,11 @@ export class CloudflareR2Service {
         try {
             const urlObj = new URL(url);
             const pathname = urlObj.pathname.startsWith('/') ? urlObj.pathname.slice(1) : urlObj.pathname;
-            
+
             if (!pathname) {
                 throw new Error('URL does not contain a valid path');
             }
-            
+
             return pathname;
         } catch (error) {
             throw new Error(`Invalid URL format: ${url} - ${error.message}`);

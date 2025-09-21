@@ -9,7 +9,7 @@ import {
 } from '../middleware/security/SimplifiedSecurityMiddleware.js';
 
 const prisma = new PrismaClient();
-const router = express.Router();
+const router = new express.Router();
 
 // Apply basic security to all routes
 basicApiSecurity.forEach(middleware => router.use(middleware));
@@ -199,14 +199,15 @@ router.put('/:id', authenticateTokenRequired, requireAdmin, async (req, res) => 
         }
 
         const updateData = {};
-        if (name !== undefined) updateData.name = name;
-        if (displayName !== undefined) updateData.displayName = displayName;
-        if (description !== undefined) updateData.description = description;
-        if (credits !== undefined) updateData.credits = parseInt(credits);
-        if (price !== undefined) updateData.price = parseInt(price);
-        if (isActive !== undefined) updateData.isActive = Boolean(isActive);
-        if (isPopular !== undefined) updateData.isPopular = Boolean(isPopular);
-        if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder);
+
+        if (name !== undefined) { updateData.name = name; }
+        if (displayName !== undefined) { updateData.displayName = displayName; }
+        if (description !== undefined) { updateData.description = description; }
+        if (credits !== undefined) { updateData.credits = parseInt(credits); }
+        if (price !== undefined) { updateData.price = parseInt(price); }
+        if (isActive !== undefined) { updateData.isActive = Boolean(isActive); }
+        if (isPopular !== undefined) { updateData.isPopular = Boolean(isPopular); }
+        if (sortOrder !== undefined) { updateData.sortOrder = parseInt(sortOrder); }
 
         const updatedPackage = await prisma.package.update({
             where: { id },

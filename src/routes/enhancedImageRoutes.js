@@ -83,6 +83,17 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
         enhancedImageController.getUserImages.bind(enhancedImageController)
     );
 
+    // Get sample image for credits modal
+    app.get('/api/images/sample',
+        enhancedRateLimit({
+            windowMs: 1 * 60 * 1000, // 1 minute
+            maxRequests: 50, // 50 requests per minute
+            message: 'Sample image rate limit exceeded'
+        }),
+        sanitizeInput,
+        enhancedImageController.getSampleImage.bind(enhancedImageController)
+    );
+
     // Get image count - MUST be before /api/images/:id route
     app.get('/api/images/count',
         authenticateToken, // Add authentication middleware

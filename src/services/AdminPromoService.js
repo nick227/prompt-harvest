@@ -49,6 +49,7 @@ export class AdminPromoService {
             });
 
             console.log(`🎁 ADMIN: Created promo code ${promoCode.code} with ${promoCode.credits} credits`);
+
             return promoCode;
 
         } catch (error) {
@@ -89,6 +90,7 @@ export class AdminPromoService {
             });
 
             console.log(`🎁 ADMIN: Updated promo code ${promoCode.code}`);
+
             return promoCode;
 
         } catch (error) {
@@ -110,6 +112,7 @@ export class AdminPromoService {
             });
 
             console.log(`🎁 ADMIN: Deleted promo code ${promoCode.code}`);
+
             return { success: true, deletedCode: promoCode.code };
 
         } catch (error) {
@@ -300,6 +303,7 @@ export class AdminPromoService {
 
         } catch (error) {
             console.error('❌ ADMIN: Error validating promo code:', error);
+
             return { valid: false, error: 'Validation failed' };
         }
     }

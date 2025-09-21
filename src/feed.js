@@ -25,8 +25,7 @@ import ImageGenerator from './services/feed/ImageGenerator.js';
 import QueueManager from './services/feed/QueueManager.js';
 import DatabaseService from './services/feed/DatabaseService.js';
 import FeedUtils from './utils/FeedUtils.js';
-import { taggingService } from './services/TaggingService.js';
-import { imageStorageService } from './services/ImageStorageService.js';
+import { GenerationResultProcessor } from './services/GenerationResultProcessor.js';
 import { PrismaClient } from '@prisma/client';
 
 // Configuration
@@ -151,95 +150,9 @@ const generate = async options => {
  * @returns {Promise<Array>} Processed results
  */
 const processGenerationResults = async(results, context) => {
-    const { prompt, original, promptId, req } = context;
-    const processedResults = [];
+    const processor = new GenerationResultProcessor();
 
-    for (const result of results) {
-        if (result.success && result.data && typeof result.data === 'string') {
-            try {
-                // Step 1: Save image to storage (file system or CDN)
-                const filename = imageStorageService.generateFilename(result.provider);
-                const buffer = Buffer.from(result.data, 'base64');
-                const imageUrl = await imageStorageService.saveImage(buffer, filename);
-
-                let savedImage;
-                try {
-                    // Step 2: Save image metadata to database
-                    savedImage = await DatabaseService.saveImageToDatabase({
-                        prompt,
-                        original,
-                        provider: result.provider,
-                        imageUrl, // Image already saved to storage
-                        promptId,
-                        userId: DatabaseService.getUserId(req),
-                        guidance: result.guidance || 10,
-                        model: result.model || null
-                    });
-
-                    if (!savedImage._id) {
-                        console.error('❌ CRITICAL: savedImage._id is undefined!', { savedImage });
-                        throw new Error('Database save failed - no ID returned');
-                    }
-                } catch (dbError) {
-                    // Rollback: Delete the stored image if database save fails
-                    console.error('❌ Database save failed, cleaning up stored image:', dbError.message);
-                    try {
-                        await imageStorageService.deleteImage(imageUrl);
-                        console.log('✅ Cleaned up orphaned image file');
-                    } catch (cleanupError) {
-                        console.error('❌ Failed to cleanup orphaned image file:', cleanupError.message);
-                    }
-                    throw dbError; // Re-throw the original database error
-                }
-
-                // Fetch tags for the saved image
-                const imageWithTags = await _fetchImageWithTags(savedImage._id);
-
-                processedResults.push({
-                    provider: result.provider,
-                    success: true,
-                    imageId: savedImage._id,
-                    imageUrl: imageUrl,
-                    imageData: result.data,
-                    tags: imageWithTags.tags || [],
-                    taggedAt: imageWithTags.taggedAt,
-                    taggingMetadata: imageWithTags.taggingMetadata
-                });
-
-                // Fire-and-forget tagging service call
-                // This does NOT block the HTTP response
-                taggingService.tagImageAsync(savedImage._id, prompt, {
-                    provider: result.provider,
-                    userId: DatabaseService.getUserId(req),
-                    promptId,
-                    original
-                });
-
-                // Image saved successfully - logged by services
-            } catch (error) {
-                console.error(`❌ Failed to save image for provider ${result.provider}:`, {
-                    error: error.message,
-                    provider: result.provider,
-                    userId: DatabaseService.getUserId(req),
-                    prompt: prompt ? `${prompt.substring(0, 50)}...` : 'undefined'
-                });
-                processedResults.push({
-                    provider: result.provider,
-                    success: false,
-                    error: error.message
-                });
-            }
-        } else {
-            console.error(`❌ Generation failed for provider ${result.provider}:`, result.error);
-            processedResults.push({
-                provider: result.provider,
-                success: false,
-                error: result.error?.message || 'Generation failed'
-            });
-        }
-    }
-
-    return processedResults;
+    return await processor.processAllResults(results, context);
 };
 
 /**
@@ -319,6 +232,7 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, ph
 
             if (!savedPrompt || !savedPrompt._id) {
                 console.warn('⚠️ Prompt save returned no ID:', savedPrompt);
+
                 return {
                     original: processedPrompt.original,
                     prompt: processedPrompt.prompt,
@@ -333,6 +247,7 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, ph
             };
         } catch (error) {
             console.error('❌ Failed to save prompt to database:', error);
+
             // Return prompt data even if save failed
             return {
                 original: processedPrompt.original,
@@ -446,7 +361,7 @@ const savePromptToDatabase = async promptData => DatabaseService.savePromptToDat
  * Fetch image with tags from database
  * @private
  */
-const _fetchImageWithTags = async (imageId) => {
+const _fetchImageWithTags = async imageId => {
     try {
         const image = await prisma.image.findUnique({
             where: { id: imageId },
@@ -476,6 +391,7 @@ const _fetchImageWithTags = async (imageId) => {
 
     } catch (error) {
         console.error('Error fetching image with tags:', error);
+
         return {
             id: imageId,
             tags: [],

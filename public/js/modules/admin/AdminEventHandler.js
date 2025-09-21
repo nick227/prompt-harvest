@@ -214,6 +214,68 @@ class AdminEventHandler {
         }
     }
 
+    setupQueueEventListeners() {
+        // Refresh queue status button
+        const refreshQueueBtn = document.getElementById('refresh-queue-status');
+        if (refreshQueueBtn) {
+            refreshQueueBtn.addEventListener('click', async () => {
+                if (window.adminDashboardManager) {
+                    try {
+                        // Show loading state
+                        const originalText = refreshQueueBtn.innerHTML;
+                        refreshQueueBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+                        refreshQueueBtn.disabled = true;
+
+                        await window.adminDashboardManager.loadQueueStatus();
+                        console.log('✅ Queue status refreshed successfully');
+
+                        // Restore button state
+                        refreshQueueBtn.innerHTML = originalText;
+                        refreshQueueBtn.disabled = false;
+                    } catch (error) {
+                        console.error('❌ Failed to refresh queue status:', error);
+
+                        // Restore button state on error
+                        refreshQueueBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Queue';
+                        refreshQueueBtn.disabled = false;
+
+                        if (window.adminModal) {
+                            window.adminModal.showNotification('Failed to refresh queue status', 'error');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Clear queue button
+        const clearQueueBtn = document.getElementById('clear-queue-btn');
+        if (clearQueueBtn) {
+            clearQueueBtn.addEventListener('click', async () => {
+                if (confirm('Are you sure you want to clear the entire queue? This action cannot be undone.')) {
+                    try {
+                        if (window.adminDashboardManager && window.adminDashboardManager.queueService) {
+                            const result = await window.adminDashboardManager.queueService.clearQueue();
+                            console.log('✅ Queue cleared:', result);
+
+                            // Refresh queue status after clearing
+                            await window.adminDashboardManager.loadQueueStatus();
+
+                            // Show success message
+                            if (window.adminModal) {
+                                window.adminModal.showNotification('Queue cleared successfully', 'success');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('❌ Failed to clear queue:', error);
+                        if (window.adminModal) {
+                            window.adminModal.showNotification('Failed to clear queue: ' + error.message, 'error');
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     destroy() {
         // Clean up any event listeners or resources
         console.log('🗑️ ADMIN-EVENT: Event handler destroyed');

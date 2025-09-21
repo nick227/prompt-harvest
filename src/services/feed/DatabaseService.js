@@ -170,7 +170,7 @@ const savePromptToDatabase = async promptData => {
 
             // For anonymous users, we could save to a separate table or use a special userId
             // For now, we'll use a special anonymous userId
-            const anonymousUserId = 'anonymous_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const anonymousUserId = `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             const prompt = await prisma.prompts.create({
                 data: {
@@ -324,10 +324,12 @@ const getUserId = req => {
 
     if (!req || !req.user || !req.user.id) {
         console.log('🔍 DATABASE SERVICE: getUserId returning null');
+
         return null;
     }
 
     console.log('🔍 DATABASE SERVICE: getUserId returning:', req.user.id);
+
     return req.user.id;
 };
 

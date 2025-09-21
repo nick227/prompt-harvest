@@ -18,6 +18,7 @@ import { generateRequestId, logRequestStart, logRequestSuccess, logRequestError 
 import { validateImageGenerationParams, validateImageId, validateRating, validatePaginationParams } from '../utils/ValidationService.js';
 import { ValidationError } from '../errors/CustomErrors.js';
 import { taggingService } from '../services/TaggingService.js';
+import { sampleImageService } from '../services/SampleImageService.js';
 import { PrismaClient } from '@prisma/client';
 
 export class EnhancedImageController {
@@ -348,43 +349,21 @@ export class EnhancedImageController {
         const startTime = Date.now();
 
         try {
-            // Extract and validate parameters
             const userId = req.user?.id;
-
-            console.log('🔄 ENHANCED-IMAGE-CONTROLLER: getUserImages called with userId:', userId);
 
             if (!userId) {
                 throw new Error('Authentication required to access user images');
             }
 
-            const pagination = validatePaginationParams(req.query, 50); // Max 50 images per request
+            const pagination = validatePaginationParams(req.query, 50);
+            this.logGetUserImagesRequest(userId, pagination);
 
-            console.log('🔄 ENHANCED-IMAGE-CONTROLLER: Pagination params:', pagination);
-
-            // Call service to get user's images with cost information
-            console.log('🔄 ENHANCED-IMAGE-CONTROLLER: Calling imageService.getUserImages...');
             const result = await this.imageService.getUserImages(userId, pagination.limit, pagination.page);
+            this.logGetUserImagesResult(result);
 
-            console.log('✅ ENHANCED-IMAGE-CONTROLLER: Service result:', {
-                imagesCount: result.images?.length || 0,
-                totalCount: result.totalCount,
-                hasMore: result.hasMore
-            });
-
-            // Format response with cost information
             const duration = Date.now() - startTime;
             const responseData = { images: result.images || [] };
-
-            console.log('🔄 ENHANCED-IMAGE-CONTROLLER: Response data:', {
-                imagesCount: responseData.images.length,
-                firstImage: responseData.images[0]
-                    ? {
-                        id: responseData.images[0].id,
-                        provider: responseData.images[0].provider,
-                        model: responseData.images[0].model
-                    }
-                    : null
-            });
+            this.logGetUserImagesResponse(responseData);
 
             const response = formatSuccessResponse(
                 responseData,
@@ -399,7 +378,6 @@ export class EnhancedImageController {
                 pagination
             });
 
-            console.log('✅ ENHANCED-IMAGE-CONTROLLER: Sending response with', responseData.images.length, 'images');
             res.json(response);
 
         } catch (error) {
@@ -448,6 +426,39 @@ export class EnhancedImageController {
             const errorResponse = formatErrorResponse(error, requestId, duration);
 
             logRequestError(requestId, 'Get Image By ID', duration, error);
+            res.status(errorResponse.statusCode || 500).json(errorResponse);
+        }
+    }
+
+    /**
+     * Get sample image for credits modal
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async getSampleImage(req, res) {
+        const requestId = req.id || generateRequestId();
+        const startTime = Date.now();
+
+        try {
+            // Get random sample image from cache - no database query needed
+            const sampleImage = sampleImageService.getRandomSampleImage();
+
+            const duration = Date.now() - startTime;
+            const response = formatSuccessResponse({
+                image: sampleImage
+            }, requestId, duration);
+
+            logRequestSuccess(requestId, 'Get Sample Image', duration, {
+                imageId: sampleImage.id
+            });
+
+            res.json(response);
+
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse(error, requestId, duration);
+
+            logRequestError(requestId, 'Get Sample Image', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
     }
@@ -510,6 +521,7 @@ export class EnhancedImageController {
             // Extract and validate tag filters
             const tagsParam = req.query.tags;
             let tags = [];
+
             if (tagsParam && typeof tagsParam === 'string') {
                 tags = tagsParam.split(',')
                     .map(tag => tag.trim().toLowerCase())
@@ -593,45 +605,17 @@ export class EnhancedImageController {
         try {
             const userId = req.user?.id;
             const { page = 0, limit = 20 } = req.query;
+            const tags = this.extractTagFilters(req.query.tags);
+            const pagination = { limit: parseInt(limit), page: parseInt(page) };
 
-            // Extract and validate tag filters
-            const tagsParam = req.query.tags;
-            let tags = [];
-            if (tagsParam && typeof tagsParam === 'string') {
-                tags = tagsParam.split(',')
-                    .map(tag => tag.trim().toLowerCase())
-                    .filter(tag => tag.length > 0 && tag.length <= 50)
-                    .slice(0, 10); // Limit to 10 tags max
+            this.logGetUserOwnImagesRequest(requestId, userId, req.query, pagination, tags);
+
+            if (!this.validateUserAuthentication(userId, res)) {
+                return;
             }
 
-            console.log('🔍 BACKEND: getUserOwnImages called with:', {
-                requestId,
-                userId,
-                query: req.query,
-                pagination: { limit: parseInt(limit), page: parseInt(page) },
-                tags: tags.length > 0 ? tags : 'none',
-                userAgent: req.get('User-Agent')
-            });
-
-            if (!userId) {
-                return res.status(401).json({
-                    success: false,
-                    error: 'Authentication required',
-                    statusCode: 401
-                });
-            }
-
-            const result = await this.imageService.getUserOwnImages(userId, parseInt(limit), parseInt(page), tags);
-
-            const response = formatSuccessResponse({
-                items: result.images,
-                pagination: {
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    total: result.totalCount,
-                    count: result.images.length
-                }
-            }, requestId, Date.now() - startTime);
+            const result = await this.imageService.getUserOwnImages(userId, pagination.limit, pagination.page, tags);
+            const response = this.formatGetUserOwnImagesResponse(result, page, limit, requestId, startTime);
 
             logRequestSuccess(requestId, 'Get User Own Images', Date.now() - startTime, {
                 userId,
@@ -648,6 +632,101 @@ export class EnhancedImageController {
             logRequestError(requestId, 'Get User Own Images', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
+    }
+
+    /**
+     * Extract and validate tag filters from query parameters
+     */
+    extractTagFilters(tagsParam) {
+        if (!tagsParam || typeof tagsParam !== 'string') {
+            return [];
+        }
+
+        return tagsParam.split(',')
+            .map(tag => tag.trim().toLowerCase())
+            .filter(tag => tag.length > 0 && tag.length <= 50)
+            .slice(0, 10); // Limit to 10 tags max
+    }
+
+    /**
+     * Log request details for getUserOwnImages
+     */
+    logGetUserOwnImagesRequest(requestId, userId, query, pagination, tags) {
+        console.log('🔍 BACKEND: getUserOwnImages called with:', {
+            requestId,
+            userId,
+            query,
+            pagination,
+            tags: tags.length > 0 ? tags : 'none',
+            userAgent: req.get('User-Agent')
+        });
+    }
+
+    /**
+     * Validate authentication for getUserOwnImages
+     */
+    validateUserAuthentication(userId, res) {
+        if (!userId) {
+            res.status(401).json({
+                success: false,
+                error: 'Authentication required',
+                statusCode: 401
+            });
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Format getUserOwnImages response
+     */
+    formatGetUserOwnImagesResponse(result, page, limit, requestId, startTime) {
+        return formatSuccessResponse({
+            items: result.images,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total: result.totalCount,
+                count: result.images.length
+            }
+        }, requestId, Date.now() - startTime);
+    }
+
+    /**
+     * Log getUserImages request details
+     */
+    logGetUserImagesRequest(userId, pagination) {
+        console.log('🔄 ENHANCED-IMAGE-CONTROLLER: getUserImages called with userId:', userId);
+        console.log('🔄 ENHANCED-IMAGE-CONTROLLER: Pagination params:', pagination);
+        console.log('🔄 ENHANCED-IMAGE-CONTROLLER: Calling imageService.getUserImages...');
+    }
+
+    /**
+     * Log getUserImages service result
+     */
+    logGetUserImagesResult(result) {
+        console.log('✅ ENHANCED-IMAGE-CONTROLLER: Service result:', {
+            imagesCount: result.images?.length || 0,
+            totalCount: result.totalCount,
+            hasMore: result.hasMore
+        });
+    }
+
+    /**
+     * Log getUserImages response data
+     */
+    logGetUserImagesResponse(responseData) {
+        console.log('🔄 ENHANCED-IMAGE-CONTROLLER: Response data:', {
+            imagesCount: responseData.images.length,
+            firstImage: responseData.images[0]
+                ? {
+                    id: responseData.images[0].id,
+                    provider: responseData.images[0].provider,
+                    model: responseData.images[0].model
+                }
+                : null
+        });
+        console.log('✅ ENHANCED-IMAGE-CONTROLLER: Sending response with', responseData.images.length, 'images');
     }
 
     // ============================================================================

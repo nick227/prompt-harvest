@@ -30,7 +30,7 @@ const TEST_CONFIG = {
     provider: 'abyssorange',
     prompt: 'A beautiful sunset over a mountain landscape, digital art, vibrant colors',
     guidance: 8,
-    userId: 'test-user-e2e-' + Date.now(),
+    userId: `test-user-e2e-${Date.now()}`,
     testTimeout: 120000 // 2 minutes
 };
 
@@ -49,6 +49,7 @@ const testResults = {
  */
 const logStep = (step, message, data = {}) => {
     const timestamp = new Date().toISOString();
+
     console.log(`\n[${timestamp}] ${step}: ${message}`);
     if (Object.keys(data).length > 0) {
         console.log('   Data:', JSON.stringify(data, null, 2));
@@ -67,6 +68,7 @@ const logError = (step, error, context = {}) => {
         context,
         timestamp: new Date().toISOString()
     };
+
     console.error(`\n❌ ERROR in ${step}:`, errorInfo);
     testResults.errors.push(errorInfo);
 };
@@ -116,12 +118,14 @@ const testCloudflareR2Setup = async () => {
 
     // Test health check
     const health = await cloudflareR2Service.getHealth();
+
     if (health.status !== 'healthy') {
         throw new Error(`Cloudflare R2 health check failed: ${health.error}`);
     }
 
     // Test ImageStorageService CDN configuration
     const cdnConfigured = imageStorageService.isCDNConfigured();
+
     if (!cdnConfigured) {
         throw new Error('ImageStorageService CDN is not configured');
     }
@@ -179,13 +183,14 @@ const generateImageWithDezgo = async () => {
 
         // Validate base64 data
         const buffer = Buffer.from(result, 'base64');
+
         if (buffer.length === 0) {
             throw new Error('Generated image buffer is empty');
         }
 
         logStep('IMAGE_GENERATION', 'Image generated successfully', {
             provider: TEST_CONFIG.provider,
-            prompt: TEST_CONFIG.prompt.substring(0, 50) + '...',
+            prompt: `${TEST_CONFIG.prompt.substring(0, 50)}...`,
             bufferSize: buffer.length,
             base64Length: result.length
         });
@@ -200,7 +205,7 @@ const generateImageWithDezgo = async () => {
 /**
  * Save image to Cloudflare R2
  */
-const saveImageToCloudflare = async (imageBuffer) => {
+const saveImageToCloudflare = async imageBuffer => {
     logStep('CLOUDFLARE_SAVE', 'Saving image to Cloudflare R2');
 
     try {
@@ -209,6 +214,7 @@ const saveImageToCloudflare = async (imageBuffer) => {
 
         // Switch to CDN storage
         const originalStorageType = imageStorageService.getStorageType();
+
         imageStorageService.setStorageType('cdn');
 
         // Save image to Cloudflare R2
@@ -224,6 +230,7 @@ const saveImageToCloudflare = async (imageBuffer) => {
 
         // Verify image exists in R2
         const exists = await imageStorageService.imageExists(imageUrl);
+
         if (!exists) {
             throw new Error('Image was not found in Cloudflare R2 after upload');
         }
@@ -252,7 +259,7 @@ const saveImageToCloudflare = async (imageBuffer) => {
 /**
  * Save image metadata to database
  */
-const saveImageToDatabase = async (imageUrl, imageInfo) => {
+const saveImageToDatabase = async (imageUrl, _imageInfo) => {
     logStep('DATABASE_SAVE', 'Saving image metadata to database');
 
     try {
@@ -260,7 +267,7 @@ const saveImageToDatabase = async (imageUrl, imageInfo) => {
             prompt: TEST_CONFIG.prompt,
             original: TEST_CONFIG.prompt,
             provider: TEST_CONFIG.provider,
-            imageUrl: imageUrl,
+            imageUrl,
             userId: TEST_CONFIG.userId,
             guidance: TEST_CONFIG.guidance,
             model: 'abyss_orange_mix_2' // abyssorange model
@@ -289,7 +296,7 @@ const saveImageToDatabase = async (imageUrl, imageInfo) => {
 /**
  * Verify database row with valid URL
  */
-const verifyDatabaseRow = async (savedImage) => {
+const verifyDatabaseRow = async savedImage => {
     logStep('DATABASE_VERIFY', 'Verifying database row with valid URL');
 
     try {
@@ -319,7 +326,7 @@ const verifyDatabaseRow = async (savedImage) => {
         };
 
         const failedValidations = Object.entries(validations)
-            .filter(([key, valid]) => !valid)
+            .filter(([_key, valid]) => !valid)
             .map(([key]) => key);
 
         if (failedValidations.length > 0) {
@@ -337,7 +344,7 @@ const verifyDatabaseRow = async (savedImage) => {
         logStep('DATABASE_VERIFY', 'Database row verification passed', {
             imageId: dbImage.id,
             imageUrl: dbImage.imageUrl,
-            validations: validations,
+            validations,
             urlValid
         });
 
@@ -365,8 +372,10 @@ const cleanupTestData = async (imageUrl, imageId) => {
         if (imageUrl) {
             try {
                 const originalStorageType = imageStorageService.getStorageType();
+
                 imageStorageService.setStorageType('cdn');
                 const deleted = await imageStorageService.deleteImage(imageUrl);
+
                 imageStorageService.setStorageType(originalStorageType);
                 cleanupResults.imageDeleted = deleted;
                 logStep('CLEANUP', 'Image deleted from Cloudflare R2', { deleted });
@@ -410,13 +419,13 @@ const runE2ETest = async () => {
     testResults.startTime = Date.now();
 
     console.log('🚀 Starting E2E Test: Dezgo AI + Cloudflare R2 + Database');
-    console.log('=' .repeat(80));
-    console.log(`Test Configuration:`);
+    console.log('='.repeat(80));
+    console.log('Test Configuration:');
     console.log(`  Provider: ${TEST_CONFIG.provider}`);
     console.log(`  Prompt: ${TEST_CONFIG.prompt}`);
     console.log(`  Guidance: ${TEST_CONFIG.guidance}`);
     console.log(`  User ID: ${TEST_CONFIG.userId}`);
-    console.log('=' .repeat(80));
+    console.log('='.repeat(80));
 
     let imageUrl = null;
     let imageId = null;
@@ -437,10 +446,12 @@ const runE2ETest = async () => {
 
         // Step 5: Save image to Cloudflare R2
         const { imageUrl: savedImageUrl, imageInfo } = await saveImageToCloudflare(buffer);
+
         imageUrl = savedImageUrl;
 
         // Step 6: Save image metadata to database
         const savedImage = await saveImageToDatabase(imageUrl, imageInfo);
+
         imageId = savedImage._id;
 
         // Step 7: Verify database row
@@ -451,14 +462,14 @@ const runE2ETest = async () => {
         testResults.duration = testResults.endTime - testResults.startTime;
 
         console.log('\n🎉 E2E TEST COMPLETED SUCCESSFULLY!');
-        console.log('=' .repeat(80));
+        console.log('='.repeat(80));
         console.log(`Total Duration: ${testResults.duration}ms`);
         console.log(`Image ID: ${imageId}`);
         console.log(`Image URL: ${imageUrl}`);
-        console.log(`Database Row: ✅ Valid`);
-        console.log(`Cloudflare R2: ✅ Working`);
-        console.log(`Dezgo AI: ✅ Working`);
-        console.log('=' .repeat(80));
+        console.log('Database Row: ✅ Valid');
+        console.log('Cloudflare R2: ✅ Working');
+        console.log('Dezgo AI: ✅ Working');
+        console.log('='.repeat(80));
 
         return {
             success: true,
@@ -473,12 +484,12 @@ const runE2ETest = async () => {
         testResults.duration = testResults.endTime - testResults.startTime;
 
         console.log('\n❌ E2E TEST FAILED!');
-        console.log('=' .repeat(80));
+        console.log('='.repeat(80));
         console.log(`Error: ${error.message}`);
         console.log(`Duration: ${testResults.duration}ms`);
         console.log(`Steps Completed: ${Object.keys(testResults.steps).length}`);
         console.log(`Errors: ${testResults.errors.length}`);
-        console.log('=' .repeat(80));
+        console.log('='.repeat(80));
 
         return {
             success: false,
@@ -499,23 +510,21 @@ const runE2ETest = async () => {
 /**
  * Run the test with timeout
  */
-const runTestWithTimeout = async () => {
-    return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-            reject(new Error(`Test timed out after ${TEST_CONFIG.testTimeout}ms`));
-        }, TEST_CONFIG.testTimeout);
+const runTestWithTimeout = async () => new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+        reject(new Error(`Test timed out after ${TEST_CONFIG.testTimeout}ms`));
+    }, TEST_CONFIG.testTimeout);
 
-        runE2ETest()
-            .then(result => {
-                clearTimeout(timeout);
-                resolve(result);
-            })
-            .catch(error => {
-                clearTimeout(timeout);
-                reject(error);
-            });
-    });
-};
+    runE2ETest()
+        .then(result => {
+            clearTimeout(timeout);
+            resolve(result);
+        })
+        .catch(error => {
+            clearTimeout(timeout);
+            reject(error);
+        });
+});
 
 // Run the test if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {

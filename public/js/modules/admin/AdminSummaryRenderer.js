@@ -169,6 +169,69 @@ class AdminSummaryRenderer {
                 </div>
 
                 <div class="summary-section">
+                    <h3>Queue Status</h3>
+                    <div class="queue-status-container">
+                        <div class="queue-stats-grid">
+                            <div class="queue-stat-card">
+                                <div class="queue-stat-icon">
+                                    <i class="fas fa-list-ol"></i>
+                                </div>
+                                <div class="queue-stat-content">
+                                    <div class="queue-stat-value" id="queue-length">-</div>
+                                    <div class="queue-stat-label">Pending Requests</div>
+                                </div>
+                            </div>
+
+                            <div class="queue-stat-card">
+                                <div class="queue-stat-icon">
+                                    <i class="fas fa-cog ${data?.queue?.status?.isProcessing ? 'fa-spin' : ''}"></i>
+                                </div>
+                                <div class="queue-stat-content">
+                                    <div class="queue-stat-value">${data?.queue?.status?.isProcessing ? 'Processing' : 'Idle'}</div>
+                                    <div class="queue-stat-label">Queue Status</div>
+                                </div>
+                            </div>
+
+                            <div class="queue-stat-card">
+                                <div class="queue-stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="queue-stat-content">
+                                    <div class="queue-stat-value" id="queue-oldest-age">-</div>
+                                    <div class="queue-stat-label">Oldest Request</div>
+                                </div>
+                            </div>
+
+                            <div class="queue-stat-card">
+                                <div class="queue-stat-icon">
+                                    <i class="fas fa-heartbeat ${data?.queue?.health?.status === 'healthy' ? 'text-green-500' : data?.queue?.health?.status === 'warning' ? 'text-yellow-500' : 'text-red-500'}"></i>
+                                </div>
+                                <div class="queue-stat-content">
+                                    <div class="queue-stat-value">${data?.queue?.health?.status || 'Loading...'}</div>
+                                    <div class="queue-stat-label">Queue Health</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="queue-actions">
+                            <button id="refresh-queue-status" class="btn btn-sm btn-outline">
+                                <i class="fas fa-sync-alt"></i> Refresh Queue
+                            </button>
+                            <button id="clear-queue-btn" class="btn btn-sm btn-danger" style="display: none;">
+                                <i class="fas fa-trash"></i> Clear Queue
+                            </button>
+                        </div>
+
+                        <div class="queue-details" id="queue-details" style="display: none;">
+                            <h4>Queue Details</h4>
+                            <div class="queue-requests-list" id="queue-requests-list">
+                                <!-- Queue requests will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-section">
                     <h3>Recent Activity</h3>
                     <div class="activity-list">
                         ${this.generateActivityList(metrics?.recentActivity || [])}
@@ -422,6 +485,176 @@ class AdminSummaryRenderer {
         div.textContent = text;
 
         return div.innerHTML;
+    }
+
+    /**
+     * Update queue status display
+     * @param {Object} queueData - Queue status data
+     */
+    updateQueueStatus(queueData) {
+        if (!queueData) {
+            this.showQueueError('No queue data available');
+            return;
+        }
+
+        const { status, stats, health } = queueData;
+
+        // Cache DOM elements for better performance
+        const elements = this.getQueueElements();
+
+        // Update queue length
+        if (elements.queueLength) {
+            elements.queueLength.textContent = status?.length || 0;
+        }
+
+        // Update queue status
+        if (elements.queueStatus) {
+            elements.queueStatus.textContent = status?.isProcessing ? 'Processing' : 'Idle';
+        }
+
+        // Update processing icon
+        if (elements.processingIcon) {
+            elements.processingIcon.className = `fas fa-cog ${status?.isProcessing ? 'fa-spin' : ''}`;
+        }
+
+        // Update oldest request age
+        if (elements.oldestAge && stats?.oldestRequest) {
+            const ageInSeconds = Math.floor(stats.oldestRequest / 1000);
+            elements.oldestAge.textContent = ageInSeconds > 60 ?
+                `${Math.floor(ageInSeconds / 60)}m ${ageInSeconds % 60}s` :
+                `${ageInSeconds}s`;
+        }
+
+        // Update queue health
+        if (elements.healthValue && elements.healthIcon) {
+            elements.healthValue.textContent = health?.status || 'Unknown';
+            elements.healthIcon.className = `fas fa-heartbeat ${
+                health?.status === 'healthy' ? 'text-green-500' :
+                health?.status === 'warning' ? 'text-yellow-500' :
+                'text-red-500'
+            }`;
+        }
+
+        // Show/hide clear queue button based on queue length
+        if (elements.clearBtn) {
+            elements.clearBtn.style.display = (status?.length || 0) > 0 ? 'inline-block' : 'none';
+        }
+
+        // Update queue details if visible
+        this.updateQueueDetails(status?.pendingRequests || []);
+
+        // Show health issues if any
+        this.updateHealthIssues(health?.issues || []);
+    }
+
+    /**
+     * Cache queue DOM elements for better performance
+     * @returns {Object} Cached DOM elements
+     */
+    getQueueElements() {
+        if (!this._queueElements) {
+            this._queueElements = {
+                queueLength: document.getElementById('queue-length'),
+                queueStatus: document.querySelector('.queue-stat-card:nth-child(2) .queue-stat-value'),
+                processingIcon: document.querySelector('.queue-stat-card:nth-child(2) .queue-stat-icon i'),
+                oldestAge: document.getElementById('queue-oldest-age'),
+                healthValue: document.querySelector('.queue-stat-card:nth-child(4) .queue-stat-value'),
+                healthIcon: document.querySelector('.queue-stat-card:nth-child(4) .queue-stat-icon i'),
+                clearBtn: document.getElementById('clear-queue-btn')
+            };
+        }
+        return this._queueElements;
+    }
+
+    /**
+     * Update health issues display
+     * @param {Array} issues - Array of health issues
+     */
+    updateHealthIssues(issues) {
+        const healthEl = document.querySelector('.queue-stat-card:nth-child(4) .queue-stat-content');
+        if (!healthEl) return;
+
+        // Remove existing issues display
+        const existingIssues = healthEl.querySelector('.queue-health-issues');
+        if (existingIssues) {
+            existingIssues.remove();
+        }
+
+        // Add issues if any
+        if (issues.length > 0) {
+            const issuesEl = document.createElement('div');
+            issuesEl.className = 'queue-health-issues';
+            issuesEl.style.cssText = 'font-size: 0.75rem; color: var(--color-yellow-400); margin-top: 2px;';
+            issuesEl.innerHTML = issues.map(issue => `• ${issue}`).join('<br>');
+            healthEl.appendChild(issuesEl);
+        }
+    }
+
+    /**
+     * Update queue details section
+     * @param {Array} requests - Array of pending requests
+     */
+    updateQueueDetails(requests) {
+        const detailsEl = document.getElementById('queue-details');
+        const requestsListEl = document.getElementById('queue-requests-list');
+
+        if (!detailsEl || !requestsListEl) return;
+
+        if (requests && requests.length > 0) {
+            detailsEl.style.display = 'block';
+            requestsListEl.innerHTML = requests.map((req, index) => `
+                <div class="queue-request-item">
+                    <div class="queue-request-position">${index + 1}</div>
+                    <div class="queue-request-content">
+                        <div class="queue-request-prompt">${this.escapeHtml(req.prompt)}</div>
+                        <div class="queue-request-meta">
+                            <span class="queue-request-id">ID: ${req.id}</span>
+                            <span class="queue-request-time">${AdminUtils.formatTime(req.timestamp)}</span>
+                            <span class="queue-request-providers">${req.providers?.join(', ') || 'Unknown'}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            detailsEl.style.display = 'none';
+        }
+    }
+
+    /**
+     * Show queue error state
+     * @param {string} message - Error message
+     */
+    showQueueError(message) {
+        const queueLengthEl = document.getElementById('queue-length');
+        const queueStatusEl = document.querySelector('.queue-stat-card:nth-child(2) .queue-stat-value');
+        const oldestAgeEl = document.getElementById('queue-oldest-age');
+        const healthEl = document.querySelector('.queue-stat-card:nth-child(4) .queue-stat-value');
+
+        if (queueLengthEl) queueLengthEl.textContent = 'Error';
+        if (queueStatusEl) queueStatusEl.textContent = 'Error';
+        if (oldestAgeEl) oldestAgeEl.textContent = 'Error';
+        if (healthEl) healthEl.textContent = 'Error';
+
+        console.error('❌ ADMIN-QUEUE: Queue error:', message);
+    }
+
+    /**
+     * Format time duration in milliseconds to human readable format
+     * @param {number} milliseconds - Duration in milliseconds
+     * @returns {string} Formatted duration
+     */
+    formatDuration(milliseconds) {
+        const seconds = Math.floor(milliseconds / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+
+        if (hours > 0) {
+            return `${hours}h ${minutes % 60}m`;
+        } else if (minutes > 0) {
+            return `${minutes}m ${seconds % 60}s`;
+        } else {
+            return `${seconds}s`;
+        }
     }
 }
 

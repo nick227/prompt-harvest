@@ -9,7 +9,7 @@ import {
 } from '../middleware/security/SimplifiedSecurityMiddleware.js';
 
 const prisma = new PrismaClient();
-const router = express.Router();
+const router = new express.Router();
 
 // Apply basic security to all routes
 basicApiSecurity.forEach(middleware => router.use(middleware));
@@ -53,6 +53,7 @@ router.get('/', validatePagination, async (req, res) => {
                 createdAt: model.createdAt,
                 updatedAt: model.updatedAt
             });
+
             return acc;
         }, {});
 
@@ -109,7 +110,7 @@ router.get('/:name', async (req, res) => {
 
         // Create provider object with models
         const provider = {
-            name: name,
+            name,
             displayName: name.charAt(0).toUpperCase() + name.slice(1),
             description: `${name} image generation models`,
             isActive: true,
@@ -181,6 +182,7 @@ router.get('/models/all', async (req, res) => {
         const { provider } = req.query;
 
         const whereClause = { isActive: true };
+
         if (provider) {
             whereClause.provider = provider;
         }

@@ -5,6 +5,7 @@
 // eslint-disable-next-line max-lines
 
 import databaseClient from '../../database/PrismaClient.js';
+import { UserManagementService } from '../../services/admin/UserManagementService.js';
 
 const prisma = databaseClient.getClient();
 
@@ -17,14 +18,14 @@ class UsersController {
      */
     static getOrderByClause(sortBy, sortOrder) {
         const validSortFields = {
-            'email': 'email',
-            'username': 'username',
-            'createdAt': 'createdAt',
-            'created_at': 'createdAt', // Frontend sends created_at
-            'updatedAt': 'updatedAt',
-            'updated_at': 'updatedAt', // Frontend might send updated_at
-            'creditBalance': 'creditBalance',
-            'isAdmin': 'isAdmin'
+            email: 'email',
+            username: 'username',
+            createdAt: 'createdAt',
+            created_at: 'createdAt', // Frontend sends created_at
+            updatedAt: 'updatedAt',
+            updated_at: 'updatedAt', // Frontend might send updated_at
+            creditBalance: 'creditBalance',
+            isAdmin: 'isAdmin'
         };
 
         const field = validSortFields[sortBy] || 'createdAt';
@@ -112,7 +113,7 @@ class UsersController {
                         isSuspended: true,
                         creditBalance: true,
                         createdAt: true,
-                        updatedAt: true,
+                        updatedAt: true
                         // _count: {
                         //     images: true
                         // }
@@ -173,7 +174,6 @@ class UsersController {
      * Get specific user details and activity
      * GET /api/admin/users/:userId
      */
-    // eslint-disable-next-line max-lines-per-function
     static async getUserDetails(req, res) {
         try {
             const { userId } = req.params;
@@ -349,6 +349,7 @@ class UsersController {
                         }
                     }
                 });
+
                 console.log('🔍 ADMIN-USERS: Credit ledger entry created:', ledgerEntry.id);
 
                 console.log('🔍 ADMIN-USERS: Updating user credit balance...');
@@ -367,10 +368,12 @@ class UsersController {
                         creditBalance: true
                     }
                 });
+
                 console.log('🔍 ADMIN-USERS: User credit balance updated:', updatedUser.creditBalance);
 
                 return { ledgerEntry, updatedUser };
             });
+
             console.log('🔍 ADMIN-USERS: Database transaction completed successfully');
 
             // eslint-disable-next-line no-console
@@ -461,7 +464,7 @@ class UsersController {
 
             res.json({
                 success: true,
-                message: `User suspended successfully`,
+                message: 'User suspended successfully',
                 data: {
                     user: updatedUser,
                     action: {
@@ -536,7 +539,7 @@ class UsersController {
 
             res.json({
                 success: true,
-                message: `User unsuspended successfully`,
+                message: 'User unsuspended successfully',
                 data: {
                     user: updatedUser,
                     action: {
@@ -763,7 +766,7 @@ class UsersController {
                     isAdmin: true,
                     isSuspended: true,
                     creditBalance: true,
-                    createdAt: true,
+                    createdAt: true
                     // _count: {
                     //     images: true,
                     //     stripePayments: true

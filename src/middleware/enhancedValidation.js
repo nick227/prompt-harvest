@@ -32,8 +32,10 @@ export const validateImageGenerationEnhanced = async (req, res, next) => {
             } else {
                 // Get valid providers from dynamic model system
                 let validProviders;
+
                 try {
                     const allModels = await modelInterface.getAllModels();
+
                     validProviders = allModels.map(model => model.name);
                 } catch (error) {
                     console.warn('⚠️ VALIDATION: Failed to get models from database, using fallback list:', error.message);

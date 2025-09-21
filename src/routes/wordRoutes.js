@@ -45,7 +45,7 @@ export const setupWordRoutes = app => {
                 take: 1000 // Get a large number to search through
             });
 
-            let results = [];
+            const results = [];
 
             // Search through all records like the original NeDB regex implementation
             allWordRecords.forEach(record => {
@@ -60,8 +60,7 @@ export const setupWordRoutes = app => {
 
                 // Check if word is in the types array
                 if (record.types && Array.isArray(record.types)) {
-                    const hasMatch = record.types.some(type =>
-                        type && type.toLowerCase().includes(word.toLowerCase())
+                    const hasMatch = record.types.some(type => type && type.toLowerCase().includes(word.toLowerCase())
                     );
 
                     if (hasMatch && record.word && !results.includes(record.word)) {
@@ -75,14 +74,14 @@ export const setupWordRoutes = app => {
                 const aIsExact = a.toLowerCase() === word.toLowerCase();
                 const bIsExact = b.toLowerCase() === word.toLowerCase();
 
-                if (aIsExact && !bIsExact) return -1;
-                if (!aIsExact && bIsExact) return 1;
+                if (aIsExact && !bIsExact) { return -1; }
+                if (!aIsExact && bIsExact) { return 1; }
 
                 const aStartsWith = a.toLowerCase().startsWith(word.toLowerCase());
                 const bStartsWith = b.toLowerCase().startsWith(word.toLowerCase());
 
-                if (aStartsWith && !bStartsWith) return -1;
-                if (!aStartsWith && bStartsWith) return 1;
+                if (aStartsWith && !bStartsWith) { return -1; }
+                if (!aStartsWith && bStartsWith) { return 1; }
 
                 // Then sort by length (shorter first)
                 return a.length - b.length;
@@ -92,7 +91,7 @@ export const setupWordRoutes = app => {
             const limitedResults = results.slice(0, _limit);
 
             console.log(`✅ Found ${limitedResults.length} total matches for word: ${word}`);
-            console.log(`🔍 Results:`, limitedResults);
+            console.log('🔍 Results:', limitedResults);
             res.json(limitedResults);
         } catch (error) {
             console.error('❌ Error fetching word types:', error);

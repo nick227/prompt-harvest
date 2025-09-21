@@ -2,7 +2,7 @@
 
 /**
  * AbyssOrange Provider Test
- * 
+ *
  * Quick test to verify the abyssorange provider works correctly
  */
 
@@ -16,16 +16,16 @@ const TEST_CONFIG = {
     provider: 'abyssorange',
     prompt: 'A beautiful sunset over a mountain landscape, digital art, vibrant colors',
     guidance: 8,
-    userId: 'test-abyssorange-' + Date.now()
+    userId: `test-abyssorange-${Date.now()}`
 };
 
 const testAbyssOrangeProvider = async () => {
     console.log('🧪 Testing AbyssOrange Provider');
-    console.log('=' .repeat(50));
+    console.log('='.repeat(50));
     console.log(`Provider: ${TEST_CONFIG.provider}`);
     console.log(`Prompt: ${TEST_CONFIG.prompt}`);
     console.log(`Guidance: ${TEST_CONFIG.guidance}`);
-    console.log('=' .repeat(50));
+    console.log('='.repeat(50));
 
     try {
         // Check environment
@@ -55,6 +55,7 @@ const testAbyssOrangeProvider = async () => {
 
         // Validate result
         const buffer = Buffer.from(result, 'base64');
+
         if (buffer.length === 0) {
             throw new Error('Generated image buffer is empty');
         }
@@ -64,14 +65,16 @@ const testAbyssOrangeProvider = async () => {
         console.log(`   Buffer size: ${buffer.length} bytes`);
         console.log(`   Base64 length: ${result.length} characters`);
         console.log(`   Provider: ${TEST_CONFIG.provider}`);
-        console.log(`   Model: abyss_orange_mix_2`);
+        console.log('   Model: abyss_orange_mix_2');
 
         console.log('\n🎉 AbyssOrange Provider Test: SUCCESS');
+
         return true;
 
     } catch (error) {
         console.error('\n❌ AbyssOrange Provider Test: FAILED');
         console.error(`Error: ${error.message}`);
+
         return false;
     }
 };

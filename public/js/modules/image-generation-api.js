@@ -71,6 +71,7 @@ class ImageGenerationAPI {
 
             // Try to get error details from response
             let errorData = null;
+
             try {
                 errorData = await response.json();
                 console.error('❌ HTTP ERROR: Response data', errorData);
@@ -78,8 +79,14 @@ class ImageGenerationAPI {
                 console.error('❌ HTTP ERROR: Could not parse error response');
             }
 
+            // Handle 402 Payment Required - let the error bubble up to be handled by the manager
+            if (response.status === 402) {
+                console.log('💳 CREDITS: 402 Payment Required error detected');
+            }
+
             // Create error with status and data for proper handling
             const error = new Error(`HTTP error! status: ${response.status}`);
+
             error.status = response.status;
             error.data = errorData;
             throw error;
@@ -260,10 +267,12 @@ class ImageGenerationAPI {
 
         return localToken || sessionToken;
     }
+
 }
 
 // Export for global access
 window.ImageGenerationAPI = ImageGenerationAPI;
+
 
 // Export for modules
 if (typeof module !== 'undefined' && module.exports) {

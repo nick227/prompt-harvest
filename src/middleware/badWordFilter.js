@@ -265,7 +265,7 @@ const processViolations = (contentToCheck, options) => {
 /**
  * Handle violation response
  */
-const handleViolationResponse = async (req, violationData, allViolations, maxSeverity, hasBlockingViolations, sanitize, fields, contentToCheck) => {
+const handleViolationResponse = async (req, violationData, allViolations, maxSeverity, hasBlockingViolations, sanitize, fields, contentToCheck, next) => {
     await logViolation(violationData);
 
     if (hasBlockingViolations && !sanitize) {
@@ -276,6 +276,7 @@ const handleViolationResponse = async (req, violationData, allViolations, maxSev
             endpoint: req.originalUrl,
             violations: allViolations
         });
+
         return next(new ValidationError(errorMessage, {
             code: 'CONTENT_POLICY_VIOLATION',
             severity: maxSeverity,
@@ -297,7 +298,7 @@ const handleViolationResponse = async (req, violationData, allViolations, maxSev
 
 export const badWordFilter = (options = {}) => {
     const {
-        blockCritical = true,
+        blockCritical: _blockCritical = true,
         sanitize = false,
         fields = ['prompt', 'content', 'text', 'message', 'description']
     } = options;
@@ -326,7 +327,7 @@ export const badWordFilter = (options = {}) => {
                     isBlocked: hasBlockingViolations
                 };
 
-                await handleViolationResponse(req, violationData, allViolations, maxSeverity, hasBlockingViolations, sanitize, fields, contentToCheck);
+                await handleViolationResponse(req, violationData, allViolations, maxSeverity, hasBlockingViolations, sanitize, fields, contentToCheck, next);
             }
 
             next();

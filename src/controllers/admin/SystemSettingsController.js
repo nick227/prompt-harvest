@@ -47,6 +47,7 @@ export class SystemSettingsController {
     static getByKey = asyncHandler(async (req, res) => {
         try {
             const { key } = req.params;
+
             validateRequired(key, 'Setting key');
 
             const value = await systemSettingsService.get(key);
@@ -89,12 +90,14 @@ export class SystemSettingsController {
 
             // Validate data type
             const allowedTypes = ['string', 'number', 'boolean', 'json'];
+
             if (dataType && !allowedTypes.includes(dataType)) {
                 throw new ValidationError(`Data type must be one of: ${allowedTypes.join(', ')}`);
             }
 
             // Type-specific validation
             const finalDataType = dataType || 'string';
+
             if (finalDataType === 'number') {
                 validateNumber(value, 'Setting value');
             } else if (finalDataType === 'boolean' && typeof value !== 'boolean' && value !== 'true' && value !== 'false') {
@@ -129,6 +132,7 @@ export class SystemSettingsController {
     static delete = asyncHandler(async (req, res) => {
         try {
             const { key } = req.params;
+
             validateRequired(key, 'Setting key');
 
             const success = await systemSettingsService.delete(key);

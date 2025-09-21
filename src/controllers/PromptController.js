@@ -95,6 +95,7 @@ export class PromptController {
             });
 
             const userId = req.user?.id;
+
             if (!userId) {
                 return res.status(401).json({
                     success: false,
@@ -128,8 +129,9 @@ export class PromptController {
         } catch (error) {
             logRequestError(requestId, 'Get Prompt By ID', startTime, error);
 
-            const statusCode = error.message.includes('not found') ? 404 :
-                              error.message.includes('Unauthorized') ? 403 : 500;
+            const statusCode = error.message.includes('not found')
+                ? 404 :
+                error.message.includes('Unauthorized') ? 403 : 500;
 
             res.status(statusCode).json({
                 success: false,
@@ -137,8 +139,9 @@ export class PromptController {
                 duration: Date.now() - startTime,
                 timestamp: new Date().toISOString(),
                 error: {
-                    type: statusCode === 404 ? 'NOT_FOUND' :
-                          statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_SERVER_ERROR',
+                    type: statusCode === 404
+                        ? 'NOT_FOUND' :
+                        statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_SERVER_ERROR',
                     message: error.message,
                     resource: req.params.id
                 },
@@ -162,11 +165,12 @@ export class PromptController {
                 userId: req.user?.id,
                 promptData: {
                     ...req.body,
-                    prompt: req.body.prompt?.substring(0, 50) + '...'
+                    prompt: `${req.body.prompt?.substring(0, 50)}...`
                 }
             });
 
             const userId = req.user?.id;
+
             if (!userId) {
                 return res.status(401).json({
                     success: false,
@@ -253,6 +257,7 @@ export class PromptController {
             });
 
             const userId = req.user?.id;
+
             if (!userId) {
                 return res.status(401).json({
                     success: false,
@@ -287,8 +292,9 @@ export class PromptController {
         } catch (error) {
             logRequestError(requestId, 'Update Prompt', startTime, error);
 
-            const statusCode = error.message.includes('not found') ? 404 :
-                              error.message.includes('Unauthorized') ? 403 : 500;
+            const statusCode = error.message.includes('not found')
+                ? 404 :
+                error.message.includes('Unauthorized') ? 403 : 500;
 
             res.status(statusCode).json({
                 success: false,
@@ -296,8 +302,9 @@ export class PromptController {
                 duration: Date.now() - startTime,
                 timestamp: new Date().toISOString(),
                 error: {
-                    type: statusCode === 404 ? 'NOT_FOUND' :
-                          statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_SERVER_ERROR',
+                    type: statusCode === 404
+                        ? 'NOT_FOUND' :
+                        statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_SERVER_ERROR',
                     message: error.message,
                     resource: req.params.id
                 },
@@ -323,6 +330,7 @@ export class PromptController {
             });
 
             const userId = req.user?.id;
+
             if (!userId) {
                 return res.status(401).json({
                     success: false,
@@ -356,8 +364,9 @@ export class PromptController {
         } catch (error) {
             logRequestError(requestId, 'Delete Prompt', startTime, error);
 
-            const statusCode = error.message.includes('not found') ? 404 :
-                              error.message.includes('Unauthorized') ? 403 : 500;
+            const statusCode = error.message.includes('not found')
+                ? 404 :
+                error.message.includes('Unauthorized') ? 403 : 500;
 
             res.status(statusCode).json({
                 success: false,
@@ -365,8 +374,9 @@ export class PromptController {
                 duration: Date.now() - startTime,
                 timestamp: new Date().toISOString(),
                 error: {
-                    type: statusCode === 404 ? 'NOT_FOUND' :
-                          statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_SERVER_ERROR',
+                    type: statusCode === 404
+                        ? 'NOT_FOUND' :
+                        statusCode === 403 ? 'FORBIDDEN' : 'INTERNAL_SERVER_ERROR',
                     message: error.message,
                     resource: req.params.id
                 },
