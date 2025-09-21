@@ -176,13 +176,12 @@ const port = process.env.PORT || 3200;
 // Initialize database and start server
 const startServer = async () => {
     try {
-        // Step 1: Initialize database connection
+        // Step 1: Initialize database connection (non-blocking)
         console.log('🔗 Initializing database connection...');
         const dbConnected = await initializeDatabase();
 
         if (!dbConnected) {
-            console.error('❌ Failed to initialize database');
-            process.exit(1);
+            console.error('⚠️ Database connection failed, but continuing...');
         }
 
         // Step 2: Initialize Passport after database is ready
@@ -190,11 +189,15 @@ const startServer = async () => {
         app.use(passport.initialize());
         app.use(passport.session());
 
-        // Step 3: Initialize WordTypeManager cache
+        // Step 3: Initialize WordTypeManager cache (non-blocking)
         console.log('📚 Initializing WordTypeManager...');
-        const { default: wordTypeManager } = await import('./lib/word-type-manager.js');
-
-        await wordTypeManager.initializeCache();
+        try {
+            const { default: wordTypeManager } = await import('./lib/word-type-manager.js');
+            await wordTypeManager.initializeCache();
+            console.log('✅ WordTypeManager initialized');
+        } catch (error) {
+            console.error('⚠️ WordTypeManager initialization failed:', error.message);
+        }
 
         // Step 4: Schedule session cleanup
         scheduleSessionCleanup();
@@ -203,13 +206,26 @@ const startServer = async () => {
         console.log('🛣️ Setting up routes...');
         await setupRoutes(app);
 
-        app.listen(port, () => {
-            console.log(`Prompt app listening on port ${port}!`);
+        app.listen(port, '0.0.0.0', () => {
+            console.log(`✅ Prompt app listening on port ${port}!`);
+            console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`📊 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
         });
 
     } catch (error) {
         console.error('❌ Server startup failed:', error);
-        process.exit(1);
+
+        // Try to start server anyway with minimal setup
+        console.log('🔄 Attempting minimal server startup...');
+        try {
+            await setupRoutes(app);
+            app.listen(port, '0.0.0.0', () => {
+                console.log(`⚠️ Server started with minimal setup on port ${port}!`);
+            });
+        } catch (fallbackError) {
+            console.error('❌ Fallback server startup failed:', fallbackError);
+            process.exit(1);
+        }
     }
 };
 

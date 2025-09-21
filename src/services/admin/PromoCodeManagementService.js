@@ -164,12 +164,24 @@ export class PromoCodeManagementService {
         }
 
         const updateData = {};
-        if (data.code !== undefined) updateData.code = data.code.toUpperCase();
-        if (data.credits !== undefined) updateData.credits = data.credits;
-        if (data.maxRedemptions !== undefined) updateData.maxRedemptions = data.maxRedemptions;
-        if (data.expiresAt !== undefined) updateData.expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
-        if (data.isActive !== undefined) updateData.isActive = data.isActive;
-        if (data.description !== undefined) updateData.description = data.description;
+        if (data.code !== undefined) {
+            updateData.code = data.code.toUpperCase();
+        }
+        if (data.credits !== undefined) {
+            updateData.credits = data.credits;
+        }
+        if (data.maxRedemptions !== undefined) {
+            updateData.maxRedemptions = data.maxRedemptions;
+        }
+        if (data.expiresAt !== undefined) {
+            updateData.expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
+        }
+        if (data.isActive !== undefined) {
+            updateData.isActive = data.isActive;
+        }
+        if (data.description !== undefined) {
+            updateData.description = data.description;
+        }
 
         return await this.prisma.promoCode.update({
             where: { id },
@@ -287,7 +299,7 @@ export class PromoCodeManagementService {
             }
         }
 
-        const redemptions = await this.prisma.promoRedemption.findMany({
+        return await this.prisma.promoRedemption.findMany({
             where,
             include: {
                 promoCode: {
@@ -299,8 +311,6 @@ export class PromoCodeManagementService {
             },
             orderBy: { redeemedAt: 'desc' }
         });
-
-        return redemptions;
     }
 
     /**
