@@ -608,7 +608,7 @@ export class EnhancedImageController {
             const tags = this.extractTagFilters(req.query.tags);
             const pagination = { limit: parseInt(limit), page: parseInt(page) };
 
-            this.logGetUserOwnImagesRequest(requestId, userId, req.query, pagination, tags);
+            this.logGetUserOwnImagesRequest(requestId, userId, req.query, pagination, tags, req);
 
             if (!this.validateUserAuthentication(userId, res)) {
                 return;
@@ -651,7 +651,7 @@ export class EnhancedImageController {
     /**
      * Log request details for getUserOwnImages
      */
-    logGetUserOwnImagesRequest(requestId, userId, query, pagination, tags) {
+    logGetUserOwnImagesRequest(requestId, userId, query, pagination, tags, req) {
         console.log('🔍 BACKEND: getUserOwnImages called with:', {
             requestId,
             userId,
