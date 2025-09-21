@@ -274,8 +274,12 @@ export class ImageElements {
      * @returns {boolean} Whether to show the toggle
      */
     shouldShowPublicToggle(imageData) {
-        // If we can see the toggle, the user should be able to control it
-        // The server will handle authentication and ownership validation
+        // Use centralized auth utils for consistency
+        if (window.UnifiedAuthUtils) {
+            return window.UnifiedAuthUtils.shouldShowPublicToggle(imageData);
+        }
+
+        // Fallback to local implementation if centralized utils not available
         if (!imageData || !imageData.id) {
             return false;
         }
@@ -287,16 +291,21 @@ export class ImageElements {
             return false;
         }
 
-        // If userId is not in the image data, assume it's the user's image
-        // (since they can see it in their feed)
         const currentUserId = this.getCurrentUserId();
 
+        if (!currentUserId) {
+            return false;
+        }
+
+        // Only show toggle if current user owns the image
+        // If userId is not in the image data, assume it's the user's image
+        // (since they can see it in their feed)
         if (!imageData.userId) {
             console.log('🔍 Image missing userId, assuming user owns it');
             return true; // Assume user owns it if they can see it
         }
 
-        return currentUserId && imageData.userId === currentUserId;
+        return imageData.userId === currentUserId;
     }
 
     /**

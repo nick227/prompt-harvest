@@ -403,6 +403,14 @@ document.addEventListener('DOMContentLoaded', async() => {
     // Make app available globally
     window.app = app;
 
+    // Initialize global tag router
+    if (window.TagRouter) {
+        window.tagRouter = new window.TagRouter();
+        console.log('✅ TAG ROUTER: Global tag router initialized');
+    } else {
+        console.warn('⚠️ TAG ROUTER: TagRouter not available');
+    }
+
     // Verify generation component is available
     if (!window.generationComponent) {
         console.warn('⚠️ Generation component not found, button may not work');

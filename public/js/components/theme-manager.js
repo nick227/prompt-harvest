@@ -7,6 +7,7 @@ class ThemeManager {
         this.themeService = null;
         this.unifiedDrawer = null;
         this.isUpdatingDropdowns = false; // Flag to prevent recursion
+        this.initialized = false;
         this.init();
     }
 
@@ -23,6 +24,13 @@ class ThemeManager {
         // Set initial theme in dropdowns (with small delay to ensure theme service is ready)
         setTimeout(() => {
             this.updateThemeDropdowns();
+            // Also ensure dropdowns are synced to current theme
+            if (this.themeService) {
+                const currentTheme = this.themeService.getCurrentTheme();
+                this.syncThemeDropdownsSilently(currentTheme);
+                this.initialized = true;
+                console.log('Theme Manager: Initialized dropdowns with theme:', currentTheme);
+            }
         }, 100);
     }
 
@@ -73,7 +81,8 @@ class ThemeManager {
 
         // Listen for theme service events
         document.addEventListener('themeChanged', (event) => {
-            this.handleThemeServiceChange(event.detail.theme);
+            console.log('Theme Manager: Received theme change event:', event.detail);
+            this.handleThemeServiceChange(event.detail.themeName);
         });
     }
 
@@ -192,12 +201,34 @@ class ThemeManager {
     }
 }
 
-// Initialize theme manager when DOM is ready
+// Initialize theme system when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Wait a bit for other components to initialize
+    // Initialize the simplified theme service
+    if (typeof SimpleThemeService !== 'undefined') {
+        window.themeService = new SimpleThemeService();
+        console.log('✅ Simple Theme Service initialized');
+    }
+
+    // Initialize theme manager
     setTimeout(() => {
         window.themeManager = new ThemeManager();
-    }, 500);
+
+        // Add debug commands to console
+        if (typeof ThemeValidator !== 'undefined') {
+            window.themeValidator = new ThemeValidator();
+            window.debugTheme = () => window.themeValidator.validateThemeSystem();
+            window.healthCheck = () => window.themeValidator.quickHealthCheck();
+            console.log('🔧 Debug commands available: debugTheme(), healthCheck()');
+        }
+
+        // Add readability testing commands
+        if (typeof ThemeReadabilityTester !== 'undefined') {
+            window.themeReadabilityTester = new ThemeReadabilityTester();
+            window.testThemeReadability = () => window.themeReadabilityTester.testAllThemes();
+            window.quickReadabilityCheck = () => window.themeReadabilityTester.quickCheck();
+            console.log('🔍 Readability commands available: testThemeReadability(), quickReadabilityCheck()');
+        }
+    }, 100);
 });
 
 // Export for global access

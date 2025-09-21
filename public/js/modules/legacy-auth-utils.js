@@ -1,8 +1,9 @@
 /**
- * Authentication Utilities Module
+ * Legacy Authentication Utilities Module (Static)
  * Provides common authentication and user management functions
+ * This is a legacy static implementation - use UnifiedAuthUtils for new code
  */
-class AuthUtils {
+class LegacyAuthUtils {
     static getCurrentUserId() {
         // Try to get user ID from various sources
         if (window.userApi && window.userApi.getCurrentUser) {
@@ -59,7 +60,8 @@ class AuthUtils {
     }
 }
 
-// Export for global access
+// Export for global access (legacy compatibility)
 if (typeof window !== 'undefined') {
-    window.AuthUtils = AuthUtils;
+    window.AuthUtils = LegacyAuthUtils;
+    window.LegacyAuthUtils = LegacyAuthUtils;
 }

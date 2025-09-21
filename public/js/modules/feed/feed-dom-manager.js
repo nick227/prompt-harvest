@@ -2,6 +2,7 @@
 class FeedDOMManager {
     constructor() {
         this.elements = {};
+        this.overlayManager = window.OverlayManager ? new window.OverlayManager() : null;
     }
 
     // Initialize DOM elements
@@ -404,6 +405,7 @@ class FeedDOMManager {
                 // If not transitioning, clear immediately (for initial load)
                 promptOutput.innerHTML = '';
             }
+            this.overlayManager.showOverlay();
         }
     }
 

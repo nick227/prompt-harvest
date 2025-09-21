@@ -507,16 +507,27 @@ export class EnhancedImageController {
             const userId = req.user?.id;
             const pagination = validatePaginationParams(req.query, 50); // Max 50 items for feed
 
+            // Extract and validate tag filters
+            const tagsParam = req.query.tags;
+            let tags = [];
+            if (tagsParam && typeof tagsParam === 'string') {
+                tags = tagsParam.split(',')
+                    .map(tag => tag.trim().toLowerCase())
+                    .filter(tag => tag.length > 0 && tag.length <= 50)
+                    .slice(0, 10); // Limit to 10 tags max
+            }
+
             console.log('🔍 BACKEND: getFeed called with:', {
                 requestId,
                 userId,
                 query: req.query,
                 pagination,
+                tags: tags.length > 0 ? tags : 'none',
                 userAgent: req.get('User-Agent')
             });
 
-            // Call service to get feed
-            const result = await this.imageService.getFeed(userId, pagination.limit, pagination.page);
+            // Call service to get feed with tag filters
+            const result = await this.imageService.getFeed(userId, pagination.limit, pagination.page, tags);
 
             // Format paginated response
             const duration = Date.now() - startTime;
@@ -583,11 +594,22 @@ export class EnhancedImageController {
             const userId = req.user?.id;
             const { page = 0, limit = 20 } = req.query;
 
+            // Extract and validate tag filters
+            const tagsParam = req.query.tags;
+            let tags = [];
+            if (tagsParam && typeof tagsParam === 'string') {
+                tags = tagsParam.split(',')
+                    .map(tag => tag.trim().toLowerCase())
+                    .filter(tag => tag.length > 0 && tag.length <= 50)
+                    .slice(0, 10); // Limit to 10 tags max
+            }
+
             console.log('🔍 BACKEND: getUserOwnImages called with:', {
                 requestId,
                 userId,
                 query: req.query,
                 pagination: { limit: parseInt(limit), page: parseInt(page) },
+                tags: tags.length > 0 ? tags : 'none',
                 userAgent: req.get('User-Agent')
             });
 
@@ -599,7 +621,7 @@ export class EnhancedImageController {
                 });
             }
 
-            const result = await this.imageService.getUserOwnImages(userId, parseInt(limit), parseInt(page));
+            const result = await this.imageService.getUserOwnImages(userId, parseInt(limit), parseInt(page), tags);
 
             const response = formatSuccessResponse({
                 items: result.images,

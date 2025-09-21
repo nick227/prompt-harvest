@@ -216,7 +216,40 @@ class ImageElements {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 max-width: 80px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                pointer-events: auto;
             `;
+
+            // Add hover effects
+            tagElement.addEventListener('mouseenter', () => {
+                tagElement.style.background = 'rgba(0, 0, 0, 0.9)';
+                tagElement.style.transform = 'scale(1.05)';
+            });
+
+            tagElement.addEventListener('mouseleave', () => {
+                tagElement.style.background = 'rgba(0, 0, 0, 0.8)';
+                tagElement.style.transform = 'scale(1)';
+            });
+
+            // Add click handler to filter by tag
+            tagElement.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log(`🏷️ COMPACT TAG CLICK: Filtering by tag: ${tag}`);
+
+                // Use tag router if available
+                if (window.TagRouter && window.tagRouter) {
+                    window.tagRouter.setActiveTags([tag]);
+                } else {
+                    // Fallback: update URL directly
+                    const url = new URL(window.location);
+                    url.searchParams.set('tag', tag);
+                    window.location.href = url.toString();
+                }
+            });
+
             overlay.appendChild(tagElement);
         });
 

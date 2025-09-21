@@ -9,6 +9,12 @@ import { formatErrorResponse } from '../utils/ResponseFormatter.js';
 import databaseClient from '../database/PrismaClient.js';
 import { aiEnhancementService } from './AIEnhancementService.js';
 import SimplifiedCreditService from './credit/SimplifiedCreditService.js';
+import {
+    applyMultiplierSafely,
+    shufflePrompt,
+    mashupPrompt,
+    processCustomVariables
+} from './feed/PromptProcessor.js';
 
 export class EnhancedImageService {
     constructor(imageRepository, aiService) {
@@ -184,14 +190,15 @@ export class EnhancedImageService {
             let processedPrompt = prompt;
             let promptId = null;
 
-            // Step 1: Process prompt with existing logic (multiplier, mixup, mashup)
+            // Step 1: Process prompt with basic logic (custom variables, word types, stock text)
+            // Note: multiplier, mixup, mashup are now handled after AI enhancement
             if (needsProcessing && this.aiService) {
                 try {
                     const result = await this.aiService.processPrompt(
                         prompt,
-                        multiplier,
-                        mixup,
-                        mashup,
+                        false, // multiplier - now handled after AI enhancement
+                        false, // mixup - now handled after AI enhancement
+                        false, // mashup - now handled after AI enhancement
                         customVariables,
                         photogenic,
                         artistic
@@ -214,6 +221,37 @@ export class EnhancedImageService {
                 } catch (error) {
                     console.warn('⚠️ AI enhancement failed, using processed prompt:', error.message);
                     // Keep the processed prompt if enhancement fails
+                }
+            }
+
+            // Step 3: Apply prompt modifications after AI enhancement
+            // Multiplier → Mixup → Mashup (in that order)
+            if (multiplier || mixup || mashup) {
+                try {
+                    console.log('🔧 PROMPT MODIFICATIONS: Applying multiplier, mixup, mashup after AI enhancement');
+
+                    // Process custom variables for multiplier
+                    const customDict = processCustomVariables(customVariables, {});
+
+                    // Apply multiplier first (inserts between every word)
+                    if (multiplier) {
+                        processedPrompt = await applyMultiplierSafely(processedPrompt, multiplier, customDict);
+                    }
+
+                    // Apply mixup (shuffle comma-separated parts)
+                    if (mixup) {
+                        processedPrompt = shufflePrompt(processedPrompt);
+                    }
+
+                    // Apply mashup (shuffle space-separated words)
+                    if (mashup) {
+                        processedPrompt = mashupPrompt(processedPrompt);
+                    }
+
+                    console.log('✅ PROMPT MODIFICATIONS: Successfully applied all modifications');
+                } catch (error) {
+                    console.warn('⚠️ Prompt modifications failed, using unmodified prompt:', error.message);
+                    // Keep the prompt without modifications if they fail
                 }
             }
 
@@ -424,15 +462,11 @@ export class EnhancedImageService {
         }
 
         // If no userId (anonymous user), only allow rating public images
-        if (!userId) {
-            if (!image.isPublic) {
-                throw new ValidationError('Authentication required to rate private images');
-            }
-        } else {
+        if (!userId && !image.isPublic) {
+            throw new ValidationError('Authentication required to rate private images');
+        } else if (userId && !image.isPublic && image.userId !== userId) {
             // For authenticated users, allow rating public images OR their own private images
-            if (!image.isPublic && image.userId !== userId) {
-                throw new ValidationError('You can only rate your own private images');
-            }
+            throw new ValidationError('You can only rate your own private images');
         }
 
         const result = await this.imageRepository.updateRating(imageId, rating);
@@ -578,10 +612,11 @@ export class EnhancedImageService {
      * @param {string} userId - User ID
      * @param {number} limit - Number of images to fetch
      * @param {number} page - Page number (0-based)
+     * @param {Array} tags - Array of tags to filter by
      * @returns {Promise<Object>} User images with cost information
      */
-    async getUserImages(userId, limit = 50, page = 0) {
-        console.log('🔄 ENHANCED-IMAGE-SERVICE: getUserImages called with:', { userId, limit, page });
+    async getUserImages(userId, limit = 50, page = 0, tags = []) {
+        console.log('🔄 ENHANCED-IMAGE-SERVICE: getUserImages called with:', { userId, limit, page, tags });
 
         if (!userId) {
             throw new Error('User ID is required');
@@ -589,7 +624,7 @@ export class EnhancedImageService {
 
         // Get user's images only (not including other users' public images)
         console.log('🔄 ENHANCED-IMAGE-SERVICE: Calling findUserImages...');
-        const result = await this.imageRepository.findUserImages(userId, limit, page);
+        const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
 
         console.log('✅ ENHANCED-IMAGE-SERVICE: findUserImages result:', {
             imagesCount: result.images?.length || 0,
@@ -658,11 +693,11 @@ export class EnhancedImageService {
         };
     }
 
-    async getFeed(userId, limit = 8, page = 0) {
+    async getFeed(userId, limit = 8, page = 0, tags = []) {
         // Site feed should always show only public images from all users
         // regardless of authentication status
-        console.log('🔍 FEED SERVICE: getFeed called - ensuring only public images');
-        const result = await this.imageRepository.findPublicImages(limit, page);
+        console.log('🔍 FEED SERVICE: getFeed called - ensuring only public images', tags.length > 0 ? `with tag filters: ${tags.join(', ')}` : '');
+        const result = await this.imageRepository.findPublicImages(limit, page, tags);
 
         // Double-check that all returned images are public
         const nonPublicImages = result.images.filter(img => !img.isPublic);
@@ -710,15 +745,15 @@ export class EnhancedImageService {
         };
     }
 
-    async getUserOwnImages(userId, limit = 8, page = 0) {
+    async getUserOwnImages(userId, limit = 8, page = 0, tags = []) {
         if (!userId) {
             throw new ValidationError('User ID is required for getting user own images');
         }
 
-        console.log('🔍 USER IMAGES SERVICE: getUserOwnImages called for userId:', userId);
+        console.log('🔍 USER IMAGES SERVICE: getUserOwnImages called for userId:', userId, tags.length > 0 ? `with tag filters: ${tags.join(', ')}` : '');
 
         // Get all images belonging to the user (both public and private for "mine" filter)
-        const result = await this.imageRepository.findUserImages(userId, limit, page);
+        const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
 
         // Double-check that all returned images belong to the user
         const otherUserImages = result.images.filter(img => img.userId !== userId);

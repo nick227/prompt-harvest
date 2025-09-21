@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Test - Simple</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            background: #1e293b;
+            color: #f8fafc;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .theme-selector {
+            margin: 20px 0;
+            padding: 20px;
+            background: #334155;
+            border-radius: 10px;
+        }
+        .theme-selector select {
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 10px;
+            background: #475569;
+            color: #f8fafc;
+            border: 1px solid #64748b;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #475569;
+        }
+        .component-test {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #64748b;
+            border-radius: 5px;
+            background: #334155;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎨 Theme System Test</h1>
+
+        <div class="theme-selector">
+            <label for="theme-select">Select Theme:</label>
+            <select id="theme-select">
+                <option value="default">🌙 Default Dark</option>
+                <option value="professional">💼 Professional</option>
+                <option value="discord">💬 Discord</option>
+                <option value="apple">🍎 Apple</option>
+                <option value="monokai">🎨 Monokai</option>
+                <option value="highContrast">⚫ High Contrast</option>
+            </select>
+            <button class="test-button" onclick="testThemeSwitch()">Switch Theme</button>
+        </div>
+
+        <div class="status" id="status">
+            <h3>System Status</h3>
+            <div id="status-content">Loading...</div>
+        </div>
+
+        <div class="component-test">
+            <h3>Theme Test Component</h3>
+            <p>This component should change colors when you switch themes.</p>
+            <button class="test-button">Test Button</button>
+            <div style="background: var(--color-background-secondary); padding: 15px; margin: 10px 0; border-radius: 5px;">
+                This uses CSS variables for background color
+            </div>
+        </div>
+
+        <div class="component-test">
+            <h3>Test Actions</h3>
+            <button class="test-button" onclick="checkThemeService()">Check Theme Service</button>
+            <button class="test-button" onclick="listThemes()">List All Themes</button>
+            <button class="test-button" onclick="testAllThemes()">Test All Themes</button>
+        </div>
+
+        <div id="output" style="margin-top: 20px; padding: 15px; background: #475569; border-radius: 5px; font-family: monospace; white-space: pre-wrap; font-size: 12px;"></div>
+    </div>
+
+    <!-- Load Theme Service -->
+    <script src="js/themes/managers/ColorPaletteManager.js"></script>
+    <script src="js/themes/composers/ThemeComposer.js"></script>
+    <script src="js/themes/SimpleThemeService.js"></script>
+
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
+
+        function updateStatus() {
+            if (window.SimpleThemeService) {
+                const themeService = new window.SimpleThemeService();
+                const currentTheme = themeService.getCurrentTheme();
+                const themes = themeService.themes;
+                const themeNames = Array.from(themes.keys());
+
+                document.getElementById('status-content').innerHTML = `
+                    <p><strong>Theme Service:</strong> ✅ Active</p>
+                    <p><strong>Current Theme:</strong> ${currentTheme}</p>
+                    <p><strong>Available Themes:</strong> ${themeNames.join(', ')}</p>
+                    <p><strong>Themes Loaded:</strong> ${themeNames.length}</p>
+                `;
+
+                // Update dropdown
+                const themeSelect = document.getElementById('theme-select');
+                themeSelect.value = currentTheme;
+            } else {
+                document.getElementById('status-content').innerHTML = '<p><strong>Theme Service:</strong> ❌ Not Available</p>';
+            }
+        }
+
+        function testThemeSwitch() {
+            const themeSelect = document.getElementById('theme-select');
+            const themeName = themeSelect.value;
+
+            if (window.SimpleThemeService) {
+                const themeService = new window.SimpleThemeService();
+                themeService.switchTheme(themeName);
+                log(`✅ Switched to theme: ${themeName}`);
+                updateStatus();
+            } else {
+                log('❌ Theme service not available');
+            }
+        }
+
+        function checkThemeService() {
+            if (window.themeService) {
+                log('✅ Theme service is available');
+                const stats = window.themeService.getThemeStats();
+                log('Theme Stats: ' + JSON.stringify(stats, null, 2));
+            } else {
+                log('❌ Theme service is NOT available');
+            }
+        }
+
+        function listThemes() {
+            if (window.themeService) {
+                const themes = window.themeService.getThemes();
+                log('Available Themes:');
+                Object.entries(themes).forEach(([name, theme]) => {
+                    log(`  - ${name}: ${theme.name} (${theme.type})`);
+                });
+            } else {
+                log('❌ Theme service not available');
+            }
+        }
+
+        function testAllThemes() {
+            if (window.themeService) {
+                const themes = window.themeService.getThemes();
+                const themeNames = Object.keys(themes);
+
+                log('🎨 Testing all themes...');
+
+                let index = 0;
+                const testInterval = setInterval(() => {
+                    if (index < themeNames.length) {
+                        const themeName = themeNames[index];
+                        window.themeService.switchTheme(themeName);
+                        log(`Testing theme: ${themeName}`);
+                        index++;
+                    } else {
+                        // Return to default
+                        window.themeService.switchTheme('default');
+                        log('✅ Theme testing complete - returned to default');
+                        clearInterval(testInterval);
+                    }
+                }, 1000);
+            } else {
+                log('❌ Theme service not available');
+            }
+        }
+
+        // Update status every second
+        setInterval(updateStatus, 1000);
+
+        // Initial status update
+        setTimeout(updateStatus, 500);
+
+        // Listen for theme changes
+        document.addEventListener('themeChanged', (event) => {
+            log(`🎨 Theme changed to: ${event.detail.themeName}`);
+            updateStatus();
+        });
+
+        // Log when theme service loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (window.themeService) {
+                    log('✅ Theme service loaded successfully');
+                    updateStatus();
+                } else {
+                    log('❌ Theme service failed to load');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

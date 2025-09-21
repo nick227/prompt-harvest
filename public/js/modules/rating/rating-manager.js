@@ -236,7 +236,7 @@ class RatingManager {
     }
 
     filterByRatings(rating) {
-        const items = document.querySelectorAll('ul.prompt-output > li');
+        const items = document.querySelectorAll('div.prompt-output > li');
 
         items.forEach(item => {
             const image = item.querySelector('img');
@@ -253,7 +253,7 @@ class RatingManager {
 
     filterByMultipleRatings(selectedRatings) {
         // Try multiple selectors to find the image items
-        let items = document.querySelectorAll('ul.prompt-output > li');
+        let items = document.querySelectorAll('div.prompt-output > li');
 
         if (items.length === 0) {
             items = document.querySelectorAll('.prompt-output > li');
@@ -370,7 +370,7 @@ class RatingManager {
     }
 
     getRatingCount(rating) {
-        const items = document.querySelectorAll('ul.prompt-output > li');
+        const items = document.querySelectorAll('div.prompt-output > li');
 
         return Array.from(items).filter(item => {
             const image = item.querySelector('img');
@@ -380,7 +380,7 @@ class RatingManager {
     }
 
     getAverageRating() {
-        const items = document.querySelectorAll('ul.prompt-output > li');
+        const items = document.querySelectorAll('div.prompt-output > li');
         let totalRating = 0;
         let ratedCount = 0;
 
@@ -397,7 +397,7 @@ class RatingManager {
     }
 
     getRatingStats() {
-        const items = document.querySelectorAll('ul.prompt-output > li');
+        const items = document.querySelectorAll('div.prompt-output > li');
         const stats = {
             total: items.length,
             ratings: {}

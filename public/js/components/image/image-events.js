@@ -344,6 +344,12 @@ class ImageEvents {
     // ========================================
 
     shouldShowPublicToggle(imageData) {
+        // Use centralized auth utils for consistency
+        if (window.UnifiedAuthUtils) {
+            return window.UnifiedAuthUtils.shouldShowPublicToggle(imageData);
+        }
+
+        // Fallback to local implementation
         return this.canUserModifyImage(imageData);
     }
 
@@ -546,10 +552,17 @@ class ImageEvents {
     }
 
     canUserModifyImage(imageData) {
+        // Use centralized auth utils for consistency
+        if (window.UnifiedAuthUtils) {
+            return window.UnifiedAuthUtils.canUserModifyImage(imageData);
+        }
+
+        // Fallback to existing AuthUtils if available
         if (window.AuthUtils) {
             return window.AuthUtils.canUserModifyImage(imageData);
         }
-        // Fallback logic
+
+        // Final fallback logic
         if (!imageData || !imageData.id) {
             return false;
         }
@@ -568,10 +581,17 @@ class ImageEvents {
     }
 
     getCurrentUserId() {
+        // Use centralized auth utils for consistency
+        if (window.UnifiedAuthUtils) {
+            return window.UnifiedAuthUtils.getCurrentUserId();
+        }
+
+        // Fallback to existing AuthUtils if available
         if (window.AuthUtils) {
             return window.AuthUtils.getCurrentUserId();
         }
-        // Fallback logic
+
+        // Final fallback logic
         if (window.userApi && window.userApi.getCurrentUser) {
             const user = window.userApi.getCurrentUser();
 

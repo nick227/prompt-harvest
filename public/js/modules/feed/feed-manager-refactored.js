@@ -18,34 +18,31 @@ class FeedManager {
         this.viewManager = new FeedViewManager();
         this.fillToBottomManager = new FillToBottomManager(this.domManager, this.apiManager, this.cacheManager);
 
+        // Use global tag router for URL parameter handling
+        this.tagRouter = window.tagRouter || null;
+        if (!this.tagRouter) {
+            console.warn('⚠️ FEED MANAGER: Global tag router not available, tag filtering disabled');
+        }
+
         // Bind methods to maintain context
         this.handleFilterChanged = this.handleFilterChanged.bind(this);
         this.handleLastImageVisible = this.handleLastImageVisible.bind(this);
         this.loadFilterImages = this.loadFilterImages.bind(this);
+        this.handleTagChange = this.handleTagChange.bind(this);
     }
 
     // Initialize feed manager
     async init() {
         if (this.isInitialized) {
-
             return this;
         }
 
         try {
-
-            // Initialize sub-managers
-            this.domManager.init();
-            this.uiManager.init();
-            this.filterManager.init();
-            await this.tabService.init();
-            this.viewManager.init();
-
-            // Setup event listeners
+            await this.initializeSubManagers();
             this.setupEventListeners();
-
-            // Setup feed
+            await this.setupTagRouter();
             await this.setupFeed();
-
+            await this.updateInitialTagFilter();
             this.isInitialized = true;
         } catch (error) {
             console.error('❌ FEED MANAGER: Feed Manager initialization failed:', error);
@@ -53,6 +50,43 @@ class FeedManager {
         }
 
         return this;
+    }
+
+    // Initialize sub-managers
+    async initializeSubManagers() {
+        this.domManager.init();
+        this.uiManager.init();
+        this.filterManager.init();
+        await this.tabService.init();
+        this.viewManager.init();
+    }
+
+    // Setup tag router subscription
+    async setupTagRouter() {
+        if (window.tagRouter) {
+            this.tagRouter = window.tagRouter;
+            console.log('🏷️ FEED MANAGER: Using global tag router for subscription');
+        }
+
+        if (this.tagRouter) {
+            console.log('🏷️ FEED MANAGER: Subscribing to tag router changes');
+            this.tagRouter.subscribe('feedManager', this.handleTagChange);
+            console.log('🏷️ FEED MANAGER: Subscription completed, current listeners:', this.tagRouter.listeners.size);
+        } else {
+            console.warn('⚠️ FEED MANAGER: Tag router not available for subscription');
+        }
+    }
+
+    // Update initial tag filter indicator
+    async updateInitialTagFilter() {
+        if (this.tagRouter) {
+            const currentTags = this.tagRouter.getActiveTags();
+
+            if (currentTags.length > 0) {
+                console.log('🏷️ FEED MANAGER: Updating tag filter indicator with initial tags:', currentTags);
+                this.uiManager.updateTagFilterIndicator(currentTags);
+            }
+        }
     }
 
     // Setup event listeners
@@ -95,8 +129,35 @@ class FeedManager {
         }
     }
 
+    // Handle tag changes from tag router
+    async handleTagChange(activeTags) {
+        try {
+
+            console.log('🏷️ FEED MANAGER: Tag change detected:', activeTags);
+
+            // Update tag filter indicator
+            if (this.uiManager.updateTagFilterIndicator) {
+                console.log('🏷️ FEED MANAGER: Updating tag filter indicator');
+                this.uiManager.updateTagFilterIndicator(activeTags);
+            }
+
+            // Get current filter
+            const currentFilter = this.filterManager.getCurrentFilter();
+
+            console.log(`🏷️ FEED MANAGER: Current filter: ${currentFilter}`);
+
+            // Reload images with new tag filter
+            console.log('🏷️ FEED MANAGER: Reloading images with tag filter');
+            await this.loadFilterImages(currentFilter);
+
+        } catch (error) {
+            console.error('❌ FEED MANAGER: Error handling tag change:', error);
+        }
+    }
+
     // Setup feed
     async setupFeed() {
+
         if (this.initialLoadPromise) {
 
             return this.initialLoadPromise;
@@ -117,8 +178,15 @@ class FeedManager {
     // Load initial feed
     async loadInitialFeed() {
         try {
+
+            // Wait for filter manager to complete initialization before getting current filter
+            await this.waitForFilterManagerReady();
+
             const currentFilter = this.filterManager.getCurrentFilter();
-            console.log(`🚀 FEED MANAGER: Loading initial feed for filter: ${currentFilter}`);
+
+            if (window.DEBUG_MODE) {
+                console.log(`🚀 FEED MANAGER: Loading initial feed for filter: ${currentFilter}`);
+            }
 
             await this.loadFilterImages(currentFilter);
         } catch (error) {
@@ -127,12 +195,46 @@ class FeedManager {
         }
     }
 
+    // Wait for filter manager to be ready
+    async waitForFilterManagerReady() {
+        return new Promise(resolve => {
+            // Check if filter manager is already initialized AND has a current filter set
+            if (this.filterManager && this.filterManager.isInitialized && this.filterManager.currentFilter) {
+                if (window.DEBUG_MODE) {
+                    console.log('✅ FEED MANAGER: Filter manager is already ready with filter:', this.filterManager.currentFilter);
+                }
+                resolve();
+
+                return;
+            }
+
+            // Listen for filter manager ready event
+            const handleFilterReady = event => {
+                if (window.DEBUG_MODE) {
+                    console.log('✅ FEED MANAGER: Filter manager ready event received with filter:', event.detail?.currentFilter);
+                }
+                window.removeEventListener('filterManagerReady', handleFilterReady);
+                resolve();
+            };
+
+            window.addEventListener('filterManagerReady', handleFilterReady);
+
+            // Fallback timeout in case event never fires
+            setTimeout(() => {
+                console.warn('⚠️ FEED MANAGER: Filter manager ready event timeout, proceeding anyway');
+                window.removeEventListener('filterManagerReady', handleFilterReady);
+                resolve();
+            }, 3000);
+        });
+    }
+
     // Load filter images
     async loadFilterImages(filter) {
         try {
             // Check if user can access user filter
             if (filter === FEED_CONSTANTS.FILTERS.USER && !this.apiManager.isUserAuthenticated()) {
                 this.uiManager.showLoginPrompt();
+
                 return;
             }
 
@@ -140,40 +242,47 @@ class FeedManager {
             const promptOutput = await this.uiManager.startSmoothTransition();
 
 
-            // Load images from API
-            const result = await this.apiManager.loadFeedImages(filter, 0);
+            // Get current active tags from tag router
+            const activeTags = this.tagRouter ? this.tagRouter.getActiveTags() : [];
 
-            // Update cache
+            console.log('🏷️ FEED MANAGER: Loading images with tags:', activeTags);
+
+            // Load images from API with tag filtering
+            const result = await this.apiManager.loadFeedImages(filter, 0, activeTags);
+
+            // Update cache with tags
             this.cacheManager.setCache(filter, {
                 images: result.images,
                 hasMore: result.hasMore,
                 currentPage: 0,
                 isLoaded: true
-            });
+            }, activeTags);
 
             // Clear and populate feed (content is now faded out, safe to clear)
             this.uiManager.clearFeedContent();
 
-        if (result.images && Array.isArray(result.images)) {
+            if (result.images && Array.isArray(result.images)) {
             // Additional frontend filtering for site feed to ensure only public images
-            const filteredImages = filter === FEED_CONSTANTS.FILTERS.SITE
-                ? result.images.filter(image => image.isPublic === true)
-                : result.images;
+                const filteredImages = filter === FEED_CONSTANTS.FILTERS.SITE
+                    ? result.images.filter(image => image.isPublic === true)
+                    : result.images;
 
-            console.log(`🔍 FEED FILTER: ${filter} filter - ${result.images.length} total, ${filteredImages.length} after filtering`);
+                if (window.DEBUG_MODE) {
+                    console.log(`🔍 FEED FILTER: ${filter} filter - ${result.images.length} total, ${filteredImages.length} after filtering`);
+                }
 
-            filteredImages.forEach((image) => {
-                this.uiManager.addImageToFeed(image, filter);
-            });
+                filteredImages.forEach(image => {
+                    this.uiManager.addImageToFeed(image, filter);
+                });
 
-            // Show appropriate message if no images (use filtered count)
-            if (filteredImages.length === 0) {
+                // Show appropriate message if no images (use filtered count)
+                if (filteredImages.length === 0) {
+                    this.uiManager.showNoImagesMessage();
+                }
+            } else {
+                console.error('❌ FEED MANAGER: result.images is not an array:', result.images);
                 this.uiManager.showNoImagesMessage();
             }
-        } else {
-            console.error(`❌ FEED MANAGER: result.images is not an array:`, result.images);
-            this.uiManager.showNoImagesMessage();
-        }
 
 
             // Refresh rating dropdown to include all loaded images' ratings
@@ -199,6 +308,7 @@ class FeedManager {
 
             // Ensure transition completes even on error
             const promptOutput = this.domManager.getElement('promptOutput');
+
             if (promptOutput && promptOutput.classList.contains(FEED_CONSTANTS.CLASSES.TRANSITIONING)) {
                 await this.uiManager.completeSmoothTransition(promptOutput);
             }
@@ -215,15 +325,15 @@ class FeedManager {
 
             this.uiManager.showLoading();
 
-            const cache = this.cacheManager.getCache(filter);
+            const activeTags = this.tagRouter ? this.tagRouter.getActiveTags() : [];
+            const cache = this.cacheManager.getCache(filter, activeTags);
             const nextPage = cache.currentPage + 1;
 
-
-            const result = await this.apiManager.loadMoreImages(filter, nextPage);
+            const result = await this.apiManager.loadMoreImages(filter, nextPage, activeTags);
 
             // Add new images to cache
-            this.cacheManager.addImagesToCache(filter, result.images);
-            this.cacheManager.updatePagination(filter, nextPage, result.hasMore);
+            this.cacheManager.addImagesToCache(filter, result.images, activeTags);
+            this.cacheManager.updatePagination(filter, nextPage, result.hasMore, activeTags);
 
             // Add new images to DOM
             result.images.forEach(image => {
@@ -260,7 +370,7 @@ class FeedManager {
     }
 
     // Add image to output (for new generations)
-    addImageToOutput(imageData, _download = false) {
+    addImageToOutput(imageData) {
         try {
             const currentFilter = this.filterManager.getCurrentFilter();
 
@@ -269,7 +379,6 @@ class FeedManager {
 
             // Add to DOM
             this.uiManager.addImageToFeed(imageData, currentFilter);
-
 
             // Refresh rating dropdown to include new image's rating
             if (window.ratingManager && window.ratingManager.refreshRatingDropdown) {
@@ -328,13 +437,21 @@ class FeedManager {
 // Initialize when dependencies are available
 let feedManager = null;
 
-const initFeedManager = () => {
+const initFeedManager = async() => {
+    console.log('🏷️ FEED MANAGER: Checking dependencies...');
+    console.log('🏷️ FEED MANAGER: FEED_CONFIG available:', typeof FEED_CONFIG !== 'undefined');
+    console.log('🏷️ FEED MANAGER: FEED_CONSTANTS available:', typeof FEED_CONSTANTS !== 'undefined');
+
     if (typeof FEED_CONFIG !== 'undefined' && typeof FEED_CONSTANTS !== 'undefined') {
+        console.log('🏷️ FEED MANAGER: Creating FeedManager instance...');
         feedManager = new FeedManager();
+
+        // Initialize the feed manager (this sets up tag router subscription)
+        await feedManager.init();
 
         // Export functions for global access (maintaining backward compatibility)
         const setupFeed = async() => await feedManager.setupFeed();
-        const setupFeedPromptsNew = () => feedManager.setupFeedPromptsNew();
+        const setupFeedPromptsNew = async() => await feedManager.loadInitialFeed(); // Use new method
         const refreshFeed = async() => await feedManager.refreshFeed();
 
         // Export for testing
@@ -356,9 +473,24 @@ const initFeedManager = () => {
         }
     } else {
         // Retry after a short delay
-        setTimeout(initFeedManager, FEED_CONSTANTS.DEFAULTS.RETRY_DELAY);
+        setTimeout(() => initFeedManager().catch(console.error), FEED_CONSTANTS.DEFAULTS.RETRY_DELAY);
     }
 };
 
-// Start initialization
-initFeedManager();
+// Start initialization - wait for global tag router to be available
+const waitForTagRouter = () => {
+    console.log('🏷️ FEED MANAGER: Checking for global tag router...');
+    console.log('🏷️ FEED MANAGER: window.tagRouter exists:', !!window.tagRouter);
+    console.log('🏷️ FEED MANAGER: window.TagRouter exists:', !!window.TagRouter);
+
+    if (window.tagRouter) {
+        console.log('🏷️ FEED MANAGER: Global tag router detected, initializing feed manager');
+        initFeedManager().catch(console.error);
+    } else {
+        console.log('🏷️ FEED MANAGER: Waiting for global tag router...');
+        setTimeout(waitForTagRouter, 100);
+    }
+};
+
+// Start waiting for tag router
+waitForTagRouter();

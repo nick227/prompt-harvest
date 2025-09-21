@@ -181,3 +181,21 @@ input[type="checkbox"]:focus + .checkbox-custom {
     outline: 2px solid var(--color-purple-500);
     outline-offset: 2px;
 }
+
+ /* ===== DRAWER COMPONENTS ===== */
+
+ #controls-drawer {
+    z-index: 1000;
+ }
+
+ .drawer-header {
+    height: 89px;
+ }
+
+/* ===== LOGO COMPONENTS ===== */
+
+.logo-main-text {
+    font-size: 25px;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+}

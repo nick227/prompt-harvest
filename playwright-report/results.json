@@ -150,13 +150,23 @@
   "suites": [],
   "errors": [
     {
-      "message": "Error: Process from config.webServer was not able to start. Exit code: 1",
-      "stack": "Error: Process from config.webServer was not able to start. Exit code: 1"
+      "message": "ReferenceError: require is not defined in ES module scope, you can use import instead\nThis file is being treated as an ES module because it has a '.js' file extension and 'C:\\wamp64\\www\\image-harvest\\package.json' contains \"type\": \"module\". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.",
+      "stack": "ReferenceError: require is not defined in ES module scope, you can use import instead\nThis file is being treated as an ES module because it has a '.js' file extension and 'C:\\wamp64\\www\\image-harvest\\package.json' contains \"type\": \"module\". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.\n    at C:\\wamp64\\www\\image-harvest\\tests\\e2e\\tag-browsing.spec.js:6:26",
+      "location": {
+        "file": "C:\\wamp64\\www\\image-harvest\\tests\\e2e\\tag-browsing.spec.js",
+        "column": 26,
+        "line": 6
+      },
+      "snippet": "\u001b[90m   at \u001b[39mtag-browsing.spec.js:6\n\n\u001b[0m \u001b[90m 4 |\u001b[39m \u001b[90m */\u001b[39m\n \u001b[90m 5 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 6 |\u001b[39m \u001b[36mconst\u001b[39m { test\u001b[33m,\u001b[39m expect } \u001b[33m=\u001b[39m require(\u001b[32m'@playwright/test'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m   |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 7 |\u001b[39m\n \u001b[90m 8 |\u001b[39m test\u001b[33m.\u001b[39mdescribe(\u001b[32m'Tag-Based Browsing E2E'\u001b[39m\u001b[33m,\u001b[39m () \u001b[33m=>\u001b[39m {\n \u001b[90m 9 |\u001b[39m     \u001b[36mlet\u001b[39m page\u001b[33m;\u001b[39m\u001b[0m"
+    },
+    {
+      "message": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.",
+      "stack": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments."
     }
   ],
   "stats": {
-    "startTime": "2025-09-17T07:49:28.998Z",
-    "duration": 12830.817000000001,
+    "startTime": "2025-09-21T07:43:51.150Z",
+    "duration": 918.2139999999999,
     "expected": 0,
     "skipped": 0,
     "unexpected": 0,

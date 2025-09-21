@@ -7,6 +7,7 @@ class MobileControlsManager {
         this.mobileDrawer = null;
         this.closeButton = null;
         this.isMobile = window.innerWidth <= 768;
+        this.resizeListenerAdded = false;
         this.init();
     }
 
@@ -18,6 +19,12 @@ class MobileControlsManager {
 
         // Wait for unified drawer component to create the mobile drawer
         this.waitForUnifiedMobileDrawer();
+    }
+
+    // Force re-initialization (used when switching to mobile)
+    reinit() {
+        this.isMobile = window.innerWidth <= 768;
+        this.init();
     }
 
     waitForUnifiedMobileDrawer() {
@@ -34,12 +41,26 @@ class MobileControlsManager {
                     return;
                 }
 
+                // Remove any existing event listeners to prevent duplicates
+                this.removeEventListeners();
+
+                // Re-get the elements after clearing references
+                this.hamburgerButton = document.getElementById('mobile-hamburger');
+                this.overlay = window.unifiedDrawerComponent.mobileOverlay;
+                this.mobileDrawer = window.unifiedDrawerComponent.mobileDrawer;
+                this.closeButton = document.getElementById('mobile-close-btn');
+
                 this.setupEventListeners();
-                this.setupResizeListener();
+                if (!this.resizeListenerAdded) {
+                    this.setupResizeListener();
+                    this.resizeListenerAdded = true;
+                }
                 this.syncWithDesktopDrawer();
 
                 // Ensure overlay starts hidden
                 this.overlay.classList.add('hidden');
+
+                console.log('📱 MOBILE CONTROLS: Re-initialized for mobile');
             } else {
                 // Retry after a short delay
                 setTimeout(checkMobileDrawer, 100);
@@ -49,10 +70,19 @@ class MobileControlsManager {
         checkMobileDrawer();
     }
 
+    removeEventListeners() {
+        // Store references to avoid losing them during cleanup
+        // We'll just clear the references and let setupEventListeners re-attach them
+        this.hamburgerButton = null;
+        this.closeButton = null;
+        this.overlay = null;
+        this.mobileDrawer = null;
+    }
+
     setupEventListeners() {
-        // Hamburger button click
+        // Hamburger button click - toggle open/close
         this.hamburgerButton.addEventListener('click', () => {
-            this.open();
+            this.toggle();
         });
 
         // Close button click
@@ -113,7 +143,9 @@ class MobileControlsManager {
 
             if (wasMobile !== this.isMobile) {
                 if (this.isMobile) {
-                    this.init();
+                    // Re-initialize for mobile
+                    this.cleanup();
+                    this.reinit();
                 } else {
                     this.cleanup();
                 }
@@ -123,6 +155,12 @@ class MobileControlsManager {
 
     open() {
         if (this.isOpen) {
+            console.log('📱 MOBILE CONTROLS: Already open');
+            return;
+        }
+
+        if (!this.overlay || !this.mobileDrawer) {
+            console.warn('📱 MOBILE CONTROLS: Cannot open - overlay or drawer not found');
             return;
         }
 
@@ -141,6 +179,12 @@ class MobileControlsManager {
 
     close() {
         if (!this.isOpen) {
+            console.log('📱 MOBILE CONTROLS: Already closed');
+            return;
+        }
+
+        if (!this.mobileDrawer || !this.overlay) {
+            console.warn('📱 MOBILE CONTROLS: Cannot close - drawer or overlay not found');
             return;
         }
 
@@ -345,6 +389,14 @@ class MobileControlsManager {
         if (this.overlay) {
             this.overlay.classList.add('hidden');
         }
+
+        // Reset state
+        this.isOpen = false;
+        this.hamburgerButton = null;
+        this.overlay = null;
+        this.mobileDrawer = null;
+        this.closeButton = null;
+        this.resizeListenerAdded = false;
     }
 
     // Get current state

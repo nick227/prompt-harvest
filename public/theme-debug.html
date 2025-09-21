@@ -73,13 +73,15 @@
     </div>
 
     <!-- Theme Service -->
-    <script src="js/services/ThemeService.js"></script>
+    <script src="js/themes/managers/ColorPaletteManager.js"></script>
+    <script src="js/themes/composers/ThemeComposer.js"></script>
+    <script src="js/themes/SimpleThemeService.js"></script>
 
     <script>
         // Wait for theme service to load
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
-                if (window.themeService) {
+                if (window.SimpleThemeService) {
                     initializeDebugTest();
                 } else {
                     console.error('Theme service not loaded');

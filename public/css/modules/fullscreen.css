@@ -84,13 +84,13 @@
     position: fixed;
     top: 20px;
     right: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
+    background: var(--color-surface-overlay);
+    color: var(--color-text-primary);
     border-radius: 8px;
     padding: 16px;
     max-width: 300px;
     z-index: 1000;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--color-border-primary);
     backdrop-filter: blur(10px);
 }
 
@@ -98,7 +98,7 @@
     margin: 0 0 12px 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--color-gray-200);
+    color: var(--color-text-primary);
 }
 
 .fullscreen-info-box .info-grid {
@@ -109,19 +109,19 @@
 }
 
 .fullscreen-info-box .info-label {
-    color: var(--color-gray-400);
+    color: var(--color-text-tertiary);
     font-weight: 500;
 }
 
 .fullscreen-info-box .info-value {
-    color: var(--color-gray-100);
+    color: var(--color-text-secondary);
     word-break: break-word;
 }
 
 /* Modern Info Box - collapsible widget */
 .info-box {
-    background: rgba(0, 0, 0, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--color-modal-background);
+    border: 1px solid var(--color-border-secondary);
     border-radius: 12px;
     overflow: hidden;
     backdrop-filter: blur(15px);
@@ -132,7 +132,7 @@
     z-index: 10;
     width: 400px;
     max-width: calc(100vw - 40px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--color-card-shadow);
 }
 
 .info-box-header {
@@ -140,21 +140,21 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--color-surface-secondary);
     cursor: pointer;
     user-select: none;
     transition: background-color 0.2s ease;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--color-border-primary);
 }
 
 .info-box-header:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--color-surface-tertiary);
 }
 
 .info-box-title {
     font-size: 16px;
     font-weight: 600;
-    color: var(--color-gray-100);
+    color: var(--color-text-primary);
     margin: 0;
     letter-spacing: 0.025em;
 }
@@ -162,7 +162,7 @@
 .info-box-toggle {
     background: none;
     border: none;
-    color: var(--color-gray-400);
+    color: var(--color-text-tertiary);
     font-size: 20px;
     font-weight: bold;
     cursor: pointer;
@@ -177,15 +177,15 @@
 }
 
 .info-box-toggle:hover {
-    color: var(--color-gray-100);
-    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-primary);
+    background: var(--color-surface-tertiary);
 }
 
 .info-box-content {
     padding: 20px;
     transition: all 0.3s ease;
     overflow-y: auto;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--color-surface-primary);
 }
 
 .info-box-content.collapsed {
@@ -219,7 +219,7 @@
     gap: 12px 16px;
     margin-bottom: 20px;
     padding-bottom: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--color-border-primary);
 }
 
 .info-box-meta-item {
@@ -227,21 +227,21 @@
     flex-direction: column;
     gap: 4px;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--color-surface-secondary);
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-border-primary);
     transition: all 0.2s ease;
 }
 
 .info-box-meta-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.12);
+    background: var(--color-surface-tertiary);
+    border-color: var(--color-border-secondary);
 }
 
 .info-box-meta-label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--color-gray-400);
+    color: var(--color-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin: 0;
@@ -250,7 +250,7 @@
 .info-box-meta-value {
     font-size: 14px;
     font-weight: 500;
-    color: var(--color-gray-100);
+    color: var(--color-text-primary);
     margin: 0;
     word-break: break-word;
     line-height: 1.4;
@@ -258,7 +258,7 @@
 
 /* Special styling for rating items */
 .info-box-meta-item.rating-item .info-box-meta-value {
-    color: var(--color-orange-400);
+    color: var(--color-rating);
     font-weight: 600;
 }
 

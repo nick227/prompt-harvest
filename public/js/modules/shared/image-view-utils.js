@@ -9,6 +9,12 @@ class ImageViewUtils {
      * @returns {Object} Headers object with authentication
      */
     static getAuthHeaders() {
+        // Use centralized auth utils for consistency
+        if (window.UnifiedAuthUtils) {
+            return window.UnifiedAuthUtils.getAuthHeaders();
+        }
+
+        // Fallback to local implementation if centralized utils not available
         const headers = { 'Content-Type': 'application/json' };
 
         if (window.userApi && window.userApi.isAuthenticated()) {
@@ -176,13 +182,7 @@ class ImageViewUtils {
         title.className = 'list-title';
         title.textContent = imageData.title || 'Generated Image';
 
-        const rating = document.createElement('div');
-
-        rating.className = 'list-rating';
-        rating.innerHTML = imageData.rating > 0 ? `★ ${imageData.rating}` : '★ 0';
-
         header.appendChild(title);
-        header.appendChild(rating);
 
         return header;
     }
@@ -658,13 +658,13 @@ class ImageViewUtils {
 
             // Add subtle hover effect to list view (no transforms)
             listView.addEventListener('mouseenter', () => {
-                listView.style.background = 'rgba(31, 41, 55, 0.9)';
-                listView.style.borderColor = 'rgba(75, 85, 99, 0.5)';
+                listView.style.background = 'var(--color-surface-secondary)';
+                listView.style.borderColor = 'var(--color-border-secondary)';
             });
 
             listView.addEventListener('mouseleave', () => {
-                listView.style.background = 'rgba(31, 41, 55, 0.8)';
-                listView.style.borderColor = 'rgba(75, 85, 99, 0.3)';
+                listView.style.background = 'var(--color-surface-primary)';
+                listView.style.borderColor = 'var(--color-border-primary)';
             });
 
             // Create list view content
@@ -674,12 +674,12 @@ class ImageViewUtils {
                 console.error('❌ VIEW UTILS: Failed to create list view content:', contentError);
                 // Create a simple fallback content
                 const fallbackStyle = 'display: flex; align-items: flex-start; gap: 16px; padding: 16px; ' +
-                    'background: rgba(31, 41, 55, 0.8); border: 1px solid rgba(75, 85, 99, 0.3); ' +
+                    'background: var(--color-surface-primary); border: 1px solid var(--color-border-primary); ' +
                     'border-radius: 8px; transition: all 0.2s ease;';
                 const imgStyle = 'width: 100px; height: 100px; object-fit: cover; border-radius: 8px;';
-                const titleStyle = 'margin: 0 0 8px 0; color: #f9fafb; font-size: 16px;';
-                const textStyle = 'margin: 0; color: #9ca3af; font-size: 14px;';
-                const ratingStyle = 'margin: 4px 0 0 0; color: #9ca3af; font-size: 14px;';
+                const titleStyle = 'margin: 0 0 8px 0; color: var(--color-text-primary); font-size: 16px;';
+                const textStyle = 'margin: 0; color: var(--color-text-tertiary); font-size: 14px;';
+                const ratingStyle = 'margin: 4px 0 0 0; color: var(--color-text-tertiary); font-size: 14px;';
 
                 listView.innerHTML = `
                     <div style="${fallbackStyle}">
@@ -805,7 +805,39 @@ class ImageViewUtils {
                 border: 1px solid rgba(59, 130, 246, 0.3);
                 white-space: nowrap;
                 flex-shrink: 0;
+                cursor: pointer;
+                transition: all 0.2s ease;
             `;
+
+            // Add hover effects
+            tagElement.addEventListener('mouseenter', () => {
+                tagElement.style.background = 'rgba(59, 130, 246, 0.3)';
+                tagElement.style.transform = 'scale(1.05)';
+            });
+
+            tagElement.addEventListener('mouseleave', () => {
+                tagElement.style.background = 'rgba(59, 130, 246, 0.2)';
+                tagElement.style.transform = 'scale(1)';
+            });
+
+            // Add click handler to filter by tag
+            tagElement.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log(`🏷️ TAG CLICK: Filtering by tag: ${tag}`);
+
+                // Use tag router if available
+                if (window.TagRouter && window.tagRouter) {
+                    window.tagRouter.setActiveTags([tag]);
+                } else {
+                    // Fallback: update URL directly
+                    const url = new URL(window.location);
+                    url.searchParams.set('tag', tag);
+                    window.location.href = url.toString();
+                }
+            });
+
             tagsContainer.appendChild(tagElement);
         });
 
@@ -846,8 +878,12 @@ class ImageViewUtils {
      * @returns {boolean} Whether to show the toggle
      */
     static shouldShowPublicToggle(imageData) {
-        // If we can see the toggle, the user should be able to control it
-        // The server will handle authentication and ownership validation
+        // Use centralized auth utils for consistency
+        if (window.UnifiedAuthUtils) {
+            return window.UnifiedAuthUtils.shouldShowPublicToggle(imageData);
+        }
+
+        // Fallback to local implementation if centralized utils not available
         if (!imageData || !imageData.id) {
             return false;
         }
@@ -859,17 +895,21 @@ class ImageViewUtils {
             return false;
         }
 
-        // If userId is not in the image data, assume it's the user's image
-        // (since they can see it in their feed)
         const currentUserId = this.getCurrentUserId();
 
+        if (!currentUserId) {
+            return false;
+        }
+
+        // Only show toggle if current user owns the image
+        // If userId is not in the image data, assume it's the user's image
+        // (since they can see it in their feed)
         if (!imageData.userId) {
             console.log('🔍 Image missing userId, assuming user owns it');
-
             return true; // Assume user owns it if they can see it
         }
 
-        return currentUserId && imageData.userId === currentUserId;
+        return imageData.userId === currentUserId;
     }
 
     /**

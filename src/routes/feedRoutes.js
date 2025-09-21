@@ -5,7 +5,7 @@ import {
 } from '../middleware/index.js';
 
 export const setupFeedRoutes = (app, enhancedImageController) => {
-    // Feed routes for getting images - only /api/feed/site since /api/feed is handled by enhanced routes
+    // Site feed route - public images from all users
     app.get('/api/feed/site',
         apiRateLimit,
         authenticateToken, // Add authentication middleware
@@ -13,6 +13,14 @@ export const setupFeedRoutes = (app, enhancedImageController) => {
         enhancedImageController.getFeed.bind(enhancedImageController)
     );
 
-    // Note: /api/feed, /api/images, and /api/images/count are handled by enhancedImageRoutes.js
+    // User feed route - user's own images (both public and private)
+    app.get('/api/feed/user',
+        apiRateLimit,
+        authenticateToken, // Authentication required for user feed
+        sanitizeInput,
+        enhancedImageController.getUserOwnImages.bind(enhancedImageController)
+    );
+
+    // Note: Additional routes are handled by enhancedImageRoutes.js
     // with proper authentication middleware
 };

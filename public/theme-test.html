@@ -76,13 +76,15 @@
     </div>
 
     <!-- Theme Service -->
-    <script src="js/services/ThemeService.js"></script>
+    <script src="js/themes/managers/ColorPaletteManager.js"></script>
+    <script src="js/themes/composers/ThemeComposer.js"></script>
+    <script src="js/themes/SimpleThemeService.js"></script>
 
     <script>
         // Wait for theme service to load
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
-                if (window.themeService) {
+                if (window.SimpleThemeService) {
                     initializeThemeTest();
                 } else {
                     console.error('Theme service not loaded');
@@ -95,13 +97,14 @@
             const themeInfo = document.getElementById('theme-info');
 
             // Set initial theme
-            const currentTheme = window.themeService.getCurrentTheme();
+            const themeService = new window.SimpleThemeService();
+            const currentTheme = themeService.getCurrentTheme();
             themeSelect.value = currentTheme;
             updateThemeInfo();
 
             // Listen for theme changes
             themeSelect.addEventListener('change', (e) => {
-                window.themeService.switchTheme(e.target.value);
+                themeService.switchTheme(e.target.value);
                 updateThemeInfo();
             });
 

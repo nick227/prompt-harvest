@@ -117,7 +117,7 @@ const GUIDANCE_CONFIG = {
 const RATING_CONFIG = {
     selectors: {
         filter: '.rating-filter',
-        promptOutput: 'ul.prompt-output > li',
+        promptOutput: 'div.prompt-output > li',
         fullscreen: '.full-screen',
         rating: '.rating'
     },

@@ -13,10 +13,9 @@ class FeedFilterManager {
         this.setupFilterButtons();
         this.setupAuthListener();
         this.setupImageAdditionListener();
-        this.loadInitialImageCounts();
 
-        // Wait for authentication state before setting default filter
-        this.waitForAuthAndSetDefault();
+        // Set the filter immediately based on what's saved or default
+        this.setDefaultFilter();
 
         this.isInitialized = true;
     }
@@ -36,46 +35,8 @@ class FeedFilterManager {
             });
         }
 
-        // Keep backward compatibility with radio buttons if they exist
-        const ownerButtons = document.querySelectorAll(FEED_CONSTANTS.SELECTORS.OWNER_BUTTONS);
-
-        ownerButtons.forEach(button => {
-            button.addEventListener('change', e => {
-                const newFilter = e.target.value;
-
-                // Save user's manual choice
-                this.saveFilter(newFilter);
-                this.switchFilter(newFilter);
-            });
-        });
     }
 
-    // Wait for authentication state and set default filter
-    async waitForAuthAndSetDefault() {
-        // If user system is already available and has determined auth state, set default immediately
-        if (window.userSystem && window.userSystem.isInitialized && window.userSystem.currentUser !== undefined) {
-            this.setDefaultFilter();
-
-            return;
-        }
-
-        // Otherwise, wait for authentication state to be determined
-        const maxWait = 5000; // 5 seconds max wait
-        const startTime = Date.now();
-
-        while (Date.now() - startTime < maxWait) {
-            if (window.userSystem && window.userSystem.isInitialized && window.userSystem.currentUser !== undefined) {
-                this.setDefaultFilter();
-
-                return;
-            }
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-        // Fallback: set default filter even if user system isn't ready
-        console.log('💾 FILTER: User system not ready after timeout, setting default filter');
-        this.setDefaultFilter();
-    }
 
     // Set default filter selection
     setDefaultFilter() {
@@ -89,7 +50,9 @@ class FeedFilterManager {
                 this.setFilterSelection(FEED_CONSTANTS.FILTERS.SITE);
                 this.currentFilter = FEED_CONSTANTS.FILTERS.SITE;
             } else {
-                console.log('💾 FILTER: Using saved filter:', savedFilter);
+                if (window.DEBUG_MODE) {
+                    console.log('💾 FILTER: Using saved filter:', savedFilter);
+                }
                 this.setFilterSelection(savedFilter);
                 this.currentFilter = savedFilter;
             }
@@ -102,11 +65,28 @@ class FeedFilterManager {
                 this.setFilterSelection(FEED_CONSTANTS.FILTERS.SITE);
                 this.currentFilter = FEED_CONSTANTS.FILTERS.SITE;
             } else {
-                console.log('💾 FILTER: Using default filter:', defaultFilter);
+                if (window.DEBUG_MODE) {
+                    console.log('💾 FILTER: Using default filter:', defaultFilter);
+                }
                 this.setFilterSelection(defaultFilter);
                 this.currentFilter = defaultFilter;
             }
         }
+
+        if (window.DEBUG_MODE) {
+            console.log('💾 FILTER: Filter set to:', this.currentFilter);
+        }
+
+        // Notify that filter is ready
+        this.dispatchFilterReadyEvent();
+    }
+
+    // Dispatch filter ready event
+    dispatchFilterReadyEvent() {
+        const event = new CustomEvent('filterManagerReady', {
+            detail: { currentFilter: this.currentFilter }
+        });
+        window.dispatchEvent(event);
     }
 
     // Set filter selection in DOM
@@ -118,15 +98,6 @@ class FeedFilterManager {
             ownerDropdown.value = filter;
         }
 
-        // Keep backward compatibility with radio buttons
-        const siteButton = document.querySelector(FEED_CONSTANTS.SELECTORS.SITE_BUTTON);
-        const userButton = document.querySelector(FEED_CONSTANTS.SELECTORS.USER_BUTTON);
-
-        if (filter === FEED_CONSTANTS.FILTERS.SITE && siteButton) {
-            siteButton.checked = true;
-        } else if (filter === FEED_CONSTANTS.FILTERS.USER && userButton) {
-            userButton.checked = true;
-        }
     }
 
     // Get saved filter from localStorage
@@ -365,7 +336,12 @@ class FeedFilterManager {
 
     // Check if user can access user filter
     canAccessUserFilter() {
-        // Check multiple authentication sources for robustness
+        // Use centralized auth utils for consistency
+        if (window.UnifiedAuthUtils) {
+            return window.UnifiedAuthUtils.canAccessUserFilter();
+        }
+
+        // Fallback: Check multiple authentication sources for robustness
         if (window.userSystem && window.userSystem.isAuthenticated()) {
             return true;
         }
@@ -422,40 +398,8 @@ class FeedFilterManager {
             }
         }
 
-        // Keep backward compatibility with radio buttons
-        const siteButton = document.querySelector(FEED_CONSTANTS.SELECTORS.SITE_BUTTON);
-
-        if (siteButton) {
-            siteButton.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.SITE);
-        }
-
-        const userButton = document.querySelector(FEED_CONSTANTS.SELECTORS.USER_BUTTON);
-
-        if (userButton) {
-            userButton.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.USER);
-        }
     }
 
-    /**
-     * Load initial image counts for available filters
-     */
-    async loadInitialImageCounts() {
-        console.log('📊 FILTER: Loading initial image counts');
-
-        // Load count for current filter first TODO DISABLED TEMPORARILY
-        // await this.updateImageCountDisplay(this.currentFilter);
-
-        // Load count for other available filter in background
-        const availableFilters = this.getAvailableFilters();
-        const otherFilter = availableFilters.find(f => f !== this.currentFilter);
-
-        if (otherFilter) {
-            // Load in background without updating display
-            this.imageCountManager.getImageCount(otherFilter).catch(error => {
-                console.warn(`📊 FILTER: Failed to preload count for ${otherFilter}:`, error);
-            });
-        }
-    }
 
     /**
      * Update image count display for a specific filter

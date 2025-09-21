@@ -35,6 +35,7 @@ class HeaderComponent {
 
         // Check if this is the billing page and apply fixed positioning
         const isBillingPage = window.location.pathname.includes('billing.html');
+
         header.className = isBillingPage
             ? 'bg-gray-900 border-b border-gray-700 fixed top-0 left-0 right-0 z-50'
             : 'bg-gray-900 border-b border-gray-700 mb-2';
@@ -58,8 +59,7 @@ class HeaderComponent {
                                 </svg>
                             </div>
                             <div>
-                                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400
-                                          bg-clip-text text-transparent">
+                                <h1 class="logo-main-text">
                                     AutoImage
                                 </h1>
                                 <p class="text-xs text-gray-400 -mt-1">AI Image Generation</p>
@@ -154,6 +154,7 @@ class HeaderComponent {
 
         // Check if state has actually changed to avoid unnecessary updates
         const currentState = { isAuthenticated, userEmail: user?.email };
+
         if (this.lastAuthState &&
             this.lastAuthState.isAuthenticated === currentState.isAuthenticated &&
             this.lastAuthState.userEmail === currentState.userEmail) {
@@ -205,7 +206,7 @@ class HeaderComponent {
 
         console.log('🔒 HEADER: Checking admin status:', {
             email: user?.email,
-            isAdmin: isAdmin,
+            isAdmin,
             userObject: user
         });
 
@@ -219,9 +220,11 @@ class HeaderComponent {
 
             // Find the user-info container
             const userInfo = document.getElementById('user-info');
+
             if (userInfo) {
                 // Create admin link
                 const adminLink = document.createElement('a');
+
                 adminLink.href = '/admin.html';
                 adminLink.className = 'admin-link text-gray-300 hover:text-yellow-400 transition-colors duration-200 flex items-center space-x-1';
                 adminLink.innerHTML = `
@@ -232,6 +235,7 @@ class HeaderComponent {
 
                 // Insert admin link before the logout button
                 const logoutBtn = userInfo.querySelector('.logout-btn');
+
                 if (logoutBtn) {
                     userInfo.insertBefore(adminLink, logoutBtn);
                 } else {
@@ -252,6 +256,7 @@ class HeaderComponent {
 
     removeAdminLink() {
         const existingAdminLink = document.querySelector('.admin-link');
+
         if (existingAdminLink) {
             existingAdminLink.remove();
             console.log('🔒 HEADER: Admin link removed');

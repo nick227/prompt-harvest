@@ -167,7 +167,7 @@ async findById(id) {
         });
     }
 
-    async findPublicImages(limit = 8, page = 0) {
+    async findPublicImages(limit = 8, page = 0, tags = []) {
         const skip = page * limit;
 
         // Get only public images for the public feed, exclude admin-hidden images
@@ -175,6 +175,18 @@ async findById(id) {
             isPublic: true,
             isHidden: false // Exclude admin-hidden images
         };
+
+        // Add tag filtering if tags are provided
+        if (tags && tags.length > 0) {
+            // Use JSON_CONTAINS to find images that contain ALL specified tags
+            // This implements AND logic: image must contain all selected tags
+            whereClause.AND = tags.map(tag => ({
+                tags: {
+                    path: '$',
+                    array_contains: [tag.toLowerCase()]
+                }
+            }));
+        }
 
         console.log('🔍 REPOSITORY: findPublicImages called with whereClause:', whereClause);
 
@@ -204,7 +216,7 @@ async findById(id) {
             };
         }
 
-        console.log(`✅ REPOSITORY: findPublicImages returning ${images.length} public images`);
+        console.log(`✅ REPOSITORY: findPublicImages returning ${images.length} public images${tags.length > 0 ? ` filtered by tags: ${tags.join(', ')}` : ''}`);
         return {
             images,
             hasMore: skip + limit < total,
@@ -212,16 +224,29 @@ async findById(id) {
         };
     }
 
-    async findUserImages(userId, limit = 8, page = 0) {
+    async findUserImages(userId, limit = 8, page = 0, tags = []) {
         const skip = page * limit;
 
-        console.log('🔄 IMAGE-REPOSITORY: findUserImages called with:', { userId, limit, page, skip });
+        console.log('🔄 IMAGE-REPOSITORY: findUserImages called with:', { userId, limit, page, skip, tags });
 
         // First, let's check if ANY images exist for this user
         const totalImagesForUser = await this.prisma.image.count({ where: { userId } });
         console.log('🔍 IMAGE-REPOSITORY: Total images in database for user:', totalImagesForUser);
 
         const whereClause = { userId };
+
+        // Add tag filtering if tags are provided
+        if (tags && tags.length > 0) {
+            // Use JSON_CONTAINS to find images that contain ALL specified tags
+            // This implements AND logic: image must contain all selected tags
+            whereClause.AND = tags.map(tag => ({
+                tags: {
+                    path: '$',
+                    array_contains: [tag.toLowerCase()]
+                }
+            }));
+        }
+
         console.log('🔄 IMAGE-REPOSITORY: Using whereClause:', whereClause);
 
         const [images, totalCount] = await Promise.all([
@@ -250,7 +275,7 @@ async findById(id) {
             };
         }
 
-        console.log('✅ IMAGE-REPOSITORY: findUserImages result:', {
+        console.log(`✅ IMAGE-REPOSITORY: findUserImages returning ${images.length} user images${tags.length > 0 ? ` filtered by tags: ${tags.join(', ')}` : ''}:`, {
             imagesFound: images.length,
             totalCount,
             hasMore: skip + limit < totalCount,

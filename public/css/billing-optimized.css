@@ -1,5 +1,9 @@
 /* Optimized Billing Page Styles */
 
+.logo-main-text {
+    color: white;
+}
+
 /* ===== PERFORMANCE OPTIMIZATIONS ===== */
 .billing-container {
     max-width: 1200px;

@@ -719,6 +719,56 @@
   color: var(--color-status-info);
 }
 
+
+/* ===== DESKTOP DRAWER TOGGLE BUTTON ===== */
+
+#desktop-drawer-toggle {
+  background-color: var(--color-surface-secondary) !important;
+  border-color: var(--color-border-primary) !important;
+  color: var(--color-text-primary) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+#desktop-drawer-close-btn {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: var(--color-text-primary) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+#desktop-drawer-close-btn:hover {
+  background-color: var(--color-surface-tertiary) !important;
+  transform: translateY(-1px) !important;
+}
+
+#desktop-drawer-toggle:hover {
+  background-color: var(--color-surface-tertiary) !important;
+  border-color: var(--color-border-secondary) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-dark-md) !important;
+}
+
+#desktop-drawer-toggle:active {
+  transform: translateY(0) !important;
+  box-shadow: var(--shadow-dark-sm) !important;
+}
+
+#desktop-drawer-toggle svg {
+  color: var(--color-text-primary) !important;
+  transition: color 0.2s ease-in-out !important;
+}
+
+/* Desktop-only visibility */
+.desktop-only {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
 /* ===== RESPONSIVE UTILITIES ===== */
 
 @media (max-width: 768px) {

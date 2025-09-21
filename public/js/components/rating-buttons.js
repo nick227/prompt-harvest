@@ -10,7 +10,13 @@ class RatingButtons {
      * Setup authentication state listener
      */
     setupAuthListener() {
-        if (window.AuthUtils) {
+        // Use centralized auth utils for consistency
+        if (window.UnifiedAuthUtils) {
+            window.UnifiedAuthUtils.addAuthListener((isAuthenticated) => {
+                this.onAuthStateChanged(isAuthenticated);
+            });
+        } else if (window.AuthUtils) {
+            // Fallback to existing AuthUtils
             window.AuthUtils.addAuthListener((isAuthenticated) => {
                 this.onAuthStateChanged(isAuthenticated);
             });
@@ -75,7 +81,11 @@ class RatingButtons {
         container.setAttribute('data-image-id', this.imageId);
 
         // Check if user is authenticated before showing buttons
-        if (!window.AuthUtils || !window.AuthUtils.isAuthenticated()) {
+        const isAuthenticated = window.UnifiedAuthUtils
+            ? window.UnifiedAuthUtils.isAuthenticated()
+            : (window.AuthUtils && window.AuthUtils.isAuthenticated());
+
+        if (!isAuthenticated) {
             // Return empty container for non-authenticated users
             return container;
         }

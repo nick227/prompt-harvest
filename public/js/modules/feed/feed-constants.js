@@ -3,9 +3,6 @@ const FEED_CONSTANTS = {
     // DOM Selectors
     SELECTORS: {
         OWNER_DROPDOWN: 'select[name="owner"]',
-        OWNER_BUTTONS: 'input[name="owner"]', // Keep for backward compatibility
-        SITE_BUTTON: 'input[name="owner"][value="site"]', // Keep for backward compatibility
-        USER_BUTTON: 'input[name="owner"][value="user"]', // Keep for backward compatibility
         PROMPT_OUTPUT: '.prompt-output',
         FEED_CONTAINER: 'section.images',
         IMAGE_WRAPPERS: '.image-wrapper',
@@ -61,7 +58,6 @@ const FEED_CONSTANTS = {
 
     // API Endpoints
     ENDPOINTS: {
-        FEED: '/api/feed',
         USER_FEED: '/api/feed/user', // Use dedicated endpoint for user's own images
         SITE_FEED: '/api/feed/site'
     },

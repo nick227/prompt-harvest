@@ -166,12 +166,21 @@ const replaceMultiplierElements = (multiplier, elements, replacements) => {
 };
 
 /**
- * Apply multiplier to prompt
+ * Apply multiplier to prompt by inserting between every word
  * @param {string} prompt - Original prompt
  * @param {string} processedMultiplier - Processed multiplier
- * @returns {string} Prompt with multiplier applied
+ * @returns {string} Prompt with multiplier applied between every word
  */
-const applyMultiplierToPrompt = (prompt, processedMultiplier) => `${prompt}, ${processedMultiplier}`;
+const applyMultiplierToPrompt = (prompt, processedMultiplier) => {
+    if (!processedMultiplier) {
+        return prompt;
+    }
+
+    // Split prompt into words and insert multiplier between each word
+    const words = prompt.split(' ');
+
+    return words.join(` ${processedMultiplier} `);
+};
 
 /**
  * Apply multiplier with error handling
@@ -302,21 +311,21 @@ const appendStockText = (prompt, photogenic, artistic) => {
     }
 
     if (stockTexts.length === 0) {
-        console.log('📝 No stock text to append');
         return prompt;
     }
 
     const stockText = stockTexts.join(', ');
+
     console.log('📝 Stock text to append:', stockText);
 
     // Handle empty prompt case
     if (!prompt || prompt.trim() === '') {
-        console.log('📝 Empty prompt, returning stock text only');
+
         return stockText;
     }
 
     const result = `${prompt}, ${stockText}`;
-    console.log('📝 Final result:', result ? `${result.substring(0, 100)}...` : 'empty');
+
     return result;
 };
 
@@ -404,10 +413,8 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, ph
             processedString: processedString ? `${processedString.substring(0, 100)}...` : 'empty'
         });
 
-        // Apply prompt modifications in correct sequence: Multiplier → Mixup → Mashup
-        processedString = await applyPromptModifications(processedString, {
-            multiplier, mixup, mashup
-        }, customDict, prompt);
+        // Note: Multiplier, Mixup, and Mashup are now applied after AI enhancement
+        // in EnhancedImageService.js to ensure they operate on the AI-enhanced prompt
 
         return {
             original: prompt,
@@ -444,6 +451,7 @@ export {
 
     // Modification functions
     multiplyPrompt,
+    applyMultiplierSafely,
     shufflePrompt,
     mashupPrompt,
     applyPromptModifications,

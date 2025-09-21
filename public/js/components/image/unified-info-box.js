@@ -301,13 +301,22 @@ class UnifiedInfoBox {
      * @returns {boolean} Whether to show the toggle
      */
     shouldShowPublicToggle(imageData) {
-        // If we can see the toggle, the user should be able to control it
-        // The server will handle authentication and ownership validation
+        // Use centralized auth utils for consistency
+        if (window.UnifiedAuthUtils) {
+            return window.UnifiedAuthUtils.shouldShowPublicToggle(imageData);
+        }
+
+        // Fallback to existing AuthUtils if available
+        if (window.AuthUtils && window.AuthUtils.userOwnsImage) {
+            return window.AuthUtils.userOwnsImage(imageData);
+        }
+
+        // Final fallback to local implementation
         if (!imageData || !imageData.id) {
             return false;
         }
 
-        // Check if user is authenticated using the shared auth utils
+        // Check if user is authenticated
         if (!window.AuthUtils || !window.AuthUtils.isAuthenticated()) {
             return false;
         }

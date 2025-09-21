@@ -19,23 +19,43 @@ class FeedCacheManager {
         };
     }
 
-    // Get cache for specific filter
-    getCache(filter) {
-        return this.cache[filter] || null;
+    // Generate cache key for filter and tags
+    getCacheKey(filter, tags = []) {
+        if (tags.length > 0) {
+            return `${filter}-tags-${tags.join(',')}`;
+        }
+        return filter;
     }
 
-    // Set cache for specific filter
-    setCache(filter, data) {
-        if (this.cache[filter]) {
-            console.log(`📊 CACHE: Setting cache for ${filter}:`, {
-                imageCount: data.images?.length,
-                hasMore: data.hasMore,
-                currentPage: data.currentPage,
-                isLoaded: data.isLoaded
-            });
+    // Get cache for specific filter and tags
+    getCache(filter, tags = []) {
+        const key = this.getCacheKey(filter, tags);
+        return this.cache[key] || null;
+    }
 
-            this.cache[filter] = { ...this.cache[filter], ...data };
+    // Set cache for specific filter and tags
+    setCache(filter, data, tags = []) {
+        const key = this.getCacheKey(filter, tags);
+
+        // Initialize cache entry if it doesn't exist
+        if (!this.cache[key]) {
+            this.cache[key] = {
+                images: [],
+                currentPage: 0,
+                hasMore: true,
+                isLoaded: false,
+                scrollPosition: 0
+            };
         }
+
+        console.log(`📊 CACHE: Setting cache for ${key}:`, {
+            imageCount: data.images?.length,
+            hasMore: data.hasMore,
+            currentPage: data.currentPage,
+            isLoaded: data.isLoaded
+        });
+
+        this.cache[key] = { ...this.cache[key], ...data };
     }
 
     // Save scroll position for current filter
@@ -75,10 +95,11 @@ class FeedCacheManager {
     }
 
     // Add images to cache
-    addImagesToCache(filter, images) {
-        if (this.cache[filter]) {
+    addImagesToCache(filter, images, tags = []) {
+        const key = this.getCacheKey(filter, tags);
+        if (this.cache[key]) {
             // Get existing image IDs to prevent duplicates
-            const existingIds = new Set(this.cache[filter].images.map(img => img.id));
+            const existingIds = new Set(this.cache[key].images.map(img => img.id));
 
             // Filter out duplicate images
             const newImages = images.filter(image => {
@@ -92,10 +113,10 @@ class FeedCacheManager {
             });
 
             // Add only new images to cache
-            this.cache[filter].images = [...this.cache[filter].images, ...newImages];
+            this.cache[key].images = [...this.cache[key].images, ...newImages];
 
             if (newImages.length > 0) {
-                console.log(`✅ CACHE: Added ${newImages.length} new images to ${filter} cache`);
+                console.log(`✅ CACHE: Added ${newImages.length} new images to ${key} cache`);
             }
         }
     }
@@ -137,17 +158,18 @@ class FeedCacheManager {
     }
 
     // Update pagination info
-    updatePagination(filter, page, hasMore) {
-        if (this.cache[filter]) {
-            console.log(`📊 CACHE: Updating pagination for ${filter}:`, {
-                oldPage: this.cache[filter].currentPage,
+    updatePagination(filter, page, hasMore, tags = []) {
+        const key = this.getCacheKey(filter, tags);
+        if (this.cache[key]) {
+            console.log(`📊 CACHE: Updating pagination for ${key}:`, {
+                oldPage: this.cache[key].currentPage,
                 newPage: page,
-                oldHasMore: this.cache[filter].hasMore,
+                oldHasMore: this.cache[key].hasMore,
                 newHasMore: hasMore
             });
 
-            this.cache[filter].currentPage = page;
-            this.cache[filter].hasMore = hasMore;
+            this.cache[key].currentPage = page;
+            this.cache[key].hasMore = hasMore;
         }
     }
 }

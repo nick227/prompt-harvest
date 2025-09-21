@@ -16,8 +16,16 @@ class UnifiedDrawerComponent {
 
     createDesktopDrawer() {
         const existingDrawer = document.getElementById('controls-drawer');
+
         if (existingDrawer) {
             this.desktopDrawer = existingDrawer;
+
+            // Setup close button for existing drawer (with small delay to ensure DOM is ready)
+            setTimeout(() => {
+                this.setupDrawerCloseButton();
+            }, 10);
+            this.createDesktopToggleButton();
+
             return;
         }
 
@@ -28,18 +36,135 @@ class UnifiedDrawerComponent {
 
         this.desktopDrawer.innerHTML = this.getDrawerContent();
 
+        // Setup close button inside drawer (with small delay to ensure DOM is ready)
+        setTimeout(() => {
+            this.setupDrawerCloseButton();
+        }, 10);
+
         // Insert before main content
         const main = document.querySelector('main');
+
         if (main) {
             main.parentNode.insertBefore(this.desktopDrawer, main);
+        }
+
+        this.createDesktopToggleButton();
+    }
+
+    setupDrawerCloseButton() {
+        const closeBtn = document.getElementById('desktop-drawer-close-btn');
+
+        if (closeBtn) {
+            console.log('✅ Desktop drawer close button found and event listener attached');
+            closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🔘 Desktop drawer close button clicked');
+                this.closeDesktopDrawer();
+            });
+        } else {
+            console.warn('⚠️ Desktop drawer close button not found!');
+        }
+    }
+
+    closeDesktopDrawer() {
+        console.log('🔘 closeDesktopDrawer() called');
+
+        if (!this.desktopDrawer) {
+            console.warn('⚠️ Desktop drawer not found in closeDesktopDrawer()');
+            return;
+        }
+
+        console.log('✅ Closing desktop drawer');
+        this.desktopDrawer.style.transform = 'translateX(-100%)';
+
+        // Update toggle button to show hamburger icon
+        if (this.desktopToggleButton) {
+            this.desktopToggleButton.innerHTML = `
+                <svg class="w-5 h-5 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            `;
+            this.desktopToggleButton.setAttribute('title', 'Open Controls Drawer');
+            console.log('✅ Toggle button updated to hamburger icon');
+        }
+    }
+
+    createDesktopToggleButton() {
+        // Check if toggle button already exists
+        const existingToggle = document.getElementById('desktop-drawer-toggle');
+
+        if (existingToggle) {
+            this.desktopToggleButton = existingToggle;
+
+            return;
+        }
+
+        // Create desktop toggle button
+        this.desktopToggleButton = document.createElement('button');
+        this.desktopToggleButton.id = 'desktop-drawer-toggle';
+        this.desktopToggleButton.className = 'fixed top-4 left-4 z-50 w-10 h-10 bg-gray-800/80 hover:bg-gray-700/80 ' +
+            'border border-gray-600 rounded-lg shadow-lg backdrop-blur-sm transition-all duration-200 ease-in-out desktop-only';
+        this.desktopToggleButton.setAttribute('aria-label', 'Toggle Controls Drawer');
+        this.desktopToggleButton.setAttribute('title', 'Toggle Controls Drawer');
+
+        // Add close icon (drawer is open by default)
+        this.desktopToggleButton.innerHTML = `
+            <svg class="w-5 h-5 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        `;
+
+        // Add click event listener
+        this.desktopToggleButton.addEventListener('click', () => {
+            this.toggleDesktopDrawer();
+        });
+
+        // Insert into body
+        document.body.appendChild(this.desktopToggleButton);
+
+        // Drawer is open by default - no initial hiding
+    }
+
+    toggleDesktopDrawer() {
+        if (!this.desktopDrawer) {
+            return;
+        }
+
+        const isHidden = this.desktopDrawer.style.transform === 'translateX(-100%)';
+
+        if (isHidden) {
+            // Open drawer
+            this.desktopDrawer.style.transform = 'translateX(0)';
+            this.desktopToggleButton.innerHTML = `
+                <svg class="w-5 h-5 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            `;
+            this.desktopToggleButton.setAttribute('title', 'Close Controls Drawer');
+        } else {
+            // Close drawer
+            this.desktopDrawer.style.transform = 'translateX(-100%)';
+            this.desktopToggleButton.innerHTML = `
+                <svg class="w-5 h-5 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            `;
+            this.desktopToggleButton.setAttribute('title', 'Open Controls Drawer');
         }
     }
 
     createMobileDrawer() {
         const existingOverlay = document.getElementById('mobile-controls-overlay');
+
         if (existingOverlay) {
             this.mobileOverlay = existingOverlay;
             this.mobileDrawer = document.getElementById('mobile-controls-drawer');
+
             return;
         }
 
@@ -63,6 +188,16 @@ class UnifiedDrawerComponent {
 
     getDrawerContent() {
         return `
+            <!-- Drawer Header with Close Button -->
+            <div class="flex items-center justify-between p-4 border-b border-gray-700 drawer-header">
+                <h2 class="text-xl font-semibold text-white">Controls</h2>
+                <button id="desktop-drawer-close-btn" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
             <div class="p-6">
                 ${this.getSearchSection()}
                 ${this.getProvidersSection()}
@@ -284,11 +419,10 @@ class UnifiedDrawerComponent {
                         <select id="${themeSelectId}"
                                 class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
                             <option value="default">🌙 Default Dark</option>
-                            <option value="professional">💼 Professional</option>
-                            <option value="discord">💬 Discord</option>
-                            <option value="apple">🍎 Apple</option>
+                            <option value="apple">🍎 Apple Light</option>
                             <option value="monokai">🎨 Monokai</option>
-                            <option value="highContrast">⚫ High Contrast</option>
+                            <option value="highcontrast">⚫ High Contrast</option>
+                            <option value="discord">💜 Discord</option>
                         </select>
                         <div class="text-xs text-gray-400 mt-2">
                             Themes instantly change all site colors
@@ -323,6 +457,7 @@ class UnifiedDrawerComponent {
     setupResponsiveBehavior() {
         window.addEventListener('resize', () => {
             const wasMobile = this.isMobile;
+
             this.isMobile = window.innerWidth <= 768;
 
             if (wasMobile !== this.isMobile) {
@@ -340,12 +475,26 @@ class UnifiedDrawerComponent {
         if (window.mobileControlsManager && typeof window.mobileControlsManager.setupResizeListener === 'function') {
             // Force re-initialization
             const wasMobile = !this.isMobile;
+
             if (wasMobile !== this.isMobile) {
                 if (this.isMobile) {
-                    window.mobileControlsManager.init();
+                    // Ensure mobile drawer exists before re-initializing mobile controls
+                    this.createMobileDrawer();
+                    window.mobileControlsManager.reinit();
                 } else {
                     window.mobileControlsManager.cleanup();
                 }
+            }
+        }
+
+        // Handle desktop toggle button visibility
+        if (this.desktopToggleButton) {
+            if (this.isMobile) {
+                // Hide desktop toggle button on mobile
+                this.desktopToggleButton.style.display = 'none';
+            } else {
+                // Show desktop toggle button on desktop
+                this.desktopToggleButton.style.display = 'block';
             }
         }
     }
@@ -365,8 +514,10 @@ class UnifiedDrawerComponent {
     syncFormControls() {
         // Sync checkboxes
         const desktopCheckboxes = this.desktopDrawer.querySelectorAll('input[type="checkbox"]');
+
         desktopCheckboxes.forEach(desktopCheckbox => {
             const mobileCheckbox = this.mobileDrawer.querySelector(`input[name="${desktopCheckbox.name}"]`);
+
             if (mobileCheckbox) {
                 mobileCheckbox.checked = desktopCheckbox.checked;
             }
@@ -374,8 +525,10 @@ class UnifiedDrawerComponent {
 
         // Sync selects
         const desktopSelects = this.desktopDrawer.querySelectorAll('select');
+
         desktopSelects.forEach(desktopSelect => {
             const mobileSelect = this.mobileDrawer.querySelector(`select[name="${desktopSelect.name}"], select[id="${desktopSelect.id}"]`);
+
             if (mobileSelect) {
                 mobileSelect.value = desktopSelect.value;
             }
@@ -383,8 +536,10 @@ class UnifiedDrawerComponent {
 
         // Sync inputs
         const desktopInputs = this.desktopDrawer.querySelectorAll('input[type="text"], input[type="number"]');
+
         desktopInputs.forEach(desktopInput => {
             const mobileInput = this.mobileDrawer.querySelector(`input[name="${desktopInput.name}"], input[id="${desktopInput.id}"]`);
+
             if (mobileInput) {
                 mobileInput.value = desktopInput.value;
             }
@@ -393,6 +548,7 @@ class UnifiedDrawerComponent {
         // Sync theme select
         const desktopThemeSelect = document.getElementById('theme-select');
         const mobileThemeSelect = document.getElementById('mobile-theme-select');
+
         if (desktopThemeSelect && mobileThemeSelect) {
             mobileThemeSelect.value = desktopThemeSelect.value;
         }
@@ -419,6 +575,7 @@ class UnifiedDrawerComponent {
     // Method to get all form values from either drawer
     getFormValues(variant = 'desktop') {
         const drawer = variant === 'mobile' ? this.mobileDrawer : this.desktopDrawer;
+
         if (!drawer) {
             return {};
         }
@@ -427,18 +584,21 @@ class UnifiedDrawerComponent {
 
         // Get checkbox values
         const checkboxes = drawer.querySelectorAll('input[type="checkbox"]');
+
         checkboxes.forEach(checkbox => {
             values[checkbox.name] = checkbox.checked;
         });
 
         // Get select values
         const selects = drawer.querySelectorAll('select');
+
         selects.forEach(select => {
             values[select.name || select.id] = select.value;
         });
 
         // Get input values
         const inputs = drawer.querySelectorAll('input[type="text"], input[type="number"]');
+
         inputs.forEach(input => {
             values[input.name || input.id] = input.value;
         });
@@ -449,12 +609,14 @@ class UnifiedDrawerComponent {
     // Method to set form values in either drawer
     setFormValues(values, variant = 'desktop') {
         const drawer = variant === 'mobile' ? this.mobileDrawer : this.desktopDrawer;
+
         if (!drawer) {
             return;
         }
 
         Object.keys(values).forEach(key => {
             const element = drawer.querySelector(`[name="${key}"], #${key}`);
+
             if (element) {
                 if (element.type === 'checkbox') {
                     element.checked = values[key];
@@ -480,7 +642,6 @@ class UnifiedDrawerComponent {
 
     // Method to update provider list in both drawers
     updateProviderList(html) {
-        const desktopProviderList = document.getElementById('provider-list');
         const mobileProviderList = document.getElementById('mobile-provider-list');
 
         // Only update mobile provider list to avoid losing desktop event listeners

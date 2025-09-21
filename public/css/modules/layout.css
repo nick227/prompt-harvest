@@ -67,58 +67,42 @@
 .prompt-output {
     width: 100%;
     min-height: 200px;
-    position: relative;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     position: relative;
 }
 
-.prompt-output::after {
-    content: 'LOADING...';
+.loading-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
     width: 100%;
     height: 100%;
-    background: var(--color-background);
-    align-items: flex-start;
-    justify-content: flex-start;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--color-gray-100);
     z-index: 9999;
-    pointer-events: none;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    border: none;
-    outline: none;
-    display: none;
-    animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+.loading-overlay::after {
+    position: absolute;
+    z-index: 99999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--color-primary);
+    background: var(--color-surface-primary);
+    content: 'Loading...';
 }
 
 @keyframes fadeOut {
     from {
         opacity: 1;
     }
+
     to {
         opacity: 0;
     }
-}
-
-
-.prompt-output.loading::after {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-/* Ensure proper spacing and visibility */
-.prompt-output * {
-    box-sizing: border-box;
 }
 
 /* List wrapper - applied to the container */
@@ -283,8 +267,8 @@
     display: flex;
     align-items: stretch;
     gap: 1rem;
-    background: rgba(31, 41, 55, 0.8);
-    border: 1px solid rgba(75, 85, 99, 0.3);
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
     border-radius: 8px;
     min-height: 120px;
     width: 100%;
@@ -336,7 +320,7 @@
 .list-content .metadata-label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--color-gray-400);
+    color: var(--color-text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     white-space: nowrap;
@@ -346,7 +330,7 @@
 
 .list-content .metadata-value {
     font-size: 0.875rem;
-    color: var(--color-gray-200);
+    color: var(--color-text-secondary);
     word-break: break-word;
     line-height: 1.4;
     padding: 0.25rem 0;
@@ -364,7 +348,7 @@
     align-items: center;
 }
 
-.list-tags-container > span {
+.list-tags-container>span {
     height: 25px;
     white-space: nowrap;
 }
@@ -373,7 +357,7 @@
 .list-content .list-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: var(--color-gray-200);
+    color: var(--color-text-primary);
     margin: 0 0 0.5rem 0;
     line-height: 1.3;
     grid-column: 1 / -1;
@@ -385,7 +369,7 @@
 
 .list-content .list-prompt-section {
     font-size: 0.875rem;
-    color: var(--color-gray-400);
+    color: var(--color-text-tertiary);
     margin: 0 0 0.75rem 0;
     line-height: 1.4;
     grid-column: 1 / -1;
@@ -664,4 +648,3 @@
 .prompt-output li.selected .image-wrapper {
     border: 2px solid var(--color-primary);
 }
-

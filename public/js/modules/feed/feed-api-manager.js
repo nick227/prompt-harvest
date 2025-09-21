@@ -13,8 +13,9 @@ class FeedAPIManager {
     }
 
     // Load feed images for specific filter with deduplication
-    async loadFeedImages(filter, page = 1) {
-        const requestKey = `${filter}-${page}`;
+    async loadFeedImages(filter, page = 1, tags = []) {
+        const tagsKey = tags.length > 0 ? `-tags-${tags.join(',')}` : '';
+        const requestKey = `${filter}-${page}${tagsKey}`;
 
         // Check if request is already in progress
         if (FeedAPIManager.activeRequests.has(requestKey)) {
@@ -30,7 +31,7 @@ class FeedAPIManager {
         }
 
         // Create new request
-        const requestPromise = this.makeFeedRequest(filter, page);
+        const requestPromise = this.makeFeedRequest(filter, page, tags);
         FeedAPIManager.activeRequests.set(requestKey, requestPromise);
 
         try {
@@ -47,7 +48,7 @@ class FeedAPIManager {
     }
 
     // Make the actual feed request
-    async makeFeedRequest(filter, page) {
+    async makeFeedRequest(filter, page, tags = []) {
         try {
             // Use the correct endpoint based on filter
             let url;
@@ -58,7 +59,15 @@ class FeedAPIManager {
                 url = `/api/feed/site?page=${page}`;
             }
 
-            console.log(`🌐 FEED: Making request to ${url}`);
+            // Add tag parameters if provided
+            if (tags && tags.length > 0) {
+                const tagsParam = tags.join(',');
+                url += `&tags=${encodeURIComponent(tagsParam)}`;
+            }
+
+            if (window.DEBUG_MODE) {
+                console.log(`🌐 FEED: Making request to ${url} for filter: ${filter}`, tags.length > 0 ? `with tags: ${tags.join(', ')}` : '');
+            }
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -96,7 +105,12 @@ class FeedAPIManager {
                 success: data.success !== false
             };
 
-            console.log(`🔍 FEED: Returning result:`, result);
+            if (window.DEBUG_MODE) {
+                console.log(`🔍 FEED: Returning result for ${filter}:`, {
+                    imageCount: result.images.length,
+                    sampleImages: result.images.slice(0, 2).map(img => ({ id: img.id, isPublic: img.isPublic, userId: img.userId }))
+                });
+            }
             return result;
         } catch (error) {
             console.error(`❌ FEED: Error loading feed images:`, error);
@@ -152,8 +166,8 @@ class FeedAPIManager {
     }
 
     // Load more images for pagination
-    async loadMoreImages(filter, page) {
-        return this.loadFeedImages(filter, page);
+    async loadMoreImages(filter, page, tags = []) {
+        return this.loadFeedImages(filter, page, tags);
     }
 
     // Get current user info
