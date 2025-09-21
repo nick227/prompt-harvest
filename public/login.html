@@ -19,7 +19,6 @@
     <script src="js/core/api-service.js"></script>
     <script src="js/core/user-system.js"></script>
     <script src="js/shared/auth-messaging.js"></script>
-    <script src="js/auth-forms.js"></script>
 
     <script>
         tailwind.config = {
@@ -268,6 +267,37 @@
             }
         }
 
+        // Form submission handler
+        function setupFormHandlers() {
+            const loginBtn = document.getElementById('loginSubmitBtn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+
+                    if (!window.userSystem) {
+                        console.error('UserSystem not available');
+                        return;
+                    }
+
+                    const email = document.getElementById('loginEmail').value.trim();
+                    const password = document.getElementById('loginPassword').value;
+
+                    if (!email || !password) {
+                        if (window.authMessaging) {
+                            window.authMessaging.showError('Please fill in all fields');
+                        }
+                        return;
+                    }
+
+                    try {
+                        await window.userSystem.login(email, password);
+                    } catch (error) {
+                        console.error('Login failed:', error);
+                    }
+                });
+            }
+        }
+
         // Initialize password toggle and Google login
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🔐 LOGIN: Setting up password toggle...');
@@ -278,6 +308,9 @@
 
             console.log('🔐 LOGIN: Handling Google callback...');
             handleGoogleCallback();
+
+            console.log('🔐 LOGIN: Setting up form handlers...');
+            setupFormHandlers();
         });
 
         // Check if user is already authenticated (redirect to homepage if so)
@@ -290,8 +323,7 @@
         setTimeout(() => {
             console.log('🔐 LOGIN: System status check:', {
                 userSystem: !!window.userSystem,
-                authMessaging: !!window.authMessaging,
-                authFormsHandler: !!window.authFormsHandler
+                authMessaging: !!window.authMessaging
             });
         }, 1000);
     </script>

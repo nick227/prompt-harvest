@@ -228,11 +228,11 @@ class UserSystem {
 
                 if (userData) {
                     this.setUser(userData);
-                    this.showSuccessMessage('Login successful! Redirecting...');
+                    // this.showSuccessMessage('Login successful! Redirecting...');
 
                     setTimeout(() => {
                         window.location.href = '/';
-                    }, 1500);
+                    }, 300);
 
                     return { success: true, user: userData };
                 } else {
@@ -258,7 +258,7 @@ class UserSystem {
             await window.userApi.logout();
             this.setUser(null);
 
-            this.showSuccessMessage('Logged out successfully');
+            // this.showSuccessMessage('Logged out successfully');
             setTimeout(() => {
                 window.location.href = '/';
             }, 1000);
@@ -281,19 +281,17 @@ class UserSystem {
 
             const response = await window.userApi.register(email, password, confirmPassword);
 
-            console.log('🔐 USER-SYSTEM: Raw registration response:', response);
-
             // Check if registration was successful (no error field means success)
             if (!response.error && !response.message?.includes('already exists')) {
                 const userData = response.data?.user || response.user || response;
 
                 if (userData) {
                     this.setUser(userData);
-                    this.showSuccessMessage('Registration successful! Redirecting...');
+                    // this.showSuccessMessage('Registration successful! Redirecting...');
 
                     setTimeout(() => {
                         window.location.href = '/';
-                    }, 1500);
+                    }, 300);
 
                     return { success: true, user: userData };
                 } else {
@@ -342,9 +340,11 @@ class UserSystem {
         }
 
         // Fallback validation
-        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        const emailRegex = new RegExp(
+            '^(([^<>()[\\]\\\\.,;:\\s@"]+(\\.[^<>()[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
+        );
 
-        return re.test(String(email).toLowerCase());
+        return emailRegex.test(String(email).toLowerCase());
     }
 
     checkPasswordStrength(password) {
@@ -499,7 +499,9 @@ class UserSystem {
         const form = document.getElementById(`${type}Form`);
 
         if (form) {
-            const submitBtn = form.querySelector('button[type="submit"]');
+            // Try both submit and button types for compatibility
+            const submitBtn = form.querySelector('button[type="submit"]') ||
+                             form.querySelector(`#${type}SubmitBtn`);
 
             if (submitBtn) {
                 submitBtn.disabled = true;
@@ -514,7 +516,9 @@ class UserSystem {
         const form = document.getElementById(`${type}Form`);
 
         if (form) {
-            const submitBtn = form.querySelector('button[type="submit"]');
+            // Try both submit and button types for compatibility
+            const submitBtn = form.querySelector('button[type="submit"]') ||
+                             form.querySelector(`#${type}SubmitBtn`);
 
             if (submitBtn) {
                 submitBtn.disabled = false;
@@ -538,11 +542,20 @@ class UserSystem {
     }
 
     showMessage(message, type = 'info') {
-        // Use the new notification service if available
-        if (window.notificationService) {
+        // Use authMessaging for login/register forms if available
+        if (window.authMessaging) {
+            if (type === 'success') {
+                window.authMessaging.showSuccess(message);
+            } else if (type === 'error') {
+                window.authMessaging.showError(message);
+            } else {
+                window.authMessaging.showLoading(message);
+            }
+        } else if (window.notificationService) {
+            // Fallback to notification service
             window.notificationService.show(message, type);
         } else {
-            // Fallback to console logging
+            // Final fallback to console logging
             console.log(`Message: ${message}`);
         }
     }

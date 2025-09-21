@@ -19,7 +19,6 @@
     <script src="js/core/api-service.js"></script>
     <script src="js/core/user-system.js"></script>
     <script src="js/shared/auth-messaging.js"></script>
-    <script src="js/auth-forms.js"></script>
 
     <script>
         tailwind.config = {
@@ -271,6 +270,38 @@
             }
         }
 
+        // Form submission handler
+        function setupFormHandlers() {
+            const registerBtn = document.getElementById('registerSubmitBtn');
+            if (registerBtn) {
+                registerBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+
+                    if (!window.userSystem) {
+                        console.error('UserSystem not available');
+                        return;
+                    }
+
+                    const email = document.getElementById('registerEmail').value.trim();
+                    const password = document.getElementById('registerPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+
+                    if (!email || !password || !confirmPassword) {
+                        if (window.authMessaging) {
+                            window.authMessaging.showError('Please fill in all fields');
+                        }
+                        return;
+                    }
+
+                    try {
+                        await window.userSystem.register(email, password, confirmPassword);
+                    } catch (error) {
+                        console.error('Registration failed:', error);
+                    }
+                });
+            }
+        }
+
         // Initialize password toggles and Google login
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🔐 REGISTER: Setting up password toggles...');
@@ -282,10 +313,13 @@
 
             console.log('🔐 REGISTER: Handling Google callback...');
             handleGoogleCallback();
+
+            console.log('🔐 REGISTER: Setting up form handlers...');
+            setupFormHandlers();
         });
 
         // Check if user is already authenticated (redirect to homepage if so)
-        if (window.authComponent && window.authComponent.isAuthenticated()) {
+        if (window.userSystem && window.userSystem.isAuthenticated()) {
             console.log('🔐 REGISTER: User already authenticated, redirecting to homepage');
             window.location.href = '/';
         }
@@ -294,8 +328,7 @@
         setTimeout(() => {
             console.log('🔐 REGISTER: System status check:', {
                 userSystem: !!window.userSystem,
-                authMessaging: !!window.authMessaging,
-                authFormsHandler: !!window.authFormsHandler
+                authMessaging: !!window.authMessaging
             });
         }, 1000);
 
