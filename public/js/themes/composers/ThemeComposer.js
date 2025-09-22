@@ -4,11 +4,11 @@
  */
 class ThemeComposer {
     constructor() {
-        console.log('🎨 ThemeComposer: Initializing...');
+        // console.log('🎨 ThemeComposer: Initializing...');
         this.paletteManager = new ColorPaletteManager();
         this.themeDefinitions = new Map();
         this.initializeThemeDefinitions();
-        console.log(`✅ ThemeComposer: Initialized with ${this.themeDefinitions.size} theme definitions`);
+        // console.log(`✅ ThemeComposer: Initialized with ${this.themeDefinitions.size} theme definitions`);
     }
 
     /**
@@ -73,7 +73,7 @@ class ThemeComposer {
      */
     registerThemeDefinition(name, definition) {
         this.themeDefinitions.set(name, definition);
-        console.log(`✅ Theme definition registered: ${name}`);
+        // console.log(`✅ Theme definition registered: ${name}`);
     }
 
     /**
@@ -85,7 +85,7 @@ class ThemeComposer {
             throw new Error(`Theme definition '${themeName}' not found`);
         }
 
-        console.log(`🏗️ Building theme: ${themeName}`);
+        // console.log(`🏗️ Building theme: ${themeName}`);
 
         // Get the comprehensive theme palette
         const themePalette = this.paletteManager.getPalette('theme', definition.palettes.theme);
@@ -109,7 +109,7 @@ class ThemeComposer {
             }
         };
 
-        console.log(`✅ Theme built: ${theme.name} with ${Object.keys(themePalette).length} color variables`);
+        // console.log(`✅ Theme built: ${theme.name} with ${Object.keys(themePalette).length} color variables`);
         return theme;
     }
 

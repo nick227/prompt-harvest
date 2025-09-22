@@ -1,4 +1,3 @@
-/* global PromptHistoryService */
 // Debug mode configuration - set to true for verbose logging
 window.DEBUG_MODE = false; // Set to true to enable debug logging
 
@@ -20,7 +19,7 @@ class AppLoader {
         try {
             await this.loadCore();
             await this.loadModules();
-            this.initializeApp();
+            await this.initializeApp();
             this.initialized = true;
         } catch (error) {
             console.error('❌ App initialization failed:', error);
@@ -106,8 +105,8 @@ class AppLoader {
         }
     }
 
-    initializeApp() {
-        this.initializeManagers();
+    async initializeApp() {
+        await this.initializeManagers();
         this.setupAutoGeneration();
         this.initializeComponents();
         this.setupFeed();
@@ -116,10 +115,34 @@ class AppLoader {
 
     initializePromptHistory() {
         try {
-            console.log('🔍 APP: Initializing prompt history service');
+            // Check if PromptHistoryService is available, if not wait a bit and try again
+            if (typeof window.PromptHistoryService === 'undefined') {
+                // Only log warning on first few attempts to avoid spam
+                if (!this.promptHistoryRetryCount) {
+                    this.promptHistoryRetryCount = 0;
+                }
+
+                this.promptHistoryRetryCount++;
+
+                // Only show warning for first 3 attempts
+                if (this.promptHistoryRetryCount <= 3) {
+                    console.warn('⚠️ APP: PromptHistoryService not available, retrying in 100ms...');
+                }
+
+                // Stop retrying after 50 attempts (5 seconds)
+                if (this.promptHistoryRetryCount > 50) {
+                    console.error('❌ APP: PromptHistoryService failed to load after 50 attempts');
+
+                    return;
+                }
+
+                setTimeout(() => this.initializePromptHistory(), 100);
+
+                return;
+            }
 
             // Create and initialize the prompt history service
-            window.promptHistoryService = new PromptHistoryService();
+            window.promptHistoryService = new window.PromptHistoryService();
             window.promptHistoryService.init('prompt-history');
             window.promptHistoryService.initMobile();
 
@@ -129,15 +152,17 @@ class AppLoader {
         }
     }
 
-    initializeManagers() {
+    async initializeManagers() {
         const managers = [
             'textAreaManager', 'feedManager', 'guidanceManager', 'ratingManager',
             'statsManager', 'searchManager', 'imagesManager'
         ];
 
-        managers.forEach(managerName => {
-
-            if (window[managerName]?.init) {
+        for (const managerName of managers) {
+            if (managerName === 'feedManager') {
+                // Special handling for feedManager - wait for it to be ready
+                await this.waitForFeedManager();
+            } else if (window[managerName]?.init) {
                 try {
                     window[managerName].init();
                 } catch (error) {
@@ -146,7 +171,34 @@ class AppLoader {
             } else {
                 console.warn(`⚠️ APP: Manager ${managerName} not available or has no init method`);
             }
-        });
+        }
+    }
+
+    async waitForFeedManager(maxRetries = 10, retryDelay = 100) {
+        let retries = 0;
+
+        while (retries < maxRetries) {
+            if (window.feedManager?.init) {
+                try {
+                    await window.feedManager.init();
+                    console.log('✅ APP: FeedManager initialized successfully');
+
+                    return;
+                } catch (error) {
+                    console.error('❌ APP: Error initializing FeedManager:', error);
+
+                    return;
+                }
+            }
+
+            retries++;
+            if (retries < maxRetries) {
+                console.log(`⏳ APP: Waiting for FeedManager (attempt ${retries}/${maxRetries})...`);
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
+            }
+        }
+
+        console.warn('⚠️ APP: FeedManager not available after waiting, skipping initialization');
     }
 
     initializeComponents() {
@@ -179,15 +231,34 @@ class AppLoader {
 
     async setupFeed() {
         // Setup feed to load initial images with retry logic
-        const maxRetries = 1;
+        const maxRetries = 3;
         let retries = 0;
 
         const trySetupFeed = async () => {
-            if (window.feedManager && window.feedManager.setupFeed) {
+            if (window.feedManager) {
                 try {
-                    await window.feedManager.setupFeed();
+                    // Check if feed is already loaded by looking at the cache
+                    if (window.feedManager.cacheManager && window.feedManager.cacheManager.getCache) {
+                        const siteCache = window.feedManager.cacheManager.getCache('site');
 
-                    return true;
+                        if (siteCache && siteCache.isLoaded) {
+                            // console.log('✅ APP: Feed already loaded, skipping setup');
+
+                            return true;
+                        }
+                    }
+
+                    // Check if setupFeed method exists
+                    if (window.feedManager.setupFeed) {
+                        await window.feedManager.setupFeed();
+                        // console.log('✅ APP: Feed setup completed successfully');
+
+                        return true;
+                    } else {
+                        // console.log('✅ APP: Feed manager available but no setupFeed method needed');
+
+                        return true;
+                    }
                 } catch (error) {
                     console.error('❌ APP: Failed to setup feed:', error);
 
@@ -195,6 +266,8 @@ class AppLoader {
                 }
             } else {
                 console.warn('⚠️ APP: Feed manager not available for setup (attempt', retries + 1, ')');
+                console.warn('⚠️ APP: window.feedManager exists:', !!window.feedManager);
+                console.warn('⚠️ APP: window.FeedManager exists:', !!window.FeedManager);
 
                 return false;
             }
@@ -209,7 +282,7 @@ class AppLoader {
 
             retries++;
             if (retries < maxRetries) {
-                console.log('🔄 APP: Retrying feed setup in 500ms...');
+                // console.log('🔄 APP: Retrying feed setup in 500ms...');
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
         }
@@ -232,8 +305,6 @@ class AppLoader {
             console.error('❌ APP: Feed manager not available for manual load');
         }
     }
-
-
 
 
     setupAutoGeneration() {
@@ -266,7 +337,7 @@ class AppLoader {
         // Add event listener for checkbox changes
         autoGenerateCheckbox.addEventListener('change', updateMaxNumState);
 
-        console.log('✅ AUTO-GENERATE: Setup completed - maxNum input disabled by default');
+        // console.log('✅ AUTO-GENERATE: Setup completed - maxNum input disabled by default');
     }
 
     stopAutoGeneration() {
@@ -389,7 +460,12 @@ document.addEventListener('DOMContentLoaded', async() => {
     // Initialize global tag router
     if (window.TagRouter) {
         window.tagRouter = new window.TagRouter();
-        console.log('✅ TAG ROUTER: Global tag router initialized');
+        // console.log('✅ TAG ROUTER: Global tag router initialized');
+
+        // Connect feed manager to tag router if it's already initialized
+        if (window.feedManager && window.feedManager.connectTagRouter) {
+            window.feedManager.connectTagRouter();
+        }
     } else {
         console.warn('⚠️ TAG ROUTER: TagRouter not available');
     }

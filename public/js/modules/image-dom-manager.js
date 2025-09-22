@@ -277,6 +277,13 @@ class ImageDOMManager {
             return imageData;
         }
 
+        // Check if image already exists in DOM (might have been added via loading placeholder replacement)
+        const existingImage = document.querySelector(`[data-image-id="${imageData.id}"]`);
+        if (existingImage) {
+            console.log('✅ DOM INSERT: Image already exists in DOM, skipping fallback');
+            return imageData;
+        }
+
         console.log('⚠️ DOM INSERT: Feed manager failed to add image, falling back to simple method');
 
         return this.addViaSimpleMethod(imageData);

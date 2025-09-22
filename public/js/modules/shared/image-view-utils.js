@@ -307,51 +307,60 @@ class ImageViewUtils {
             metadata.innerHTML = '';
         }
 
-        // Add provider
-        const provider = document.createElement('span');
+        // Create metadata rows for grid layout
+        const createMetadataRow = (label, value, className = '') => {
+            const row = document.createElement('div');
+            row.className = `metadata-row ${className}`.trim();
 
-        provider.textContent = `${imageData.provider || 'Unknown'}`;
+            const labelElement = document.createElement('span');
+            labelElement.className = 'metadata-label';
+            labelElement.textContent = label;
 
-        // Add guidance if available
-        const guidance = document.createElement('span');
+            const valueElement = document.createElement('span');
+            valueElement.className = 'metadata-value';
+            valueElement.textContent = value;
 
-        guidance.textContent = `Guidance: ${imageData.guidance || 'N/A'}`;
+            row.appendChild(labelElement);
+            row.appendChild(valueElement);
 
-        // Add status
-        const status = document.createElement('span');
+            return row;
+        };
 
-        status.textContent = imageData.isPublic ? 'Public' : 'Private';
-        status.style.color = imageData.isPublic ? '#10b981' : '#f59e0b';
+        // Add provider row
+        const providerRow = createMetadataRow('Provider', imageData.provider || 'Unknown');
+        metadata.appendChild(providerRow);
 
-        // Add date
-        const date = document.createElement('span');
+        // Add guidance row
+        const guidanceRow = createMetadataRow('Guidance', imageData.guidance || 'N/A');
+        metadata.appendChild(guidanceRow);
 
-        if (imageData.createdAt) {
-            const dateObj = new Date(imageData.createdAt);
+        // Add status row
+        const statusRow = createMetadataRow('Status', imageData.isPublic ? 'Public' : 'Private');
+        const statusValue = statusRow.querySelector('.metadata-value');
+        statusValue.style.color = imageData.isPublic ? '#10b981' : '#f59e0b';
+        metadata.appendChild(statusRow);
 
-            date.textContent = `Created: ${dateObj.toLocaleDateString()}`;
-        } else {
-            date.textContent = 'Created: Just now';
-        }
+        // Add date row
+        const dateText = imageData.createdAt ?
+            new Date(imageData.createdAt).toLocaleDateString() :
+            'Just now';
+        const dateRow = createMetadataRow('Created', dateText);
+        metadata.appendChild(dateRow);
 
-        // Add rating if available
-        const rating = document.createElement('span');
-
-        rating.textContent = `Rating: ★ ${imageData.rating || 0}`;
+        // Add rating row
+        const ratingRow = createMetadataRow('Rating', `★ ${imageData.rating || 0}`);
+        metadata.appendChild(ratingRow);
 
         // Add rating buttons if available
         if (window.RatingButtons) {
             const ratingButtons = new window.RatingButtons(imageData.id, imageData.rating);
             const buttonsContainer = ratingButtons.createRatingButtons();
-            rating.appendChild(buttonsContainer);
+            const buttonsRow = createMetadataRow('Rate', '');
+            const buttonsValue = buttonsRow.querySelector('.metadata-value');
+            buttonsValue.innerHTML = '';
+            buttonsValue.appendChild(buttonsContainer);
+            metadata.appendChild(buttonsRow);
         }
-
-        // Append all metadata elements
-        metadata.appendChild(provider);
-        metadata.appendChild(guidance);
-        metadata.appendChild(status);
-        metadata.appendChild(date);
-        metadata.appendChild(rating);
 
         // Add tags if available
         if (imageData.tags && Array.isArray(imageData.tags) && imageData.tags.length > 0) {
@@ -740,9 +749,9 @@ class ImageViewUtils {
                 }
 
                 // Update metadata rating display (the one with rating buttons)
-                const metadataRatingElement = listView.querySelector('span');
-                if (metadataRatingElement && metadataRatingElement.textContent.includes('Rating:')) {
-                    metadataRatingElement.textContent = `Rating: ★ ${updates.rating || 0}`;
+                const metadataRatingElement = listView.querySelector('.metadata-value');
+                if (metadataRatingElement && metadataRatingElement.textContent.includes('★')) {
+                    metadataRatingElement.textContent = `★ ${updates.rating || 0}`;
 
                     // Update rating buttons if they exist
                     const ratingButtons = metadataRatingElement.querySelector('.rating-buttons');
@@ -757,11 +766,15 @@ class ImageViewUtils {
             }
 
             if (updates.isPublic !== undefined) {
-                const statusElement = listView.querySelector('.list-metadata span[style*="color:"]');
-
-                if (statusElement) {
-                    statusElement.textContent = updates.isPublic ? 'Public' : 'Private';
-                    statusElement.style.color = updates.isPublic ? '#10b981' : '#f59e0b';
+                // Find the status row and update its value
+                const statusRow = listView.querySelector('.metadata-row');
+                if (statusRow) {
+                    const statusLabel = statusRow.querySelector('.metadata-label');
+                    const statusValue = statusRow.querySelector('.metadata-value');
+                    if (statusLabel && statusLabel.textContent === 'Status' && statusValue) {
+                        statusValue.textContent = updates.isPublic ? 'Public' : 'Private';
+                        statusValue.style.color = updates.isPublic ? '#10b981' : '#f59e0b';
+                    }
                 }
             }
         }

@@ -28,7 +28,7 @@ class TagRouter {
             const tagParam = urlParams.get('tag');
 
             if (tagParam) {
-                console.log(`🏷️ TAG ROUTER: Initial tag parameter found: ${tagParam}`);
+                // console.log(`🏷️ TAG ROUTER: Initial tag parameter found: ${tagParam}`);
                 this.setActiveTags([tagParam]);
                 // Notify listeners about initial tag state
                 this.notifyListeners();
@@ -52,20 +52,19 @@ class TagRouter {
 
     /**
      * Set active tags and update URL
-     * @param {Array} tags - Array of tag strings
+     * @param {Array<string>} tags - Array of tag names
      */
     setActiveTags(tags) {
-        this.currentTags = Array.isArray(tags) ? tags : [];
+        this.currentTags = tags || [];
         this.updateURL();
-        this.notifyListeners();
     }
 
     /**
-     * Add a tag to current active tags
+     * Add a tag to active tags
      * @param {string} tag - Tag to add
      */
     addTag(tag) {
-        if (tag && !this.currentTags.includes(tag)) {
+        if (!this.currentTags.includes(tag)) {
             this.currentTags.push(tag);
             this.updateURL();
             this.notifyListeners();
@@ -73,7 +72,7 @@ class TagRouter {
     }
 
     /**
-     * Remove a tag from current active tags
+     * Remove a tag from active tags
      * @param {string} tag - Tag to remove
      */
     removeTag(tag) {
@@ -82,6 +81,18 @@ class TagRouter {
             this.currentTags.splice(index, 1);
             this.updateURL();
             this.notifyListeners();
+        }
+    }
+
+    /**
+     * Toggle a tag (add if not present, remove if present)
+     * @param {string} tag - Tag to toggle
+     */
+    toggleTag(tag) {
+        if (this.currentTags.includes(tag)) {
+            this.removeTag(tag);
+        } else {
+            this.addTag(tag);
         }
     }
 
@@ -96,7 +107,7 @@ class TagRouter {
 
     /**
      * Get current active tags
-     * @returns {Array} Current active tags
+     * @returns {Array<string>} Array of active tag names
      */
     getActiveTags() {
         return [...this.currentTags];
@@ -112,23 +123,20 @@ class TagRouter {
     }
 
     /**
-     * Update browser URL with current tags
+     * Update URL with current tags
      */
     updateURL() {
         try {
             const url = new URL(window.location);
 
             if (this.currentTags.length > 0) {
-                // Use first tag for single tag parameter
-                url.searchParams.set('tag', this.currentTags[0]);
+                url.searchParams.set('tag', this.currentTags.join(','));
             } else {
                 url.searchParams.delete('tag');
             }
 
             // Update URL without triggering page reload
-            window.history.replaceState({}, '', url);
-
-            console.log(`🏷️ TAG ROUTER: URL updated with tags:`, this.currentTags);
+            window.history.pushState({}, '', url);
         } catch (error) {
             console.warn('⚠️ TAG ROUTER: Error updating URL:', error);
         }
@@ -136,19 +144,21 @@ class TagRouter {
 
     /**
      * Subscribe to tag changes
-     * @param {string} id - Unique identifier for the listener
+     * @param {string} listenerId - Unique identifier for the listener
      * @param {Function} callback - Callback function to call when tags change
      */
-    subscribe(id, callback) {
-        this.listeners.set(id, callback);
+    subscribe(listenerId, callback) {
+        this.listeners.set(listenerId, callback);
+        // console.log(`🏷️ TAG ROUTER: Subscribed listener ${listenerId}, total listeners: ${this.listeners.size}`);
     }
 
     /**
      * Unsubscribe from tag changes
-     * @param {string} id - Listener identifier to remove
+     * @param {string} listenerId - Unique identifier for the listener
      */
-    unsubscribe(id) {
-        this.listeners.delete(id);
+    unsubscribe(listenerId) {
+        this.listeners.delete(listenerId);
+        // console.log(`🏷️ TAG ROUTER: Unsubscribed listener ${listenerId}, total listeners: ${this.listeners.size}`);
     }
 
     /**
@@ -156,45 +166,54 @@ class TagRouter {
      */
     notifyListeners() {
         const tags = this.getActiveTags();
-        console.log(`🏷️ TAG ROUTER: Notifying ${this.listeners.size} listeners with tags:`, tags);
-        this.listeners.forEach((callback, id) => {
+        // console.log(`🏷️ TAG ROUTER: Notifying ${this.listeners.size} listeners of tag change:`, tags);
+
+        this.listeners.forEach((callback, listenerId) => {
             try {
-                console.log(`🏷️ TAG ROUTER: Calling listener: ${id}`);
-                callback(tags);
+                callback(tags, listenerId);
             } catch (error) {
-                console.error(`❌ TAG ROUTER: Error in listener ${id}:`, error);
+                console.error(`❌ TAG ROUTER: Error in listener ${listenerId}:`, error);
             }
         });
     }
 
     /**
-     * Get URL for a specific tag
-     * @param {string} tag - Tag to create URL for
-     * @returns {string} URL with tag parameter
+     * Get URL string with current tags
+     * @returns {string} URL string with tag parameters
      */
-    getTagURL(tag) {
+    getURLString() {
         const url = new URL(window.location);
-        url.searchParams.set('tag', tag);
+
+        if (this.currentTags.length > 0) {
+            url.searchParams.set('tag', this.currentTags.join(','));
+        } else {
+            url.searchParams.delete('tag');
+        }
+
         return url.toString();
     }
 
     /**
-     * Get URL without any tag parameters
-     * @returns {string} URL without tag parameters
+     * Navigate to a new URL with tags
+     * @param {string} baseUrl - Base URL (optional, defaults to current location)
+     * @param {Array<string>} tags - Tags to set
      */
-    getClearURL() {
-        const url = new URL(window.location);
-        url.searchParams.delete('tag');
-        return url.toString();
+    navigateWithTags(baseUrl = window.location.pathname, tags = []) {
+        try {
+            const url = new URL(baseUrl, window.location.origin);
+
+            if (tags.length > 0) {
+                url.searchParams.set('tag', tags.join(','));
+            }
+
+            window.location.href = url.toString();
+        } catch (error) {
+            console.warn('⚠️ TAG ROUTER: Error navigating with tags:', error);
+        }
     }
 }
 
 // Export for global access
 if (typeof window !== 'undefined') {
     window.TagRouter = TagRouter;
-}
-
-// Export for module systems
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = TagRouter;
 }

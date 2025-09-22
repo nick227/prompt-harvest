@@ -56,7 +56,7 @@ class UnifiedDrawerComponent {
 
         if (closeBtn) {
             console.log('✅ Desktop drawer close button found and event listener attached');
-            closeBtn.addEventListener('click', (e) => {
+            closeBtn.addEventListener('click', e => {
                 e.preventDefault();
                 e.stopPropagation();
                 console.log('🔘 Desktop drawer close button clicked');
@@ -72,6 +72,7 @@ class UnifiedDrawerComponent {
 
         if (!this.desktopDrawer) {
             console.warn('⚠️ Desktop drawer not found in closeDesktopDrawer()');
+
             return;
         }
 
@@ -200,6 +201,7 @@ class UnifiedDrawerComponent {
 
             <div class="p-6">
                 ${this.getSearchSection()}
+                ${this.getFaqSection()}
                 ${this.getProvidersSection()}
                 ${this.getSettingsSection()}
                 ${this.getThemeSection()}
@@ -222,6 +224,7 @@ class UnifiedDrawerComponent {
 
             <!-- Mobile Controls Content -->
             <div class="p-6">
+                ${this.getFaqSection('mobile')}
                 ${this.getProvidersSection('mobile')}
                 ${this.getSettingsSection('mobile')}
                 ${this.getThemeSection('mobile')}
@@ -233,12 +236,9 @@ class UnifiedDrawerComponent {
     getSearchSection() {
         return `
             <div class="mb-8 max-sm:mb-4" data-section="search">
-                <div class="flex items-stretch gap-2 mb-4 max-sm:mb-2 w-full">
-                    <h3 class="text-lg font-semibold text-green-400 max-sm:text-base">Search</h3>
-                </div>
                 <div class="flex gap-2 sub-controls">
-                    <div class="search">
-                        <input type="text" name="image-search" placeholder="search"
+                    <div class="search w-full">
+                        <input type="text" name="image-search" placeholder="Search"
                             class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                 </div>
@@ -288,6 +288,15 @@ class UnifiedDrawerComponent {
                             <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-blue-400 transition-colors checkbox-custom"></div>
                         </div>
                         <span class="text-gray-200 group-hover:text-white transition-colors">Auto Download</span>
+                    </label>
+                </div>
+                <div class="${containerClass}">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative">
+                            <input type="checkbox" name="autoPublic" class="sr-only" />
+                            <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-blue-400 transition-colors checkbox-custom"></div>
+                        </div>
+                        <span class="text-gray-200 group-hover:text-white transition-colors">Auto Public</span>
                     </label>
                 </div>
                 <!-- Guidance Section -->
@@ -454,6 +463,28 @@ class UnifiedDrawerComponent {
         `;
     }
 
+    getFaqSection(variant = 'desktop') {
+        const sectionClass = variant === 'mobile' ? 'mb-8' : 'mb-8 max-sm:mb-4';
+        const titleClass = variant === 'mobile' ? 'text-lg font-semibold text-blue-400' : 'text-lg font-semibold text-blue-400 max-sm:text-base';
+        const titleContainerClass = variant === 'mobile' ? 'flex items-center gap-2 mb-4' : 'flex items-center gap-2 mb-4 max-sm:mb-2';
+        const containerClass = variant === 'mobile' ? 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50' : 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3';
+
+        return `
+            <div class="${sectionClass}" data-section="faq">
+                <div class="${titleContainerClass}">
+                    <h3 class="${titleClass}">Pages</h3>
+                </div>
+                <div class="${containerClass}">
+                    <div class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                        <a href="/" class="flex justify-between w-full">Home</a>
+                        <a href="/billing.html" class="flex justify-between w-full">Billing</a>
+                        <a href="/faq.html" class="flex justify-between w-full">FAQ</a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     setupResponsiveBehavior() {
         window.addEventListener('resize', () => {
             const wasMobile = this.isMobile;
@@ -559,7 +590,19 @@ class UnifiedDrawerComponent {
         const mobileProviderList = document.getElementById('mobile-provider-list');
 
         if (desktopProviderList && mobileProviderList) {
-            mobileProviderList.innerHTML = desktopProviderList.innerHTML;
+            // Instead of overwriting the entire HTML, sync individual checkbox states
+            // This preserves mobile event listeners and state
+            const desktopCheckboxes = desktopProviderList.querySelectorAll('input[name="providers"], input[id="all"]');
+            const mobileCheckboxes = mobileProviderList.querySelectorAll('input[name="providers"], input[id="all"]');
+
+            desktopCheckboxes.forEach(desktopCheckbox => {
+                const mobileCheckbox = mobileProviderList.querySelector(`input[name="${desktopCheckbox.name}"], input[id="${desktopCheckbox.id}"]`);
+
+                if (mobileCheckbox) {
+                    mobileCheckbox.checked = desktopCheckbox.checked;
+                    mobileCheckbox.indeterminate = desktopCheckbox.indeterminate;
+                }
+            });
         }
     }
 
@@ -647,8 +690,122 @@ class UnifiedDrawerComponent {
         // Only update mobile provider list to avoid losing desktop event listeners
         // Desktop provider list should be managed by the provider manager directly
         if (mobileProviderList) {
+            // Check if this is a mobile-initiated update (don't overwrite mobile HTML, but still sort)
+            const isMobileUpdate = window.mobileControlsManager && window.mobileControlsManager.isUpdatingFromMobile;
+
+            if (isMobileUpdate) {
+                console.log('🔄 UNIFIED DRAWER: Skipping mobile HTML update - mobile is managing its own state');
+
+                // Still trigger mobile sorting even if we skip HTML update
+                this.sortMobileProviderList();
+
+                return;
+            }
+
+            // Preserve current mobile checkbox states before updating
+            const currentStates = new Map();
+            const mobileCheckboxes = mobileProviderList.querySelectorAll('input[type="checkbox"]');
+
+            mobileCheckboxes.forEach(checkbox => {
+                currentStates.set(checkbox.name || checkbox.id, {
+                    checked: checkbox.checked,
+                    indeterminate: checkbox.indeterminate
+                });
+            });
+
+            console.log('🔄 UNIFIED DRAWER: Updating mobile provider list, preserving states:', currentStates);
+
+            // Update the HTML
             mobileProviderList.innerHTML = html;
+
+            // Restore the checkbox states
+            currentStates.forEach((state, key) => {
+                const checkbox = mobileProviderList.querySelector(`input[name="${key}"], input[id="${key}"]`);
+
+                if (checkbox) {
+                    checkbox.checked = state.checked;
+                    checkbox.indeterminate = state.indeterminate;
+                    console.log(`✅ UNIFIED DRAWER: Restored ${key} checkbox to ${state.checked}`);
+                }
+            });
         }
+    }
+
+    // Sort mobile provider list using the same logic as desktop
+    sortMobileProviderList() {
+        const mobileProviderList = document.getElementById('mobile-provider-list');
+
+        if (!mobileProviderList) {
+            return;
+        }
+
+        // Get all provider labels (which contain the checkboxes) - same logic as desktop
+        const providerLabels = Array.from(mobileProviderList.querySelectorAll('label'));
+
+        // Filter out the "all" label - same logic as desktop
+        const providerLabelsOnly = providerLabels.filter(label => {
+            const checkbox = label.querySelector('input[name="providers"]');
+
+            return checkbox !== null;
+        });
+
+        // Sort by checked status first (checked at top), then alphabetically - same logic as desktop
+        providerLabelsOnly.sort((a, b) => {
+            const checkboxA = a.querySelector('input[name="providers"]');
+            const checkboxB = b.querySelector('input[name="providers"]');
+
+            const isCheckedA = checkboxA.checked;
+            const isCheckedB = checkboxB.checked;
+
+            // If one is checked and the other isn't, checked comes first
+            if (isCheckedA && !isCheckedB) {
+                return -1;
+            }
+            if (!isCheckedA && isCheckedB) {
+                return 1;
+            }
+
+            // If both have same checked status, sort alphabetically by label text
+            const labelA = a.querySelector('span').textContent.toLowerCase();
+            const labelB = b.querySelector('span').textContent.toLowerCase();
+
+            return labelA.localeCompare(labelB);
+        });
+
+        console.log('🔄 UNIFIED DRAWER: Sorting mobile provider list - checked items first, then alphabetical');
+
+        // Create a document fragment to avoid multiple DOM reflows - same logic as desktop
+        const fragment = document.createDocumentFragment();
+
+        // Add sorted provider labels to fragment
+        providerLabelsOnly.forEach(label => {
+            fragment.appendChild(label);
+        });
+
+        // Find the "all" label to maintain its position at the end - same logic as desktop
+        const allCheckbox = mobileProviderList.querySelector('#all');
+        const allLabel = allCheckbox ? allCheckbox.closest('label') : null;
+
+        if (allLabel) {
+            fragment.appendChild(allLabel);
+        }
+
+        // Clear the container and append the fragment
+        mobileProviderList.innerHTML = '';
+        mobileProviderList.appendChild(fragment);
+
+        // Scroll mobile provider list to top if there are checked items - same logic as desktop
+        const checkedProviders = mobileProviderList.querySelectorAll('input[name="providers"]:checked');
+
+        if (checkedProviders.length > 0) {
+            mobileProviderList.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            console.log('📱 UNIFIED DRAWER: Scrolled mobile provider list to top');
+        }
+
+        console.log('✅ UNIFIED DRAWER: Mobile provider list sorted successfully');
     }
 
     // Method to update prompt history in both drawers

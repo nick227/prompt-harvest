@@ -61,8 +61,19 @@ export class EnhancedImageController {
                 original,
                 'auto-enhance': autoEnhance,
                 photogenic,
-                artistic
+                artistic,
+                autoPublic
             } = req.validatedData || req.body;
+
+            // Log autoPublic value for debugging
+            console.log('🔍 CONTROLLER DEBUG: autoPublic value received:', {
+                autoPublic,
+                type: typeof autoPublic,
+                fromValidatedData: !!req.validatedData,
+                fromBody: !!req.body,
+                bodyKeys: Object.keys(req.body || {}),
+                validatedDataKeys: Object.keys(req.validatedData || {})
+            });
 
             const userId = req.user?.id;
 
@@ -79,8 +90,16 @@ export class EnhancedImageController {
                 customVariables,
                 autoEnhance,
                 photogenic,
-                artistic
+                artistic,
+                autoPublic
             };
+
+            // Log options being passed to service
+            console.log('🔍 CONTROLLER DEBUG: Options being passed to service:', {
+                options,
+                autoPublicInOptions: options.autoPublic,
+                autoPublicType: typeof options.autoPublic
+            });
 
             // Call service to generate image
             const result = await this.imageService.generateImage(

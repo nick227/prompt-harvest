@@ -48,12 +48,12 @@ class FeedCacheManager {
             };
         }
 
-        console.log(`📊 CACHE: Setting cache for ${key}:`, {
-            imageCount: data.images?.length,
-            hasMore: data.hasMore,
-            currentPage: data.currentPage,
-            isLoaded: data.isLoaded
-        });
+        // console.log(`📊 CACHE: Setting cache for ${key}:`, {
+        //     imageCount: data.images?.length,
+        //     hasMore: data.hasMore,
+        //     currentPage: data.currentPage,
+        //     isLoaded: data.isLoaded
+        // });
 
         this.cache[key] = { ...this.cache[key], ...data };
     }

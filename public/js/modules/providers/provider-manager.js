@@ -4,6 +4,7 @@ class ProviderManager {
         this.providers = []; // Will be loaded dynamically from API
         this.providersLoaded = false;
         this.saveTimeout = null; // For debouncing save operations
+        this.isUpdatingMobile = false; // Prevent infinite mobile update loops
         this.initAsync();
         this.bindEvents();
     }
@@ -44,7 +45,7 @@ class ProviderManager {
      */
     async loadProvidersFromAPI() {
         try {
-            console.log('🔄 Loading providers from API...');
+            // console.log('🔄 Loading providers from API...');
 
             const response = await fetch('/api/providers/models/all');
             if (!response.ok) {
@@ -63,7 +64,7 @@ class ProviderManager {
             }));
 
             this.providersLoaded = true;
-            console.log(`✅ Loaded ${this.providers.length} providers from API (via unified interface)`);
+            // console.log(`✅ Loaded ${this.providers.length} providers from API (via unified interface)`);
 
         } catch (error) {
             console.error('❌ Failed to load providers from API:', error);
@@ -171,9 +172,13 @@ class ProviderManager {
             this.sortProviderList();
 
             // Update mobile provider list if mobile controls manager exists (with delay)
-            if (window.mobileControlsManager && typeof window.mobileControlsManager.updateProviderList === 'function') {
+            // Only update if we're not already updating to prevent infinite loops
+            if (window.mobileControlsManager && typeof window.mobileControlsManager.updateProviderList === 'function' && !this.isUpdatingMobile) {
+                this.isUpdatingMobile = true;
                 setTimeout(() => {
+                    console.log('🔄 PROVIDER MANAGER: Updating mobile provider list after populateProviders');
                     window.mobileControlsManager.updateProviderList(this.providerList.innerHTML);
+                    this.isUpdatingMobile = false;
                 }, 50);
             }
         }, 0);
@@ -275,9 +280,13 @@ class ProviderManager {
         this.providerList.appendChild(fragment);
 
         // Update mobile provider list after sorting (with delay to ensure desktop is stable)
-        if (window.mobileControlsManager && typeof window.mobileControlsManager.updateProviderList === 'function') {
+        // Only update if we're not already updating to prevent infinite loops
+        if (window.mobileControlsManager && typeof window.mobileControlsManager.updateProviderList === 'function' && !this.isUpdatingMobile) {
+            this.isUpdatingMobile = true;
             setTimeout(() => {
+                console.log('🔄 PROVIDER MANAGER: Updating mobile provider list after sortProviderList');
                 window.mobileControlsManager.updateProviderList(this.providerList.innerHTML);
+                this.isUpdatingMobile = false;
             }, 50);
         }
     }
@@ -344,7 +353,18 @@ class ProviderManager {
             return selected;
         }
 
-        const providerCheckboxes = this.providerList.querySelectorAll('input[name="providers"]:checked');
+        // Check if we're on mobile and use mobile provider list if available
+        const isMobile = window.innerWidth <= 768;
+        let providerList = this.providerList;
+
+        if (isMobile && window.mobileControlsManager && window.mobileControlsManager.mobileDrawer) {
+            const mobileProviderList = window.mobileControlsManager.mobileDrawer.querySelector('#mobile-provider-list');
+            if (mobileProviderList) {
+                providerList = mobileProviderList;
+            }
+        }
+
+        const providerCheckboxes = providerList.querySelectorAll('input[name="providers"]:checked');
 
         providerCheckboxes.forEach(checkbox => {
             selected.push(checkbox.value);
@@ -407,7 +427,7 @@ class ProviderManager {
             if (saved) {
                 const selections = JSON.parse(saved);
 
-                console.log('📂 Loaded provider selections:', selections);
+                // console.log('📂 Loaded provider selections:', selections);
 
                 return selections;
             }
@@ -432,11 +452,27 @@ class ProviderManager {
 
         if (selectedProviders.length === 0) {
             console.log('🔧 No providers selected, defaulting to Flux');
+
+            // Set Flux as default on desktop
             const fluxCheckbox = this.providerList.querySelector('input[value="flux"]');
             if (fluxCheckbox) {
                 fluxCheckbox.checked = true;
-                this.saveProviderSelections();
+                // Trigger change event to ensure proper state updates
+                fluxCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
             }
+
+            // Set Flux as default on mobile
+            if (window.mobileControlsManager && window.mobileControlsManager.mobileDrawer) {
+                const mobileFluxCheckbox = window.mobileControlsManager.mobileDrawer.querySelector('input[value="flux"]');
+                if (mobileFluxCheckbox) {
+                    mobileFluxCheckbox.checked = true;
+                    // Trigger change event on mobile as well
+                    mobileFluxCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+
+            // Save the selection
+            this.saveProviderSelections();
         }
     }
 

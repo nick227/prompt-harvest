@@ -205,7 +205,7 @@ class CreditsModalService {
 
             // Use UnifiedCreditService if available (the working system)
             if (window.UnifiedCreditService) {
-                const packages = await window.UnifiedCreditService.getCreditPackages();
+                const packages = await window.UnifiedCreditService.getPackages();
 
                 this.renderPackagesInModal(packages);
             } else {

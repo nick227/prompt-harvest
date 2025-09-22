@@ -343,4 +343,7 @@ const unifiedCreditService = new UnifiedCreditService();
 // Export for use
 window.UnifiedCreditService = unifiedCreditService;
 
-export default unifiedCreditService;
+// Export for global access
+if (typeof window !== 'undefined') {
+    window.unifiedCreditService = unifiedCreditService;
+}

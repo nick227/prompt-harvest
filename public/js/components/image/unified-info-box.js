@@ -282,6 +282,12 @@ class UnifiedInfoBox {
         checkbox.className = 'public-status-checkbox';
         checkbox.id = `public-toggle-${imageData.id}`;
         checkbox.checked = imageData.isPublic || false;
+        console.log('🔍 FULLSCREEN CHECKBOX DEBUG: Setting fullscreen checkbox:', {
+            imageData,
+            isPublic: imageData.isPublic,
+            isPublicType: typeof imageData.isPublic,
+            checkboxChecked: checkbox.checked
+        });
         checkbox.setAttribute('data-image-id', imageData.id);
 
         const label = this.createElement('label', config);

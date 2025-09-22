@@ -46,6 +46,12 @@ export const ImageGenerationContract = {
             default: false,
             transform: value => value === 'true' || value === true || value === 1
         },
+        autoPublic: {
+            type: 'boolean',
+            required: false,
+            default: false,
+            transform: value => value === 'true' || value === true || value === 1
+        },
         customVariables: {
             type: 'string',
             required: false,

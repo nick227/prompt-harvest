@@ -65,23 +65,40 @@ const saveImageToDatabase = async imageData => {
             provider: imageData.provider,
             userId: imageData.userId || 'anonymous',
             promptId: imageData.promptId,
-            imageUrl: imageData.imageUrl
+            imageUrl: imageData.imageUrl,
+            autoPublic: imageData.autoPublic,
+            autoPublicType: typeof imageData.autoPublic
+        });
+
+        const dbData = {
+            prompt: imageData.prompt,
+            original: imageData.original,
+            provider: imageData.provider,
+            imageUrl: imageData.imageUrl, // Image already saved to storage
+            userId: imageData.userId, // Can be null for anonymous users
+            guidance: imageData.guidance || 10,
+            model: imageData.model || null,
+            isPublic: imageData.autoPublic || false // Use autoPublic value, default to private
+        };
+
+        // Log the actual database data being saved
+        console.log('🔍 DATABASE DEBUG: Database data being saved:', {
+            dbData,
+            isPublicValue: dbData.isPublic,
+            isPublicType: typeof dbData.isPublic,
+            autoPublicSource: imageData.autoPublic
         });
 
         const image = await prisma.image.create({
-            data: {
-                prompt: imageData.prompt,
-                original: imageData.original,
-                provider: imageData.provider,
-                imageUrl: imageData.imageUrl, // Image already saved to storage
-                userId: imageData.userId, // Can be null for anonymous users
-                guidance: imageData.guidance || 10,
-                model: imageData.model || null,
-                isPublic: false // Default to private
-            }
+            data: dbData
         });
 
-        console.log('✅ Image saved to database successfully:', { id: image.id, imageUrl: imageData.imageUrl });
+        console.log('✅ Image saved to database successfully:', {
+            id: image.id,
+            imageUrl: imageData.imageUrl,
+            isPublic: image.isPublic,
+            autoPublic: imageData.autoPublic
+        });
 
         return {
             _id: image.id,

@@ -3,7 +3,7 @@
 // Dependencies: TouchEventHandler, NotificationManager, AuthUtils, ImageDetection
 class ImageEvents {
     constructor(imageManager) {
-        console.log('🔍 IMAGE EVENTS: Constructor called with imageManager:', imageManager);
+        // console.log('🔍 IMAGE EVENTS: Constructor called with imageManager:', imageManager);
         this.imageManager = imageManager;
         this.currentKeyHandler = null;
         this.currentClickHandler = null;
@@ -12,17 +12,17 @@ class ImageEvents {
         this.resetInfoBoxToNewDefault();
 
         // Debug module availability
-        console.log('🔍 Available modules:', {
-            TouchEventHandler: typeof window.TouchEventHandler,
-            NotificationManager: typeof window.NotificationManager,
-            ImageDetection: typeof window.ImageDetection,
-            AuthUtils: typeof window.AuthUtils
-        });
+        // console.log('🔍 Available modules:', {
+        //     TouchEventHandler: typeof window.TouchEventHandler,
+        //     NotificationManager: typeof window.NotificationManager,
+        //     ImageDetection: typeof window.ImageDetection,
+        //     AuthUtils: typeof window.AuthUtils
+        // });
 
         // Initialize with fallbacks
         this.touchHandler = this.createTouchHandler(imageManager);
         this.notificationManager = this.createNotificationManager();
-        console.log('🔍 IMAGE EVENTS: ImageEvents instance created');
+        // console.log('🔍 IMAGE EVENTS: ImageEvents instance created');
     }
 
     createTouchHandler(imageManager) {

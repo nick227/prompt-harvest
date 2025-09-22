@@ -353,22 +353,28 @@ class LoadingPlaceholderFactory {
     createListViewMetadata(_promptObj) {
         const metadata = this.createElement('div', 'list-metadata animate-pulse');
 
-        // Create skeleton elements for metadata
-        const providerSkeleton = this.createElement('div', 'provider-skeleton');
+        // Create skeleton rows that match the new grid structure
+        const createSkeletonRow = (label, width) => {
+            const row = this.createElement('div', 'metadata-row');
 
-        providerSkeleton.innerHTML = '<div class="w-12 h-3 bg-gray-600 rounded"></div>';
+            const labelElement = this.createElement('span', 'metadata-label');
+            labelElement.textContent = label;
 
-        const statusSkeleton = this.createElement('div', 'status-skeleton');
+            const valueElement = this.createElement('span', 'metadata-value');
+            valueElement.innerHTML = `<div class="w-${width} h-3 bg-gray-600 rounded animate-pulse"></div>`;
 
-        statusSkeleton.innerHTML = '<div class="w-20 h-3 bg-green-400 rounded"></div>';
+            row.appendChild(labelElement);
+            row.appendChild(valueElement);
 
-        const dateSkeleton = this.createElement('div', 'date-skeleton');
+            return row;
+        };
 
-        dateSkeleton.innerHTML = '<div class="w-24 h-3 bg-gray-600 rounded"></div>';
-
-        metadata.appendChild(providerSkeleton);
-        metadata.appendChild(statusSkeleton);
-        metadata.appendChild(dateSkeleton);
+        // Add skeleton rows for each metadata field
+        metadata.appendChild(createSkeletonRow('Provider', '12'));
+        metadata.appendChild(createSkeletonRow('Guidance', '8'));
+        metadata.appendChild(createSkeletonRow('Status', '16'));
+        metadata.appendChild(createSkeletonRow('Created', '20'));
+        metadata.appendChild(createSkeletonRow('Rating', '10'));
 
         return metadata;
     }

@@ -1,3 +1,5 @@
+// console.log('🔍 PROMPT HISTORY: Script loading...');
+
 class PromptHistoryService {
     constructor() {
         this.promptHistory = [];
@@ -15,7 +17,7 @@ class PromptHistoryService {
      * @param {string} containerId - ID of the container element
      */
     init(containerId = 'prompt-history') {
-        console.log('🔍 PROMPT HISTORY: Initializing service with containerId:', containerId);
+        // console.log('🔍 PROMPT HISTORY: Initializing service with containerId:', containerId);
 
         this.container = document.getElementById(containerId);
         if (!this.container) {
@@ -24,11 +26,11 @@ class PromptHistoryService {
             return;
         }
 
-        console.log('🔍 PROMPT HISTORY: Container found:', {
-            id: this.container.id,
-            className: this.container.className,
-            exists: !!this.container
-        });
+        // console.log('🔍 PROMPT HISTORY: Container found:', {
+        //     id: this.container.id,
+        //     className: this.container.className,
+        //     exists: !!this.container
+        // });
 
         this.setupLoadMoreButton();
         this.setupEventListeners();
@@ -42,69 +44,34 @@ class PromptHistoryService {
      */
     initMobile() {
         const mobileContainerId = 'mobile-prompt-history';
-        const mobileContainer = document.getElementById(mobileContainerId);
+        this.mobileContainer = document.getElementById(mobileContainerId);
 
-        if (!mobileContainer) {
+        if (!this.mobileContainer) {
             console.warn('⚠️ PROMPT HISTORY: Mobile container not found:', mobileContainerId);
+
             return;
         }
 
-        // Create a separate instance for mobile or sync with desktop
-        this.mobileContainer = mobileContainer;
         this.setupMobileLoadMoreButton();
-
-        console.log('🔍 PROMPT HISTORY: Mobile service initialized');
+        // console.log('🔍 PROMPT HISTORY: Mobile container found:', {
+        //     id: this.mobileContainer.id,
+        //     className: this.mobileContainer.className,
+        //     exists: !!this.mobileContainer
+        // });
     }
 
     /**
-     * Wait for user authentication before loading prompts
+     * Wait for authentication before loading prompts
      */
-    async waitForAuthentication() {
-        console.log('🔍 PROMPT HISTORY: Loading prompts (authentication optional)...');
-
-        // Wait a bit for userApi to be available
-        await this.waitForUserApi();
-
-        // Load prompts immediately - no need to wait for authentication
-        await this.loadInitialPrompts();
-    }
-
-    /**
-     * Wait for userApi to be available
-     */
-    async waitForUserApi() {
-        let attempts = 0;
-        const maxAttempts = 10;
-
-        while (attempts < maxAttempts && !window.userApi) {
-            console.log(`🔍 PROMPT HISTORY: Waiting for userApi (attempt ${attempts + 1}/${maxAttempts})`);
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-
-        if (window.userApi) {
-            console.log('🔍 PROMPT HISTORY: userApi is now available');
+    waitForAuthentication() {
+        // Check if user is already authenticated
+        if (this.isUserLoggedIn()) {
+            // console.log('🔍 PROMPT HISTORY: User already authenticated, loading initial prompts');
+            this.loadInitialPrompts();
         } else {
-            console.log('🔍 PROMPT HISTORY: userApi not available after waiting, will use fallback');
-        }
-    }
-
-    /**
-     * Setup event listeners
-     */
-    setupEventListeners() {
-        // Listen for image generation events to add prompts to history
-        window.addEventListener('imageGenerated', event => {
-            this.handleImageGenerated(event);
-        });
-
-        // Listen for authentication state changes
-        window.addEventListener('authStateChanged', event => {
-            this.handleAuthStateChange(event);
-        });
-
-        if (window.DEBUG_MODE) {
-            console.log('🔍 PROMPT HISTORY: Event listeners setup');
+            console.log('🔍 PROMPT HISTORY: User not authenticated, waiting for auth state change');
+            // Listen for authentication state changes
+            window.addEventListener('authStateChanged', this.handleAuthStateChange.bind(this));
         }
     }
 
@@ -113,23 +80,20 @@ class PromptHistoryService {
      * @param {CustomEvent} event - Auth state change event
      */
     handleAuthStateChange(event) {
-        const { isAuthenticated, user } = event.detail;
+        console.log('🔍 PROMPT HISTORY: Auth state changed:', event.detail);
 
-        // Only log auth state changes in debug mode
-        if (window.DEBUG_MODE) {
-            console.log('🔍 PROMPT HISTORY: Auth state changed:', { isAuthenticated, userId: user?.id });
+        // Debounce auth state changes to avoid rapid calls
+        if (this.authTimeout) {
+            clearTimeout(this.authTimeout);
         }
 
-        // Add a small delay to handle rapid auth state changes
-        clearTimeout(this.authTimeout);
         this.authTimeout = setTimeout(() => {
-            if (isAuthenticated && user) {
-                // User logged in, load prompt history
-                console.log('🔍 PROMPT HISTORY: User logged in, loading prompt history...');
+            if (this.isUserLoggedIn()) {
+                console.log('🔍 PROMPT HISTORY: User authenticated, loading prompts');
                 this.loadInitialPrompts();
             } else {
-                // User logged out, clear prompt history
-                console.log('🔍 PROMPT HISTORY: User logged out, clearing prompt history...');
+                console.log('🔍 PROMPT HISTORY: User logged out, clearing history');
+
                 this.clearHistory();
             }
         }, 200);
@@ -168,57 +132,95 @@ class PromptHistoryService {
     setupLoadMoreButton() {
         // Create load more button
         this.loadMoreButton = document.createElement('button');
+        this.loadMoreButton.className = 'load-more-prompts bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded mt-4 w-full transition-colors';
         this.loadMoreButton.textContent = 'Load More Prompts';
-        this.loadMoreButton.className = 'load-more-prompts-btn bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors mt-3 w-full';
-        this.loadMoreButton.style.display = 'none';
-        this.loadMoreButton.disabled = false;
+        this.loadMoreButton.addEventListener('click', () => this.loadMorePrompts());
 
-        // Add click event listener
-        this.loadMoreButton.addEventListener('click', () => {
-            this.loadMorePrompts();
-        });
-
-        // Append to container
+        // Add to container
         this.container.appendChild(this.loadMoreButton);
-
-        if (window.DEBUG_MODE) {
-            console.log('🔍 PROMPT HISTORY: Load more button created and added to container');
-        }
     }
 
     /**
-     * Setup the mobile load more button
+     * Setup mobile load more button
      */
     setupMobileLoadMoreButton() {
-        if (!this.mobileContainer) {
-            return;
-        }
-
         // Create mobile load more button
         this.mobileLoadMoreButton = document.createElement('button');
+        this.mobileLoadMoreButton.className = 'load-more-prompts bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded mt-4 w-full transition-colors';
         this.mobileLoadMoreButton.textContent = 'Load More Prompts';
-        this.mobileLoadMoreButton.className = 'load-more-prompts-btn bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors mt-3 w-full';
-        this.mobileLoadMoreButton.style.display = 'none';
-        this.mobileLoadMoreButton.disabled = false;
+        this.mobileLoadMoreButton.addEventListener('click', () => this.loadMorePrompts());
 
-        // Add click event listener
-        this.mobileLoadMoreButton.addEventListener('click', () => {
-            this.loadMorePrompts();
-        });
-
-        // Append to mobile container
+        // Add to mobile container
         this.mobileContainer.appendChild(this.mobileLoadMoreButton);
-
-        console.log('🔍 PROMPT HISTORY: Mobile load more button created and added to container');
     }
 
     /**
-     * Load initial prompts (first page)
+     * Setup event listeners
+     */
+    setupEventListeners() {
+        // Listen for image generation events to add prompts to history
+        window.addEventListener('imageGenerated', this.handleImageGenerated.bind(this));
+    }
+
+    /**
+     * Check if user is logged in
+     * @returns {boolean} True if user is authenticated
+     */
+    isUserLoggedIn() {
+        // Check if userApi is available and authenticated
+        if (window.userApi && window.userApi.isAuthenticated) {
+            return window.userApi.isAuthenticated();
+        }
+
+        // Fallback: check for auth token
+        const token = this.getAuthToken();
+
+        return !!token;
+    }
+
+    /**
+     * Get authentication token
+     * @returns {string|null} Auth token if available
+     */
+    getAuthToken() {
+        // Try to get token from userApi first
+        if (window.userApi && window.userApi.getAuthToken) {
+            const token = window.userApi.getAuthToken();
+
+            if (token) {
+                return token;
+            }
+        }
+
+        // Fallback: check localStorage and sessionStorage
+        const localToken = localStorage.getItem('authToken');
+        const sessionToken = sessionStorage.getItem('authToken');
+
+        return localToken || sessionToken;
+    }
+
+    /**
+     * Load initial prompts
      */
     async loadInitialPrompts() {
-        console.log('🔍 PROMPT HISTORY: Loading initial prompts');
+        // console.log('🔍 PROMPT HISTORY: Loading initial prompts');
+
+        // Reset state
         this.currentPage = 0;
+        this.hasMore = true;
         this.promptHistory = [];
+
+        // Clear existing prompts
+        if (this.container) {
+            const existingPrompts = this.container.querySelectorAll('.prompt-item');
+            existingPrompts.forEach(prompt => prompt.remove());
+        }
+
+        if (this.mobileContainer) {
+            const existingPrompts = this.mobileContainer.querySelectorAll('.prompt-item');
+            existingPrompts.forEach(prompt => prompt.remove());
+        }
+
         await this.loadMorePrompts();
     }
 
@@ -226,14 +228,14 @@ class PromptHistoryService {
      * Load more prompts (next page)
      */
     async loadMorePrompts() {
-        console.log('🔍 PROMPT HISTORY: loadMorePrompts called:', {
-            isLoading: this.isLoading,
-            hasMore: this.hasMore,
-            currentPage: this.currentPage
-        });
+        // console.log('🔍 PROMPT HISTORY: loadMorePrompts called:', {
+        //     isLoading: this.isLoading,
+        //     hasMore: this.hasMore,
+        //     currentPage: this.currentPage
+        // });
 
         if (this.isLoading || !this.hasMore) {
-            console.log('🔍 PROMPT HISTORY: Skipping load - isLoading:', this.isLoading, 'hasMore:', this.hasMore);
+            // console.log('🔍 PROMPT HISTORY: Skipping load - isLoading:', this.isLoading, 'hasMore:', this.hasMore);
 
             return;
         }
@@ -267,7 +269,7 @@ class PromptHistoryService {
      * @returns {Promise<Object>} API response
      */
     async fetchPromptsFromAPI() {
-        console.log('🔍 PROMPT HISTORY: Loading page', this.currentPage);
+        // console.log('🔍 PROMPT HISTORY: Loading page', this.currentPage);
 
         const authToken = this.getAuthToken();
         const headers = {
@@ -279,15 +281,15 @@ class PromptHistoryService {
             headers.Authorization = `Bearer ${authToken}`;
         }
 
-        console.log('🔍 PROMPT HISTORY: Auth token available:', !!authToken);
-        console.log('🔍 PROMPT HISTORY: Request headers:', headers);
+        // console.log('🔍 PROMPT HISTORY: Auth token available:', !!authToken);
+        // console.log('🔍 PROMPT HISTORY: Request headers:', headers);
 
         const response = await fetch(`/api/prompts?limit=${this.pageSize}&page=${this.currentPage}`, {
             method: 'GET',
             headers
         });
 
-        console.log('🔍 PROMPT HISTORY: API response status:', response.status);
+        // console.log('🔍 PROMPT HISTORY: API response status:', response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -308,14 +310,14 @@ class PromptHistoryService {
 
         const result = await response.json();
 
-        console.log('🔍 PROMPT HISTORY: API response data:', result);
-        console.log('🔍 PROMPT HISTORY: API response structure:', {
-            success: result.success,
-            hasData: !!result.data,
-            dataType: typeof result.data,
-            dataKeys: result.data ? Object.keys(result.data) : 'no data',
-            promptsCount: result.data?.prompts?.length || 0
-        });
+        // console.log('🔍 PROMPT HISTORY: API response data:', result);
+        // console.log('🔍 PROMPT HISTORY: API response structure:', {
+        //     success: result.success,
+        //     hasData: !!result.data,
+        //     dataType: typeof result.data,
+        //     dataKeys: result.data ? Object.keys(result.data) : 'no data',
+        //     promptsCount: result.data?.prompts?.length || 0
+        // });
 
         return result;
     }
@@ -325,90 +327,92 @@ class PromptHistoryService {
      * @param {Object} data - API response data
      */
     processPromptResponse(data) {
-        console.log('🔍 PROMPT HISTORY: Processing prompt response:', {
-            dataType: typeof data,
-            isArray: Array.isArray(data),
-            hasPrompts: !!data.prompts,
-            hasPagination: !!data.pagination,
-            dataKeys: data ? Object.keys(data) : 'no data'
+        // console.log('🔍 PROMPT HISTORY: Processing prompt response:', data);
+
+        const prompts = data.prompts || [];
+        const totalPrompts = data.total || 0;
+        const totalPages = Math.ceil(totalPrompts / this.pageSize);
+
+        // console.log('🔍 PROMPT HISTORY: Response details:', {
+        //     promptsCount: prompts.length,
+        //     totalPrompts,
+        //     totalPages,
+        //     currentPage: this.currentPage
+        // });
+
+        // Add prompts to history
+        prompts.forEach(prompt => {
+            this.addPrompt(prompt);
         });
 
-        // Handle both old and new API response formats
-        let prompts, pagination;
-
-        if (data.prompts && data.pagination) {
-            // New format: { prompts: [...], pagination: {...} }
-            prompts = data.prompts;
-            pagination = data.pagination;
-            console.log('🔍 PROMPT HISTORY: Using new format - prompts:', prompts.length, 'pagination:', pagination);
-        } else if (Array.isArray(data)) {
-            // Old format: direct array of prompts
-            prompts = data;
-            pagination = {
-                total: data.length,
-                hasMore: false,
-                page: this.currentPage
-            };
-            console.log('🔍 PROMPT HISTORY: Using old format - prompts:', prompts.length);
-        } else {
-            console.error('❌ PROMPT HISTORY: Unexpected API response format:', data);
-            return;
-        }
-
-        console.log('🔍 PROMPT HISTORY: Loaded prompts:', {
-            count: prompts.length,
-            total: pagination.total,
-            hasMore: pagination.hasMore,
-            page: pagination.page
-        });
-
-        // Add new prompts to history
-        this.promptHistory.push(...prompts);
-        this.hasMore = pagination.hasMore;
+        // Update pagination state
         this.currentPage++;
+        this.hasMore = this.currentPage < totalPages;
 
-        // Render prompts
-        this.renderPrompts(prompts);
+        // console.log('🔍 PROMPT HISTORY: Updated state:', {
+        //     currentPage: this.currentPage,
+        //     hasMore: this.hasMore
+        // });
 
         // Update load more button
         this.updateLoadMoreButton();
+
+        // Hide load more button if no more prompts
+        if (!this.hasMore) {
+            this.loadMoreButton.style.display = 'none';
+            if (this.mobileLoadMoreButton) {
+                this.mobileLoadMoreButton.style.display = 'none';
+            }
+        }
     }
 
     /**
-     * Render prompts to the DOM
+     * Add a prompt to the history
+     * @param {Object} prompt - Prompt object
+     */
+    addPrompt(prompt) {
+        // console.log('🔍 PROMPT HISTORY: Adding prompt:', prompt);
+
+        // Add to internal array
+        this.promptHistory.push(prompt);
+
+        // Create and add DOM elements
+        const promptElement = this.createPromptElement(prompt);
+
+        if (this.container) {
+            // Insert before the load more button
+            this.container.insertBefore(promptElement, this.loadMoreButton);
+        }
+
+        // Also add to mobile container if it exists
+        if (this.mobileContainer) {
+            const mobilePromptElement = promptElement.cloneNode(true);
+            this.mobileContainer.insertBefore(mobilePromptElement, this.mobileLoadMoreButton);
+        }
+    }
+
+    /**
+     * Render prompts in the container
      * @param {Array} prompts - Array of prompt objects
      */
     renderPrompts(prompts) {
-        if (!this.container) {
-            console.warn('⚠️ PROMPT HISTORY: Container not found for rendering');
+        // console.log('🔍 PROMPT HISTORY: Rendering prompts:', prompts.length);
 
-            return;
+        if (this.container) {
+            // Clear existing prompts
+            const existingPrompts = this.container.querySelectorAll('.prompt-item');
+            existingPrompts.forEach(prompt => prompt.remove());
+
+            // Add new prompts
+            prompts.forEach((prompt, index) => {
+                const promptElement = this.createPromptElement(prompt);
+
+                this.container.insertBefore(promptElement, this.loadMoreButton);
+
+            });
         }
 
-        console.log('🔍 PROMPT HISTORY: Rendering prompts:', {
-            count: prompts.length,
-            containerExists: !!this.container,
-            loadMoreButtonExists: !!this.loadMoreButton,
-            containerId: this.container.id,
-            containerHTML: this.container.innerHTML.substring(0, 100) + '...'
-        });
-
-        prompts.forEach((prompt, index) => {
-            const promptElement = this.createPromptElement(prompt);
-
-            // Render to desktop container
-            this.container.insertBefore(promptElement, this.loadMoreButton);
-
-            // Also render to mobile container if it exists
-            if (this.mobileContainer && this.mobileLoadMoreButton) {
-                const mobilePromptElement = this.createPromptElement(prompt);
-                this.mobileContainer.insertBefore(mobilePromptElement, this.mobileLoadMoreButton);
-            }
-
-            console.log(`🔍 PROMPT HISTORY: Rendered prompt ${index + 1}:`, prompt.id);
-        });
-
-        console.log('🔍 PROMPT HISTORY: Finished rendering prompts');
+        // console.log('🔍 PROMPT HISTORY: Finished rendering prompts');
     }
 
     /**
@@ -454,16 +458,25 @@ class PromptHistoryService {
      * @param {Object} prompt - Prompt object
      */
     selectPrompt(prompt) {
-        const textarea = document.getElementById('prompt-textarea');
+        // console.log('🔍 PROMPT HISTORY: Selecting prompt:', prompt);
+
+        const textarea = document.querySelector('#prompt-textarea');
 
         if (textarea) {
             textarea.value = prompt.prompt;
             textarea.dispatchEvent(new Event('input', { bubbles: true }));
 
-            // Scroll to top of page
+            // Scroll to top of page to show the textarea
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            console.log('🔍 PROMPT HISTORY: Selected prompt:', prompt.id);
+            // Focus the textarea
+            textarea.focus();
+
+            // console.log('✅ PROMPT HISTORY: Prompt filled in textarea');
+
+        } else {
+            console.warn('⚠️ PROMPT HISTORY: Textarea not found');
+
         }
     }
 
@@ -517,88 +530,11 @@ class PromptHistoryService {
         }
 
         if (window.DEBUG_MODE) {
-            console.log('🔍 PROMPT HISTORY: Load more button updated:', {
+            console.log('🔍 PROMPT HISTORY: Button state updated:', {
                 text: this.loadMoreButton.textContent,
-                display: this.loadMoreButton.style.display,
-                disabled: this.loadMoreButton.disabled
+                disabled: this.loadMoreButton.disabled,
+                display: this.loadMoreButton.style.display
             });
-        }
-    }
-
-    /**
-     * Add a new prompt to the history (for real-time updates)
-     * @param {Object} prompt - Prompt object
-     */
-    addPrompt(prompt) {
-        this.promptHistory.unshift(prompt);
-
-        // If we have a container, add the prompt to the top
-        if (this.container) {
-            const promptElement = this.createPromptElement(prompt);
-            this.container.insertBefore(promptElement, this.container.firstChild);
-        }
-
-        // Also add to mobile container if it exists
-        if (this.mobileContainer) {
-            const mobilePromptElement = this.createPromptElement(prompt);
-            this.mobileContainer.insertBefore(mobilePromptElement, this.mobileContainer.firstChild);
-        }
-    }
-
-    /**
-     * Get the current prompt history
-     * @returns {Array} Array of prompts
-     */
-    getPromptHistory() {
-        return this.promptHistory;
-    }
-
-    /**
-     * Check if user is logged in
-     * @returns {boolean} True if user is logged in
-     */
-    isUserLoggedIn() {
-        try {
-            return !!(window.userApi && window.userApi.isAuthenticated && window.userApi.isAuthenticated());
-        } catch (error) {
-            console.warn('⚠️ PROMPT HISTORY: Error checking authentication:', error);
-
-            return false;
-        }
-    }
-
-    /**
-     * Get authentication token
-     * @returns {string|null} Auth token or null
-     */
-    getAuthToken() {
-        try {
-            console.log('🔍 PROMPT HISTORY: getAuthToken called:', {
-                hasUserApi: !!window.userApi,
-                hasGetAuthToken: !!window.userApi?.getAuthToken,
-                userApiKeys: window.userApi ? Object.keys(window.userApi) : 'no userApi'
-            });
-
-            // Try userApi first
-            let token = window.userApi?.getAuthToken?.() || null;
-
-            // Fallback to localStorage/sessionStorage if userApi doesn't work
-            if (!token) {
-                token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || null;
-                console.log('🔍 PROMPT HISTORY: Using fallback token from storage:', !!token);
-            }
-
-            console.log('🔍 PROMPT HISTORY: getAuthToken result:', {
-                hasToken: !!token,
-                tokenLength: token?.length,
-                tokenPreview: token ? `${token.substring(0, 20)}...` : 'no token'
-            });
-
-            return token;
-        } catch (error) {
-            console.warn('⚠️ PROMPT HISTORY: Error getting auth token:', error);
-
-            return null;
         }
     }
 
@@ -626,6 +562,7 @@ class PromptHistoryService {
         if (this.loadMoreButton) {
             this.loadMoreButton.style.display = 'none';
         }
+
         if (this.mobileLoadMoreButton) {
             this.mobileLoadMoreButton.style.display = 'none';
         }
@@ -635,8 +572,5 @@ class PromptHistoryService {
 // Export for global access
 if (typeof window !== 'undefined') {
     window.PromptHistoryService = PromptHistoryService;
+    // console.log('✅ PROMPT HISTORY: Script loaded and exported to window.PromptHistoryService');
 }
-
-// Export for testing
-export default PromptHistoryService;
-

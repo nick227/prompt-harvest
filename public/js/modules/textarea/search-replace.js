@@ -50,13 +50,13 @@ class SearchReplaceManager {
      * @param {HTMLElement} replaceButton - Replace button element
      */
     logSearchReplaceSetup(searchInput, replaceInput, replaceButton) {
-        console.log('🔍 SEARCH REPLACE: Setting up search and replace', {
-            searchInput: !!searchInput,
-            replaceInput: !!replaceInput,
-            replaceButton: !!replaceButton,
-            searchSelector: TEXTAREA_CONFIG.selectors.searchTerm,
-            replaceSelector: TEXTAREA_CONFIG.selectors.replaceTerm
-        });
+        // console.log('🔍 SEARCH REPLACE: Setting up search and replace', {
+        //     searchInput: !!searchInput,
+        //     replaceInput: !!replaceInput,
+        //     replaceButton: !!replaceButton,
+        //     searchSelector: TEXTAREA_CONFIG.selectors.searchTerm,
+        //     replaceSelector: TEXTAREA_CONFIG.selectors.replaceTerm
+        // });
     }
 
     /**
@@ -70,7 +70,7 @@ class SearchReplaceManager {
         searchInput.addEventListener('keydown', this.handleSearchKeydown.bind(this));
         replaceInput.addEventListener('keydown', this.handleReplaceKeydown.bind(this));
 
-        console.log('✅ SEARCH REPLACE: Event listeners attached successfully');
+        // console.log('✅ SEARCH REPLACE: Event listeners attached successfully');
     }
 
     /**

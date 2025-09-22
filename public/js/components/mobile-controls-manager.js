@@ -8,6 +8,7 @@ class MobileControlsManager {
         this.closeButton = null;
         this.isMobile = window.innerWidth <= 768;
         this.resizeListenerAdded = false;
+        this.isUpdatingFromMobile = false; // Flag to prevent mobile state overwrites
         this.init();
     }
 
@@ -102,14 +103,64 @@ class MobileControlsManager {
             e.stopPropagation();
         });
 
-        // Handle custom checkbox clicks in mobile drawer
+        // Handle checkbox clicks in mobile drawer - try multiple approaches
         this.mobileDrawer.addEventListener('click', e => {
+            console.log('📱 MOBILE: Click detected on:', e.target);
+
+            // Try checkbox-custom class approach
             if (e.target.classList.contains('checkbox-custom')) {
+                e.preventDefault();
                 const checkbox = e.target.previousElementSibling;
                 if (checkbox && checkbox.type === 'checkbox') {
+                    console.log(`📱 MOBILE: Checkbox ${checkbox.name || checkbox.id} clicked, current state: ${checkbox.checked}`);
                     checkbox.checked = !checkbox.checked;
-                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    console.log(`📱 MOBILE: Checkbox ${checkbox.name || checkbox.id} new state: ${checkbox.checked}`);
+                    // Use a small delay to ensure the checkbox state is set before syncing
+                    setTimeout(() => {
+                        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                        this.syncToDesktopDrawer();
+                    }, 10);
+                }
+            }
+            // Try direct checkbox click approach
+            else if (e.target.type === 'checkbox') {
+                console.log(`📱 MOBILE: Direct checkbox ${e.target.name || e.target.id} clicked, current state: ${e.target.checked}`);
+                // Set flag to prevent mobile state overwrites
+                this.isUpdatingFromMobile = true;
+
+                // Let the natural checkbox behavior handle the toggle, just sync
+                setTimeout(() => {
+                    console.log(`📱 MOBILE: Direct checkbox ${e.target.name || e.target.id} new state: ${e.target.checked}`);
+                    e.target.dispatchEvent(new Event('change', { bubbles: true }));
                     this.syncToDesktopDrawer();
+
+                    // Clear the flag after sync is complete
+                    setTimeout(() => {
+                        this.isUpdatingFromMobile = false;
+                        console.log('📱 MOBILE: Cleared isUpdatingFromMobile flag');
+                    }, 100);
+                }, 10);
+            }
+            // Try label click approach
+            else if (e.target.tagName === 'LABEL') {
+                const checkbox = e.target.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    console.log(`📱 MOBILE: Label clicked for checkbox ${checkbox.name || checkbox.id}, current state: ${checkbox.checked}`);
+                    // Set flag to prevent mobile state overwrites
+                    this.isUpdatingFromMobile = true;
+
+                    // Let the natural label behavior handle the toggle, just sync
+                    setTimeout(() => {
+                        console.log(`📱 MOBILE: Label checkbox ${checkbox.name || checkbox.id} new state: ${checkbox.checked}`);
+                        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                        this.syncToDesktopDrawer();
+
+                        // Clear the flag after sync is complete
+                        setTimeout(() => {
+                            this.isUpdatingFromMobile = false;
+                            console.log('📱 MOBILE: Cleared isUpdatingFromMobile flag');
+                        }, 100);
+                    }, 10);
                 }
             }
         });
@@ -209,7 +260,24 @@ class MobileControlsManager {
     // Sync mobile drawer with desktop drawer values
     syncWithDesktopDrawer() {
         if (window.unifiedDrawerComponent) {
-            window.unifiedDrawerComponent.syncDrawers();
+            // Don't call syncDrawers() as it overwrites mobile HTML
+            // Instead, only sync the specific checkbox states
+            const desktopDrawer = document.getElementById('controls-drawer');
+            if (!desktopDrawer) {
+                return;
+            }
+
+            // Sync checkboxes from mobile to desktop
+            const mobileCheckboxes = this.mobileDrawer.querySelectorAll('input[type="checkbox"]');
+            mobileCheckboxes.forEach(mobileCheckbox => {
+                const desktopCheckbox = desktopDrawer.querySelector(`input[name="${mobileCheckbox.name}"], input[id="${mobileCheckbox.id}"]`);
+                if (desktopCheckbox) {
+                    console.log(`📱 MOBILE: Syncing ${mobileCheckbox.name || mobileCheckbox.id} from mobile (${mobileCheckbox.checked}) to desktop`);
+                    desktopCheckbox.checked = mobileCheckbox.checked;
+                    desktopCheckbox.indeterminate = mobileCheckbox.indeterminate;
+                    desktopCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
         } else {
             // Fallback to original sync method if unified component not available
             const desktopDrawer = document.getElementById('controls-drawer');
@@ -327,10 +395,8 @@ class MobileControlsManager {
                 // Only sync if mobile drawer is open (to prevent interference with desktop)
                 this.syncToDesktopDrawer();
 
-                // Also sync back to mobile to ensure consistency
-                setTimeout(() => {
-                    this.syncWithDesktopDrawer();
-                }, 100);
+                // Don't sync back to mobile immediately to avoid race conditions
+                // The mobile state should remain as the user set it
             }
         };
 
@@ -344,7 +410,28 @@ class MobileControlsManager {
         } else {
             const mobileProviderList = document.getElementById('mobile-provider-list');
             if (mobileProviderList) {
+                // Preserve current mobile checkbox states before updating
+                const currentStates = new Map();
+                const mobileCheckboxes = mobileProviderList.querySelectorAll('input[type="checkbox"]');
+                mobileCheckboxes.forEach(checkbox => {
+                    currentStates.set(checkbox.name || checkbox.id, {
+                        checked: checkbox.checked,
+                        indeterminate: checkbox.indeterminate
+                    });
+                });
+
+                // Update the HTML
                 mobileProviderList.innerHTML = html;
+
+                // Restore the checkbox states
+                currentStates.forEach((state, key) => {
+                    const checkbox = mobileProviderList.querySelector(`input[name="${key}"], input[id="${key}"]`);
+                    if (checkbox) {
+                        checkbox.checked = state.checked;
+                        checkbox.indeterminate = state.indeterminate;
+                    }
+                });
+
                 this.bindMobileProviderEvents();
             }
         }

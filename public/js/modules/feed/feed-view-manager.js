@@ -253,9 +253,11 @@ class FeedViewManager {
             if (success) {
                 // Set initial visibility based on current view
                 window.ImageViewUtils.updateWrapperView(wrapper, this.currentView);
+            } else {
+                console.warn('⚠️ VIEW MANAGER: Enhancement failed');
             }
         } catch (error) {
-            console.error('❌ VIEW: Failed to enhance image wrapper:', error);
+            console.error('❌ VIEW MANAGER: Failed to enhance image wrapper:', error);
         }
     }
 
@@ -264,15 +266,19 @@ class FeedViewManager {
      * @param {HTMLElement} wrapper - Wrapper element to enhance
      */
     enhanceNewImageWrapper(wrapper) {
+        console.log('🔄 VIEW MANAGER: enhanceNewImageWrapper called for wrapper:', wrapper);
+
         // Check if already enhanced to prevent duplicate enhancement
         if (wrapper.querySelector('.compact-view') && wrapper.querySelector('.list-view')) {
-            console.log('🔄 Wrapper already enhanced, skipping enhancement');
+            console.log('🔄 VIEW MANAGER: Wrapper already enhanced, skipping enhancement');
 
             return;
         }
 
+        console.log('🔄 VIEW MANAGER: Scheduling enhancement in 50ms');
         // Add a small delay to ensure the image element is fully loaded
         setTimeout(() => {
+            console.log('🔄 VIEW MANAGER: Executing enhancement now');
             this.enhanceImageWrapper(wrapper);
         }, 50);
     }

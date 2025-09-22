@@ -81,7 +81,15 @@ const handleGenerationError = async(requestId, error, startTime) => {
 };
 
 const generate = async options => {
-    const { prompt, original, promptId, providers, guidance, req } = options;
+    const { prompt, original, promptId, providers, guidance, req, autoPublic } = options;
+
+    // Log autoPublic value received in feed
+    console.log('🔍 FEED DEBUG: autoPublic value received in feed.generate:', {
+        autoPublic,
+        autoPublicType: typeof autoPublic,
+        optionsKeys: Object.keys(options),
+        fullOptions: options
+    });
     const requestId = FeedUtils.generateRequestId();
     const startTime = Date.now();
 
@@ -117,13 +125,23 @@ const generate = async options => {
         const results = [result];
 
         // Process results and save to database
-        const processedResults = await processGenerationResults(results, {
+        const context = {
             prompt,
             original,
             promptId,
             requestId,
-            req
+            req,
+            autoPublic
+        };
+
+        // Log context being passed to processGenerationResults
+        console.log('🔍 FEED DEBUG: Context being passed to processGenerationResults:', {
+            context,
+            autoPublicInContext: context.autoPublic,
+            autoPublicType: typeof context.autoPublic
         });
+
+        const processedResults = await processGenerationResults(results, context);
 
         // Log successful completion
         const duration = Date.now() - startTime;

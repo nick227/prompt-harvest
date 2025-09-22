@@ -4,10 +4,10 @@
  */
 class ColorPaletteManager {
     constructor() {
-        console.log('🎨 ColorPaletteManager: Initializing color palettes...');
+        // console.log('🎨 ColorPaletteManager: Initializing color palettes...');
         this.palettes = new Map();
         this.initializePalettes();
-        console.log(`✅ ColorPaletteManager: Initialized with ${this.palettes.size} palettes`);
+        // console.log(`✅ ColorPaletteManager: Initialized with ${this.palettes.size} palettes`);
     }
 
     /**
@@ -41,7 +41,7 @@ class ColorPaletteManager {
             name,
             ...palette
         });
-        console.log(`✅ Palette registered: ${key}`);
+        // console.log(`✅ Palette registered: ${key}`);
     }
 
     /**

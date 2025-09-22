@@ -54,7 +54,15 @@ class RatingManager {
                 if (retryContainer) {
                     this.createRatingDropdown(retryContainer);
                 } else {
-                    console.warn('Rating dropdown container not found, filter functionality disabled');
+                    // Try one more time with a longer delay
+                    setTimeout(() => {
+                        const finalRetryContainer = document.getElementById('rating-dropdown');
+                        if (finalRetryContainer) {
+                            this.createRatingDropdown(finalRetryContainer);
+                        } else {
+                            console.warn('Rating dropdown container not found after retries, filter functionality disabled');
+                        }
+                    }, 500);
                 }
             }, 100);
         }

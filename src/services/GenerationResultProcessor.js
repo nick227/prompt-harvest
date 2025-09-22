@@ -7,14 +7,22 @@ export class GenerationResultProcessor {
      * Process a single successful generation result
      */
     async processSuccessfulResult(result, context) {
-        const { prompt, original, promptId, req } = context;
+        const { prompt, original, promptId, req, autoPublic } = context;
+
+        // Log autoPublic value received in processor
+        console.log('🔍 PROCESSOR DEBUG: autoPublic value received in processSuccessfulResult:', {
+            autoPublic,
+            autoPublicType: typeof autoPublic,
+            contextKeys: Object.keys(context),
+            fullContext: context
+        });
 
         // Step 1: Save image to storage
         const imageUrl = await this.saveImageToStorage(result);
 
         try {
             // Step 2: Save image metadata to database
-            const savedImage = await this.saveImageToDatabase({
+            const imageData = {
                 prompt,
                 original,
                 provider: result.provider,
@@ -22,8 +30,18 @@ export class GenerationResultProcessor {
                 promptId,
                 userId: DatabaseService.getUserId(req),
                 guidance: result.guidance || 10,
-                model: result.model || null
+                model: result.model || null,
+                autoPublic
+            };
+
+            // Log imageData being passed to database save
+            console.log('🔍 PROCESSOR DEBUG: ImageData being passed to saveImageToDatabase:', {
+                imageData,
+                autoPublicInImageData: imageData.autoPublic,
+                autoPublicType: typeof imageData.autoPublic
             });
+
+            const savedImage = await this.saveImageToDatabase(imageData);
 
             // Step 3: Fetch tags for the saved image
             const imageWithTags = await this.fetchImageWithTags(savedImage._id);

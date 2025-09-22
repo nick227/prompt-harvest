@@ -115,7 +115,8 @@ export class EnhancedImageService {
             savedPromptId,
             providers,
             guidance,
-            userId
+            userId,
+            options
         );
 
         console.log(`💾 Skipping database save - image already saved by feed.js [${requestId}]`);
@@ -268,7 +269,7 @@ export class EnhancedImageService {
     }
 
     // eslint-disable-next-line max-params
-    async generateImageWithBreaker(prompt, original, promptId, providers, guidance, userId) {
+    async generateImageWithBreaker(prompt, original, promptId, providers, guidance, userId, options) {
         return await circuitBreakerManager.execute('imageGeneration', async () => {
             // Validate userId before proceeding
             const validUserId = userId && userId !== 'undefined' ? userId : null;
@@ -289,13 +290,22 @@ export class EnhancedImageService {
                 user: { id: validUserId }
             };
 
+            // Log autoPublic value before passing to feed
+            console.log('🔍 SERVICE DEBUG: autoPublic value before feed.generate:', {
+                autoPublic: options?.autoPublic,
+                autoPublicType: typeof options?.autoPublic,
+                optionsKeys: Object.keys(options || {}),
+                fullOptions: options
+            });
+
             const generationPromise = feed.default.generate({
                 prompt,
                 original,
                 promptId,
                 providers,
                 guidance,
-                req
+                req,
+                autoPublic: options?.autoPublic
             });
 
             // Race between generation and timeout

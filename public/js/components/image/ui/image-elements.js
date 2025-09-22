@@ -64,6 +64,14 @@ export class ImageElements {
         img.dataset.guidance = imageData.guidance || '';
         img.dataset.isPublic = (imageData.isPublic || false).toString();
 
+        console.log('🔍 IMAGE ELEMENT DEBUG: Setting dataset values:', {
+            imageData,
+            datasetId: img.dataset.id,
+            datasetIsPublic: img.dataset.isPublic,
+            datasetProvider: img.dataset.provider,
+            allDataset: img.dataset
+        });
+
         // UI styling
         img.style.width = '100%';
         img.style.height = '150px';
@@ -128,6 +136,13 @@ export class ImageElements {
     }
 
     createPublicStatusCheckbox(imageData) {
+        console.log('🔍 PUBLIC TOGGLE DEBUG: createPublicStatusCheckbox called with:', {
+            imageData,
+            isPublic: imageData.isPublic,
+            isPublicType: typeof imageData.isPublic,
+            userId: imageData.userId,
+            userIdType: typeof imageData.userId
+        });
         const checkboxContainer = this.uiConfig.createElement('div', 'public-checkbox-container');
 
         checkboxContainer.style.cssText = `
@@ -142,10 +157,17 @@ export class ImageElements {
         `;
 
         // Check if user should be able to see this toggle
-        if (!this.shouldShowPublicToggle(imageData)) {
+        const shouldShow = this.shouldShowPublicToggle(imageData);
+        console.log('🔍 PUBLIC TOGGLE DEBUG: shouldShowPublicToggle result:', shouldShow);
+        console.log('🔍 PUBLIC TOGGLE DEBUG: UnifiedAuthUtils available:', !!window.UnifiedAuthUtils);
+        if (window.UnifiedAuthUtils) {
+            console.log('🔍 PUBLIC TOGGLE DEBUG: UnifiedAuthUtils.userOwnsImage result:', window.UnifiedAuthUtils.userOwnsImage(imageData));
+        }
+        if (!shouldShow) {
             // Return a read-only display instead of a toggle
             const display = this.uiConfig.createElement('div', 'public-display');
             display.textContent = imageData.isPublic ? 'Public' : 'Private';
+            console.log('🔍 PUBLIC TOGGLE DEBUG: Creating read-only display with text:', display.textContent);
             display.style.cssText = `
                 color: white;
                 font-size: 12px;
@@ -160,6 +182,12 @@ export class ImageElements {
         checkbox.className = 'public-status-checkbox';
         checkbox.id = `public-toggle-list-${imageData.id}`;
         checkbox.checked = imageData.isPublic || false;
+        console.log('🔍 LIST VIEW CHECKBOX DEBUG: Setting list view checkbox:', {
+            imageData,
+            isPublic: imageData.isPublic,
+            isPublicType: typeof imageData.isPublic,
+            checkboxChecked: checkbox.checked
+        });
         checkbox.setAttribute('data-image-id', imageData.id);
         checkbox.setAttribute('aria-label', 'Toggle public visibility');
 

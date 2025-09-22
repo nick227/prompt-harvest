@@ -77,13 +77,39 @@ class TransactionStatsComponent {
 
                 this.handleStatsUpdate(stats);
             } else {
-                console.warn('⚠️ Stats service not available, falling back to direct API');
-                await this.loadStatsDirectly();
+                // Wait a bit for stats service to be available
+                await this.waitForStatsService();
             }
         } catch (error) {
             console.error('❌ Error checking authentication state:', error);
             this.showErrorState();
         }
+    }
+
+    async waitForStatsService(maxRetries = 5, retryDelay = 200) {
+        let retries = 0;
+
+        while (retries < maxRetries) {
+            if (window.statsService) {
+                try {
+                    const stats = await window.statsService.getStats();
+                    this.handleStatsUpdate(stats);
+                    return;
+                } catch (error) {
+                    console.error('❌ Error getting stats from service:', error);
+                    break;
+                }
+            }
+
+            retries++;
+            if (retries < maxRetries) {
+                console.log(`⏳ STATS: Waiting for stats service (attempt ${retries}/${maxRetries})...`);
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
+            }
+        }
+
+        console.warn('⚠️ STATS: Stats service not available after waiting, falling back to direct API');
+        await this.loadStatsDirectly();
     }
 
     // Handle stats updates from the stats service

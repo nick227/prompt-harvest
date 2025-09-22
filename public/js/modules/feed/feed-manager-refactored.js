@@ -8,21 +8,18 @@ class FeedManager {
         this.initialLoadPromise = null;
         this.isLoadingMore = false;
 
-        // Initialize sub-managers
-        this.cacheManager = new FeedCacheManager();
-        this.domManager = new FeedDOMManager();
-        this.apiManager = new FeedAPIManager();
-        this.uiManager = new FeedUIManager(this.domManager);
-        this.filterManager = new FeedFilterManager(this.cacheManager, this);
-        this.tabService = new HybridTabService();
-        this.viewManager = new FeedViewManager();
-        this.fillToBottomManager = new FillToBottomManager(this.domManager, this.apiManager, this.cacheManager);
+        // Initialize sub-managers (defer until needed)
+        this.cacheManager = null;
+        this.domManager = null;
+        this.apiManager = null;
+        this.uiManager = null;
+        this.filterManager = null;
+        this.tabService = null;
+        this.viewManager = null;
+        this.fillToBottomManager = null;
 
-        // Use global tag router for URL parameter handling
+        // Use global tag router for URL parameter handling (will be set later if not available)
         this.tagRouter = window.tagRouter || null;
-        if (!this.tagRouter) {
-            console.warn('⚠️ FEED MANAGER: Global tag router not available, tag filtering disabled');
-        }
 
         // Bind methods to maintain context
         this.handleFilterChanged = this.handleFilterChanged.bind(this);
@@ -54,6 +51,30 @@ class FeedManager {
 
     // Initialize sub-managers
     async initializeSubManagers() {
+        // Check if all required classes are available
+        const requiredClasses = [
+            'FeedCacheManager', 'FeedDOMManager', 'FeedAPIManager',
+            'FeedUIManager', 'FeedFilterManager', 'HybridTabService',
+            'FeedViewManager', 'FillToBottomManager'
+        ];
+
+        const missingClasses = requiredClasses.filter(className => typeof window[className] === 'undefined');
+
+        if (missingClasses.length > 0) {
+            console.error('❌ FEED MANAGER: Missing required classes:', missingClasses);
+            throw new Error(`Missing required classes: ${missingClasses.join(', ')}`);
+        }
+
+        // Initialize sub-managers
+        this.cacheManager = new window.FeedCacheManager();
+        this.domManager = new window.FeedDOMManager();
+        this.apiManager = new window.FeedAPIManager();
+        this.uiManager = new window.FeedUIManager(this.domManager);
+        this.filterManager = new window.FeedFilterManager(this.cacheManager, this);
+        this.tabService = new window.HybridTabService();
+        this.viewManager = new window.FeedViewManager();
+        this.fillToBottomManager = new window.FillToBottomManager(this.domManager, this.apiManager, this.cacheManager);
+
         this.domManager.init();
         this.uiManager.init();
         this.filterManager.init();
@@ -65,15 +86,25 @@ class FeedManager {
     async setupTagRouter() {
         if (window.tagRouter) {
             this.tagRouter = window.tagRouter;
-            console.log('🏷️ FEED MANAGER: Using global tag router for subscription');
+            // console.log('🏷️ FEED MANAGER: Using global tag router for subscription');
         }
 
         if (this.tagRouter) {
-            console.log('🏷️ FEED MANAGER: Subscribing to tag router changes');
+            // console.log('🏷️ FEED MANAGER: Subscribing to tag router changes');
             this.tagRouter.subscribe('feedManager', this.handleTagChange);
-            console.log('🏷️ FEED MANAGER: Subscription completed, current listeners:', this.tagRouter.listeners.size);
+            // console.log('🏷️ FEED MANAGER: Subscription completed, current listeners:', this.tagRouter.listeners.size);
         } else {
-            console.warn('⚠️ FEED MANAGER: Tag router not available for subscription');
+            // console.log('🏷️ FEED MANAGER: Tag router not available yet, will connect later');
+        }
+    }
+
+    // Connect to tag router when it becomes available
+    connectTagRouter() {
+        if (window.tagRouter && !this.tagRouter) {
+            // console.log('🏷️ FEED MANAGER: Connecting to tag router that became available');
+            this.tagRouter = window.tagRouter;
+            this.tagRouter.subscribe('feedManager', this.handleTagChange);
+            // console.log('🏷️ FEED MANAGER: Tag router connected successfully');
         }
     }
 
@@ -245,7 +276,7 @@ class FeedManager {
             // Get current active tags from tag router
             const activeTags = this.tagRouter ? this.tagRouter.getActiveTags() : [];
 
-            console.log('🏷️ FEED MANAGER: Loading images with tags:', activeTags);
+            // console.log('🏷️ FEED MANAGER: Loading images with tags:', activeTags);
 
             // Load images from API with tag filtering
             const result = await this.apiManager.loadFeedImages(filter, 0, activeTags);
@@ -438,12 +469,31 @@ class FeedManager {
 let feedManager = null;
 
 const initFeedManager = async() => {
-    console.log('🏷️ FEED MANAGER: Checking dependencies...');
-    console.log('🏷️ FEED MANAGER: FEED_CONFIG available:', typeof FEED_CONFIG !== 'undefined');
-    console.log('🏷️ FEED MANAGER: FEED_CONSTANTS available:', typeof FEED_CONSTANTS !== 'undefined');
+    // Check if all required dependencies are available
+    const requiredDependencies = [
+        'FEED_CONFIG', 'FEED_CONSTANTS', 'FeedCacheManager', 'FeedDOMManager',
+        'FeedAPIManager', 'FeedUIManager', 'FeedFilterManager', 'HybridTabService',
+        'FeedViewManager', 'FillToBottomManager'
+    ];
 
-    if (typeof FEED_CONFIG !== 'undefined' && typeof FEED_CONSTANTS !== 'undefined') {
-        console.log('🏷️ FEED MANAGER: Creating FeedManager instance...');
+    const missingDeps = requiredDependencies.filter(dep => {
+        if (dep.startsWith('FEED_')) {
+            return typeof window[dep] === 'undefined';
+        } else {
+            return typeof window[dep] === 'undefined';
+        }
+    });
+
+    if (missingDeps.length > 0) {
+        console.warn('⚠️ FEED MANAGER: Missing dependencies, retrying in 100ms:', missingDeps);
+        setTimeout(() => initFeedManager().catch(console.error), 100);
+        return;
+    }
+
+    console.log('✅ FEED MANAGER: All dependencies available, proceeding with initialization');
+
+    try {
+        // console.log('🏷️ FEED MANAGER: Creating FeedManager instance...');
         feedManager = new FeedManager();
 
         // Initialize the feed manager (this sets up tag router subscription)
@@ -471,29 +521,24 @@ const initFeedManager = async() => {
             window.getFilterStats = () => feedManager.getFilterStats();
             window.clearFilterCache = filter => feedManager.clearFilterCache(filter);
         }
-    } else {
+    } catch (error) {
+        console.error('❌ FEED MANAGER: Failed to initialize:', error);
         // Retry after a short delay
-        setTimeout(() => initFeedManager().catch(console.error), FEED_CONSTANTS.DEFAULTS.RETRY_DELAY);
+        setTimeout(() => initFeedManager().catch(console.error), 500);
     }
 };
 
-// Start initialization - wait for global tag router to be available
-const waitForTagRouter = () => {
-    console.log('🏷️ FEED MANAGER: Checking for global tag router...');
-    console.log('🏷️ FEED MANAGER: window.tagRouter exists:', !!window.tagRouter);
-    console.log('🏷️ FEED MANAGER: window.TagRouter exists:', !!window.TagRouter);
+// Initialize immediately - tag router will be connected later if available
+const initImmediately = () => {
+    // console.log('🏷️ FEED MANAGER: Initializing immediately...');
+    // console.log('🏷️ FEED MANAGER: window.tagRouter exists:', !!window.tagRouter);
+    // console.log('🏷️ FEED MANAGER: window.TagRouter exists:', !!window.TagRouter);
 
-    if (window.tagRouter) {
-        console.log('🏷️ FEED MANAGER: Global tag router detected, initializing feed manager');
-        initFeedManager().catch(console.error);
-    } else {
-        console.log('🏷️ FEED MANAGER: Waiting for global tag router...');
-        setTimeout(waitForTagRouter, 100);
-    }
+    initFeedManager().catch(console.error);
 };
 
-// Start waiting for tag router
-waitForTagRouter();
+// Start initialization immediately
+initImmediately();
 
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {

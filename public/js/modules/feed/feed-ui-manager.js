@@ -401,6 +401,11 @@ class FeedUIManager {
     }
 }
 
+// Export for global access
+if (typeof window !== 'undefined') {
+    window.FeedUIManager = FeedUIManager;
+}
+
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FeedUIManager;

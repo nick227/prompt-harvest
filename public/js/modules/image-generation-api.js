@@ -119,6 +119,14 @@ class ImageGenerationAPI {
     }
 
     addEnhancementParameters(formData) {
+        // Get form values from the unified drawer component
+        let drawerValues = {};
+
+        if (window.unifiedDrawerComponent) {
+            drawerValues = window.unifiedDrawerComponent.getFormValues('desktop');
+            console.log('📋 ENHANCEMENT: Got drawer values:', drawerValues);
+        }
+
         // Get multiplier value
         const multiplierInput = document.querySelector('#multiplier');
 
@@ -128,57 +136,76 @@ class ImageGenerationAPI {
         }
 
         // Get mixup checkbox
-        const mixupCheckbox = document.querySelector('input[name="mixup"]');
-
-        if (mixupCheckbox && mixupCheckbox.checked) {
+        if (drawerValues.mixup) {
             console.log('📋 ENHANCEMENT: Adding mixup: true');
             formData.append('mixup', 'true');
         }
 
         // Get mashup checkbox
-        const mashupCheckbox = document.querySelector('input[name="mashup"]');
-
-        if (mashupCheckbox && mashupCheckbox.checked) {
+        if (drawerValues.mashup) {
             console.log('📋 ENHANCEMENT: Adding mashup: true');
             formData.append('mashup', 'true');
         }
 
         // Get auto-enhance checkbox
-        const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
-
-        if (autoEnhanceCheckbox && autoEnhanceCheckbox.checked) {
+        if (drawerValues['auto-enhance']) {
             console.log('📋 ENHANCEMENT: Adding auto-enhance: true');
             formData.append('auto-enhance', 'true');
         }
 
         // Get photogenic checkbox
-        const photogenicCheckbox = document.querySelector('input[name="photogenic"]');
-
-        if (photogenicCheckbox && photogenicCheckbox.checked) {
+        if (drawerValues.photogenic) {
             console.log('📋 ENHANCEMENT: Adding photogenic: true');
             formData.append('photogenic', 'true');
         }
 
         // Get artistic checkbox
-        const artisticCheckbox = document.querySelector('input[name="artistic"]');
-
-        if (artisticCheckbox && artisticCheckbox.checked) {
+        if (drawerValues.artistic) {
             console.log('📋 ENHANCEMENT: Adding artistic: true');
             formData.append('artistic', 'true');
+        }
+
+        // Get autoPublic checkbox
+        console.log('🔍 AUTOPUBLIC DEBUG: Checking autoPublic value:', {
+            drawerValues,
+            autoPublic: drawerValues.autoPublic,
+            autoPublicType: typeof drawerValues.autoPublic
+        });
+
+        if (drawerValues.autoPublic) {
+            console.log('📋 ENHANCEMENT: Adding autoPublic: true');
+            formData.append('autoPublic', 'true');
+        } else {
+            console.log('📋 ENHANCEMENT: autoPublic is false or undefined, not adding to payload');
         }
 
         console.log('📋 ENHANCEMENT: Enhancement parameters processed');
     }
 
     addGuidanceValues(formData) {
-        const guidanceTop = document.querySelector('select[name="guidance-top"]');
-        const guidanceBottom = document.querySelector('select[name="guidance-bottom"]');
+        // Get form values from the unified drawer component
+        let drawerValues = {};
 
-        if (guidanceTop && guidanceTop.value) {
-            formData.append('guidance', guidanceTop.value);
+        if (window.unifiedDrawerComponent) {
+            drawerValues = window.unifiedDrawerComponent.getFormValues('desktop');
         }
-        if (guidanceBottom && guidanceBottom.value) {
-            formData.append('guidance', guidanceBottom.value);
+
+        // Use drawer values for guidance if available, otherwise fall back to document query
+        if (drawerValues['guidance-top']) {
+            formData.append('guidance', drawerValues['guidance-top']);
+        } else if (drawerValues['guidance-bottom']) {
+            formData.append('guidance', drawerValues['guidance-bottom']);
+        } else {
+            // Fallback to document query
+            const guidanceTop = document.querySelector('select[name="guidance-top"]');
+            const guidanceBottom = document.querySelector('select[name="guidance-bottom"]');
+
+            if (guidanceTop && guidanceTop.value) {
+                formData.append('guidance', guidanceTop.value);
+            }
+            if (guidanceBottom && guidanceBottom.value) {
+                formData.append('guidance', guidanceBottom.value);
+            }
         }
     }
 
@@ -199,6 +226,7 @@ class ImageGenerationAPI {
                 case 'auto-enhance':
                 case 'photogenic':
                 case 'artistic':
+                case 'autoPublic':
                     jsonData[key] = value === 'true' || value === true;
                     break;
                 case 'providers':

@@ -29,7 +29,7 @@ class ThemeManager {
                 const currentTheme = this.themeService.getCurrentTheme();
                 this.syncThemeDropdownsSilently(currentTheme);
                 this.initialized = true;
-                console.log('Theme Manager: Initialized dropdowns with theme:', currentTheme);
+                // console.log('Theme Manager: Initialized dropdowns with theme:', currentTheme);
             }
         }, 100);
     }
@@ -81,7 +81,7 @@ class ThemeManager {
 
         // Listen for theme service events
         document.addEventListener('themeChanged', (event) => {
-            console.log('Theme Manager: Received theme change event:', event.detail);
+            // console.log('Theme Manager: Received theme change event:', event.detail);
             this.handleThemeServiceChange(event.detail.themeName);
         });
     }
@@ -114,7 +114,7 @@ class ThemeManager {
     updateThemeDropdowns() {
         if (this.themeService && !this.isUpdatingDropdowns) {
             const currentTheme = this.themeService.getCurrentTheme();
-            console.log('Theme Manager: Updating dropdowns to theme:', currentTheme);
+            // console.log('Theme Manager: Updating dropdowns to theme:', currentTheme);
             this.syncThemeDropdowns(currentTheme);
         }
     }
@@ -135,26 +135,26 @@ class ThemeManager {
         const desktopThemeSelect = document.getElementById('theme-select');
         const mobileThemeSelect = document.getElementById('mobile-theme-select');
 
-        console.log('Theme Manager: Syncing dropdowns to theme:', themeName);
-        console.log('Theme Manager: Desktop select found:', !!desktopThemeSelect);
-        console.log('Theme Manager: Mobile select found:', !!mobileThemeSelect);
+        // console.log('Theme Manager: Syncing dropdowns to theme:', themeName);
+        // console.log('Theme Manager: Desktop select found:', !!desktopThemeSelect);
+        // console.log('Theme Manager: Mobile select found:', !!mobileThemeSelect);
 
         // Temporarily remove event listeners to prevent recursion
         if (desktopThemeSelect) {
             const originalValue = desktopThemeSelect.value;
-            console.log('Theme Manager: Desktop select current value:', originalValue);
+            // console.log('Theme Manager: Desktop select current value:', originalValue);
             if (originalValue !== themeName) {
                 desktopThemeSelect.value = themeName;
-                console.log('Theme Manager: Set desktop select to:', themeName);
+                // console.log('Theme Manager: Set desktop select to:', themeName);
             }
         }
 
         if (mobileThemeSelect) {
             const originalValue = mobileThemeSelect.value;
-            console.log('Theme Manager: Mobile select current value:', originalValue);
+            // console.log('Theme Manager: Mobile select current value:', originalValue);
             if (originalValue !== themeName) {
                 mobileThemeSelect.value = themeName;
-                console.log('Theme Manager: Set mobile select to:', themeName);
+                // console.log('Theme Manager: Set mobile select to:', themeName);
             }
         }
     }

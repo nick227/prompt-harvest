@@ -103,11 +103,14 @@ class DualViewLoadingManager {
         }
 
         // Update status in metadata if it exists
-        const statusElement = listView.querySelector('.list-metadata span[style*="color:"]');
-
-        if (statusElement) {
-            statusElement.textContent = 'Generating...';
-            statusElement.style.color = '#10b981';
+        const statusRow = listView.querySelector('.metadata-row');
+        if (statusRow) {
+            const statusLabel = statusRow.querySelector('.metadata-label');
+            const statusValue = statusRow.querySelector('.metadata-value');
+            if (statusLabel && statusLabel.textContent === 'Status' && statusValue) {
+                statusValue.textContent = 'Generating...';
+                statusValue.style.color = '#10b981';
+            }
         }
     }
 
@@ -389,6 +392,23 @@ class DualViewLoadingManager {
 
         if (metadata) {
             window.ImageViewUtils.createListViewMetadata(imageData, metadata);
+        }
+
+        // Ensure the wrapper has the correct view class and view is applied
+        const { wrapper } = loadingState;
+        if (wrapper && window.feedManager && window.feedManager.viewManager) {
+            const { viewManager } = window.feedManager;
+            const { currentView } = viewManager;
+            if (currentView === 'list') {
+                wrapper.classList.add('list');
+                wrapper.classList.remove('compact');
+            } else if (currentView === 'compact') {
+                wrapper.classList.add('compact');
+                wrapper.classList.remove('list');
+            }
+
+            // Ensure view is applied after updating list view
+            window.feedManager.viewManager.ensureViewApplied();
         }
     }
 

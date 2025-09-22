@@ -310,13 +310,13 @@ class RatingButtons {
         });
 
         // Update list view metadata rating display (the one with rating buttons)
-        const metadataRatingElements = document.querySelectorAll('span');
+        const metadataRatingElements = document.querySelectorAll('.metadata-value');
         metadataRatingElements.forEach(element => {
-            if (element.textContent.includes('Rating:')) {
+            if (element.textContent.includes('★')) {
                 const ratingButtons = element.querySelector(`.rating-buttons[data-image-id="${this.imageId}"]`);
                 if (ratingButtons) {
                     // Update the rating text
-                    element.textContent = `Rating: ★ ${rating || 0}`;
+                    element.textContent = `★ ${rating || 0}`;
                     // Re-add the rating buttons
                     const buttonsContainer = ratingButtons.cloneNode(true);
                     element.appendChild(buttonsContainer);

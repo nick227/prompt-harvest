@@ -211,12 +211,12 @@
 
 /* Ensure loading placeholder maintains proper width constraints */
 .list-view.loading-placeholder-content .list-image-thumb {
-    width: 33%;
+    width: var(--list-view-image-width);
     flex-shrink: 0;
 }
 
 .list-view.loading-placeholder-content .list-content {
-    width: 67%;
+    width: var(--list-view-content-width);
     flex: 1;
 }
 
@@ -256,10 +256,23 @@
     margin-bottom: 4px;
 }
 
-.list-metadata {
+/* .list-metadata styling is handled by .list-content .list-metadata for grid layout */
+
+/* Individual wrapper view control */
+.image-wrapper.list .compact-view {
+    display: none;
+}
+
+.image-wrapper.compact .list-view {
+    display: none;
+}
+
+.image-wrapper.list .list-view {
     display: flex;
-    gap: 16px;
-    align-items: center;
+}
+
+.image-wrapper.compact .compact-view {
+    display: block;
 }
 
 /* List view content - the actual list view div inside each item */
@@ -269,14 +282,13 @@
     gap: 1rem;
     background: var(--color-surface-primary);
     border: 1px solid var(--color-border-primary);
+    min-height: 120px; /* Ensure minimum height for proper display */
     border-radius: 8px;
-    min-height: 120px;
     width: 100%;
 }
 
-/* Image column - 33% of the row */
 .list-image-thumb {
-    width: 33%;
+    width: var(--list-view-image-width);
     height: auto;
     flex-shrink: 0;
     display: flex;
@@ -293,7 +305,7 @@
 
 /* Metadata column - 67% of the row */
 .list-content {
-    width: 67%;
+    width: var(--list-view-content-width);
     flex: 1;
     min-width: 0;
     display: flex;
@@ -384,12 +396,7 @@
 }
 
 /* Additional list view metadata styling */
-.list-content .list-metadata span {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 4px;
-    padding: 0.5rem;
-    margin: 0.25rem 0;
-}
+/* Legacy rule removed - now using specific .metadata-label and .metadata-value styling */
 
 
 

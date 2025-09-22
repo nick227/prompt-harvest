@@ -107,6 +107,7 @@ class GenerationData {
             autoEnhance: !!rawData.autoEnhance,
             photogenic: !!rawData.photogenic,
             artistic: !!rawData.artistic,
+            autoPublic: !!rawData.autoPublic,
             promptId: rawData.promptId || this.generatePromptId(),
             original: rawData.original?.trim() || rawData.prompt?.trim() || ''
         };
@@ -144,6 +145,7 @@ class GenerationData {
         const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
         const photogenicCheckbox = document.querySelector('input[name="photogenic"]');
         const artisticCheckbox = document.querySelector('input[name="artistic"]');
+        const autoPublicCheckbox = document.querySelector('input[name="autoPublic"]');
 
         // Calculate guidance
         const guidanceData = this.calculateGuidance(guidanceElmTop?.value, guidanceElmBottom?.value);
@@ -157,6 +159,7 @@ class GenerationData {
             autoEnhance: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : false,
             photogenic: photogenicCheckbox ? photogenicCheckbox.checked : false,
             artistic: artisticCheckbox ? artisticCheckbox.checked : false,
+            autoPublic: autoPublicCheckbox ? autoPublicCheckbox.checked : false,
             original: promptInput ? promptInput.value.trim() : ''
         };
 
