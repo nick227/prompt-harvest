@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import modelInterface from '../../ModelInterface.js';
+import modelInterface from '../ModelInterface.js';
 
 dotenv.config();
 
@@ -29,6 +29,7 @@ export class OpenAIProvider {
         this.validateConfig();
 
         const keyValidation = await this.validateApiKey();
+
         if (keyValidation) {
             throw new Error('OpenAI API key validation failed');
         }
@@ -36,9 +37,9 @@ export class OpenAIProvider {
         try {
             const response = await this.client.images.generate({
                 model: 'dall-e-3',
-                prompt: prompt,
+                prompt,
                 n: 1,
-                size: size,
+                size,
                 quality: 'standard',
                 style: 'natural'
             });
@@ -71,6 +72,7 @@ export class OpenAIProvider {
     async validateApiKey() {
         try {
             await this.client.models.list();
+
             return false; // Key is valid
         } catch (error) {
             return true; // Key validation failed

@@ -20,6 +20,7 @@ class ViolationService {
      */
     async getViolationStats(options = {}) {
         const statsService = new ViolationStatsService();
+
         return await statsService.getViolationStats(options);
     }
 

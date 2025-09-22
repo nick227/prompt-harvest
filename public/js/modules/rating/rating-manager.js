@@ -14,7 +14,7 @@ class RatingManager {
         }
 
         this.setupKeyboardListeners();
-        // this.setupRatingFilter(); TODO DISABLED TEMPORARILY
+        this.setupRatingFilter();
 
         this.isInitialized = true;
 

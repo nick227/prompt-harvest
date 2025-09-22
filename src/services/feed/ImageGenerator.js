@@ -400,10 +400,25 @@ const handleDezgoError = error => {
                 error: 'Dezgo API server error',
                 details: 'Dezgo servers are experiencing issues'
             };
+        } else if (status === 499) {
+            return {
+                error: 'Dezgo API client disconnected',
+                details: 'Request was cancelled or client disconnected. This may be due to timeout or network issues.'
+            };
         } else if (status === 503) {
             return {
                 error: 'Dezgo API service unavailable',
                 details: 'Service temporarily unavailable'
+            };
+        } else if (status >= 400 && status < 500) {
+            return {
+                error: `Dezgo API client error (${status})`,
+                details: data ? data.toString() : 'Client request error'
+            };
+        } else if (status >= 500) {
+            return {
+                error: `Dezgo API server error (${status})`,
+                details: data ? data.toString() : 'Server error'
             };
         }
     }
@@ -508,7 +523,7 @@ const makeDezgoRequest = async (url, prompt, model, guidance) => {
                 'User-Agent': 'Image-Harvest/1.0'
             },
             responseType: 'arraybuffer',
-            timeout: 120000,
+            timeout: 180000, // 3 minutes for slower models like abyss_orange_mix_2
             maxRedirects: 3
         });
 

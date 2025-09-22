@@ -23,7 +23,7 @@ export class CreditManagementService {
 
         if (models.length > 0) {
             // Return the minimum cost among active models for this provider
-        return Math.min(...models.map(m => m.costPerImage));
+            return Math.min(...models.map(m => m.costPerImage));
         }
 
         // Fallback to default cost if no models found
@@ -38,6 +38,7 @@ export class CreditManagementService {
 
         for (const provider of providers) {
             const cost = await this.getModelCost(provider);
+
             totalCost += cost;
         }
 
@@ -52,15 +53,15 @@ export class CreditManagementService {
 
         if (totalCost <= 0) {
             console.log('💰 CREDIT SERVICE: No cost to deduct');
+
             return { success: true, cost: 0 };
         }
 
         console.log(`💰 CREDIT SERVICE: Deducting ${totalCost} credits for user ${userId} (request: ${requestId})`);
 
-        const result = await SimplifiedCreditService.deductCredits(
+        const result = await SimplifiedCreditService.debitCredits(
             userId,
             totalCost,
-            'image_generation',
             `Generated image with prompt: "${prompt.substring(0, 50)}..."`,
             {
                 requestId,
@@ -79,6 +80,7 @@ export class CreditManagementService {
     async refundCreditsOnFailure(userId, providers, error, requestId) {
         if (!userId) {
             console.log('💰 CREDIT SERVICE: No userId provided for refund');
+
             return { success: true, refunded: 0 };
         }
 
@@ -86,6 +88,7 @@ export class CreditManagementService {
 
         if (totalCost <= 0) {
             console.log('💰 CREDIT SERVICE: No cost to refund');
+
             return { success: true, refunded: 0 };
         }
 

@@ -93,6 +93,7 @@ export class AdminDashboardService {
 
         // Map users to images
         const userMap = new Map(users.map(user => [user.id, user]));
+
         return recentActivity.map(image => ({
             ...image,
             user: userMap.get(image.userId) || { email: 'Unknown', username: 'Unknown' }
@@ -119,6 +120,7 @@ export class AdminDashboardService {
         }
 
         const mostRecentImage = recentActivityWithUsers[0];
+
         return {
             id: mostRecentImage.id,
             imageUrl: mostRecentImage.imageUrl,

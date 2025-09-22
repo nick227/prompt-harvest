@@ -32,6 +32,7 @@ export class SampleImageService {
      */
     getRandomSampleImage() {
         const randomIndex = Math.floor(Math.random() * this.sampleImages.length);
+
         return this.sampleImages[randomIndex];
     }
 

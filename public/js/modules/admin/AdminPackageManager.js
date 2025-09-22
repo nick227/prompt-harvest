@@ -1322,3 +1322,8 @@ class AdminPackageManager {
 
 // Export for global access
 window.AdminPackageManager = AdminPackageManager;
+
+// Export for module access (CommonJS)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = AdminPackageManager;
+}

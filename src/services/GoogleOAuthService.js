@@ -125,6 +125,7 @@ export class GoogleOAuthService {
                 user = await this.updateUserWithGoogleId(user, profileData.googleId);
             }
             console.log('✅ GOOGLE OAUTH: Existing user logged in:', user.email);
+
             return user;
         }
 
@@ -133,6 +134,7 @@ export class GoogleOAuthService {
 
         if (user) {
             console.log('✅ GOOGLE OAUTH: User found by Google ID:', user.email);
+
             return user;
         }
 

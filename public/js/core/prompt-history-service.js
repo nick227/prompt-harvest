@@ -637,3 +637,6 @@ if (typeof window !== 'undefined') {
     window.PromptHistoryService = PromptHistoryService;
 }
 
+// Export for testing
+export default PromptHistoryService;
+

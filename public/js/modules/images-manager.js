@@ -54,15 +54,22 @@ class ImagesManager {
 
             return img;
         } catch (error) {
-            console.error('❌ MANAGER: Generation failed', error);
-
             // Handle 402 Payment Required error specifically
             if (error.status === 402) {
+                console.log('💳 MANAGER: Handling insufficient credits error');
                 this.handleInsufficientCredits(error);
 
                 return; // Don't throw, we've handled it
             }
 
+            // Handle 500 server errors with user notification
+            if (error.status === 500) {
+                console.error('❌ MANAGER: Server error (500) - showing user notification');
+                this.showServerErrorNotification(error);
+                return; // Don't throw, we've handled it
+            }
+
+            console.error('❌ MANAGER: Generation failed', error);
             throw error;
         }
     }
@@ -127,7 +134,10 @@ class ImagesManager {
 
             this.ui.showGenerationSuccess();
         } catch (error) {
-            console.error('❌ FLOW: generateImage failed', error);
+            // Only log if it's not a handled error (402, 500)
+            if (error.status !== 402 && error.status !== 500) {
+                console.error('❌ FLOW: generateImage failed', error);
+            }
             this.ui.showGenerationError(error);
             this.dom.removeLoadingPlaceholder();
 
@@ -136,6 +146,33 @@ class ImagesManager {
             console.log('🔧 FLOW: UI reset from generating state');
         }
     }
+
+    /**
+     * Handle server error (500) with user notification
+     * @param {Error} error - Error object with status 500
+     */
+    showServerErrorNotification(error) {
+        console.log('🚨 MANAGER: Showing server error notification', error);
+
+        let errorMessage = 'Image generation failed due to a server error. Please try again.';
+
+        // Try to extract more specific error information
+        if (error.data && error.data.error) {
+            const serverError = error.data.error;
+            if (typeof serverError === 'string') {
+                errorMessage = `Server Error: ${serverError}`;
+            } else if (serverError.message) {
+                errorMessage = `Server Error: ${serverError.message}`;
+            }
+        }
+
+        // Show simple browser alert
+        alert(errorMessage);
+
+        // Remove loading placeholder
+        this.dom.removeLoadingPlaceholder();
+    }
+
 
     /**
      * Handle insufficient credits error (402)

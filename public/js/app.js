@@ -136,15 +136,10 @@ class AppLoader {
         ];
 
         managers.forEach(managerName => {
-            console.log(`🔍 APP: Checking manager ${managerName}:`, {
-                exists: !!window[managerName],
-                hasInit: !!(window[managerName]?.init)
-            });
 
             if (window[managerName]?.init) {
                 try {
                     window[managerName].init();
-                    console.log(`✅ APP: Initialized ${managerName}`);
                 } catch (error) {
                     console.error(`❌ Error initializing ${managerName}:`, error);
                 }
@@ -157,10 +152,8 @@ class AppLoader {
     initializeComponents() {
         // Initialize new modular images system
         if (window.imagesManager && window.imagesManager.init) {
-            console.log('🚀 Initializing ImagesManager...');
             window.imagesManager.init();
         } else if (window.ImagesManager) {
-            console.log('🚀 Creating and initializing ImagesManager...');
             window.imagesManager = new window.ImagesManager();
             window.imagesManager.init();
         }
@@ -186,15 +179,13 @@ class AppLoader {
 
     async setupFeed() {
         // Setup feed to load initial images with retry logic
-        const maxRetries = 5;
+        const maxRetries = 1;
         let retries = 0;
 
         const trySetupFeed = async () => {
             if (window.feedManager && window.feedManager.setupFeed) {
                 try {
-                    console.log('🔍 APP: Setting up feed... (attempt', retries + 1, ')');
                     await window.feedManager.setupFeed();
-                    console.log('✅ APP: Feed setup completed');
 
                     return true;
                 } catch (error) {
@@ -228,14 +219,6 @@ class AppLoader {
 
     // Manual feed loading for testing
     async manualLoadFeed() {
-        console.log('🔍 APP: Manual feed load triggered');
-        console.log('🔍 APP: Feed manager status:', {
-            exists: !!window.feedManager,
-            hasSetupFeed: !!(window.feedManager?.setupFeed),
-            hasForceFresh: !!(window.feedManager?.forceFreshFeedLoad),
-            hasInit: !!(window.feedManager?.init),
-            isInitialized: window.feedManager?.isInitialized
-        });
 
         if (window.feedManager && window.feedManager.forceFreshFeedLoad) {
             try {
@@ -425,10 +408,12 @@ document.addEventListener('DOMContentLoaded', async() => {
     };
 
     // Manual feed loading for testing
+    /*
     window.manualLoadFeed = async () => {
         if (window.app) {
             await window.app.manualLoadFeed();
         }
     };
+    */
 });
 

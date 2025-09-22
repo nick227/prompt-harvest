@@ -1,6 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
-import modelInterface from '../../ModelInterface.js';
+import modelInterface from '../ModelInterface.js';
 
 dotenv.config();
 
@@ -65,7 +65,7 @@ export class GoogleImagenProvider {
      */
     async generateFluxImage(prompt, guidance, model, url) {
         const payload = {
-            prompt: prompt,
+            prompt,
             guidance_scale: guidance,
             width: 1024,
             height: 1024,
@@ -75,7 +75,7 @@ export class GoogleImagenProvider {
         try {
             const response = await axios.post(url, payload, {
                 headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
+                    Authorization: `Bearer ${this.apiKey}`,
                     'Content-Type': 'application/json'
                 },
                 timeout: 120000
@@ -89,7 +89,7 @@ export class GoogleImagenProvider {
                 success: true,
                 data: response.data,
                 provider: 'google',
-                model: model
+                model
             };
 
         } catch (error) {
@@ -102,13 +102,14 @@ export class GoogleImagenProvider {
      */
     async generateImagenImage(prompt, guidance, model, url) {
         const keyValidation = await this.validateApiKey();
+
         if (keyValidation) {
             throw new Error('Google Imagen API key validation failed');
         }
 
         const payload = {
             instances: [{
-                prompt: prompt,
+                prompt,
                 parameters: {
                     guidance_scale: guidance,
                     width: 1024,
@@ -120,7 +121,7 @@ export class GoogleImagenProvider {
         try {
             const response = await axios.post(url, payload, {
                 headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
+                    Authorization: `Bearer ${this.apiKey}`,
                     'Content-Type': 'application/json'
                 },
                 timeout: 120000
@@ -140,7 +141,7 @@ export class GoogleImagenProvider {
                 success: true,
                 data: prediction.bytesBase64Encoded,
                 provider: 'google',
-                model: model
+                model
             };
 
         } catch (error) {
@@ -183,10 +184,11 @@ export class GoogleImagenProvider {
         try {
             const response = await axios.get(`https://aiplatform.googleapis.com/v1/projects/${this.projectId}/locations/us-central1/models`, {
                 headers: {
-                    'Authorization': `Bearer ${this.apiKey}`
+                    Authorization: `Bearer ${this.apiKey}`
                 },
                 timeout: 10000
             });
+
             return false; // Key is valid
         } catch (error) {
             return true; // Key validation failed

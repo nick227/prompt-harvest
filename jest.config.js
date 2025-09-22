@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 export default {
-    // Test environment - use node to avoid canvas issues
-    testEnvironment: 'node',
+    // Test environment - use jsdom for browser APIs
+    testEnvironment: 'jsdom',
 
     // Root directory for Jest
     rootDir: '.',
@@ -24,6 +24,9 @@ export default {
 
     // Setup files for each test file
     setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+
+    // Setup files for global configuration
+    setupFiles: ['<rootDir>/tests/global-setup.js'],
 
     // Module directories
     moduleDirectories: ['node_modules', 'public/js', 'tests'],

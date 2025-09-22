@@ -324,7 +324,8 @@ const processQueueWithRetry = async(processRequest, maxRetries = 3) => {
     try {
         while (queue.length > 0) {
             const request = queue.shift();
-            await processRequestWithRetry(request, maxRetries);
+
+            await processRequestWithRetry(request, maxRetries, processRequest);
         }
     } catch (error) {
         console.error('❌ Queue processing error:', error);
@@ -386,8 +387,11 @@ export {
 
 /**
  * Process a single request with retry logic
+ * @param {Object} request - Request object
+ * @param {number} maxRetries - Maximum number of retries
+ * @param {Function} processRequest - Function to process the request
  */
-async function processRequestWithRetry(request, maxRetries) {
+async function processRequestWithRetry(request, maxRetries, processRequest) {
     const { id, prompt, original, promptId, providers, guidance, resolve, reject } = request;
 
     console.log(`⚡ Processing request [${id}] (attempt 1/${maxRetries + 1}):`, {
@@ -437,6 +441,7 @@ async function processRequestWithRetry(request, maxRetries) {
  */
 async function waitForRetry(attempt) {
     const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+
     console.log(`⏳ Retrying in ${delay}ms...`);
     await new Promise(resolve => setTimeout(resolve, delay));
 }

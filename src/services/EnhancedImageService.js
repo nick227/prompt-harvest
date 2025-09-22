@@ -671,6 +671,7 @@ export class EnhancedImageService {
 
         models.forEach(model => {
             const key = `${model.provider}-${model.name}`;
+
             modelCostMap.set(key, {
                 costPerImage: model.costPerImage,
                 displayName: model.displayName

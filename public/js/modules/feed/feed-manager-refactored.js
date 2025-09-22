@@ -494,3 +494,8 @@ const waitForTagRouter = () => {
 
 // Start waiting for tag router
 waitForTagRouter();
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = FeedManager;
+}

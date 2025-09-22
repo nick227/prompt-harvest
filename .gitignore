@@ -21,4 +21,4 @@ server/docs/
 tests/
 coverage/
 private
-
+.cursor

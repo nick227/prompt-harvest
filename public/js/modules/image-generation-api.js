@@ -39,7 +39,10 @@ class ImageGenerationAPI {
 
             return imageData;
         } catch (error) {
-            console.error('❌ API ERROR: Generation failed', error);
+            // Only log the error here if it's not a 500 server error (will be logged by manager)
+            if (error.status !== 500) {
+                console.error('❌ API ERROR: Generation failed', error);
+            }
             throw error;
         } finally {
             this.isGenerating = false;

@@ -25,6 +25,7 @@ export class ImageGenerationService {
         }
 
         const isValidProvider = this.isProviderAvailable(providerName);
+
         if (!providerName || !isValidProvider) {
             throw new Error(`Provider ${providerName} is not available`);
         }
@@ -37,6 +38,7 @@ export class ImageGenerationService {
         this.validateImageParams(prompt, guidance, providerName);
 
         const provider = this.providers[providerName];
+
         if (!provider) {
             throw new Error(`Provider ${providerName} not found`);
         }
@@ -51,9 +53,10 @@ export class ImageGenerationService {
      * Generate images using multiple providers in parallel
      */
     async generateMultipleProviderImages(providers, prompt, guidance, model = null) {
-        const promises = providers.map(async (providerName) => {
+        const promises = providers.map(async providerName => {
             try {
                 const result = await this.generateProviderImage(providerName, prompt, guidance, model);
+
                 return {
                     provider: providerName,
                     success: true,
@@ -70,6 +73,7 @@ export class ImageGenerationService {
         });
 
         const results = await Promise.allSettled(promises);
+
         return this.formatResults(results, providers);
     }
 
@@ -84,6 +88,7 @@ export class ImageGenerationService {
         }
 
         const randomProvider = availableProviders[Math.floor(Math.random() * availableProviders.length)];
+
         return await this.generateProviderImage(randomProvider, prompt, guidance);
     }
 
@@ -91,8 +96,7 @@ export class ImageGenerationService {
      * Get available providers
      */
     getAvailableProviders() {
-        return Object.keys(this.providers).filter(providerName =>
-            this.isProviderAvailable(providerName)
+        return Object.keys(this.providers).filter(providerName => this.isProviderAvailable(providerName)
         );
     }
 
@@ -101,6 +105,7 @@ export class ImageGenerationService {
      */
     isProviderAvailable(providerName) {
         const provider = this.providers[providerName];
+
         return provider ? provider.isAvailable() : false;
     }
 
@@ -109,6 +114,7 @@ export class ImageGenerationService {
      */
     getProviderConfig(providerName) {
         const provider = this.providers[providerName];
+
         return provider ? provider.getConfig() : null;
     }
 
@@ -117,6 +123,7 @@ export class ImageGenerationService {
      */
     getDefaultModel(providerName) {
         const config = this.getProviderConfig(providerName);
+
         return config?.models?.[0] || 'default';
     }
 
@@ -169,12 +176,14 @@ export class ImageGenerationService {
      */
     async testProvider(providerName) {
         const provider = this.providers[providerName];
+
         if (!provider) {
             return { available: false, error: 'Provider not found' };
         }
 
         try {
             const isAvailable = provider.isAvailable();
+
             return { available: isAvailable, error: isAvailable ? null : 'Provider not configured' };
         } catch (error) {
             return { available: false, error: error.message };

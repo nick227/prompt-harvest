@@ -116,6 +116,7 @@ export class PromoCodeManagementService {
      */
     async checkPromoCodeExists(code, excludeId = null) {
         const where = { code: { equals: code, mode: 'insensitive' } };
+
         if (excludeId) {
             where.id = { not: excludeId };
         }
@@ -128,11 +129,13 @@ export class PromoCodeManagementService {
      */
     async createPromoCode(data) {
         const validation = this.validatePromoCodeData(data);
+
         if (!validation.isValid) {
             throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
         }
 
         const existingCode = await this.checkPromoCodeExists(data.code);
+
         if (existingCode) {
             throw new Error('Promo code already exists');
         }
@@ -154,16 +157,19 @@ export class PromoCodeManagementService {
      */
     async updatePromoCode(id, data) {
         const validation = this.validatePromoCodeData(data, true);
+
         if (!validation.isValid) {
             throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
         }
 
         const existingCode = await this.checkPromoCodeExists(data.code, id);
+
         if (existingCode) {
             throw new Error('Promo code already exists');
         }
 
         const updateData = {};
+
         if (data.code !== undefined) {
             updateData.code = data.code.toUpperCase();
         }
@@ -289,6 +295,7 @@ export class PromoCodeManagementService {
      */
     async getPromoCodesUsage(filters = {}) {
         const where = {};
+
         if (filters.dateFrom || filters.dateTo) {
             where.redeemedAt = {};
             if (filters.dateFrom) {
@@ -336,6 +343,7 @@ export class PromoCodeManagementService {
      */
     isValidDate(dateString) {
         const date = new Date(dateString);
+
         return date instanceof Date && !isNaN(date);
     }
 }

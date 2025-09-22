@@ -166,20 +166,18 @@ const replaceMultiplierElements = (multiplier, elements, replacements) => {
 };
 
 /**
- * Apply multiplier to prompt by inserting between every word
+ * Apply multiplier to prompt by appending to the end
  * @param {string} prompt - Original prompt
  * @param {string} processedMultiplier - Processed multiplier
- * @returns {string} Prompt with multiplier applied between every word
+ * @returns {string} Prompt with multiplier appended
  */
 const applyMultiplierToPrompt = (prompt, processedMultiplier) => {
     if (!processedMultiplier) {
         return prompt;
     }
 
-    // Split prompt into words and insert multiplier between each word
-    const words = prompt.split(' ');
-
-    return words.join(` ${processedMultiplier} `);
+    // Append multiplier to the end of the prompt
+    return `${prompt}, ${processedMultiplier}`;
 };
 
 /**
@@ -413,8 +411,10 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, ph
             processedString: processedString ? `${processedString.substring(0, 100)}...` : 'empty'
         });
 
-        // Note: Multiplier, Mixup, and Mashup are now applied after AI enhancement
-        // in EnhancedImageService.js to ensure they operate on the AI-enhanced prompt
+        // Apply prompt modifications (multiplier, mixup, mashup)
+        const options = { multiplier, mixup, mashup };
+
+        processedString = await applyPromptModifications(processedString, options, customDict, prompt);
 
         return {
             original: prompt,

@@ -436,6 +436,44 @@ router.post('/verify-payment', async (req, res) => {
             return res.status(403).json({ success: false, message: 'Payment does not belong to current user' });
         }
 
+        // If payment is still pending, try to process it
+        if (payment.status === 'pending') {
+            console.log('🔄 CREDITS: Payment is pending, attempting to process...');
+
+            try {
+                // Check with Stripe to see if payment was actually completed
+                const { createStripeClient } = await import('../config/stripeConfig.js');
+                const stripe = createStripeClient();
+                const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+                if (session.payment_status === 'paid') {
+                    console.log('✅ CREDITS: Payment confirmed as paid by Stripe, processing...');
+                    await StripeService.handlePaymentSuccess(sessionId);
+
+                    // Get updated payment details
+                    const updatedPayment = await StripeService.getPaymentBySessionId(sessionId);
+
+                    return res.json({
+                        success: true,
+                        payment: {
+                            id: updatedPayment.id,
+                            credits: updatedPayment.credits,
+                            amount: updatedPayment.amount,
+                            status: updatedPayment.status,
+                            packageId: updatedPayment.packageId,
+                            createdAt: updatedPayment.createdAt
+                        },
+                        processed: true
+                    });
+                } else {
+                    console.log(`⏳ CREDITS: Payment not yet completed, status: ${session.payment_status}`);
+                }
+            } catch (error) {
+                console.error('❌ CREDITS: Error processing pending payment:', error);
+                // Continue with original response even if processing fails
+            }
+        }
+
         res.json({
             success: true,
             payment: {

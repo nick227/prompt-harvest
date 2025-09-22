@@ -1,6 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
-import modelInterface from '../../ModelInterface.js';
+import modelInterface from '../ModelInterface.js';
 
 dotenv.config();
 
@@ -66,12 +66,13 @@ export class DezgoProvider {
      */
     async generateLightningImage(prompt, guidance, model, url) {
         const keyValidation = await this.validateApiKey();
+
         if (keyValidation) {
             throw new Error('Dezgo API key validation failed');
         }
 
         const payload = {
-            prompt: prompt,
+            prompt,
             steps: 4, // Lightning models use fewer steps
             guidance_scale: guidance,
             width: 1024,
@@ -95,7 +96,7 @@ export class DezgoProvider {
                 success: true,
                 data: response.data,
                 provider: 'dezgo',
-                model: model
+                model
             };
 
         } catch (error) {
@@ -108,7 +109,7 @@ export class DezgoProvider {
      */
     async generateFluxImage(prompt, guidance, model, url) {
         const payload = {
-            prompt: prompt,
+            prompt,
             guidance_scale: guidance,
             width: 1024,
             height: 1024,
@@ -132,7 +133,7 @@ export class DezgoProvider {
                 success: true,
                 data: response.data,
                 provider: 'dezgo',
-                model: model
+                model
             };
 
         } catch (error) {
@@ -145,7 +146,7 @@ export class DezgoProvider {
      */
     async generateDefaultImage(prompt, guidance, model, url) {
         const payload = {
-            prompt: prompt,
+            prompt,
             guidance_scale: guidance,
             width: 1024,
             height: 1024
@@ -168,7 +169,7 @@ export class DezgoProvider {
                 success: true,
                 data: response.data,
                 provider: 'dezgo',
-                model: model
+                model
             };
 
         } catch (error) {
@@ -217,6 +218,7 @@ export class DezgoProvider {
                 },
                 timeout: 10000
             });
+
             return false; // Key is valid
         } catch (error) {
             return true; // Key validation failed

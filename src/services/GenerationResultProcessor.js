@@ -1,6 +1,6 @@
-import imageStorageService from './ImageStorageService.js';
+import { imageStorageService } from './ImageStorageService.js';
 import DatabaseService from './feed/DatabaseService.js';
-import taggingService from './TaggingService.js';
+import { taggingService } from './TaggingService.js';
 
 export class GenerationResultProcessor {
     /**
@@ -57,11 +57,14 @@ export class GenerationResultProcessor {
      * Process a failed generation result
      */
     processFailedResult(result) {
-        console.error(`❌ Generation failed for provider ${result.provider}:`, result.error);
+        const errorMessage = result.error?.message || result.error || 'Generation failed';
+
+        console.error(`❌ Generation failed for provider ${result.provider}:`, errorMessage);
+
         return {
             provider: result.provider,
             success: false,
-            error: result.error?.message || 'Generation failed'
+            error: errorMessage
         };
     }
 
@@ -82,6 +85,7 @@ export class GenerationResultProcessor {
                 userId: DatabaseService.getUserId(context.req),
                 prompt: context.prompt ? `${context.prompt.substring(0, 50)}...` : 'undefined'
             });
+
             return {
                 provider: result.provider,
                 success: false,
@@ -96,6 +100,7 @@ export class GenerationResultProcessor {
     async saveImageToStorage(result) {
         const filename = imageStorageService.generateFilename(result.provider);
         const buffer = Buffer.from(result.data, 'base64');
+
         return await imageStorageService.saveImage(buffer, filename);
     }
 
@@ -156,6 +161,7 @@ export class GenerationResultProcessor {
 
         for (const result of results) {
             const processedResult = await this.processResultWithErrorHandling(result, context);
+
             processedResults.push(processedResult);
         }
 

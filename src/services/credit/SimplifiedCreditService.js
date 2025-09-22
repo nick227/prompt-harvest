@@ -96,41 +96,34 @@ export class SimplifiedCreditService {
      * Dynamic cost system using database model costs
      */
     getCreditCost(provider, multiplier = false, mixup = false, mashup = false) {
-        // Check cache first
-        if (this.shouldRefreshCache()) {
-            this.refreshCostCache();
-        }
+        // Always use hardcoded USD costs (database has old credit values)
+        const legacyCosts = {
+            dalle: 0.02,
+            flux: 0.015,
+            dreamshaper: 0.005,
+            tshirt: 0.003,
+            stability: 0.01,
+            midjourney: 0.025,
+            default: 0.005
+        };
 
-        // Get base cost from cache
-        let cost = this.costCache.get(provider);
-
-        if (cost === undefined) {
-            // Fallback to legacy hardcoded costs for compatibility
-            const legacyCosts = {
-                stability: 2,
-                midjourney: 4,
-                default: 1
-            };
-
-            cost = legacyCosts[provider] || legacyCosts.default;
-            console.warn(`⚠️ CREDIT-SERVICE: Using fallback cost for ${provider}: ${cost}`);
-        }
+        let cost = legacyCosts[provider] || legacyCosts.default;
 
         // Apply modifiers
         if (multiplier) {
             cost *= 2;
         }
         if (mixup) {
-            cost += 0.5; // Reduced from 1 to 0.5 for fractional credits
+            cost += 0.002; // Small USD increment for mixup
         }
         if (mashup) {
-            cost += 0.5; // Reduced from 1 to 0.5 for fractional credits
+            cost += 0.002; // Small USD increment for mashup
         }
 
-        // Round to nearest 0.25 credit increment for consistency
-        cost = Math.round(cost * 4) / 4;
+        // Round to 4 decimal places for USD precision
+        cost = Math.round(cost * 10000) / 10000;
 
-        return Math.max(0.25, cost); // Minimum 0.25 credits
+        return Math.max(0.001, cost); // Minimum 0.001 USD
     }
 
     /**

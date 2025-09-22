@@ -214,12 +214,18 @@ class ImageUIState {
     }
 
     showGenerationError(error) {
-        console.error('❌ Generation failed:', error);
+        // Only log if it's not a handled error (402, 500) to avoid duplicate logging
+        if (error.status !== 402 && error.status !== 500) {
+            console.error('❌ Generation failed:', error);
+        }
 
         if (window.ErrorHandler) {
             window.ErrorHandler.handleGenerationError(error);
         } else {
-            console.warn('Image generation failed. Please try again.');
+            // Only show fallback message for unhandled errors
+            if (error.status !== 402 && error.status !== 500) {
+                console.warn('Image generation failed. Please try again.');
+            }
         }
     }
 
