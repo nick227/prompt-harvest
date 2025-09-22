@@ -86,9 +86,38 @@ class SearchManager {
     }
 
     checkTagMatch(item, searchValue) {
-        const tagElements = item.querySelectorAll('.tag');
+        // Search in compact tags overlay
+        const compactTags = item.querySelectorAll('.compact-tags-overlay span');
+        // Search in list tags container
+        const listTags = item.querySelectorAll('.list-tags-container span');
+        // Search in any other tag elements with .tag class (legacy support)
+        const legacyTags = item.querySelectorAll('.tag');
 
-        return Array.from(tagElements).some(tag => tag.textContent.toLowerCase().includes(searchValue));
+        // Combine all tag elements
+        const allTags = [...compactTags, ...listTags, ...legacyTags];
+
+        // Check if any visible tag elements match
+        const tagElementsMatch = allTags.some(tag => tag.textContent.toLowerCase().includes(searchValue));
+
+        // Also check dataset tags (stored as JSON string)
+        const datasetTags = item.dataset.tags;
+
+        if (datasetTags) {
+            try {
+                const parsedTags = JSON.parse(datasetTags);
+                const datasetTagsMatch = Array.isArray(parsedTags) &&
+                    parsedTags.some(tag => tag.toLowerCase().includes(searchValue));
+
+                return tagElementsMatch || datasetTagsMatch;
+            } catch (error) {
+                // If JSON parsing fails, fall back to string search
+                const datasetStringMatch = datasetTags.toLowerCase().includes(searchValue);
+
+                return tagElementsMatch || datasetStringMatch;
+            }
+        }
+
+        return tagElementsMatch;
     }
 
     checkImgMatch(imgElement, searchValue) {

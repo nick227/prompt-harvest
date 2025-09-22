@@ -103,7 +103,7 @@ class TransactionStatsComponent {
 
             retries++;
             if (retries < maxRetries) {
-                console.log(`⏳ STATS: Waiting for stats service (attempt ${retries}/${maxRetries})...`);
+                // Waiting for stats service
                 await new Promise(resolve => setTimeout(resolve, retryDelay));
             }
         }

@@ -240,12 +240,7 @@ class ImageDataManager {
      * @returns {Object} Extracted image data
      */
     extractImageDataFromElement(img) {
-        console.log('🔍 EXTRACT DEBUG: Image element dataset:', {
-            id: img.dataset.id,
-            imageId: img.dataset.imageId,
-            isPublic: img.dataset.isPublic,
-            allDataset: img.dataset
-        });
+        // Extracting image data from element
 
         const rawData = {
             id: img.dataset.id || img.dataset.imageId,
@@ -262,7 +257,7 @@ class ImageDataManager {
             createdAt: img.dataset.createdAt
         };
 
-        console.log('🔍 EXTRACT DEBUG: Raw data extracted:', rawData);
+        // Raw data extracted from element
         return this.normalizeImageData(rawData);
     }
 

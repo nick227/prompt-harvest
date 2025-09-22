@@ -75,6 +75,15 @@ export class EnhancedImageController {
                 validatedDataKeys: Object.keys(req.validatedData || {})
             });
 
+            // Log artistic and photogenic values for debugging
+            console.log('🔍 CONTROLLER DEBUG: artistic and photogenic values received:', {
+                artistic,
+                artisticType: typeof artistic,
+                photogenic,
+                photogenicType: typeof photogenic,
+                fullBody: req.body
+            });
+
             const userId = req.user?.id;
 
             // Validate image generation parameters

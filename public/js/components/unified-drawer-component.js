@@ -12,6 +12,7 @@ class UnifiedDrawerComponent {
         this.createDesktopDrawer();
         this.createMobileDrawer();
         this.setupResponsiveBehavior();
+        this.setupCheckboxPersistence();
     }
 
     createDesktopDrawer() {
@@ -283,20 +284,14 @@ class UnifiedDrawerComponent {
                 </div>
                 <div class="${containerClass}">
                     <label class="flex items-center gap-3 cursor-pointer group">
-                        <div class="relative">
-                            <input type="checkbox" name="autoDownload" class="sr-only" />
-                            <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-blue-400 transition-colors checkbox-custom"></div>
-                        </div>
-                        <span class="text-gray-200 group-hover:text-white transition-colors">Auto Download</span>
+                        <input type="checkbox" name="autoPublic" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                        <span class="text-gray-200 group-hover:text-white transition-colors">Auto Public</span>
                     </label>
                 </div>
                 <div class="${containerClass}">
                     <label class="flex items-center gap-3 cursor-pointer group">
-                        <div class="relative">
-                            <input type="checkbox" name="autoPublic" class="sr-only" />
-                            <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-blue-400 transition-colors checkbox-custom"></div>
-                        </div>
-                        <span class="text-gray-200 group-hover:text-white transition-colors">Auto Public</span>
+                        <input type="checkbox" name="autoDownload" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                        <span class="text-gray-200 group-hover:text-white transition-colors">Auto Download</span>
                     </label>
                 </div>
                 <!-- Guidance Section -->
@@ -377,33 +372,21 @@ class UnifiedDrawerComponent {
             </div>
             <div class="flex gap-4">
                 <label class="flex items-center gap-3 cursor-pointer group">
-                    <div class="relative">
-                        <input type="checkbox" name="mixup" class="sr-only" />
-                        <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom"></div>
-                    </div>
+                    <input type="checkbox" name="mixup" class="w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2" />
                     <span class="text-gray-200 group-hover:text-white transition-colors">Mixup</span>
                 </label>
                 <label class="flex items-center gap-3 cursor-pointer group">
-                    <div class="relative">
-                        <input type="checkbox" name="mashup" class="sr-only" />
-                        <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom"></div>
-                    </div>
+                    <input type="checkbox" name="mashup" class="w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2" />
                     <span class="text-gray-200 group-hover:text-white transition-colors">Mashup</span>
                 </label>
             </div>
             <div class="flex gap-4">
                 <label class="flex items-center gap-3 cursor-pointer group">
-                    <div class="relative">
-                        <input type="checkbox" name="photogenic" class="sr-only" />
-                        <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom"></div>
-                    </div>
+                    <input type="checkbox" name="photogenic" class="w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2" />
                     <span class="text-gray-200 group-hover:text-white transition-colors">Photogenic</span>
                 </label>
                 <label class="flex items-center gap-3 cursor-pointer group">
-                    <div class="relative">
-                        <input type="checkbox" name="artistic" class="sr-only" />
-                        <div class="w-5 h-5 bg-gray-600 rounded border-2 border-gray-500 group-hover:border-purple-400 transition-colors checkbox-custom"></div>
-                    </div>
+                    <input type="checkbox" name="artistic" class="w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2" />
                     <span class="text-gray-200 group-hover:text-white transition-colors">Artistic</span>
                 </label>
             </div>
@@ -630,6 +613,7 @@ class UnifiedDrawerComponent {
 
         checkboxes.forEach(checkbox => {
             values[checkbox.name] = checkbox.checked;
+            console.log(`📋 UNIFIED DRAWER: getFormValues - ${checkbox.name}: ${checkbox.checked}`);
         });
 
         // Get select values
@@ -820,12 +804,137 @@ class UnifiedDrawerComponent {
             mobilePromptHistory.innerHTML = html;
         }
     }
+
+    // Checkbox persistence methods
+    setupCheckboxPersistence() {
+        // Load saved states when drawers are created
+        setTimeout(() => {
+            this.loadCheckboxStates();
+            this.attachCheckboxListeners();
+        }, 100);
+    }
+
+    saveCheckboxState(name, checked) {
+        localStorage.setItem(`drawer_${name}`, checked.toString());
+        console.log(`📋 UNIFIED DRAWER: Saved ${name} checkbox state to localStorage:`, checked);
+    }
+
+    loadCheckboxState(name) {
+        const saved = localStorage.getItem(`drawer_${name}`);
+        return saved === 'true';
+    }
+
+    loadCheckboxStates() {
+        const checkboxNames = ['autoDownload', 'autoPublic', 'photogenic', 'artistic', 'mixup', 'mashup'];
+
+        checkboxNames.forEach(name => {
+            const savedState = this.loadCheckboxState(name);
+
+            console.log(`📋 UNIFIED DRAWER: Loading ${name} checkbox state:`, savedState);
+
+            // Update desktop drawer
+            const desktopCheckbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
+            console.log(`📋 UNIFIED DRAWER: Desktop ${name} checkbox found:`, !!desktopCheckbox);
+            if (desktopCheckbox) {
+                desktopCheckbox.checked = savedState;
+                console.log(`📋 UNIFIED DRAWER: Desktop ${name} checkbox set to:`, desktopCheckbox.checked);
+            }
+
+            // Update mobile drawer
+            const mobileCheckbox = this.mobileDrawer?.querySelector(`input[name="${name}"]`);
+            if (mobileCheckbox) {
+                mobileCheckbox.checked = savedState;
+                console.log(`📋 UNIFIED DRAWER: Mobile ${name} checkbox set to:`, mobileCheckbox.checked);
+            }
+        });
+    }
+
+    attachCheckboxListeners() {
+        const checkboxNames = ['autoDownload', 'autoPublic', 'photogenic', 'artistic', 'mixup', 'mashup'];
+
+        checkboxNames.forEach(name => {
+            // Desktop drawer listener
+            const desktopCheckbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
+            if (desktopCheckbox) {
+                desktopCheckbox.addEventListener('change', (e) => {
+                    console.log(`📋 UNIFIED DRAWER: ${name} checkbox changed to ${e.target.checked}`);
+                    this.saveCheckboxState(name, e.target.checked);
+                    this.syncCheckboxToMobile(name, e.target.checked);
+                });
+            }
+
+            // Mobile drawer listener
+            const mobileCheckbox = this.mobileDrawer?.querySelector(`input[name="${name}"]`);
+            if (mobileCheckbox) {
+                mobileCheckbox.addEventListener('change', (e) => {
+                    console.log(`📋 UNIFIED DRAWER: ${name} mobile checkbox changed to ${e.target.checked}`);
+                    this.saveCheckboxState(name, e.target.checked);
+                    this.syncCheckboxToDesktop(name, e.target.checked);
+                });
+            }
+        });
+    }
+
+
+    syncCheckboxToMobile(name, checked) {
+        const mobileCheckbox = this.mobileDrawer?.querySelector(`input[name="${name}"]`);
+        if (mobileCheckbox && mobileCheckbox.checked !== checked) {
+            mobileCheckbox.checked = checked;
+        }
+    }
+
+    syncCheckboxToDesktop(name, checked) {
+        const desktopCheckbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
+        if (desktopCheckbox && desktopCheckbox.checked !== checked) {
+            desktopCheckbox.checked = checked;
+        }
+    }
+
+
+    // Test method to verify checkbox functionality
+    testCheckboxes() {
+        console.log('📋 UNIFIED DRAWER: Testing checkbox functionality...');
+        const testCheckboxes = ['photogenic', 'artistic'];
+
+        testCheckboxes.forEach(name => {
+            const checkbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
+            console.log(`📋 UNIFIED DRAWER: ${name} checkbox found:`, !!checkbox);
+            if (checkbox) {
+                console.log(`📋 UNIFIED DRAWER: ${name} checkbox checked:`, checkbox.checked);
+            }
+        });
+
+        const formValues = this.getFormValues('desktop');
+        console.log('📋 UNIFIED DRAWER: Form values:', formValues);
+    }
 }
 
 // Initialize unified drawer component when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.unifiedDrawerComponent = new UnifiedDrawerComponent();
+
+    // Add global test function
+    window.testUnifiedDrawerCheckboxes = () => {
+        if (window.unifiedDrawerComponent) {
+            window.unifiedDrawerComponent.testCheckboxes();
+        } else {
+            console.warn('unifiedDrawerComponent not available');
+        }
+    };
+
+    // Add function to manually check checkbox state
+    window.checkCheckboxState = (name) => {
+        const checkbox = document.querySelector(`input[name="${name}"]`);
+        console.log(`📋 CHECKBOX STATE: ${name}`, {
+            found: !!checkbox,
+            checked: checkbox?.checked,
+            visualElement: checkbox?.nextElementSibling,
+            visualClasses: checkbox?.nextElementSibling?.className
+        });
+        return checkbox?.checked;
+    };
 });
 
 // Export for global access
 window.UnifiedDrawerComponent = UnifiedDrawerComponent;
+

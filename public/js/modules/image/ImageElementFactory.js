@@ -96,12 +96,74 @@ class ImageElementFactory {
      * @param {Object} imageData - Image data object
      */
     downloadImage(img, _imageData) {
-        const a = document.createElement('a');
-        const fileName = decodeURIComponent(img.src.split('/').pop());
+        this.downloadImageAsBlob(img.src);
+    }
 
-        a.href = img.src;
-        a.download = fileName;
-        a.click();
+    // Download image as blob to force Save As dialog
+    async downloadImageAsBlob(imageUrl) {
+        try {
+            console.log('📥 DOWNLOAD: Fetching image as blob for download...');
+
+            // Fetch the image as a blob
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const fileName = this.generateFileName(imageUrl);
+
+            // Create object URL and download
+            const objectUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = fileName;
+            a.style.display = 'none';
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Clean up object URL
+            URL.revokeObjectURL(objectUrl);
+
+            console.log('📥 DOWNLOAD: Blob download triggered for:', fileName);
+        } catch (error) {
+            console.error('❌ DOWNLOAD: Blob download failed, trying fallback:', error);
+
+            // Fallback to old method
+            try {
+                const a = document.createElement('a');
+                const fileName = decodeURIComponent(imageUrl.split('/').pop());
+                a.href = imageUrl;
+                a.download = fileName;
+                a.click();
+                console.log('📥 DOWNLOAD: Fallback download triggered');
+            } catch (fallbackError) {
+                console.error('❌ DOWNLOAD: All download methods failed:', fallbackError);
+            }
+        }
+    }
+
+    // Generate a proper filename for the download
+    generateFileName(imageUrl) {
+        try {
+            const { pathname } = new URL(imageUrl);
+            const fileName = pathname.split('/').pop();
+
+            // If no filename or extension, generate one
+            if (!fileName || !fileName.includes('.')) {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                return `generated-image-${timestamp}.jpg`;
+            }
+
+            return decodeURIComponent(fileName);
+        } catch (error) {
+            // Fallback filename
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            return `generated-image-${timestamp}.jpg`;
+        }
     }
 
     /**

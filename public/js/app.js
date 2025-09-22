@@ -193,7 +193,7 @@ class AppLoader {
 
             retries++;
             if (retries < maxRetries) {
-                console.log(`⏳ APP: Waiting for FeedManager (attempt ${retries}/${maxRetries})...`);
+                // Waiting for FeedManager to be ready
                 await new Promise(resolve => setTimeout(resolve, retryDelay));
             }
         }

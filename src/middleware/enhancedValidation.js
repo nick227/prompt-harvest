@@ -99,6 +99,18 @@ export const validateImageGenerationEnhanced = async (req, res, next) => {
             }
         }
 
+        if (req.body.photogenic !== undefined) {
+            if (typeof req.body.photogenic !== 'boolean' && typeof req.body.photogenic !== 'string') {
+                warnings.push('Photogenic should be a boolean or string value');
+            }
+        }
+
+        if (req.body.artistic !== undefined) {
+            if (typeof req.body.artistic !== 'boolean' && typeof req.body.artistic !== 'string') {
+                warnings.push('Artistic should be a boolean or string value');
+            }
+        }
+
         // Content policy check (basic)
         if (req.body.prompt) {
             const sensitiveWords = ['nude', 'naked', 'explicit', 'porn', 'adult', 'nsfw'];
@@ -160,7 +172,9 @@ export const validateImageGenerationEnhanced = async (req, res, next) => {
             customVariables: req.body.customVariables || '',
             promptId: req.body.promptId || null,
             original: req.body.original || req.body.prompt,
-            autoPublic: req.body.autoPublic === 'true' || req.body.autoPublic === true
+            autoPublic: req.body.autoPublic === 'true' || req.body.autoPublic === true,
+            photogenic: req.body.photogenic === 'true' || req.body.photogenic === true,
+            artistic: req.body.artistic === 'true' || req.body.artistic === true
         };
 
         // eslint-disable-next-line no-console

@@ -239,9 +239,6 @@ class ImageDOMManager {
             return null;
         }
 
-        // Handle auto download
-        this.handleAutoDownload(null, normalizedData, download);
-
         // Choose rendering strategy
         if (this.shouldUseFeedManager()) {
             return this.addViaFeedManager(normalizedData);
@@ -274,6 +271,9 @@ class ImageDOMManager {
         if (wasAdded) {
             console.log('✅ DOM INSERT: Image added via feed manager');
 
+            // Handle auto download for feed manager path
+            this.handleAutoDownloadForFeedManager(imageData);
+
             return imageData;
         }
 
@@ -302,6 +302,9 @@ class ImageDOMManager {
 
         console.log('🖼️ DOM INSERT: Image element created', !!img);
 
+        // Handle auto download after image element is created
+        this.handleAutoDownload(img, imageData, false);
+
         const container = document.querySelector('.prompt-output');
         const loadingPlaceholders = document.querySelectorAll('.loading-placeholder');
         const loadingPlaceholder = loadingPlaceholders.length > 0 ? loadingPlaceholders[0] : null;
@@ -325,14 +328,144 @@ class ImageDOMManager {
      * Handle auto download functionality
      * @param {HTMLImageElement} img - Image element
      * @param {Object} imageData - Image data object
-     * @param {boolean} download - Whether to download
+     * @param {boolean} download - Whether to download (legacy parameter, not used)
      * @private
      */
     handleAutoDownload(img, imageData, download) {
         const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
 
-        if (download && autoDownload) {
-            this.elementFactory.downloadImage(img, imageData);
+        console.log('📥 AUTO DOWNLOAD DEBUG:', {
+            autoDownloadFound: !!autoDownload,
+            autoDownloadChecked: autoDownload?.checked,
+            allAutoDownloadCheckboxes: document.querySelectorAll('input[name="autoDownload"]').length,
+            imageData: imageData.url || imageData.imageUrl
+        });
+
+        if (autoDownload) {
+            console.log('📥 AUTO DOWNLOAD: Triggering download for image:', imageData.url || imageData.imageUrl);
+            this.downloadImageFile(imageData.url || imageData.imageUrl);
+        } else {
+            console.log('📥 AUTO DOWNLOAD: Checkbox not found or not checked, skipping download');
+        }
+    }
+
+    /**
+     * Handle auto download for feed manager path
+     * @param {Object} imageData - Image data object
+     * @private
+     */
+    handleAutoDownloadForFeedManager(imageData) {
+        const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
+
+        console.log('📥 AUTO DOWNLOAD FEED MANAGER DEBUG:', {
+            autoDownloadFound: !!autoDownload,
+            autoDownloadChecked: autoDownload?.checked,
+            allAutoDownloadCheckboxes: document.querySelectorAll('input[name="autoDownload"]').length,
+            imageData: imageData.url || imageData.imageUrl
+        });
+
+        if (autoDownload) {
+            console.log('📥 AUTO DOWNLOAD: Triggering download for feed manager image:', imageData.url || imageData.imageUrl);
+            this.downloadImageFile(imageData.url || imageData.imageUrl);
+        } else {
+            console.log('📥 AUTO DOWNLOAD FEED MANAGER: Checkbox not found or not checked, skipping download');
+        }
+    }
+
+    /**
+     * Improved download method that should show Save As dialog
+     * @param {string} imageUrl - URL of the image to download
+     * @private
+     */
+    downloadImageFile(imageUrl) {
+        try {
+            // Method 1: Try fetch + blob download (most reliable for Save As dialog)
+            this.downloadImageAsBlob(imageUrl);
+        } catch (error) {
+            console.error('❌ AUTO DOWNLOAD: Blob download failed, trying fallback:', error);
+
+            // Method 2: Fallback to anchor download
+            try {
+                const a = document.createElement('a');
+                const fileName = this.generateFileName(imageUrl);
+
+                a.href = imageUrl;
+                a.download = fileName;
+                a.style.display = 'none';
+
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                console.log('📥 AUTO DOWNLOAD: Fallback download triggered for:', fileName);
+            } catch (fallbackError) {
+                console.error('❌ AUTO DOWNLOAD: All download methods failed:', fallbackError);
+            }
+        }
+    }
+
+    /**
+     * Download image as blob to force Save As dialog
+     * @param {string} imageUrl - URL of the image to download
+     * @private
+     */
+    async downloadImageAsBlob(imageUrl) {
+        try {
+            console.log('📥 AUTO DOWNLOAD: Fetching image as blob for download...');
+
+            // Fetch the image as a blob
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const fileName = this.generateFileName(imageUrl);
+
+            // Create object URL and download
+            const objectUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = fileName;
+            a.style.display = 'none';
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Clean up object URL
+            URL.revokeObjectURL(objectUrl);
+
+            console.log('📥 AUTO DOWNLOAD: Blob download triggered for:', fileName);
+        } catch (error) {
+            console.error('❌ AUTO DOWNLOAD: Blob download failed:', error);
+            throw error; // Re-throw to trigger fallback
+        }
+    }
+
+    /**
+     * Generate a proper filename for the download
+     * @param {string} imageUrl - URL of the image
+     * @returns {string} Generated filename
+     * @private
+     */
+    generateFileName(imageUrl) {
+        try {
+            const { pathname } = new URL(imageUrl);
+            const fileName = pathname.split('/').pop();
+
+            // If no filename or extension, generate one
+            if (!fileName || !fileName.includes('.')) {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                return `generated-image-${timestamp}.jpg`;
+            }
+
+            return decodeURIComponent(fileName);
+        } catch (error) {
+            // Fallback filename
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            return `generated-image-${timestamp}.jpg`;
         }
     }
 

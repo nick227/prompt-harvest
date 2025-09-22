@@ -592,20 +592,56 @@ class ImageManager {
 
     // Download Methods
     downloadImage(imageData) {
-        const link = document.createElement('a');
+        this.downloadImageAsBlob(imageData.url, imageData.title);
+    }
 
-        link.href = imageData.url;
-        link.download = `${this.data.makeFileNameSafe(imageData.title || 'image')}.png`;
+    // Download image as blob to force Save As dialog
+    async downloadImageAsBlob(imageUrl, title = 'image') {
+        try {
+            console.log('📥 DOWNLOAD: Fetching image as blob for download...');
 
-        // Use a more efficient approach
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
+            // Fetch the image as a blob
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-        // Clean up immediately
-        requestAnimationFrame(() => {
-            document.body.removeChild(link);
-        });
+            const blob = await response.blob();
+            const fileName = `${this.data.makeFileNameSafe(title || 'image')}.png`;
+
+            // Create object URL and download
+            const objectUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = fileName;
+            a.style.display = 'none';
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Clean up object URL
+            URL.revokeObjectURL(objectUrl);
+
+            console.log('📥 DOWNLOAD: Blob download triggered for:', fileName);
+        } catch (error) {
+            console.error('❌ DOWNLOAD: Blob download failed, trying fallback:', error);
+
+            // Fallback to old method
+            try {
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = `${this.data.makeFileNameSafe(title || 'image')}.png`;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log('📥 DOWNLOAD: Fallback download triggered');
+            } catch (fallbackError) {
+                console.error('❌ DOWNLOAD: All download methods failed:', fallbackError);
+            }
+        }
     }
 
     // Utility Methods

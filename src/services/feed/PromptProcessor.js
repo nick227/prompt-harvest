@@ -290,41 +290,22 @@ const processPromptText = async(prompt, customDict) => await wordTypeManager.pro
  * @returns {string} Prompt with stock text appended
  */
 const appendStockText = (prompt, photogenic, artistic) => {
-    console.log('🔍 appendStockText called with:', { prompt: prompt ? `${prompt.substring(0, 50)}...` : 'empty', photogenic, artistic });
 
-    if (typeof prompt !== 'string') {
-        return prompt || '';
-    }
-
-    const stockTexts = [];
+    const randomArtisticTexts = ['beautiful', 'aesthetic', 'stunning', 'gorgeous', 'glamorous', 'fantastic', 'magnificent', 'incredible', 'spectacular', 'marvelous'];
+    const randomArtisticText = randomArtisticTexts[Math.floor(Math.random() * randomArtisticTexts.length)];
+    let stockText = '';
 
     if (photogenic) {
-        stockTexts.push('professional photography, high quality, photogenic, stunning visual appeal, perfect lighting, sharp focus');
-        console.log('📸 Added photogenic text');
+        stockText = `8k high-resolution, photogenic, ultra-realism, distinct details, ${randomArtisticText}`;
     }
 
     if (artistic) {
-        stockTexts.push('artistic masterpiece, creative composition, aesthetic beauty, artistic style, visually striking, creative expression');
-        console.log('🎨 Added artistic text');
+        stockText = `artistic creative, illustration, ultra-detailed, expressive, ${randomArtisticText}`;
     }
 
-    if (stockTexts.length === 0) {
-        return prompt;
-    }
+    stockText = stockText.split(' ').sort(() => Math.random() - 0.5).join(' ');
 
-    const stockText = stockTexts.join(', ');
-
-    console.log('📝 Stock text to append:', stockText);
-
-    // Handle empty prompt case
-    if (!prompt || prompt.trim() === '') {
-
-        return stockText;
-    }
-
-    const result = `${prompt}, ${stockText}`;
-
-    return result;
+    return `${prompt}, ${stockText}`;
 };
 
 // ============================================================================

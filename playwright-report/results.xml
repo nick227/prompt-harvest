@@ -1,2 +1,2477 @@
-<testsuites id="" name="" tests="0" failures="0" skipped="0" errors="0" time="0.918214">
+<testsuites id="" name="" tests="140" failures="44" skipped="0" errors="0" time="147.288995">
+<testsuite name="search-filtering.spec.js" timestamp="2025-09-22T13:50:30.766Z" hostname="chromium" tests="20" failures="2" skipped="0" time="185.088" errors="0">
+<testcase name="Search and Filtering Functionality › should display search input field" classname="search-filtering.spec.js" time="10.161">
+</testcase>
+<testcase name="Search and Filtering Functionality › should allow typing in search field" classname="search-filtering.spec.js" time="9.464">
+</testcase>
+<testcase name="Search and Filtering Functionality › should filter images based on search term" classname="search-filtering.spec.js" time="11.339">
+</testcase>
+<testcase name="Search and Filtering Functionality › should show search suggestions" classname="search-filtering.spec.js" time="11.859">
+</testcase>
+<testcase name="Search and Filtering Functionality › should clear search when input is cleared" classname="search-filtering.spec.js" time="11.668">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with special characters" classname="search-filtering.spec.js" time="11.768">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with numbers" classname="search-filtering.spec.js" time="11.204">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle case insensitive search" classname="search-filtering.spec.js" time="9.717">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with multiple words" classname="search-filtering.spec.js" time="8.705">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search history" classname="search-filtering.spec.js" time="11.96">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search debouncing" classname="search-filtering.spec.js" time="11.794">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with keyboard navigation" classname="search-filtering.spec.js" time="11.448">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with enter key" classname="search-filtering.spec.js" time="5.3">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with escape key" classname="search-filtering.spec.js" time="10.271">
+<failure message="search-filtering.spec.js:206:5 should handle search with escape key" type="FAILURE">
+<![CDATA[  [chromium] › search-filtering.spec.js:206:5 › Search and Filtering Functionality › should handle search with escape key 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator: locator('input[placeholder*="search"], input[name*="search"]').first()
+    Expected string: ""
+    Received string: "test search"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveValue" with timeout 5000ms
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        8 × locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          - unexpected value "test search"
+
+
+      212 |
+      213 |             // Verify search was cleared
+    > 214 |             await expect(searchInput.first()).toHaveValue('');
+          |                                               ^
+      215 |         }
+      216 |     });
+      217 |
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:214:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-chromium\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with provider filtering" classname="search-filtering.spec.js" time="5.66">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with guidance filtering" classname="search-filtering.spec.js" time="5.061">
+<failure message="search-filtering.spec.js:238:5 should handle search with guidance filtering" type="FAILURE">
+<![CDATA[  [chromium] › search-filtering.spec.js:238:5 › Search and Filtering Functionality › should handle search with guidance filtering 
+
+    Error: locator.selectOption: Error: strict mode violation: locator('select[name="guidance-top"]') resolved to 2 elements:
+        1) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#controls-drawer select[name="guidance-top"]')
+        2) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#mobile-controls-drawer select[name="guidance-top"]')
+
+    Call log:
+      - waiting for locator('select[name="guidance-top"]')
+
+
+      242 |         if (await searchInput.count() > 0) {
+      243 |             // Set guidance value
+    > 244 |             await guidanceTop.selectOption('15');
+          |                               ^
+      245 |
+      246 |             // Perform a search
+      247 |             await searchInput.first().fill('test');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:244:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-chromium\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with rating filtering" classname="search-filtering.spec.js" time="7.357">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with date filtering" classname="search-filtering.spec.js" time="6.19">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with view mode changes" classname="search-filtering.spec.js" time="5.793">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search persistence across page refresh" classname="search-filtering.spec.js" time="8.369">
+<system-out>
+<![CDATA[Search value after refresh: 
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="search-filtering.spec.js" timestamp="2025-09-22T13:50:30.766Z" hostname="firefox" tests="20" failures="2" skipped="0" time="201.111" errors="0">
+<testcase name="Search and Filtering Functionality › should display search input field" classname="search-filtering.spec.js" time="10.722">
+</testcase>
+<testcase name="Search and Filtering Functionality › should allow typing in search field" classname="search-filtering.spec.js" time="6.238">
+</testcase>
+<testcase name="Search and Filtering Functionality › should filter images based on search term" classname="search-filtering.spec.js" time="5.993">
+</testcase>
+<testcase name="Search and Filtering Functionality › should show search suggestions" classname="search-filtering.spec.js" time="7.606">
+</testcase>
+<testcase name="Search and Filtering Functionality › should clear search when input is cleared" classname="search-filtering.spec.js" time="7.392">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with special characters" classname="search-filtering.spec.js" time="8.382">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with numbers" classname="search-filtering.spec.js" time="8.6">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle case insensitive search" classname="search-filtering.spec.js" time="8.238">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with multiple words" classname="search-filtering.spec.js" time="7.691">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search history" classname="search-filtering.spec.js" time="9.865">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search debouncing" classname="search-filtering.spec.js" time="8.162">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with keyboard navigation" classname="search-filtering.spec.js" time="8.257">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with enter key" classname="search-filtering.spec.js" time="11.84">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with escape key" classname="search-filtering.spec.js" time="18.08">
+<failure message="search-filtering.spec.js:206:5 should handle search with escape key" type="FAILURE">
+<![CDATA[  [firefox] › search-filtering.spec.js:206:5 › Search and Filtering Functionality › should handle search with escape key 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator: locator('input[placeholder*="search"], input[name*="search"]').first()
+    Expected string: ""
+    Received string: "test search"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveValue" with timeout 5000ms
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        8 × locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          - unexpected value "test search"
+
+
+      212 |
+      213 |             // Verify search was cleared
+    > 214 |             await expect(searchInput.first()).toHaveValue('');
+          |                                               ^
+      215 |         }
+      216 |     });
+      217 |
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:214:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-firefox\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-firefox\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-firefox\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with provider filtering" classname="search-filtering.spec.js" time="15.716">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with guidance filtering" classname="search-filtering.spec.js" time="15.992">
+<failure message="search-filtering.spec.js:238:5 should handle search with guidance filtering" type="FAILURE">
+<![CDATA[  [firefox] › search-filtering.spec.js:238:5 › Search and Filtering Functionality › should handle search with guidance filtering 
+
+    Error: locator.selectOption: Error: strict mode violation: locator('select[name="guidance-top"]') resolved to 2 elements:
+        1) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#controls-drawer select[name="guidance-top"]')
+        2) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#mobile-controls-drawer select[name="guidance-top"]')
+
+    Call log:
+      - waiting for locator('select[name="guidance-top"]')
+
+
+      242 |         if (await searchInput.count() > 0) {
+      243 |             // Set guidance value
+    > 244 |             await guidanceTop.selectOption('15');
+          |                               ^
+      245 |
+      246 |             // Perform a search
+      247 |             await searchInput.first().fill('test');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:244:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-firefox\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-firefox\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-firefox\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-firefox\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-firefox\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-firefox\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with rating filtering" classname="search-filtering.spec.js" time="12.618">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with date filtering" classname="search-filtering.spec.js" time="9.112">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with view mode changes" classname="search-filtering.spec.js" time="9.205">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search persistence across page refresh" classname="search-filtering.spec.js" time="11.402">
+<system-out>
+<![CDATA[Search value after refresh: 
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="search-filtering.spec.js" timestamp="2025-09-22T13:50:30.766Z" hostname="webkit" tests="20" failures="2" skipped="0" time="164.757" errors="0">
+<testcase name="Search and Filtering Functionality › should display search input field" classname="search-filtering.spec.js" time="7.329">
+</testcase>
+<testcase name="Search and Filtering Functionality › should allow typing in search field" classname="search-filtering.spec.js" time="7.313">
+</testcase>
+<testcase name="Search and Filtering Functionality › should filter images based on search term" classname="search-filtering.spec.js" time="6.96">
+</testcase>
+<testcase name="Search and Filtering Functionality › should show search suggestions" classname="search-filtering.spec.js" time="8.995">
+</testcase>
+<testcase name="Search and Filtering Functionality › should clear search when input is cleared" classname="search-filtering.spec.js" time="8.304">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with special characters" classname="search-filtering.spec.js" time="7.957">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with numbers" classname="search-filtering.spec.js" time="7.665">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle case insensitive search" classname="search-filtering.spec.js" time="8.3">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with multiple words" classname="search-filtering.spec.js" time="7.605">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search history" classname="search-filtering.spec.js" time="12.443">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search debouncing" classname="search-filtering.spec.js" time="10.184">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with keyboard navigation" classname="search-filtering.spec.js" time="8.272">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with enter key" classname="search-filtering.spec.js" time="7.173">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with escape key" classname="search-filtering.spec.js" time="12.308">
+<failure message="search-filtering.spec.js:206:5 should handle search with escape key" type="FAILURE">
+<![CDATA[  [webkit] › search-filtering.spec.js:206:5 › Search and Filtering Functionality › should handle search with escape key 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator: locator('input[placeholder*="search"], input[name*="search"]').first()
+    Expected string: ""
+    Received string: "test search"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveValue" with timeout 5000ms
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        8 × locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          - unexpected value "test search"
+
+
+      212 |
+      213 |             // Verify search was cleared
+    > 214 |             await expect(searchInput.first()).toHaveValue('');
+          |                                               ^
+      215 |         }
+      216 |     });
+      217 |
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:214:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with provider filtering" classname="search-filtering.spec.js" time="6.494">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with guidance filtering" classname="search-filtering.spec.js" time="6.561">
+<failure message="search-filtering.spec.js:238:5 should handle search with guidance filtering" type="FAILURE">
+<![CDATA[  [webkit] › search-filtering.spec.js:238:5 › Search and Filtering Functionality › should handle search with guidance filtering 
+
+    Error: locator.selectOption: Error: strict mode violation: locator('select[name="guidance-top"]') resolved to 2 elements:
+        1) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#controls-drawer select[name="guidance-top"]')
+        2) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#mobile-controls-drawer select[name="guidance-top"]')
+
+    Call log:
+      - waiting for locator('select[name="guidance-top"]')
+
+
+      242 |         if (await searchInput.count() > 0) {
+      243 |             // Set guidance value
+    > 244 |             await guidanceTop.selectOption('15');
+          |                               ^
+      245 |
+      246 |             // Perform a search
+      247 |             await searchInput.first().fill('test');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:244:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-webkit\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-webkit\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-webkit\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-webkit\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-webkit\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-webkit\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with rating filtering" classname="search-filtering.spec.js" time="8.153">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with date filtering" classname="search-filtering.spec.js" time="6.922">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with view mode changes" classname="search-filtering.spec.js" time="7.354">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search persistence across page refresh" classname="search-filtering.spec.js" time="8.465">
+<system-out>
+<![CDATA[Search value after refresh: 
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="search-filtering.spec.js" timestamp="2025-09-22T13:50:30.766Z" hostname="Mobile Chrome" tests="20" failures="17" skipped="0" time="274.264" errors="0">
+<testcase name="Search and Filtering Functionality › should display search input field" classname="search-filtering.spec.js" time="10.206">
+<failure message="search-filtering.spec.js:12:5 should display search input field" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:12:5 › Search and Filtering Functionality › should display search input field 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[placeholder*="search"], input[name*="search"]').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        9 × locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          - unexpected value "hidden"
+
+
+      14 |
+      15 |         if (await searchInput.count() > 0) {
+    > 16 |             await expect(searchInput.first()).toBeVisible();
+         |                                               ^
+      17 |         } else {
+      18 |             // If no search input found, that's okay - feature might not be implemented
+      19 |             console.log('Search input not found - feature might not be implemented');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:16:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should allow typing in search field" classname="search-filtering.spec.js" time="22.007">
+<failure message="search-filtering.spec.js:23:5 should allow typing in search field" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:23:5 › Search and Filtering Functionality › should allow typing in search field 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test search")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      26 |         if (await searchInput.count() > 0) {
+      27 |             const searchTerm = 'test search';
+    > 28 |             await searchInput.first().fill(searchTerm);
+         |                                       ^
+      29 |             await expect(searchInput.first()).toHaveValue(searchTerm);
+      30 |         }
+      31 |     });
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:28:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should filter images based on search term" classname="search-filtering.spec.js" time="4.604">
+</testcase>
+<testcase name="Search and Filtering Functionality › should show search suggestions" classname="search-filtering.spec.js" time="15.482">
+<failure message="search-filtering.spec.js:57:5 should show search suggestions" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:57:5 › Search and Filtering Functionality › should show search suggestions 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("ca")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      60 |         if (await searchInput.count() > 0) {
+      61 |             // Type a partial search term
+    > 62 |             await searchInput.first().fill('ca');
+         |                                       ^
+      63 |
+      64 |             // Wait for suggestions to appear
+      65 |             await page.waitForTimeout(1000);
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:62:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should clear search when input is cleared" classname="search-filtering.spec.js" time="15.008">
+<failure message="search-filtering.spec.js:76:5 should clear search when input is cleared" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:76:5 › Search and Filtering Functionality › should clear search when input is cleared 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+        - waiting for element to be visible, enabled and editable
+
+
+      79 |         if (await searchInput.count() > 0) {
+      80 |             // Type a search term
+    > 81 |             await searchInput.first().fill('test');
+         |                                       ^
+      82 |
+      83 |             // Clear the search
+      84 |             await searchInput.first().clear();
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:81:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with special characters" classname="search-filtering.spec.js" time="16.325">
+<failure message="search-filtering.spec.js:91:5 should handle search with special characters" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:91:5 › Search and Filtering Functionality › should handle search with special characters 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test & search with "quotes" and <brackets>")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      94 |         if (await searchInput.count() > 0) {
+      95 |             const specialSearch = 'test & search with "quotes" and <brackets>';
+    > 96 |             await searchInput.first().fill(specialSearch);
+         |                                       ^
+      97 |             await expect(searchInput.first()).toHaveValue(specialSearch);
+      98 |         }
+      99 |     });
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:96:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with numbers" classname="search-filtering.spec.js" time="16.225">
+<failure message="search-filtering.spec.js:101:5 should handle search with numbers" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:101:5 › Search and Filtering Functionality › should handle search with numbers 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("123 test 456")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      104 |         if (await searchInput.count() > 0) {
+      105 |             const numericSearch = '123 test 456';
+    > 106 |             await searchInput.first().fill(numericSearch);
+          |                                       ^
+      107 |             await expect(searchInput.first()).toHaveValue(numericSearch);
+      108 |         }
+      109 |     });
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:106:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle case insensitive search" classname="search-filtering.spec.js" time="16.45">
+<failure message="search-filtering.spec.js:111:5 should handle case insensitive search" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:111:5 › Search and Filtering Functionality › should handle case insensitive search 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("CAT")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      117 |
+      118 |             for (const term of searchTerms) {
+    > 119 |                 await searchInput.first().fill(term);
+          |                                           ^
+      120 |                 await expect(searchInput.first()).toHaveValue(term);
+      121 |             }
+      122 |         }
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:119:43
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with multiple words" classname="search-filtering.spec.js" time="16.285">
+<failure message="search-filtering.spec.js:125:5 should handle search with multiple words" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:125:5 › Search and Filtering Functionality › should handle search with multiple words 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("red car landscape")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      128 |         if (await searchInput.count() > 0) {
+      129 |             const multiWordSearch = 'red car landscape';
+    > 130 |             await searchInput.first().fill(multiWordSearch);
+          |                                       ^
+      131 |             await expect(searchInput.first()).toHaveValue(multiWordSearch);
+      132 |         }
+      133 |     });
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:130:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search history" classname="search-filtering.spec.js" time="14.7">
+<failure message="search-filtering.spec.js:135:5 should handle search history" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:135:5 › Search and Filtering Functionality › should handle search history 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("cat")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      141 |
+      142 |             for (const term of searchTerms) {
+    > 143 |                 await searchInput.first().fill(term);
+          |                                           ^
+      144 |                 await page.waitForTimeout(500);
+      145 |             }
+      146 |
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:143:43
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search debouncing" classname="search-filtering.spec.js" time="16.099">
+<failure message="search-filtering.spec.js:158:5 should handle search debouncing" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:158:5 › Search and Filtering Functionality › should handle search debouncing 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("a")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      161 |         if (await searchInput.count() > 0) {
+      162 |             // Type rapidly to test debouncing
+    > 163 |             await searchInput.first().fill('a');
+          |                                       ^
+      164 |             await page.waitForTimeout(50);
+      165 |             await searchInput.first().fill('ab');
+      166 |             await page.waitForTimeout(50);
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:163:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with keyboard navigation" classname="search-filtering.spec.js" time="15.646">
+<failure message="search-filtering.spec.js:177:5 should handle search with keyboard navigation" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:177:5 › Search and Filtering Functionality › should handle search with keyboard navigation 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and stable
+           - element is not visible
+         - retrying click action
+           - waiting 500ms
+
+
+      180 |         if (await searchInput.count() > 0) {
+      181 |             // Focus on search input
+    > 182 |             await searchInput.first().click();
+          |                                       ^
+      183 |
+      184 |             // Type and use arrow keys
+      185 |             await searchInput.first().fill('test');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:182:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with enter key" classname="search-filtering.spec.js" time="16.282">
+<failure message="search-filtering.spec.js:194:5 should handle search with enter key" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:194:5 › Search and Filtering Functionality › should handle search with enter key 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test search")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      196 |
+      197 |         if (await searchInput.count() > 0) {
+    > 198 |             await searchInput.first().fill('test search');
+          |                                       ^
+      199 |             await searchInput.first().press('Enter');
+      200 |
+      201 |             // Verify search was performed (might trigger filtering or navigation)
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:198:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with escape key" classname="search-filtering.spec.js" time="15.749">
+<failure message="search-filtering.spec.js:206:5 should handle search with escape key" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:206:5 › Search and Filtering Functionality › should handle search with escape key 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test search")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      208 |
+      209 |         if (await searchInput.count() > 0) {
+    > 210 |             await searchInput.first().fill('test search');
+          |                                       ^
+      211 |             await searchInput.first().press('Escape');
+      212 |
+      213 |             // Verify search was cleared
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:210:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with provider filtering" classname="search-filtering.spec.js" time="15.623">
+<failure message="search-filtering.spec.js:218:5 should handle search with provider filtering" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:218:5 › Search and Filtering Functionality › should handle search with provider filtering 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      225 |
+      226 |             // Perform a search
+    > 227 |             await searchInput.first().fill('test');
+          |                                       ^
+      228 |
+      229 |             // Wait for combined filtering
+      230 |             await page.waitForTimeout(1000);
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:227:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with guidance filtering" classname="search-filtering.spec.js" time="4.337">
+<failure message="search-filtering.spec.js:238:5 should handle search with guidance filtering" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:238:5 › Search and Filtering Functionality › should handle search with guidance filtering 
+
+    Error: locator.selectOption: Error: strict mode violation: locator('select[name="guidance-top"]') resolved to 2 elements:
+        1) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#controls-drawer select[name="guidance-top"]')
+        2) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#mobile-controls-drawer select[name="guidance-top"]')
+
+    Call log:
+      - waiting for locator('select[name="guidance-top"]')
+
+
+      242 |         if (await searchInput.count() > 0) {
+      243 |             // Set guidance value
+    > 244 |             await guidanceTop.selectOption('15');
+          |                               ^
+      245 |
+      246 |             // Perform a search
+      247 |             await searchInput.first().fill('test');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:244:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with rating filtering" classname="search-filtering.spec.js" time="17.067">
+<failure message="search-filtering.spec.js:258:5 should handle search with rating filtering" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:258:5 › Search and Filtering Functionality › should handle search with rating filtering 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      268 |
+      269 |             // Perform a search
+    > 270 |             await searchInput.first().fill('test');
+          |                                       ^
+      271 |
+      272 |             // Wait for combined filtering
+      273 |             await page.waitForTimeout(1000);
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:270:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with date filtering" classname="search-filtering.spec.js" time="5.473">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with view mode changes" classname="search-filtering.spec.js" time="6.158">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search persistence across page refresh" classname="search-filtering.spec.js" time="14.538">
+<failure message="search-filtering.spec.js:321:5 should handle search persistence across page refresh" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › search-filtering.spec.js:321:5 › Search and Filtering Functionality › should handle search persistence across page refresh 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("persistent search")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      324 |         if (await searchInput.count() > 0) {
+      325 |             // Perform a search
+    > 326 |             await searchInput.first().fill('persistent search');
+          |                                       ^
+      327 |
+      328 |             // Refresh the page
+      329 |             await page.reload();
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:326:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="search-filtering.spec.js" timestamp="2025-09-22T13:50:30.766Z" hostname="Mobile Safari" tests="20" failures="17" skipped="0" time="256.18" errors="0">
+<testcase name="Search and Filtering Functionality › should display search input field" classname="search-filtering.spec.js" time="9.384">
+<failure message="search-filtering.spec.js:12:5 should display search input field" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:12:5 › Search and Filtering Functionality › should display search input field 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[placeholder*="search"], input[name*="search"]').first()
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        9 × locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          - unexpected value "hidden"
+
+
+      14 |
+      15 |         if (await searchInput.count() > 0) {
+    > 16 |             await expect(searchInput.first()).toBeVisible();
+         |                                               ^
+      17 |         } else {
+      18 |             // If no search input found, that's okay - feature might not be implemented
+      19 |             console.log('Search input not found - feature might not be implemented');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:16:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-77bb4--display-search-input-field-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should allow typing in search field" classname="search-filtering.spec.js" time="15.871">
+<failure message="search-filtering.spec.js:23:5 should allow typing in search field" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:23:5 › Search and Filtering Functionality › should allow typing in search field 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test search")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      26 |         if (await searchInput.count() > 0) {
+      27 |             const searchTerm = 'test search';
+    > 28 |             await searchInput.first().fill(searchTerm);
+         |                                       ^
+      29 |             await expect(searchInput.first()).toHaveValue(searchTerm);
+      30 |         }
+      31 |     });
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:28:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-10c11-llow-typing-in-search-field-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should filter images based on search term" classname="search-filtering.spec.js" time="5.059">
+</testcase>
+<testcase name="Search and Filtering Functionality › should show search suggestions" classname="search-filtering.spec.js" time="17.309">
+<failure message="search-filtering.spec.js:57:5 should show search suggestions" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:57:5 › Search and Filtering Functionality › should show search suggestions 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("ca")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      60 |         if (await searchInput.count() > 0) {
+      61 |             // Type a partial search term
+    > 62 |             await searchInput.first().fill('ca');
+         |                                       ^
+      63 |
+      64 |             // Wait for suggestions to appear
+      65 |             await page.waitForTimeout(1000);
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:62:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-e59a4-uld-show-search-suggestions-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should clear search when input is cleared" classname="search-filtering.spec.js" time="15.416">
+<failure message="search-filtering.spec.js:76:5 should clear search when input is cleared" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:76:5 › Search and Filtering Functionality › should clear search when input is cleared 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      79 |         if (await searchInput.count() > 0) {
+      80 |             // Type a search term
+    > 81 |             await searchInput.first().fill('test');
+         |                                       ^
+      82 |
+      83 |             // Clear the search
+      84 |             await searchInput.first().clear();
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:81:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-98835-earch-when-input-is-cleared-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with special characters" classname="search-filtering.spec.js" time="16.289">
+<failure message="search-filtering.spec.js:91:5 should handle search with special characters" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:91:5 › Search and Filtering Functionality › should handle search with special characters 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test & search with "quotes" and <brackets>")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      94 |         if (await searchInput.count() > 0) {
+      95 |             const specialSearch = 'test & search with "quotes" and <brackets>';
+    > 96 |             await searchInput.first().fill(specialSearch);
+         |                                       ^
+      97 |             await expect(searchInput.first()).toHaveValue(specialSearch);
+      98 |         }
+      99 |     });
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:96:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-643c9-rch-with-special-characters-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with numbers" classname="search-filtering.spec.js" time="14.027">
+<failure message="search-filtering.spec.js:101:5 should handle search with numbers" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:101:5 › Search and Filtering Functionality › should handle search with numbers 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("123 test 456")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      104 |         if (await searchInput.count() > 0) {
+      105 |             const numericSearch = '123 test 456';
+    > 106 |             await searchInput.first().fill(numericSearch);
+          |                                       ^
+      107 |             await expect(searchInput.first()).toHaveValue(numericSearch);
+      108 |         }
+      109 |     });
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:106:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0dcf2--handle-search-with-numbers-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle case insensitive search" classname="search-filtering.spec.js" time="15.21">
+<failure message="search-filtering.spec.js:111:5 should handle case insensitive search" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:111:5 › Search and Filtering Functionality › should handle case insensitive search 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("CAT")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      117 |
+      118 |             for (const term of searchTerms) {
+    > 119 |                 await searchInput.first().fill(term);
+          |                                           ^
+      120 |                 await expect(searchInput.first()).toHaveValue(term);
+      121 |             }
+      122 |         }
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:119:43
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-59b7e-dle-case-insensitive-search-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with multiple words" classname="search-filtering.spec.js" time="13.924">
+<failure message="search-filtering.spec.js:125:5 should handle search with multiple words" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:125:5 › Search and Filtering Functionality › should handle search with multiple words 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("red car landscape")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      128 |         if (await searchInput.count() > 0) {
+      129 |             const multiWordSearch = 'red car landscape';
+    > 130 |             await searchInput.first().fill(multiWordSearch);
+          |                                       ^
+      131 |             await expect(searchInput.first()).toHaveValue(multiWordSearch);
+      132 |         }
+      133 |     });
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:130:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-8124b--search-with-multiple-words-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search history" classname="search-filtering.spec.js" time="14.97">
+<failure message="search-filtering.spec.js:135:5 should handle search history" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:135:5 › Search and Filtering Functionality › should handle search history 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("cat")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      141 |
+      142 |             for (const term of searchTerms) {
+    > 143 |                 await searchInput.first().fill(term);
+          |                                           ^
+      144 |                 await page.waitForTimeout(500);
+      145 |             }
+      146 |
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:143:43
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-c106c-hould-handle-search-history-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search debouncing" classname="search-filtering.spec.js" time="15.454">
+<failure message="search-filtering.spec.js:158:5 should handle search debouncing" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:158:5 › Search and Filtering Functionality › should handle search debouncing 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("a")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      161 |         if (await searchInput.count() > 0) {
+      162 |             // Type rapidly to test debouncing
+    > 163 |             await searchInput.first().fill('a');
+          |                                       ^
+      164 |             await page.waitForTimeout(50);
+      165 |             await searchInput.first().fill('ab');
+      166 |             await page.waitForTimeout(50);
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:163:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-5f859-ld-handle-search-debouncing-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with keyboard navigation" classname="search-filtering.spec.js" time="15.226">
+<failure message="search-filtering.spec.js:177:5 should handle search with keyboard navigation" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:177:5 › Search and Filtering Functionality › should handle search with keyboard navigation 
+
+    TimeoutError: locator.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not visible
+        - retrying click action
+          - waiting 100ms
+        14 × waiting for element to be visible, enabled and stable
+           - element is not visible
+         - retrying click action
+           - waiting 500ms
+
+
+      180 |         if (await searchInput.count() > 0) {
+      181 |             // Focus on search input
+    > 182 |             await searchInput.first().click();
+          |                                       ^
+      183 |
+      184 |             // Type and use arrow keys
+      185 |             await searchInput.first().fill('test');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:182:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-4abba-ch-with-keyboard-navigation-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with enter key" classname="search-filtering.spec.js" time="14.911">
+<failure message="search-filtering.spec.js:194:5 should handle search with enter key" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:194:5 › Search and Filtering Functionality › should handle search with enter key 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test search")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      196 |
+      197 |         if (await searchInput.count() > 0) {
+    > 198 |             await searchInput.first().fill('test search');
+          |                                       ^
+      199 |             await searchInput.first().press('Enter');
+      200 |
+      201 |             // Verify search was performed (might trigger filtering or navigation)
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:198:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-f83a9-andle-search-with-enter-key-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with escape key" classname="search-filtering.spec.js" time="14.915">
+<failure message="search-filtering.spec.js:206:5 should handle search with escape key" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:206:5 › Search and Filtering Functionality › should handle search with escape key 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test search")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      208 |
+      209 |         if (await searchInput.count() > 0) {
+    > 210 |             await searchInput.first().fill('test search');
+          |                                       ^
+      211 |             await searchInput.first().press('Escape');
+      212 |
+      213 |             // Verify search was cleared
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:210:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with provider filtering" classname="search-filtering.spec.js" time="15.856">
+<failure message="search-filtering.spec.js:218:5 should handle search with provider filtering" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:218:5 › Search and Filtering Functionality › should handle search with provider filtering 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      225 |
+      226 |             // Perform a search
+    > 227 |             await searchInput.first().fill('test');
+          |                                       ^
+      228 |
+      229 |             // Wait for combined filtering
+      230 |             await page.waitForTimeout(1000);
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:227:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-56966-rch-with-provider-filtering-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with guidance filtering" classname="search-filtering.spec.js" time="5.507">
+<failure message="search-filtering.spec.js:238:5 should handle search with guidance filtering" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:238:5 › Search and Filtering Functionality › should handle search with guidance filtering 
+
+    Error: locator.selectOption: Error: strict mode violation: locator('select[name="guidance-top"]') resolved to 2 elements:
+        1) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#controls-drawer select[name="guidance-top"]')
+        2) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#mobile-controls-drawer select[name="guidance-top"]')
+
+    Call log:
+      - waiting for locator('select[name="guidance-top"]')
+
+
+      242 |         if (await searchInput.count() > 0) {
+      243 |             // Set guidance value
+    > 244 |             await guidanceTop.selectOption('15');
+          |                               ^
+      245 |
+      246 |             // Perform a search
+      247 |             await searchInput.first().fill('test');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:244:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with rating filtering" classname="search-filtering.spec.js" time="15.038">
+<failure message="search-filtering.spec.js:258:5 should handle search with rating filtering" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:258:5 › Search and Filtering Functionality › should handle search with rating filtering 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("test")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      268 |
+      269 |             // Perform a search
+    > 270 |             await searchInput.first().fill('test');
+          |                                       ^
+      271 |
+      272 |             // Wait for combined filtering
+      273 |             await page.waitForTimeout(1000);
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:270:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-058a4-earch-with-rating-filtering-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with date filtering" classname="search-filtering.spec.js" time="3.484">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with view mode changes" classname="search-filtering.spec.js" time="3.603">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search persistence across page refresh" classname="search-filtering.spec.js" time="14.727">
+<failure message="search-filtering.spec.js:321:5 should handle search persistence across page refresh" type="FAILURE">
+<![CDATA[  [Mobile Safari] › search-filtering.spec.js:321:5 › Search and Filtering Functionality › should handle search persistence across page refresh 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        - locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        - fill("persistent search")
+      - attempting fill action
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and editable
+          - element is not visible
+        - retrying fill action
+          - waiting 100ms
+        19 × waiting for element to be visible, enabled and editable
+           - element is not visible
+         - retrying fill action
+           - waiting 500ms
+
+
+      324 |         if (await searchInput.count() > 0) {
+      325 |             // Perform a search
+    > 326 |             await searchInput.first().fill('persistent search');
+          |                                       ^
+      327 |
+      328 |             // Refresh the page
+      329 |             await page.reload();
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:326:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Safari\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Safari\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Safari\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Safari\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Safari\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-2a8b1-istence-across-page-refresh-Mobile-Safari\error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="search-filtering.spec.js" timestamp="2025-09-22T13:50:30.766Z" hostname="Microsoft Edge" tests="20" failures="2" skipped="0" time="114.674" errors="0">
+<testcase name="Search and Filtering Functionality › should display search input field" classname="search-filtering.spec.js" time="4.49">
+</testcase>
+<testcase name="Search and Filtering Functionality › should allow typing in search field" classname="search-filtering.spec.js" time="4.879">
+</testcase>
+<testcase name="Search and Filtering Functionality › should filter images based on search term" classname="search-filtering.spec.js" time="5.763">
+</testcase>
+<testcase name="Search and Filtering Functionality › should show search suggestions" classname="search-filtering.spec.js" time="6.589">
+</testcase>
+<testcase name="Search and Filtering Functionality › should clear search when input is cleared" classname="search-filtering.spec.js" time="5.081">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with special characters" classname="search-filtering.spec.js" time="5.279">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with numbers" classname="search-filtering.spec.js" time="5.382">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle case insensitive search" classname="search-filtering.spec.js" time="5.229">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with multiple words" classname="search-filtering.spec.js" time="4.833">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search history" classname="search-filtering.spec.js" time="6.361">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search debouncing" classname="search-filtering.spec.js" time="5.569">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with keyboard navigation" classname="search-filtering.spec.js" time="5.033">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with enter key" classname="search-filtering.spec.js" time="5.678">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with escape key" classname="search-filtering.spec.js" time="9.653">
+<failure message="search-filtering.spec.js:206:5 should handle search with escape key" type="FAILURE">
+<![CDATA[  [Microsoft Edge] › search-filtering.spec.js:206:5 › Search and Filtering Functionality › should handle search with escape key 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator: locator('input[placeholder*="search"], input[name*="search"]').first()
+    Expected string: ""
+    Received string: "test search"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveValue" with timeout 5000ms
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        9 × locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          - unexpected value "test search"
+
+
+      212 |
+      213 |             // Verify search was cleared
+    > 214 |             await expect(searchInput.first()).toHaveValue('');
+          |                                               ^
+      215 |         }
+      216 |     });
+      217 |
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:214:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Microsoft-Edge\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Microsoft-Edge\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Microsoft-Edge\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Microsoft-Edge\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Microsoft-Edge\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Microsoft-Edge\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with provider filtering" classname="search-filtering.spec.js" time="5.665">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with guidance filtering" classname="search-filtering.spec.js" time="5.252">
+<failure message="search-filtering.spec.js:238:5 should handle search with guidance filtering" type="FAILURE">
+<![CDATA[  [Microsoft Edge] › search-filtering.spec.js:238:5 › Search and Filtering Functionality › should handle search with guidance filtering 
+
+    Error: locator.selectOption: Error: strict mode violation: locator('select[name="guidance-top"]') resolved to 2 elements:
+        1) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#controls-drawer select[name="guidance-top"]')
+        2) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#mobile-controls-drawer select[name="guidance-top"]')
+
+    Call log:
+      - waiting for locator('select[name="guidance-top"]')
+
+
+      242 |         if (await searchInput.count() > 0) {
+      243 |             // Set guidance value
+    > 244 |             await guidanceTop.selectOption('15');
+          |                               ^
+      245 |
+      246 |             // Perform a search
+      247 |             await searchInput.first().fill('test');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:244:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Microsoft-Edge\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Microsoft-Edge\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Microsoft-Edge\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Microsoft-Edge\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Microsoft-Edge\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Microsoft-Edge\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with rating filtering" classname="search-filtering.spec.js" time="5.593">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with date filtering" classname="search-filtering.spec.js" time="6.703">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with view mode changes" classname="search-filtering.spec.js" time="4.96">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search persistence across page refresh" classname="search-filtering.spec.js" time="6.682">
+<system-out>
+<![CDATA[Search value after refresh: 
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="search-filtering.spec.js" timestamp="2025-09-22T13:50:30.766Z" hostname="Google Chrome" tests="20" failures="2" skipped="0" time="115.912" errors="0">
+<testcase name="Search and Filtering Functionality › should display search input field" classname="search-filtering.spec.js" time="5.352">
+</testcase>
+<testcase name="Search and Filtering Functionality › should allow typing in search field" classname="search-filtering.spec.js" time="5.771">
+</testcase>
+<testcase name="Search and Filtering Functionality › should filter images based on search term" classname="search-filtering.spec.js" time="4.744">
+</testcase>
+<testcase name="Search and Filtering Functionality › should show search suggestions" classname="search-filtering.spec.js" time="6.341">
+</testcase>
+<testcase name="Search and Filtering Functionality › should clear search when input is cleared" classname="search-filtering.spec.js" time="4.993">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with special characters" classname="search-filtering.spec.js" time="5.136">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with numbers" classname="search-filtering.spec.js" time="5.132">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle case insensitive search" classname="search-filtering.spec.js" time="4.315">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with multiple words" classname="search-filtering.spec.js" time="4.377">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search history" classname="search-filtering.spec.js" time="6.155">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search debouncing" classname="search-filtering.spec.js" time="5.662">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with keyboard navigation" classname="search-filtering.spec.js" time="4.486">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with enter key" classname="search-filtering.spec.js" time="5.569">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with escape key" classname="search-filtering.spec.js" time="9.365">
+<failure message="search-filtering.spec.js:206:5 should handle search with escape key" type="FAILURE">
+<![CDATA[  [Google Chrome] › search-filtering.spec.js:206:5 › Search and Filtering Functionality › should handle search with escape key 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator: locator('input[placeholder*="search"], input[name*="search"]').first()
+    Expected string: ""
+    Received string: "test search"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveValue" with timeout 5000ms
+      - waiting for locator('input[placeholder*="search"], input[name*="search"]').first()
+        9 × locator resolved to <input type="text" name="image-search" placeholder="Search" class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          - unexpected value "test search"
+
+
+      212 |
+      213 |             // Verify search was cleared
+    > 214 |             await expect(searchInput.first()).toHaveValue('');
+          |                                               ^
+      215 |         }
+      216 |     });
+      217 |
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:214:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Google-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Google-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Google-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Google-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Google-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-19c64-ndle-search-with-escape-key-Google-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with provider filtering" classname="search-filtering.spec.js" time="7.275">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with guidance filtering" classname="search-filtering.spec.js" time="7.721">
+<failure message="search-filtering.spec.js:238:5 should handle search with guidance filtering" type="FAILURE">
+<![CDATA[  [Google Chrome] › search-filtering.spec.js:238:5 › Search and Filtering Functionality › should handle search with guidance filtering 
+
+    Error: locator.selectOption: Error: strict mode violation: locator('select[name="guidance-top"]') resolved to 2 elements:
+        1) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#controls-drawer select[name="guidance-top"]')
+        2) <select name="guidance-top" class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all">…</select> aka locator('#mobile-controls-drawer select[name="guidance-top"]')
+
+    Call log:
+      - waiting for locator('select[name="guidance-top"]')
+
+
+      242 |         if (await searchInput.count() > 0) {
+      243 |             // Set guidance value
+    > 244 |             await guidanceTop.selectOption('15');
+          |                               ^
+      245 |
+      246 |             // Perform a search
+      247 |             await searchInput.first().fill('test');
+        at C:\wamp64\www\image-harvest\tests\e2e\search-filtering.spec.js:244:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Google-Chrome\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Google-Chrome\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Google-Chrome\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Google-Chrome\test-failed-1.png]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Google-Chrome\video.webm]]
+
+[[ATTACHMENT|..\test-results\search-filtering-Search-an-0a51c-rch-with-guidance-filtering-Google-Chrome\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with rating filtering" classname="search-filtering.spec.js" time="5.997">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with date filtering" classname="search-filtering.spec.js" time="7.179">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search with view mode changes" classname="search-filtering.spec.js" time="4.884">
+</testcase>
+<testcase name="Search and Filtering Functionality › should handle search persistence across page refresh" classname="search-filtering.spec.js" time="5.458">
+<system-out>
+<![CDATA[Search value after refresh: 
+]]>
+</system-out>
+</testcase>
+</testsuite>
 </testsuites>

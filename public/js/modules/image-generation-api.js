@@ -35,7 +35,7 @@ class ImageGenerationAPI {
             // Extract the actual image data from the response
             const imageData = resultData.data || resultData;
 
-            console.log('✅ API RESPONSE: Extracted image data', imageData);
+            // Image data extracted from response
 
             return imageData;
         } catch (error) {
@@ -97,14 +97,13 @@ class ImageGenerationAPI {
 
         const responseData = await response.json();
 
-        console.log('📥 HTTP RESPONSE: Data', responseData);
-        console.log('📥 HTTP RESPONSE: Data.data structure', responseData.data);
+        // Response data received
 
         return responseData;
     }
 
     createFormData(prompt, promptObj, providers) {
-        console.log('📋 FORM DATA: Creating form data for API call');
+        // Creating form data for API call
         const formData = new FormData();
 
         formData.append('prompt', prompt);
@@ -119,12 +118,21 @@ class ImageGenerationAPI {
     }
 
     addEnhancementParameters(formData) {
+        console.log('📋 ENHANCEMENT: addEnhancementParameters called');
         // Get form values from the unified drawer component
         let drawerValues = {};
 
         if (window.unifiedDrawerComponent) {
             drawerValues = window.unifiedDrawerComponent.getFormValues('desktop');
-            console.log('📋 ENHANCEMENT: Got drawer values:', drawerValues);
+            console.log('📋 ENHANCEMENT: Drawer values:', drawerValues);
+
+            // Debug specific checkboxes
+            const photogenicCheckbox = document.querySelector('input[name="photogenic"]');
+            const artisticCheckbox = document.querySelector('input[name="artistic"]');
+            console.log('📋 ENHANCEMENT: photogenic checkbox found:', !!photogenicCheckbox, 'checked:', photogenicCheckbox?.checked);
+            console.log('📋 ENHANCEMENT: artistic checkbox found:', !!artisticCheckbox, 'checked:', artisticCheckbox?.checked);
+        } else {
+            console.warn('📋 ENHANCEMENT: unifiedDrawerComponent not available');
         }
 
         // Get multiplier value
@@ -154,32 +162,29 @@ class ImageGenerationAPI {
         }
 
         // Get photogenic checkbox
+        console.log('📋 ENHANCEMENT: photogenic value:', drawerValues.photogenic, 'type:', typeof drawerValues.photogenic);
         if (drawerValues.photogenic) {
             console.log('📋 ENHANCEMENT: Adding photogenic: true');
             formData.append('photogenic', 'true');
         }
 
         // Get artistic checkbox
+        console.log('📋 ENHANCEMENT: artistic value:', drawerValues.artistic, 'type:', typeof drawerValues.artistic);
         if (drawerValues.artistic) {
             console.log('📋 ENHANCEMENT: Adding artistic: true');
             formData.append('artistic', 'true');
         }
 
         // Get autoPublic checkbox
-        console.log('🔍 AUTOPUBLIC DEBUG: Checking autoPublic value:', {
-            drawerValues,
-            autoPublic: drawerValues.autoPublic,
-            autoPublicType: typeof drawerValues.autoPublic
-        });
-
         if (drawerValues.autoPublic) {
-            console.log('📋 ENHANCEMENT: Adding autoPublic: true');
             formData.append('autoPublic', 'true');
-        } else {
-            console.log('📋 ENHANCEMENT: autoPublic is false or undefined, not adding to payload');
         }
 
-        console.log('📋 ENHANCEMENT: Enhancement parameters processed');
+        // Enhancement parameters processed
+        console.log('📋 ENHANCEMENT: Final formData entries:');
+        for (const [key, value] of formData.entries()) {
+            console.log(`📋 ENHANCEMENT: ${key}: ${value}`);
+        }
     }
 
     addGuidanceValues(formData) {
@@ -238,7 +243,7 @@ class ImageGenerationAPI {
             }
         }
 
-        console.log('🔧 CONVERSION: FormData converted to JSON:', jsonData);
+        // FormData converted to JSON
 
         return jsonData;
     }

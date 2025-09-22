@@ -92,6 +92,9 @@ class FeedDOMManager {
             };
         }
 
+        // Note: Auto download is NOT called here for existing images loaded from database
+        // Auto download is only called from specific new generation paths
+
         return true;
     }
 
@@ -115,11 +118,7 @@ class FeedDOMManager {
 
             // Cache the image data in the image manager
             if (window.imageManager && window.imageManager.data) {
-                console.log('🔍 FEED CACHE DEBUG: Caching newly added image:', {
-                    imageData,
-                    isPublic: imageData.isPublic,
-                    isPublicType: typeof imageData.isPublic
-                });
+        // Caching newly added image
                 window.imageManager.data.cacheImage({
                     ...imageData,
                     element: wrapper
@@ -153,7 +152,7 @@ class FeedDOMManager {
 
             retries++;
             if (retries < maxRetries) {
-                console.log(`⏳ DOM MANAGER: Waiting for FeedManager/ViewManager (attempt ${retries}/${maxRetries})...`);
+                // Waiting for FeedManager/ViewManager
                 setTimeout(tryEnhance, retryDelay);
             } else {
                 console.warn('⚠️ DOM MANAGER: FeedManager/ViewManager not available after waiting, skipping enhancement');
@@ -226,11 +225,7 @@ class FeedDOMManager {
         compactImg.setAttribute('aria-label', imageData.prompt);
 
         // Add all data attributes to compact image
-        console.log('🔍 MANUAL FIX DEBUG: Setting dataset on compact image:', {
-            imageData,
-            isPublic: imageData.isPublic,
-            isPublicType: typeof imageData.isPublic
-        });
+        // Setting dataset on compact image
 
         // Set specific dataset attributes that the system expects
         compactImg.dataset.id = imageData.id;
@@ -243,12 +238,7 @@ class FeedDOMManager {
         compactImg.dataset.isPublic = (imageData.isPublic || false).toString();
         compactImg.dataset.userId = imageData.userId || '';
 
-        console.log('🔍 MANUAL FIX DEBUG: Compact image dataset set:', {
-            datasetId: compactImg.dataset.id,
-            datasetIsPublic: compactImg.dataset.isPublic,
-            datasetProvider: compactImg.dataset.provider,
-            allDataset: compactImg.dataset
-        });
+        // Compact image dataset set
 
         compactView.appendChild(compactImg);
 
@@ -275,12 +265,7 @@ class FeedDOMManager {
         listThumbImg.dataset.isPublic = (imageData.isPublic || false).toString();
         listThumbImg.dataset.userId = imageData.userId || '';
 
-        console.log('🔍 MANUAL FIX DEBUG: List view image dataset set:', {
-            datasetId: listThumbImg.dataset.id,
-            datasetIsPublic: listThumbImg.dataset.isPublic,
-            datasetProvider: listThumbImg.dataset.provider,
-            allDataset: listThumbImg.dataset
-        });
+        // List view image dataset set
 
         listImageThumb.appendChild(listThumbImg);
 
@@ -350,12 +335,7 @@ class FeedDOMManager {
         publicCheckbox.setAttribute('data-image-id', imageData.id);
         publicCheckbox.setAttribute('aria-label', 'Toggle public visibility');
 
-        console.log('🔍 MANUAL CHECKBOX DEBUG: Setting manual checkbox state:', {
-            imageData,
-            isPublic: imageData.isPublic,
-            isPublicType: typeof imageData.isPublic,
-            checkboxChecked: publicCheckbox.checked
-        });
+        // Setting manual checkbox state
 
         const publicLabel = document.createElement('label');
         publicLabel.className = 'public-status-label';
@@ -402,6 +382,9 @@ class FeedDOMManager {
         }
 
         console.log('✅ MANUAL FIX: Dual view loading placeholder replaced with manual structure');
+
+        // Handle auto download for dual view placeholder replacement (this is always a new generation)
+        this.handleAutoDownloadForFeed(imageData, true);
 
         return true;
     }
@@ -486,6 +469,9 @@ class FeedDOMManager {
         }
 
         console.log('✅ Simple loading placeholder replaced successfully');
+
+        // Handle auto download for simple placeholder replacement (this is always a new generation)
+        this.handleAutoDownloadForFeed(imageData, true);
 
         return true;
     }
@@ -749,6 +735,118 @@ class FeedDOMManager {
         const wrappers = this.getImageWrappers();
 
         return wrappers.length > 0 ? wrappers[wrappers.length - 1] : null;
+    }
+
+    // Handle auto download for feed manager
+    handleAutoDownloadForFeed(imageData, isNewGeneration = false) {
+        // Only trigger auto download for new generations, not existing images loaded on page load
+        if (!isNewGeneration) {
+            console.log('📥 AUTO DOWNLOAD FEED: Skipping download for existing image (not a new generation)');
+            return;
+        }
+
+        const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
+
+        console.log('📥 AUTO DOWNLOAD FEED DEBUG:', {
+            isNewGeneration,
+            autoDownloadFound: !!autoDownload,
+            autoDownloadChecked: autoDownload?.checked,
+            allAutoDownloadCheckboxes: document.querySelectorAll('input[name="autoDownload"]').length,
+            imageData: imageData.url || imageData.imageUrl
+        });
+
+        if (autoDownload) {
+            console.log('📥 AUTO DOWNLOAD: Triggering download for new feed image:', imageData.url || imageData.imageUrl);
+
+            // Use a more reliable download method that should show Save As dialog
+            this.downloadImageFile(imageData.url || imageData.imageUrl);
+        } else {
+            console.log('📥 AUTO DOWNLOAD FEED: Checkbox not found or not checked, skipping download');
+        }
+    }
+
+    // Improved download method that should show Save As dialog
+    downloadImageFile(imageUrl) {
+        try {
+            // Method 1: Try fetch + blob download (most reliable for Save As dialog)
+            this.downloadImageAsBlob(imageUrl);
+        } catch (error) {
+            console.error('❌ AUTO DOWNLOAD: Blob download failed, trying fallback:', error);
+
+            // Method 2: Fallback to anchor download
+            try {
+                const a = document.createElement('a');
+                const fileName = this.generateFileName(imageUrl);
+
+                a.href = imageUrl;
+                a.download = fileName;
+                a.style.display = 'none';
+
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                console.log('📥 AUTO DOWNLOAD: Fallback download triggered for:', fileName);
+            } catch (fallbackError) {
+                console.error('❌ AUTO DOWNLOAD: All download methods failed:', fallbackError);
+            }
+        }
+    }
+
+    // Download image as blob to force Save As dialog
+    async downloadImageAsBlob(imageUrl) {
+        try {
+            console.log('📥 AUTO DOWNLOAD: Fetching image as blob for download...');
+
+            // Fetch the image as a blob
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const fileName = this.generateFileName(imageUrl);
+
+            // Create object URL and download
+            const objectUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = fileName;
+            a.style.display = 'none';
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Clean up object URL
+            URL.revokeObjectURL(objectUrl);
+
+            console.log('📥 AUTO DOWNLOAD: Blob download triggered for:', fileName);
+        } catch (error) {
+            console.error('❌ AUTO DOWNLOAD: Blob download failed:', error);
+            throw error; // Re-throw to trigger fallback
+        }
+    }
+
+    // Generate a proper filename for the download
+    generateFileName(imageUrl) {
+        try {
+            const { pathname } = new URL(imageUrl);
+            const fileName = pathname.split('/').pop();
+
+            // If no filename or extension, generate one
+            if (!fileName || !fileName.includes('.')) {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                return `generated-image-${timestamp}.jpg`;
+            }
+
+            return decodeURIComponent(fileName);
+        } catch (error) {
+            // Fallback filename
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            return `generated-image-${timestamp}.jpg`;
+        }
     }
 }
 
