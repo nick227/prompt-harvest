@@ -32,7 +32,6 @@ async function fixRailwayModels() {
                 description: 'Flux development model',
                 costPerImage: 1,
                 isActive: true,
-                apiUrl: 'https://api.flux.ai/v1/generate',
                 apiModel: 'flux-dev',
                 apiSize: '1024x1024'
             },
@@ -54,7 +53,7 @@ async function fixRailwayModels() {
                 description: 'Google\'s latest Imagen model',
                 costPerImage: 1,
                 isActive: true,
-                apiUrl: 'https://imagen.googleapis.com/v1/images:generate',
+                apiUrl: 'https://us-central1-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/us-central1/publishers/google/models/imagen-3.0-generate-001:predict',
                 apiModel: 'imagen-3.0-generate-001',
                 apiSize: '1024x1024'
             }

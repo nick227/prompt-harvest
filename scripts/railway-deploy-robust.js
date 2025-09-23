@@ -44,7 +44,7 @@ const modelConfigs = [
         description: 'Google\'s latest Imagen model',
         costPerImage: 1,
         isActive: true,
-        apiUrl: 'https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage',
+        apiUrl: 'https://us-central1-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/us-central1/publishers/google/models/imagen-3.0-generate-001:predict',
         apiModel: 'imagen-3.0-generate-001',
         apiSize: '1024x1024'
     },
@@ -55,7 +55,7 @@ const modelConfigs = [
         description: 'Google\'s Imagen 2 model',
         costPerImage: 1,
         isActive: true,
-        apiUrl: 'https://generativelanguage.googleapis.com/v1beta/models/imagegeneration@006:generateImage',
+        apiUrl: 'https://us-central1-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/us-central1/publishers/google/models/imagegeneration@006:predict',
         apiModel: 'imagegeneration@006',
         apiSize: '1024x1024'
     },

@@ -120,34 +120,11 @@ async function seedModels() {
             description: 'Google\'s latest Imagen model',
             costPerImage: 1,
             isActive: true,
-            apiUrl: 'https://imagen.googleapis.com/v1/images:generate',
+            apiUrl: 'https://us-central1-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/us-central1/publishers/google/models/imagen-3.0-generate-001:predict',
             apiModel: 'imagen-3.0-generate-001',
             apiSize: '1024x1024'
         },
 
-        // Flux Models
-        {
-            provider: 'flux',
-            name: 'flux-dev',
-            displayName: 'Flux Dev',
-            description: 'Flux development model',
-            costPerImage: 1,
-            isActive: true,
-            apiUrl: 'https://api.flux.ai/v1/generate',
-            apiModel: 'flux-dev',
-            apiSize: '1024x1024'
-        },
-        {
-            provider: 'flux',
-            name: 'flux-pro',
-            displayName: 'Flux Pro',
-            description: 'Flux professional model',
-            costPerImage: 1,
-            isActive: true,
-            apiUrl: 'https://api.flux.ai/v1/generate',
-            apiModel: 'flux-pro',
-            apiSize: '1024x1024'
-        },
 
         // Dezgo Models
         {
@@ -157,8 +134,8 @@ async function seedModels() {
             description: 'Flux model via Dezgo API',
             costPerImage: 1,
             isActive: true,
-            apiUrl: 'https://api.dezgo.com/generate',
-            apiModel: 'flux',
+            apiUrl: 'https://api.dezgo.com/text2image_flux',
+            apiModel: 'flux_1_schnell',
             apiSize: '1024x1024'
         },
         {
@@ -168,8 +145,8 @@ async function seedModels() {
             description: 'Flux Dev model via Dezgo API',
             costPerImage: 1,
             isActive: true,
-            apiUrl: 'https://api.dezgo.com/generate',
-            apiModel: 'flux-dev',
+            apiUrl: 'https://api.dezgo.com/text2image_flux',
+            apiModel: 'flux_1_schnell',
             apiSize: '1024x1024'
         },
 

@@ -41,7 +41,7 @@ function getEmbeddedModelsData() {
     return `provider,providerId,name,displayName,description,costPerImage,isActive,apiUrl,apiModel,apiSize
 openai,openai-1,openai/dalle3,DALL-E 3,OpenAI's most advanced image generation model,0.08,true,https://api.openai.com/v1/images/generations,dall-e-3,1024x1024
 openai,openai-2,openai/dalle2,DALL-E 2,OpenAI's reliable image generation model,0.02,true,https://api.openai.com/v1/images/generations,dall-e-2,1024x1024
-google,google-1,google/imagen3,Imagen 3,Google's latest image generation model,0.05,true,https://generativelanguage.googleapis.com/v1beta/models,imagen-3,1024x1024
+google,google-1,google/imagen3,Imagen 3,Google's latest image generation model,0.05,true,https://us-central1-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/us-central1/publishers/google/models,imagen-3,1024x1024
 dezgo,dezgo-1,dezgo/flux,Flux (Dezgo),High-quality image generation via Dezgo API,0.04,true,https://api.dezgo.com/flux,flux,1024x1024
 dezgo,dezgo-2,dezgo/flux-dev,Flux Dev (Dezgo),Development version of Flux model,0.03,true,https://api.dezgo.com/flux,flux-dev,1024x1024
 stability,stability-1,stability/sd3,Stable Diffusion 3,Stability AI's flagship model,0.06,true,https://api.stability.ai/v1/generation,stable-diffusion-3,1024x1024

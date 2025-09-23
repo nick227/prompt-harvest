@@ -164,8 +164,7 @@ async function insertModelsDynamic(tableInfo) {
             ['openai', 'dalle2', 'DALL-E 2', 'OpenAI\'s previous text-to-image model', 1, true, 'https://api.openai.com/v1/images/generations', 'dall-e-2', '1024x1024'],
 
             // Google Models
-            ['google', 'imagen3', 'Imagen 3', 'Google\'s latest Imagen model', 1, true, 'https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage', 'imagen-3.0-generate-001', '1024x1024'],
-            ['google', 'imagen2', 'Imagen 2', 'Google\'s Imagen 2 model', 1, true, 'https://generativelanguage.googleapis.com/v1beta/models/imagegeneration@006:generateImage', 'imagegeneration@006', '1024x1024'],
+            ['google', 'imagen3', 'Imagen 3', 'Google\'s latest Imagen model', 1, true, 'https://us-central1-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/us-central1/publishers/google/models/imagen-3.0-generate-001:predict', 'imagen-3.0-generate-001', '1024x1024'],
 
             // Dezgo Models
             ['dezgo', 'flux', 'Flux', 'High-quality text-to-image model', 1, true, 'https://api.dezgo.com/text2image_flux', 'flux_1_schnell', '1024x1024'],

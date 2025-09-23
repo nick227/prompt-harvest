@@ -125,7 +125,6 @@ async function seedModels() {
             description: 'Flux development model',
             costPerImage: 1,
             isActive: true,
-            apiUrl: 'https://api.flux.ai/v1/generate',
             apiModel: 'flux-dev',
             apiSize: '1024x1024'
         },
