@@ -33,12 +33,20 @@ async function railwayDeployWithMigration() {
         console.log('📋 Step 2: Pushing schema...');
         await pushSchema();
 
-        // Step 3: Seed essential data
-        console.log('📋 Step 3: Seeding essential data...');
+        // Step 3: Fix database schema
+        console.log('📋 Step 3: Fixing database schema...');
+        await fixDatabaseSchema();
+
+        // Step 4: Fix model configurations
+        console.log('📋 Step 4: Fixing model configurations...');
+        await fixModelConfigurations();
+
+        // Step 5: Seed essential data
+        console.log('📋 Step 5: Seeding essential data...');
         await seedEssentialData();
 
-        // Step 4: Verify deployment
-        console.log('📋 Step 4: Verifying deployment...');
+        // Step 6: Verify deployment
+        console.log('📋 Step 6: Verifying deployment...');
         await verifyDeployment();
 
         console.log('==========================================');
@@ -376,6 +384,101 @@ async function verifyDeployment() {
 
     } catch (error) {
         throw new Error(`Deployment verification failed: ${error.message}`);
+    }
+}
+
+async function fixDatabaseSchema() {
+    try {
+        console.log('  🔧 Adding missing columns to images table...');
+        
+        // Add the missing columns
+        await prisma.$executeRaw`ALTER TABLE images ADD COLUMN IF NOT EXISTS isDeleted BOOLEAN DEFAULT FALSE`;
+        console.log('    ✅ Added isDeleted column');
+        
+        await prisma.$executeRaw`ALTER TABLE images ADD COLUMN IF NOT EXISTS deletedAt DATETIME NULL`;
+        console.log('    ✅ Added deletedAt column');
+        
+        await prisma.$executeRaw`ALTER TABLE images ADD COLUMN IF NOT EXISTS deletedBy VARCHAR(25) NULL`;
+        console.log('    ✅ Added deletedBy column');
+        
+        // Add indexes for the new columns
+        try {
+            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_images_isDeleted ON images(isDeleted)`;
+            console.log('    ✅ Added isDeleted index');
+            
+            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_images_deletedAt ON images(deletedAt)`;
+            console.log('    ✅ Added deletedAt index');
+            
+            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_images_userId_isDeleted ON images(userId, isDeleted)`;
+            console.log('    ✅ Added userId_isDeleted index');
+        } catch (indexError) {
+            console.log('    ⚠️  Some indexes may already exist, continuing...');
+        }
+        
+        console.log('  ✅ Database schema fix completed');
+    } catch (error) {
+        console.log('  ⚠️  Schema fix may have already been applied:', error.message);
+    }
+}
+
+async function fixModelConfigurations() {
+    try {
+        console.log('  🔧 Updating model configurations...');
+        
+        // Import static models
+        const { STATIC_MODELS } = await import('../src/config/static-models.js');
+        const correctConfigs = Object.values(STATIC_MODELS);
+        
+        let fixedCount = 0;
+        let createdCount = 0;
+        
+        for (const correctConfig of correctConfigs) {
+            try {
+                const existingModel = await prisma.model.findUnique({
+                    where: {
+                        provider_name: {
+                            provider: correctConfig.provider,
+                            name: correctConfig.name
+                        }
+                    }
+                });
+                
+                if (existingModel) {
+                    // Update existing model
+                    await prisma.model.update({
+                        where: {
+                            provider_name: {
+                                provider: correctConfig.provider,
+                                name: correctConfig.name
+                            }
+                        },
+                        data: {
+                            displayName: correctConfig.displayName,
+                            description: correctConfig.description,
+                            costPerImage: correctConfig.costPerImage,
+                            isActive: correctConfig.isActive,
+                            apiUrl: correctConfig.apiUrl,
+                            apiModel: correctConfig.apiModel,
+                            apiSize: correctConfig.apiSize
+                        }
+                    });
+                    fixedCount++;
+                } else {
+                    // Create new model
+                    await prisma.model.create({
+                        data: correctConfig
+                    });
+                    createdCount++;
+                }
+            } catch (error) {
+                console.log(`    ⚠️  Failed to update ${correctConfig.provider}/${correctConfig.name}: ${error.message}`);
+            }
+        }
+        
+        console.log(`    📊 Updated: ${fixedCount} models, Created: ${createdCount} models`);
+        console.log('  ✅ Model configuration fix completed');
+    } catch (error) {
+        console.log('  ⚠️  Model configuration fix failed:', error.message);
     }
 }
 
