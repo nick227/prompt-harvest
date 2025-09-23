@@ -232,6 +232,7 @@ class SimplifiedNavigation {
             rating: parseInt(dataset.rating) || 0,
             isPublic: dataset.isPublic === 'true',
             userId: dataset.userId,
+            username: dataset.username,
             createdAt: dataset.createdAt || new Date().toISOString()
         };
     }
@@ -567,13 +568,13 @@ class SimplifiedNavigation {
         }
 
         try {
-            // Call API to update server
-            const _response = await fetch(`/api/images/${imageId}/rating`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ rating })
-            });
-
+            // Call API to update server using the proper API service
+            if (window.imageApi && window.imageApi.rateImage) {
+                await window.imageApi.rateImage(imageId, rating);
+                console.log('✅ Rating saved to server');
+            } else {
+                console.warn('⚠️ Image API not available, rating not saved to server');
+            }
         } catch (error) {
             console.error('❌ Error saving rating:', error);
         }

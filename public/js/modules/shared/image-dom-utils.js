@@ -57,11 +57,17 @@ class ImageDOMUtils {
         if (imageData.userId) {
             img.dataset.userId = imageData.userId;
         }
-        if (imageData.isPublic !== undefined) {
-            img.dataset.isPublic = imageData.isPublic;
+        if (imageData.username) {
+            img.dataset.username = imageData.username;
         }
         if (imageData.createdAt) {
             img.dataset.createdAt = imageData.createdAt;
+        }
+        if (imageData.tags) {
+            img.dataset.tags = JSON.stringify(imageData.tags);
+        }
+        if (imageData.isPublic !== undefined) {
+            img.dataset.isPublic = imageData.isPublic;
         }
     }
 
@@ -206,6 +212,7 @@ class ImageDOMUtils {
             rating: parseInt(rawData.rating) || 0,
             isPublic: rawData.isPublic || false,
             userId: rawData.userId || (currentUser ? currentUser.id : null),
+            username: rawData.username || null,
             createdAt: rawData.createdAt || new Date().toISOString(),
             filter: currentUser ? 'user' : 'site'
         };

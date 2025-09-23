@@ -131,16 +131,24 @@ class FullscreenComponents {
         img.style.transition = 'transform 0.2s ease';
         img.style.userSelect = 'none';
 
-        // Initialize position and zoom if not set
-        if (!img.dataset.zoom) {
-            img.dataset.zoom = '1';
-        }
+        // Load saved zoom level from localStorage
+        const savedZoom = this.getSavedZoomLevel();
+
+        // Always use saved zoom level for consistency across navigation
+        img.dataset.zoom = savedZoom.toString();
+
+        // Initialize position if not set
         if (!img.dataset.translateX) {
             img.dataset.translateX = '0';
         }
         if (!img.dataset.translateY) {
             img.dataset.translateY = '0';
         }
+
+        // Apply saved zoom level
+        const zoomLevel = parseFloat(img.dataset.zoom);
+        img.style.transform = `scale(${zoomLevel}) translate(0px, 0px)`;
+        img.style.cursor = zoomLevel >= 3 ? 'zoom-out' : 'zoom-in';
     }
 
 
@@ -166,6 +174,9 @@ class FullscreenComponents {
 
             // Update cursor based on zoom level
             img.style.cursor = newZoom >= 3 ? 'zoom-out' : 'zoom-in';
+
+            // Save zoom level to localStorage
+            this.saveZoomLevel(newZoom);
         });
 
         // Double-click event listener to reset zoom and position
@@ -179,6 +190,9 @@ class FullscreenComponents {
 
             img.style.transform = 'scale(1) translate(0px, 0px)';
             img.style.cursor = 'zoom-in';
+
+            // Save reset zoom level to localStorage
+            this.saveZoomLevel(1);
         });
     }
 
@@ -402,6 +416,39 @@ class FullscreenComponents {
     isInfoBox(element) {
         return element &&
                element.classList.contains(this.uiConfig.getClasses().infoBox);
+    }
+
+    // ============================================================================
+    // ZOOM PERSISTENCE METHODS
+    // ============================================================================
+
+    /**
+     * Save zoom level to localStorage
+     * @param {number} zoomLevel - Zoom level to save
+     */
+    saveZoomLevel(zoomLevel) {
+        try {
+            localStorage.setItem('fullscreen-image-zoom', zoomLevel.toString());
+        } catch (error) {
+            console.warn('Failed to save zoom level to localStorage:', error);
+        }
+    }
+
+    /**
+     * Get saved zoom level from localStorage
+     * @returns {number} Saved zoom level or default of 1
+     */
+    getSavedZoomLevel() {
+        try {
+            const saved = localStorage.getItem('fullscreen-image-zoom');
+            const zoomLevel = saved ? parseFloat(saved) : 1;
+
+            // Validate zoom level is within acceptable range
+            return zoomLevel >= 1 && zoomLevel <= 3 ? zoomLevel : 1;
+        } catch (error) {
+            console.warn('Failed to get zoom level from localStorage:', error);
+            return 1;
+        }
     }
 }
 

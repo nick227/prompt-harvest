@@ -112,6 +112,14 @@ class FeedDOMManager {
 
         // Create image element using image component
         if (window.imageComponent) {
+            console.log('🔍 FEED-DOM-MANAGER: Adding image to feed with data:', {
+                id: imageData.id,
+                username: imageData.username,
+                userId: imageData.userId,
+                createdAt: imageData.createdAt,
+                tags: imageData.tags
+            });
+            
             const imageElement = window.imageComponent.createImageElement(imageData);
 
             wrapper.appendChild(imageElement);
@@ -198,190 +206,225 @@ class FeedDOMManager {
     replaceDualViewPlaceholder(loadingWrapper, imageData, filter) {
         console.log('🔄 MANUAL FIX: Replacing dual view loading placeholder with manual structure');
 
-        // MANUAL APPROACH: Create the exact same structure as the working second image
+        // Get current view mode to determine what to create
+        const currentView = window.feedManager?.viewManager?.currentView || 'compact';
+        console.log('🔄 Current view mode:', currentView);
+
         // Update wrapper data attributes first
-            loadingWrapper.dataset.imageId = imageData.id;
-            loadingWrapper.dataset.isPublic = (imageData.isPublic || false).toString();
-            loadingWrapper.dataset.userId = imageData.userId || '';
-            loadingWrapper.dataset.filter = filter;
+        loadingWrapper.dataset.imageId = imageData.id;
+        loadingWrapper.dataset.isPublic = (imageData.isPublic || false).toString();
+        loadingWrapper.dataset.userId = imageData.userId || '';
+        loadingWrapper.dataset.filter = filter;
         loadingWrapper.dataset.tags = imageData.tags ? JSON.stringify(imageData.tags) : '';
         loadingWrapper.dataset.taggedAt = imageData.taggedAt || '';
 
         // Clear existing content
         loadingWrapper.innerHTML = '';
 
-        // Create compact view (hidden in list mode)
-        const compactView = document.createElement('div');
-        compactView.className = 'compact-view';
-        compactView.style.cssText = 'width: 100%; height: 100%; position: relative; display: none;';
+        if (currentView === 'compact') {
+            // COMPACT VIEW: Only create compact view with image, no metadata table
+            console.log('🔄 Creating compact view only (no metadata table)');
 
-        const compactImg = document.createElement('img');
-        compactImg.src = imageData.url;
-        compactImg.alt = `Generated image: ${imageData.prompt} (${imageData.provider})`;
-        compactImg.className = 'generated-image image-loaded';
-        compactImg.id = `image-${imageData.id}`;
-        compactImg.setAttribute('role', 'img');
-        compactImg.setAttribute('tabindex', '0');
-        compactImg.setAttribute('aria-label', imageData.prompt);
+            const compactView = document.createElement('div');
+            compactView.className = 'compact-view';
+            compactView.style.cssText = 'width: 100%; height: 100%; position: relative; display: block;';
 
-        // Add all data attributes to compact image
-        // Setting dataset on compact image
+            const compactImg = document.createElement('img');
+            compactImg.src = imageData.url;
+            compactImg.alt = `Generated image: ${imageData.prompt} (${imageData.provider})`;
+            compactImg.className = 'generated-image image-loaded';
+            compactImg.id = `image-${imageData.id}`;
+            compactImg.setAttribute('role', 'img');
+            compactImg.setAttribute('tabindex', '0');
+            compactImg.setAttribute('aria-label', imageData.prompt);
 
-        // Set specific dataset attributes that the system expects
-        compactImg.dataset.id = imageData.id;
-        compactImg.dataset.url = imageData.url || imageData.imageUrl;
-        compactImg.dataset.rating = imageData.rating || '0';
-        compactImg.dataset.provider = imageData.provider || 'unknown';
-        compactImg.dataset.prompt = imageData.prompt || '';
-        compactImg.dataset.original = imageData.original || '';
-        compactImg.dataset.guidance = imageData.guidance || '';
-        compactImg.dataset.isPublic = (imageData.isPublic || false).toString();
-        compactImg.dataset.userId = imageData.userId || '';
+            // Set dataset attributes
+            compactImg.dataset.id = imageData.id;
+            compactImg.dataset.url = imageData.url || imageData.imageUrl;
+            compactImg.dataset.rating = imageData.rating || '0';
+            compactImg.dataset.provider = imageData.provider || 'unknown';
+            compactImg.dataset.prompt = imageData.prompt || '';
+            compactImg.dataset.original = imageData.original || '';
+            compactImg.dataset.guidance = imageData.guidance || '';
+            compactImg.dataset.isPublic = (imageData.isPublic || false).toString();
+            compactImg.dataset.userId = imageData.userId || '';
+            compactImg.dataset.username = imageData.username || '';
+            compactImg.dataset.createdAt = imageData.createdAt || '';
+            compactImg.dataset.tags = imageData.tags ? JSON.stringify(imageData.tags) : '';
 
-        // Compact image dataset set
+            compactView.appendChild(compactImg);
+            loadingWrapper.appendChild(compactView);
 
-        compactView.appendChild(compactImg);
+            // Set wrapper class for compact view
+            loadingWrapper.classList.add('compact');
+            loadingWrapper.classList.remove('list');
 
-        // Create list view (visible in list mode)
-        const listView = document.createElement('div');
-        listView.className = 'list-view';
-        listView.style.cssText = 'display: flex; background: var(--color-surface-primary); border-color: var(--color-border-primary);';
-
-        // Create list view thumbnail
-        const listImageThumb = document.createElement('div');
-        listImageThumb.className = 'list-image-thumb';
-        const listThumbImg = document.createElement('img');
-        listThumbImg.src = imageData.url;
-        listThumbImg.alt = `Generated image: ${imageData.prompt} (${imageData.provider})`;
-
-        // Set dataset attributes on list view image
-        listThumbImg.dataset.id = imageData.id;
-        listThumbImg.dataset.url = imageData.url || imageData.imageUrl;
-        listThumbImg.dataset.rating = imageData.rating || '0';
-        listThumbImg.dataset.provider = imageData.provider || 'unknown';
-        listThumbImg.dataset.prompt = imageData.prompt || '';
-        listThumbImg.dataset.original = imageData.original || '';
-        listThumbImg.dataset.guidance = imageData.guidance || '';
-        listThumbImg.dataset.isPublic = (imageData.isPublic || false).toString();
-        listThumbImg.dataset.userId = imageData.userId || '';
-
-        // List view image dataset set
-
-        listImageThumb.appendChild(listThumbImg);
-
-        // Create list view content
-        const listContent = document.createElement('div');
-        listContent.className = 'list-content';
-
-        // Create header
-        const listHeader = document.createElement('div');
-        listHeader.className = 'list-header';
-        const listTitle = document.createElement('h3');
-        listTitle.className = 'list-title';
-        listTitle.textContent = `Generated image: ${imageData.prompt} (${imageData.provider})`;
-        listHeader.appendChild(listTitle);
-
-        // Create prompt section
-        const listPromptSection = document.createElement('div');
-        listPromptSection.className = 'list-prompt-section';
-
-        const originalLabel = document.createElement('span');
-        originalLabel.className = 'list-prompt-label';
-        originalLabel.style.cssText = 'color: rgb(156, 163, 175); font-size: 12px; font-weight: bold; margin-right: 8px; display: block; margin-bottom: 4px;';
-        originalLabel.textContent = 'Original Prompt:';
-
-        const originalText = document.createElement('div');
-        originalText.className = 'list-prompt-text';
-        originalText.style.cssText = 'color: rgb(209, 213, 219); font-size: 14px; margin-bottom: 8px; padding: 8px; background: rgba(55, 65, 81, 0.3); border-radius: 4px; border-left: 3px solid rgb(107, 114, 128);';
-        originalText.textContent = imageData.original || imageData.prompt;
-
-        const finalLabel = document.createElement('span');
-        finalLabel.className = 'list-prompt-label';
-        finalLabel.style.cssText = 'color: rgb(156, 163, 175); font-size: 12px; font-weight: bold; margin-right: 8px; display: block; margin-bottom: 4px;';
-        finalLabel.textContent = 'Final Prompt:';
-
-        const finalText = document.createElement('div');
-        finalText.className = 'list-prompt-text';
-        finalText.style.cssText = 'color: rgb(209, 213, 219); font-size: 14px; margin-bottom: 8px; padding: 8px; background: rgba(55, 65, 81, 0.3); border-radius: 4px; border-left: 3px solid rgb(16, 185, 129);';
-        finalText.textContent = imageData.prompt;
-
-        listPromptSection.appendChild(originalLabel);
-        listPromptSection.appendChild(originalText);
-        listPromptSection.appendChild(finalLabel);
-        listPromptSection.appendChild(finalText);
-
-        // Create metadata using the working method
-        const listMetadata = document.createElement('div');
-        listMetadata.className = 'list-metadata';
-
-        // Use the working createListViewMetadata method
-        if (window.ImageViewUtils && window.ImageViewUtils.createListViewMetadata) {
-            window.ImageViewUtils.createListViewMetadata(imageData, listMetadata);
         } else {
-            // Fallback if method not available
-            console.warn('⚠️ ImageViewUtils.createListViewMetadata not available, using fallback');
+            // LIST VIEW: Create both views but show only list view
+            console.log('🔄 Creating both views for list mode');
+
+            // Create compact view (hidden in list mode)
+            const compactView = document.createElement('div');
+            compactView.className = 'compact-view';
+            compactView.style.cssText = 'width: 100%; height: 100%; position: relative; display: none;';
+
+            const compactImg = document.createElement('img');
+            compactImg.src = imageData.url;
+            compactImg.alt = `Generated image: ${imageData.prompt} (${imageData.provider})`;
+            compactImg.className = 'generated-image image-loaded';
+            compactImg.id = `image-${imageData.id}`;
+            compactImg.setAttribute('role', 'img');
+            compactImg.setAttribute('tabindex', '0');
+            compactImg.setAttribute('aria-label', imageData.prompt);
+
+            // Set dataset attributes
+            compactImg.dataset.id = imageData.id;
+            compactImg.dataset.url = imageData.url || imageData.imageUrl;
+            compactImg.dataset.rating = imageData.rating || '0';
+            compactImg.dataset.provider = imageData.provider || 'unknown';
+            compactImg.dataset.prompt = imageData.prompt || '';
+            compactImg.dataset.original = imageData.original || '';
+            compactImg.dataset.guidance = imageData.guidance || '';
+            compactImg.dataset.isPublic = (imageData.isPublic || false).toString();
+            compactImg.dataset.userId = imageData.userId || '';
+            compactImg.dataset.username = imageData.username || '';
+            compactImg.dataset.createdAt = imageData.createdAt || '';
+            compactImg.dataset.tags = imageData.tags ? JSON.stringify(imageData.tags) : '';
+
+            compactView.appendChild(compactImg);
+
+            // Create list view (visible in list mode)
+            const listView = document.createElement('div');
+            listView.className = 'list-view';
+            listView.style.cssText = 'display: flex; background: var(--color-surface-primary); border-color: var(--color-border-primary);';
+
+            // Create list view thumbnail
+            const listImageThumb = document.createElement('div');
+            listImageThumb.className = 'list-image-thumb';
+            const listThumbImg = document.createElement('img');
+            listThumbImg.src = imageData.url;
+            listThumbImg.alt = `Generated image: ${imageData.prompt} (${imageData.provider})`;
+
+            // Set dataset attributes on list view image
+            listThumbImg.dataset.id = imageData.id;
+            listThumbImg.dataset.url = imageData.url || imageData.imageUrl;
+            listThumbImg.dataset.rating = imageData.rating || '0';
+            listThumbImg.dataset.provider = imageData.provider || 'unknown';
+            listThumbImg.dataset.prompt = imageData.prompt || '';
+            listThumbImg.dataset.original = imageData.original || '';
+            listThumbImg.dataset.guidance = imageData.guidance || '';
+            listThumbImg.dataset.isPublic = (imageData.isPublic || false).toString();
+            listThumbImg.dataset.userId = imageData.userId || '';
+            listThumbImg.dataset.username = imageData.username || '';
+            listThumbImg.dataset.createdAt = imageData.createdAt || '';
+            listThumbImg.dataset.tags = imageData.tags ? JSON.stringify(imageData.tags) : '';
+
+            listImageThumb.appendChild(listThumbImg);
+
+            // Create list view content
+            const listContent = document.createElement('div');
+            listContent.className = 'list-content';
+
+            // Create header
+            const listHeader = document.createElement('div');
+            listHeader.className = 'list-header';
+            const listTitle = document.createElement('h3');
+            listTitle.className = 'list-title';
+            listTitle.textContent = `Generated image: ${imageData.prompt} (${imageData.provider})`;
+            listHeader.appendChild(listTitle);
+
+            // Create prompt section
+            const listPromptSection = document.createElement('div');
+            listPromptSection.className = 'list-prompt-section';
+
+            const originalLabel = document.createElement('span');
+            originalLabel.className = 'list-prompt-label';
+            originalLabel.style.cssText = 'color: rgb(156, 163, 175); font-size: 12px; font-weight: bold; margin-right: 8px; display: block; margin-bottom: 4px;';
+            originalLabel.textContent = 'Original Prompt:';
+
+            const originalText = document.createElement('div');
+            originalText.className = 'list-prompt-text';
+            originalText.style.cssText = 'color: rgb(209, 213, 219); font-size: 14px; margin-bottom: 8px; padding: 8px; background: rgba(55, 65, 81, 0.3); border-radius: 4px; border-left: 3px solid rgb(107, 114, 128);';
+            originalText.textContent = imageData.original || imageData.prompt;
+
+            const finalLabel = document.createElement('span');
+            finalLabel.className = 'list-prompt-label';
+            finalLabel.style.cssText = 'color: rgb(156, 163, 175); font-size: 12px; font-weight: bold; margin-right: 8px; display: block; margin-bottom: 4px;';
+            finalLabel.textContent = 'Final Prompt:';
+
+            const finalText = document.createElement('div');
+            finalText.className = 'list-prompt-text';
+            finalText.style.cssText = 'color: rgb(209, 213, 219); font-size: 14px; margin-bottom: 8px; padding: 8px; background: rgba(55, 65, 81, 0.3); border-radius: 4px; border-left: 3px solid rgb(16, 185, 129);';
+            finalText.textContent = imageData.prompt;
+
+            listPromptSection.appendChild(originalLabel);
+            listPromptSection.appendChild(originalText);
+            listPromptSection.appendChild(finalLabel);
+            listPromptSection.appendChild(finalText);
+
+            // Create metadata using the working method
+            const listMetadata = document.createElement('div');
+            listMetadata.className = 'list-metadata';
+
+            // Use the working createListViewMetadata method
+            if (window.ImageViewUtils && window.ImageViewUtils.createListViewMetadata) {
+                window.ImageViewUtils.createListViewMetadata(imageData, listMetadata);
+            } else {
+                // Fallback if method not available
+                console.warn('⚠️ ImageViewUtils.createListViewMetadata not available, using fallback');
+            }
+
+            // Create public checkbox container
+            const listPublicCheckboxContainer = document.createElement('div');
+            listPublicCheckboxContainer.className = 'list-public-checkbox-container';
+            listPublicCheckboxContainer.style.cssText = 'background: rgba(0, 0, 0, 0.7); padding: 4px 8px; border-radius: 12px; z-index: 10; pointer-events: auto;';
+
+            const publicCheckbox = document.createElement('input');
+            publicCheckbox.type = 'checkbox';
+            publicCheckbox.className = 'public-status-checkbox';
+            publicCheckbox.id = `public-toggle-list-${imageData.id}`;
+            publicCheckbox.checked = imageData.isPublic || false;
+            publicCheckbox.setAttribute('data-image-id', imageData.id);
+            publicCheckbox.setAttribute('aria-label', 'Toggle public visibility');
+
+            const publicLabel = document.createElement('label');
+            publicLabel.className = 'public-status-label';
+            publicLabel.setAttribute('for', `public-toggle-list-${imageData.id}`);
+            publicLabel.style.cssText = 'color: white; font-size: 11px; font-weight: bold; margin-left: 4px; cursor: pointer;';
+            publicLabel.textContent = 'Public';
+
+            listPublicCheckboxContainer.appendChild(publicCheckbox);
+            listPublicCheckboxContainer.appendChild(publicLabel);
+
+            // Assemble list content
+            listContent.appendChild(listHeader);
+            listContent.appendChild(listPromptSection);
+            listContent.appendChild(listMetadata);
+            listContent.appendChild(listPublicCheckboxContainer);
+
+            // Assemble list view
+            listView.appendChild(listImageThumb);
+            listView.appendChild(listContent);
+
+            // Assemble wrapper
+            loadingWrapper.appendChild(compactView);
+            loadingWrapper.appendChild(listView);
+
+            // Set wrapper class for list view
+            loadingWrapper.classList.add('list');
+            loadingWrapper.classList.remove('compact');
         }
-
-        // Create public checkbox container
-        const listPublicCheckboxContainer = document.createElement('div');
-        listPublicCheckboxContainer.className = 'list-public-checkbox-container';
-        listPublicCheckboxContainer.style.cssText = 'background: rgba(0, 0, 0, 0.7); padding: 4px 8px; border-radius: 12px; z-index: 10; pointer-events: auto;';
-
-        const publicCheckbox = document.createElement('input');
-        publicCheckbox.type = 'checkbox';
-        publicCheckbox.className = 'public-status-checkbox';
-        publicCheckbox.id = `public-toggle-list-${imageData.id}`;
-        publicCheckbox.checked = imageData.isPublic || false;
-        publicCheckbox.setAttribute('data-image-id', imageData.id);
-        publicCheckbox.setAttribute('aria-label', 'Toggle public visibility');
-
-        // Setting manual checkbox state
-
-        const publicLabel = document.createElement('label');
-        publicLabel.className = 'public-status-label';
-        publicLabel.setAttribute('for', `public-toggle-list-${imageData.id}`);
-        publicLabel.style.cssText = 'color: white; font-size: 11px; font-weight: bold; margin-left: 4px; cursor: pointer;';
-        publicLabel.textContent = 'Public';
-
-        listPublicCheckboxContainer.appendChild(publicCheckbox);
-        listPublicCheckboxContainer.appendChild(publicLabel);
-
-        // Assemble list content
-        listContent.appendChild(listHeader);
-        listContent.appendChild(listPromptSection);
-        listContent.appendChild(listMetadata);
-        listContent.appendChild(listPublicCheckboxContainer);
-
-        // Assemble list view
-        listView.appendChild(listImageThumb);
-        listView.appendChild(listContent);
-
-        // Assemble wrapper
-        loadingWrapper.appendChild(compactView);
-        loadingWrapper.appendChild(listView);
 
         // Remove loading classes and add loaded class
         loadingWrapper.classList.remove('loading', 'loading-placeholder');
         loadingWrapper.classList.add('loaded');
 
-        // Ensure the wrapper has the correct view class
-        const promptOutput = loadingWrapper.closest('.prompt-output');
-        if (promptOutput && window.feedManager && window.feedManager.viewManager) {
-            const { viewManager } = window.feedManager;
-            const { currentView } = viewManager;
-            if (currentView === 'list') {
-                loadingWrapper.classList.add('list');
-                loadingWrapper.classList.remove('compact');
-            } else if (currentView === 'compact') {
-                loadingWrapper.classList.add('compact');
-                loadingWrapper.classList.remove('list');
-            }
-
-            // Ensure view is applied after replacing placeholder
+        // Ensure view is applied after replacing placeholder
+        if (window.feedManager && window.feedManager.viewManager) {
             window.feedManager.viewManager.ensureViewApplied();
         }
 
-        console.log('✅ MANUAL FIX: Dual view loading placeholder replaced with manual structure');
+        console.log('✅ MANUAL FIX: Dual view loading placeholder replaced with view-appropriate structure');
 
         // Handle auto download for dual view placeholder replacement (this is always a new generation)
         this.handleAutoDownloadForFeed(imageData, true);
@@ -392,6 +435,10 @@ class FeedDOMManager {
     // Fallback method for dual view placeholder replacement
     replaceDualViewPlaceholderFallback(loadingWrapper, imageData, filter) {
         console.log('🔄 Using fallback dual view replacement method');
+
+        // Get current view mode to determine what to update
+        const currentView = window.feedManager?.viewManager?.currentView || 'compact';
+        console.log('🔄 Fallback: Current view mode:', currentView);
 
         // Create the actual image element
         const img = document.createElement('img');
@@ -413,19 +460,31 @@ class FeedDOMManager {
         loadingWrapper.dataset.userId = imageData.userId || '';
         loadingWrapper.dataset.filter = filter;
 
-        // Find the compact view and replace its content
-        const compactView = loadingWrapper.querySelector('.compact-view');
+        if (currentView === 'compact') {
+            // COMPACT VIEW: Only update compact view, skip list view
+            console.log('🔄 Fallback: Updating compact view only');
 
-        if (compactView) {
-            compactView.innerHTML = '';
-            compactView.appendChild(img);
-        }
+            const compactView = loadingWrapper.querySelector('.compact-view');
+            if (compactView) {
+                compactView.innerHTML = '';
+                compactView.appendChild(img);
+            }
+        } else {
+            // LIST VIEW: Update both views
+            console.log('🔄 Fallback: Updating both views for list mode');
 
-        // Find the list view and update its complete content
-        const listView = loadingWrapper.querySelector('.list-view');
+            // Find the compact view and replace its content
+            const compactView = loadingWrapper.querySelector('.compact-view');
+            if (compactView) {
+                compactView.innerHTML = '';
+                compactView.appendChild(img);
+            }
 
-        if (listView) {
-            this.updateCompleteListViewContent(listView, imageData);
+            // Find the list view and update its complete content
+            const listView = loadingWrapper.querySelector('.list-view');
+            if (listView) {
+                this.updateCompleteListViewContent(listView, imageData);
+            }
         }
 
         // Remove loading class and add loaded class

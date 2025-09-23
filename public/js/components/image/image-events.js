@@ -108,6 +108,13 @@ class ImageEvents {
         const imageData = this.imageManager.data.extractImageDataFromElement(img);
 
         console.log('🔍 IMAGE EVENTS: Extracted image data:', imageData);
+        console.log('🔍 IMAGE EVENTS: Image element dataset:', {
+            id: img.dataset.id,
+            username: img.dataset.username,
+            userId: img.dataset.userId,
+            createdAt: img.dataset.createdAt,
+            tags: img.dataset.tags
+        });
 
         console.log('🔍 IMAGE EVENTS: Opening fullscreen...');
         this.imageManager.openFullscreen(imageData);

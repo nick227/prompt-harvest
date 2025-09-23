@@ -9,6 +9,7 @@
 import { fileSystemManager } from '../utils/FileSystemManager.js';
 import { cloudflareR2Service } from './CloudflareR2Service.js';
 import { cloudflareR2Config } from './CloudflareR2Config.js';
+import crypto from 'crypto';
 
 export class ImageStorageService {
     constructor(storageType = 'local') {
@@ -229,16 +230,17 @@ export class ImageStorageService {
     // ============================================================================
 
     /**
-     * Generate unique filename
+     * Generate content-hashed filename for optimal caching
+     * @param {Buffer} imageBuffer - Image data as buffer
      * @param {string} provider - Provider name
      * @param {string} extension - File extension (default: jpg)
-     * @returns {string} Unique filename
+     * @returns {string} Content-hashed filename
      */
-    generateFilename(provider, extension = 'jpg') {
-        const timestamp = Date.now();
-        const randomId = Math.random().toString(36).substring(2, 15);
+    generateFilename(imageBuffer, provider, extension = 'jpg') {
+        const hash = crypto.createHash('sha256').update(imageBuffer).digest('hex');
+        const shortHash = hash.substring(0, 16); // Use first 16 characters for shorter filenames
 
-        return `${provider}_${timestamp}_${randomId}.${extension}`;
+        return `${provider}_${shortHash}.${extension}`;
     }
 
     /**

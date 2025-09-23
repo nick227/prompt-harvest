@@ -82,7 +82,7 @@ export class CloudflareR2Service {
                 Key: key,
                 Body: imageBuffer,
                 ContentType: contentType,
-                CacheControl: options.cacheControl || 'public, max-age=31536000', // 1 year cache
+                CacheControl: options.cacheControl || 'public, max-age=31536000, immutable', // 1 year cache, immutable
                 Metadata: {
                     uploadedAt: new Date().toISOString(),
                     ...options.metadata

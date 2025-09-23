@@ -245,6 +245,7 @@ class ImageViewManager {
             rating: parseInt(img.dataset.rating) || 0,
             isPublic: img.dataset.isPublic === 'true' || false,
             userId: img.dataset.userId || null,
+            username: img.dataset.username || null,
             createdAt: img.dataset.createdAt || null
         };
     }

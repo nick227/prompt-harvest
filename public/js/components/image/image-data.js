@@ -52,6 +52,7 @@ class ImageData {
             rating: parseInt(imageData.rating) || 0,
             isPublic: this.validatePublicStatus(imageData.isPublic) ? imageData.isPublic : false, // ✅ Include isPublic field with validation
             userId: imageData.userId || null, // ✅ Include userId field
+            username: imageData.username || null, // ✅ Include username field
             createdAt: imageData.createdAt || null, // ✅ Include createdAt field
             tags: imageData.tags || [], // ✅ Include tags field
             element: imageData.element || null
@@ -74,18 +75,18 @@ class ImageData {
             rating: parseInt(img.dataset.rating) || 0,
             isPublic: img.dataset.isPublic === 'true' || false, // ✅ Include isPublic from dataset
             userId: img.dataset.userId || null, // ✅ Include userId from dataset
+            username: img.dataset.username || null, // ✅ Include username from dataset
             createdAt: img.dataset.createdAt || null, // ✅ Include createdAt from dataset
             tags: img.dataset.tags ? JSON.parse(img.dataset.tags) : [] // ✅ Include tags from dataset
         };
 
         // console.log('🔍 EXTRACT: Extracted data from DOM element:', {
         //     id: extractedData.id,
-        //     isPublic: extractedData.isPublic,
-        //     userId: extractedData.userId,
+        //     username: extractedData.username,
+        //     tags: extractedData.tags,
         //     dataset: {
-        //         isPublic: img.dataset.isPublic,
-        //         userId: img.dataset.userId,
-        //         createdAt: img.dataset.createdAt
+        //         username: img.dataset.username,
+        //         tags: img.dataset.tags
         //     }
         // });
 
@@ -101,6 +102,7 @@ class ImageData {
             rating: parseInt(img.dataset.rating) || 0,
             isPublic: img.dataset.isPublic === 'true' || false, // ✅ Include isPublic from dataset
             userId: img.dataset.userId || null, // ✅ Include userId from dataset
+            username: img.dataset.username || null, // ✅ Include username from dataset
             createdAt: img.dataset.createdAt || null, // ✅ Include createdAt from dataset
             tags: img.dataset.tags ? JSON.parse(img.dataset.tags) : [] // ✅ Include tags from dataset
         };

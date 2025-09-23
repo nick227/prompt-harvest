@@ -44,6 +44,7 @@ class ImageDataManager {
             rating: this.extractRating(imageData),
             isPublic: this.extractIsPublic(imageData),
             userId: this.extractUserId(imageData),
+            username: this.extractUsername(imageData),
             createdAt: this.extractCreatedAt(imageData),
             providers: this.extractProviders(imageData)
         };
@@ -66,6 +67,7 @@ class ImageDataManager {
             rating: 0,
             isPublic: false,
             userId: null,
+            username: null,
             createdAt: new Date().toISOString(),
             providers: []
         };
@@ -205,6 +207,19 @@ class ImageDataManager {
     }
 
     /**
+     * Extract username from image data
+     * @param {Object} imageData - Image data
+     * @returns {string|null} Extracted username
+     */
+    extractUsername(imageData) {
+        return imageData.username ||
+               imageData.userName ||
+               imageData.creator ||
+               imageData.author ||
+               null;
+    }
+
+    /**
      * Extract created date from image data
      * @param {Object} imageData - Image data
      * @returns {string} Extracted created date
@@ -254,6 +269,7 @@ class ImageDataManager {
             rating: img.dataset.rating,
             isPublic: img.dataset.isPublic,
             userId: img.dataset.userId,
+            username: img.dataset.username,
             createdAt: img.dataset.createdAt
         };
 

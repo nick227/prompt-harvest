@@ -585,7 +585,7 @@ class ImageApiService extends ApiService {
             throw new Error('Rating must be between 1 and 5');
         }
 
-        return this.post(`/api/images/${id}/rating`, { rating });
+        return this.put(`/api/images/${id}/rating`, { rating });
     }
 
     /**

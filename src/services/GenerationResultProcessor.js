@@ -116,8 +116,8 @@ export class GenerationResultProcessor {
      * Save image to storage
      */
     async saveImageToStorage(result) {
-        const filename = imageStorageService.generateFilename(result.provider);
         const buffer = Buffer.from(result.data, 'base64');
+        const filename = imageStorageService.generateFilename(buffer, result.provider);
 
         return await imageStorageService.saveImage(buffer, filename);
     }

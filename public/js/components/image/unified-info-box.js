@@ -136,19 +136,13 @@ class UnifiedInfoBox {
 
         // Create metadata items
         const metadataItems = [
-            { label: 'Provider', value: imageData.provider || 'Unknown' },
+            { label: 'Model', value: imageData.provider || 'Unknown' },
             { label: '', value: this.createPublicToggle(imageData, config) },
-            { label: 'Guidance', value: imageData.guidance || 'N/A' },
-            { label: 'Steps', value: imageData.steps || 'N/A' },
-            { label: 'Seed', value: imageData.seed || 'N/A' },
             { label: 'Rating', value: this.formatRating(imageData.rating) },
-            { label: 'Created', value: this.formatDate(imageData.createdAt) }
+            { label: 'Created', value: this.formatCreatedBy(imageData) }
         ];
 
-        // Add tags if available (FullscreenComponents only)
-        if (imageData.tags) {
-            metadataItems.push({ label: 'Tags', value: this.formatTags(imageData.tags) });
-        }
+        // Add tags if available (FullscreenComponents only) - will be handled in prompts section for full width
 
         metadataItems.forEach(item => {
             const itemConfig = { ...config, imageData };
@@ -226,6 +220,12 @@ class UnifiedInfoBox {
             prompts.appendChild(finalPrompt);
         }
 
+        // Add tags as full-width item if available
+        if (imageData.tags && Array.isArray(imageData.tags) && imageData.tags.length > 0) {
+            const tagsItem = this.createPromptItem('Tags', this.formatTags(imageData.tags), config);
+            prompts.appendChild(tagsItem);
+        }
+
         return prompts;
     }
 
@@ -245,7 +245,7 @@ class UnifiedInfoBox {
         labelElement.textContent = label;
 
         const valueElement = this.createElement('div', config);
-        valueElement.className = 'info-box-prompt-item';
+        valueElement.className = 'info-box-prompt-value';
         valueElement.textContent = value;
         valueElement.title = value; // Full text on hover
         valueElement.setAttribute('data-copy-text', value);
@@ -418,6 +418,31 @@ class UnifiedInfoBox {
             return `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
         } catch (error) {
             return 'Invalid date';
+        }
+    }
+
+    /**
+     * Format created by information (username and date)
+     * @param {Object} imageData - Image data object
+     * @returns {string} Formatted created by string
+     */
+    formatCreatedBy(imageData) {
+        const username = imageData.username || 'Unknown';
+        const date = imageData.createdAt;
+
+        if (!date) {
+            return username;
+        }
+
+        try {
+            const dateObj = new Date(date);
+            if (isNaN(dateObj.getTime())) {
+                return username;
+            }
+            const formattedDate = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
+            return `${username} (${formattedDate})`;
+        } catch (error) {
+            return username;
         }
     }
 

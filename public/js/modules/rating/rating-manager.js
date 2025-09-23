@@ -212,11 +212,20 @@ class RatingManager {
                 }
             }
 
+            // Get authentication headers
+            let headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (window.apiService && window.apiService.getAuthHeaders) {
+                headers = window.apiService.getAuthHeaders();
+            } else if (window.userApi && window.userApi.getAuthHeaders) {
+                headers = window.userApi.getAuthHeaders();
+            }
+
             const response = await fetch(`${this.config.api.rating}/${id}/rating`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers,
                 body: JSON.stringify({ rating })
             });
 

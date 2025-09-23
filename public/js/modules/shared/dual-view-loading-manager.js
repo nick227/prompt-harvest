@@ -347,6 +347,15 @@ class DualViewLoadingManager {
             return;
         }
 
+        // Get current view mode to determine what to update
+        const currentView = window.feedManager?.viewManager?.currentView || 'compact';
+
+        // Only update list view if we're actually in list mode
+        if (currentView !== 'list') {
+            console.log('🔄 LOADING: Skipping list view update - not in list mode');
+            return;
+        }
+
         // Update thumbnail
         const thumbnailContainer = listView.querySelector('.list-image-thumb');
 

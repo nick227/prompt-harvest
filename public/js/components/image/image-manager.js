@@ -195,6 +195,9 @@ class ImageManager {
             // Use cached data but prioritize fresh data from API response
             this.currentFullscreenImage = { ...cachedImage, ...imageData };
             console.log('🔍 FULLSCREEN DEBUG: Using cached data with fresh API data:', {
+                cachedUsername: cachedImage.username,
+                freshUsername: imageData.username,
+                finalUsername: this.currentFullscreenImage.username,
                 cachedIsPublic: cachedImage.isPublic,
                 freshIsPublic: imageData.isPublic,
                 finalIsPublic: this.currentFullscreenImage.isPublic
@@ -202,6 +205,7 @@ class ImageManager {
         } else {
             this.currentFullscreenImage = this.data.normalizeImageData(imageData);
             console.log('🔍 FULLSCREEN DEBUG: Using fresh API data (no cache):', {
+                username: this.currentFullscreenImage.username,
                 isPublic: this.currentFullscreenImage.isPublic
             });
         }

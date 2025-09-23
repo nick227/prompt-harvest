@@ -40,6 +40,14 @@ export class ImageElements {
             throw new Error('ImageData with id is required');
         }
 
+        console.log('🔍 IMAGE-ELEMENTS: Creating image element with data:', {
+            id: imageData.id,
+            username: imageData.username,
+            userId: imageData.userId,
+            createdAt: imageData.createdAt,
+            tags: imageData.tags
+        });
+
         const img = this.uiConfig.createElement('img', this.uiConfig.getClasses().image);
 
         // Set src normally - the container will be hidden during loading
@@ -63,6 +71,10 @@ export class ImageElements {
         img.dataset.original = imageData.original || '';
         img.dataset.guidance = imageData.guidance || '';
         img.dataset.isPublic = (imageData.isPublic || false).toString();
+        img.dataset.userId = imageData.userId || '';
+        img.dataset.username = imageData.username || '';
+        img.dataset.createdAt = imageData.createdAt || '';
+        img.dataset.tags = imageData.tags ? JSON.stringify(imageData.tags) : '';
 
         // Setting dataset values on image element
 
