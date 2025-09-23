@@ -2,7 +2,7 @@
 
 /**
  * Emergency Schema Fix for Railway Production
- * 
+ *
  * This script directly adds the missing columns to the images table
  * using raw SQL commands to bypass any Prisma schema issues.
  */
@@ -20,7 +20,7 @@ async function emergencySchemaFix() {
 
     try {
         console.log('🔧 Step 1: Adding missing columns to images table...');
-        
+
         // Add isDeleted column
         try {
             await prisma.$executeRaw`ALTER TABLE images ADD COLUMN isDeleted BOOLEAN DEFAULT FALSE`;
@@ -32,7 +32,7 @@ async function emergencySchemaFix() {
                 throw error;
             }
         }
-        
+
         // Add deletedAt column
         try {
             await prisma.$executeRaw`ALTER TABLE images ADD COLUMN deletedAt DATETIME NULL`;
@@ -44,7 +44,7 @@ async function emergencySchemaFix() {
                 throw error;
             }
         }
-        
+
         // Add deletedBy column
         try {
             await prisma.$executeRaw`ALTER TABLE images ADD COLUMN deletedBy VARCHAR(25) NULL`;
@@ -56,9 +56,9 @@ async function emergencySchemaFix() {
                 throw error;
             }
         }
-        
+
         console.log('🔧 Step 2: Adding indexes...');
-        
+
         // Add indexes for the new columns
         try {
             await prisma.$executeRaw`CREATE INDEX idx_images_isDeleted ON images(isDeleted)`;
@@ -70,7 +70,7 @@ async function emergencySchemaFix() {
                 console.log('    ⚠️  Index creation failed:', error.message);
             }
         }
-        
+
         try {
             await prisma.$executeRaw`CREATE INDEX idx_images_deletedAt ON images(deletedAt)`;
             console.log('    ✅ Added deletedAt index');
@@ -81,7 +81,7 @@ async function emergencySchemaFix() {
                 console.log('    ⚠️  Index creation failed:', error.message);
             }
         }
-        
+
         try {
             await prisma.$executeRaw`CREATE INDEX idx_images_userId_isDeleted ON images(userId, isDeleted)`;
             console.log('    ✅ Added userId_isDeleted index');
@@ -92,9 +92,9 @@ async function emergencySchemaFix() {
                 console.log('    ⚠️  Index creation failed:', error.message);
             }
         }
-        
+
         console.log('🔧 Step 3: Verifying schema...');
-        
+
         // Test that the columns exist by trying to query them
         try {
             const testResult = await prisma.$queryRaw`SELECT isDeleted, deletedAt, deletedBy FROM images LIMIT 1`;
@@ -103,7 +103,7 @@ async function emergencySchemaFix() {
             console.log('    ❌ Schema verification failed:', error.message);
             throw error;
         }
-        
+
         console.log('==========================================');
         console.log('✅ EMERGENCY SCHEMA FIX COMPLETED');
         console.log('==========================================');

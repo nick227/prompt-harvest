@@ -390,7 +390,7 @@ async function verifyDeployment() {
 async function fixDatabaseSchema() {
     try {
         console.log('  🔧 Adding missing columns to images table...');
-        
+
         // Try direct SQL approach first
         try {
             await prisma.$executeRaw`ALTER TABLE images ADD COLUMN isDeleted BOOLEAN DEFAULT FALSE`;
@@ -402,7 +402,7 @@ async function fixDatabaseSchema() {
                 console.log('    ⚠️  isDeleted column error:', error.message);
             }
         }
-        
+
         try {
             await prisma.$executeRaw`ALTER TABLE images ADD COLUMN deletedAt DATETIME NULL`;
             console.log('    ✅ Added deletedAt column');
@@ -413,7 +413,7 @@ async function fixDatabaseSchema() {
                 console.log('    ⚠️  deletedAt column error:', error.message);
             }
         }
-        
+
         try {
             await prisma.$executeRaw`ALTER TABLE images ADD COLUMN deletedBy VARCHAR(25) NULL`;
             console.log('    ✅ Added deletedBy column');
@@ -424,7 +424,7 @@ async function fixDatabaseSchema() {
                 console.log('    ⚠️  deletedBy column error:', error.message);
             }
         }
-        
+
         // Add indexes for the new columns
         try {
             await prisma.$executeRaw`CREATE INDEX idx_images_isDeleted ON images(isDeleted)`;
@@ -436,7 +436,7 @@ async function fixDatabaseSchema() {
                 console.log('    ⚠️  isDeleted index error:', error.message);
             }
         }
-        
+
         try {
             await prisma.$executeRaw`CREATE INDEX idx_images_deletedAt ON images(deletedAt)`;
             console.log('    ✅ Added deletedAt index');
@@ -447,7 +447,7 @@ async function fixDatabaseSchema() {
                 console.log('    ⚠️  deletedAt index error:', error.message);
             }
         }
-        
+
         try {
             await prisma.$executeRaw`CREATE INDEX idx_images_userId_isDeleted ON images(userId, isDeleted)`;
             console.log('    ✅ Added userId_isDeleted index');
@@ -458,7 +458,7 @@ async function fixDatabaseSchema() {
                 console.log('    ⚠️  userId_isDeleted index error:', error.message);
             }
         }
-        
+
         // Verify the columns exist
         try {
             const testResult = await prisma.$queryRaw`SELECT isDeleted, deletedAt, deletedBy FROM images LIMIT 1`;
@@ -467,7 +467,7 @@ async function fixDatabaseSchema() {
             console.log('    ❌ Schema verification failed:', error.message);
             throw new Error(`Schema verification failed: ${error.message}`);
         }
-        
+
         console.log('  ✅ Database schema fix completed');
     } catch (error) {
         console.log('  ❌ Database schema fix failed:', error.message);

@@ -633,7 +633,7 @@ class FeedDOMManager {
     createLoginPromptHTML() {
         return `
             <div class="flex flex-col items-center justify-center p-8 text-center">
-                <div class="text-gray-400 text-lg mb-4">
+                <div class="text-gray-400 text-lg mb-4 mx-auto">
                     <i class="fas fa-lock text-2xl mb-2"></i>
                     <p>${FEED_CONSTANTS.MESSAGES.LOGIN_PROMPT}</p>
                 </div>

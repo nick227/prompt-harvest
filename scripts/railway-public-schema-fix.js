@@ -1,31 +1,28 @@
 #!/usr/bin/env node
 
 /**
- * Direct Schema Fix for Railway Production
+ * Public URL Schema Fix for Railway Production
  *
- * This script uses mysql2 directly to connect to the database
- * and add the missing columns, bypassing Prisma connection issues.
+ * This script uses the public Railway database URL to connect
+ * and add the missing columns to the images table.
  */
 
 import mysql from 'mysql2/promise';
 
-async function directSchemaFix() {
-    console.log('🚨 DIRECT SCHEMA FIX STARTED');
+async function publicSchemaFix() {
+    console.log('🚨 PUBLIC SCHEMA FIX STARTED');
     console.log('==========================================');
 
     let connection;
 
     try {
-        // Parse DATABASE_URL
-        const databaseUrl = process.env.DATABASE_URL;
-        if (!databaseUrl) {
-            throw new Error('DATABASE_URL not found');
-        }
+        // Use the public Railway database URL
+        const publicUrl = 'mysql://root:YALnbkVGvnsucZbZOnrqQHmyDcmGMhts@hopper.proxy.rlwy.net:34099/railway';
 
-        console.log('🔗 Connecting to database...');
+        console.log('🔗 Connecting to Railway database via public URL...');
 
-        // Parse the DATABASE_URL
-        const url = new URL(databaseUrl);
+        // Parse the public URL
+        const url = new URL(publicUrl);
         const config = {
             host: url.hostname,
             port: parseInt(url.port) || 3306,
@@ -42,7 +39,7 @@ async function directSchemaFix() {
         console.log(`    User: ${config.user}`);
 
         connection = await mysql.createConnection(config);
-        console.log('    ✅ Connected to database');
+        console.log('    ✅ Connected to Railway database');
 
         console.log('🔧 Step 1: Adding missing columns...');
 
@@ -130,14 +127,14 @@ async function directSchemaFix() {
         }
 
         console.log('==========================================');
-        console.log('✅ DIRECT SCHEMA FIX COMPLETED');
+        console.log('✅ PUBLIC SCHEMA FIX COMPLETED');
         console.log('==========================================');
         console.log('🎉 The missing columns have been added to the images table!');
         console.log('🎉 Image generation should now work properly!');
 
     } catch (error) {
         console.log('==========================================');
-        console.error('❌ DIRECT SCHEMA FIX FAILED');
+        console.error('❌ PUBLIC SCHEMA FIX FAILED');
         console.error('Error:', error.message);
         console.log('==========================================');
         process.exit(1);
@@ -148,4 +145,4 @@ async function directSchemaFix() {
     }
 }
 
-directSchemaFix();
+publicSchemaFix();
