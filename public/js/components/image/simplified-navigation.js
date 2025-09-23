@@ -412,19 +412,8 @@ class SimplifiedNavigation {
             }
         });
 
-        // Info box toggle
-        const toggleBtn = infoBox.querySelector('.info-box-toggle');
-        const content = infoBox.querySelector('.info-box-content');
-
-        if (toggleBtn && content) {
-            toggleBtn.addEventListener('click', () => {
-                const isExpanded = content.classList.contains('expanded');
-
-                content.classList.toggle('expanded', !isExpanded);
-                content.classList.toggle('collapsed', isExpanded);
-                toggleBtn.textContent = isExpanded ? '+' : '−';
-            });
-        }
+        // Info box toggle - handled by ImageManager's image-events.js
+        // Removed duplicate toggle handler to prevent conflicts
 
         // Public status toggle
         const publicToggle = infoBox.querySelector('.info-box-public-toggle');

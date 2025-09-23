@@ -188,7 +188,9 @@ class AdminHistoryManager {
             case 'view':
                 return await this.apiService.getImageDetails(id);
             case 'delete':
-                return await this.apiService.deleteImage(id);
+                return await this.apiService.deleteImage(id, false); // Soft delete
+            case 'permanent-delete':
+                return await this.apiService.deleteImage(id, true); // Permanent delete
             case 'moderate':
                 return await this.apiService.moderateImage(id, actionData.moderateAction || 'approve');
             case 'toggle_visibility':

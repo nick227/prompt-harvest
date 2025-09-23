@@ -25,11 +25,17 @@ class ImagesController {
                 dateTo,
                 search,
                 sortBy = 'createdAt',
-                sortOrder = 'desc'
+                sortOrder = 'desc',
+                includeDeleted = false
             } = req.query;
 
             // Build where conditions
             const where = {};
+
+            // Filter out soft-deleted images by default
+            if (includeDeleted !== 'true') {
+                where.isDeleted = false;
+            }
 
             if (status) {
                 where.status = status;
@@ -40,7 +46,7 @@ class ImagesController {
             }
 
             if (userId) {
-                where.userId = parseInt(userId);
+                where.userId = userId; // Keep as string since IDs are CUIDs
             }
 
             if (dateFrom || dateTo) {
@@ -116,6 +122,9 @@ class ImagesController {
                 status: image.status,
                 isPublic: image.isPublic,
                 isHidden: image.isHidden,
+                isDeleted: image.isDeleted,
+                deleted_at: image.deletedAt,
+                deleted_by: image.deletedBy,
                 cost: image.cost || 0,
                 created_at: image.createdAt,
                 updated_at: image.updatedAt,
@@ -221,16 +230,17 @@ class ImagesController {
     }
 
     /**
-     * Delete an image
+     * Soft delete an image (mark as deleted but keep record)
      * DELETE /api/admin/images/:imageId
      */
     static async deleteImage(req, res) {
         try {
             const { imageId } = req.params;
+            const { permanent = false } = req.query; // Optional permanent delete flag
 
-            // Check if image exists
+            // Check if image exists and is not already deleted
             const existingImage = await prisma.image.findUnique({
-                where: { id: parseInt(imageId) }
+                where: { id: imageId }
             });
 
             if (!existingImage) {
@@ -241,18 +251,44 @@ class ImagesController {
                 });
             }
 
-            // Delete the image
-            await prisma.image.delete({
-                where: { id: parseInt(imageId) }
-            });
+            if (existingImage.isDeleted) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Image already deleted',
+                    message: 'This image has already been deleted'
+                });
+            }
 
-            console.log(`🗑️ ADMIN-IMAGES: Image ${imageId} deleted by admin ${req.adminUser.email}`);
+            if (permanent === 'true') {
+                // Permanent delete - remove from R2 and database
+                await this.permanentDeleteImage(imageId, existingImage);
 
-            res.json({
-                success: true,
-                message: 'Image deleted successfully',
-                data: { id: parseInt(imageId) }
-            });
+                console.log(`🗑️ ADMIN-IMAGES: Image ${imageId} permanently deleted by admin ${req.adminUser.email}`);
+
+                res.json({
+                    success: true,
+                    message: 'Image permanently deleted successfully',
+                    data: { id: imageId, permanent: true }
+                });
+            } else {
+                // Soft delete - mark as deleted but keep record
+                await prisma.image.update({
+                    where: { id: imageId },
+                    data: {
+                        isDeleted: true,
+                        deletedAt: new Date(),
+                        deletedBy: req.adminUser.id
+                    }
+                });
+
+                console.log(`🗑️ ADMIN-IMAGES: Image ${imageId} soft deleted by admin ${req.adminUser.email}`);
+
+                res.json({
+                    success: true,
+                    message: 'Image deleted successfully (soft delete)',
+                    data: { id: imageId, permanent: false }
+                });
+            }
 
         } catch (error) {
             console.error('❌ ADMIN-IMAGES: Error deleting image:', error);
@@ -261,6 +297,42 @@ class ImagesController {
                 error: 'Failed to delete image',
                 message: error.message
             });
+        }
+    }
+
+    /**
+     * Permanently delete an image from R2 and database
+     * @private
+     */
+    static async permanentDeleteImage(imageId, imageRecord) {
+        try {
+            // Import CloudflareR2Service dynamically to avoid circular dependencies
+            const { CloudflareR2Service } = await import('../../services/CloudflareR2Service.js');
+            const cloudflareR2Service = new CloudflareR2Service();
+
+            // Delete from R2 if imageUrl exists
+            if (imageRecord.imageUrl && cloudflareR2Service.isInitialized()) {
+                try {
+                    // Extract key from URL
+                    const key = cloudflareR2Service.extractKeyFromUrl(imageRecord.imageUrl);
+                    if (key) {
+                        const deleted = await cloudflareR2Service.deleteImage(key);
+                        console.log(`🗑️ R2: Image ${key} deleted: ${deleted ? 'success' : 'failed'}`);
+                    }
+                } catch (r2Error) {
+                    console.error('❌ R2: Failed to delete image:', r2Error.message);
+                    // Continue with database deletion even if R2 deletion fails
+                }
+            }
+
+            // Delete from database
+            await prisma.image.delete({
+                where: { id: imageId }
+            });
+
+        } catch (error) {
+            console.error('❌ ADMIN-IMAGES: Error in permanent delete:', error);
+            throw error;
         }
     }
 

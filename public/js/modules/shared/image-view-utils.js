@@ -76,6 +76,7 @@ class ImageViewUtils {
             rating: parseInt(img.dataset.rating) || 0,
             isPublic: img.dataset.isPublic === 'true' || wrapper?.dataset.isPublic === 'true' || false,
             userId: img.dataset.userId || wrapper?.dataset.userId || null,
+            username: img.dataset.username || null,
             createdAt: img.dataset.createdAt || null,
             filter: wrapper?.dataset.filter || 'site',
             tags: this._parseTagsFromDataset(img.dataset.tags || wrapper?.dataset.tags),
@@ -335,7 +336,7 @@ class ImageViewUtils {
         metadata.appendChild(ratingRow);
 
         // Add creator row (username)
-        const creatorRow = createMetadataRow('Creator', imageData.username || 'Unknown');
+        const creatorRow = createMetadataRow('Creator', this.formatUsername(imageData));
         metadata.appendChild(creatorRow);
 
         // Add isPublic row - only for owner
@@ -353,6 +354,23 @@ class ImageViewUtils {
         }
 
         return metadata;
+    }
+
+    /**
+     * Format username with proper fallback logic
+     * @param {Object} imageData - Image data object
+     * @returns {string} Formatted username
+     */
+    static formatUsername(imageData) {
+        let { username } = imageData;
+
+        if (!username && imageData.userId) {
+            username = 'Unknown User';
+        } else if (!username) {
+            username = 'Anonymous';
+        }
+
+        return username;
     }
 
     /**

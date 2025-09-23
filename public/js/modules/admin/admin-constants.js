@@ -83,10 +83,11 @@ const ADMIN_CONSTANTS = {
         IMAGES: {
             columns: [
                 { field: 'id', title: 'ID', sortable: true },
-                { field: 'user_id', title: 'User ID', sortable: true },
+                { field: 'user_email', title: 'User', sortable: true },
                 { field: 'prompt', title: 'Prompt', sortable: true },
                 { field: 'provider', title: 'Provider', sortable: true },
                 { field: 'status', title: 'Status', sortable: true },
+                { field: 'isDeleted', title: 'Deleted', sortable: true },
                 { field: 'created_at', title: 'Created', sortable: true },
                 { field: 'actions', title: 'Actions', sortable: false }
             ],

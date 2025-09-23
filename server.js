@@ -9,7 +9,7 @@ import { authenticateToken } from './src/middleware/authMiddleware.js';
 import databaseClient from './src/database/PrismaClient.js';
 import PrismaSessionStore from './src/config/PrismaSessionStore.js';
 
-dotenv.config();
+dotenv.config(); // Nodemon restart trigger
 
 const app = express();
 

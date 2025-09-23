@@ -198,7 +198,9 @@
 
 .list-view.loading-placeholder-content {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
     gap: 16px;
     padding: 16px;
     background: rgba(31, 41, 55, 0.8);

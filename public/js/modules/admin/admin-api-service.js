@@ -314,12 +314,13 @@ class AdminAPIService {
         return await this.request('GET', `/images/${id}`);
     }
 
-    async deleteImage(id) {
+    async deleteImage(id, permanent = false) {
         if (this.useDemoData) {
             return await this.demoService.deleteImage(id);
         }
 
-        return await this.request('DELETE', `/images/${id}`);
+        const params = permanent ? { permanent: 'true' } : {};
+        return await this.request('DELETE', `/images/${id}`, null, params);
     }
 
     async moderateImage(id, action) {

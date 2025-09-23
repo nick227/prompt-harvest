@@ -151,6 +151,20 @@ class AdminDOMManager {
 
                 if (column.field === 'actions') {
                     td.innerHTML = this.createActionButtons(row, tableType);
+                } else if (column.field === 'isDeleted') {
+                    // Special handling for isDeleted status
+                    const isDeleted = row[column.field];
+                    if (isDeleted) {
+                        td.innerHTML = '<span class="badge badge-danger">Deleted</span>';
+                        td.classList.add('text-center');
+                    } else {
+                        td.innerHTML = '<span class="badge badge-success">Active</span>';
+                        td.classList.add('text-center');
+                    }
+                } else if (column.field === 'created_at') {
+                    // Format date
+                    const date = new Date(row[column.field]);
+                    td.textContent = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
                 } else {
                     td.textContent = row[column.field] || '';
                 }
@@ -174,8 +188,21 @@ class AdminDOMManager {
         // Edit button
         buttons.push(`<button class="btn btn-sm btn-primary" data-action="edit" data-id="${row.id}">Edit</button>`);
 
-        // Delete button
-        buttons.push(`<button class="btn btn-sm btn-danger" data-action="delete" data-id="${row.id}">Delete</button>`);
+        // Delete buttons based on table type
+        if (tableType === 'images') {
+            // For images, provide both soft delete and permanent delete options
+            if (row.isDeleted) {
+                // If already soft deleted, show permanent delete option
+                buttons.push(`<button class="btn btn-sm btn-danger" data-action="permanent-delete" data-id="${row.id}" title="Permanently delete from database and storage">Permanent Delete</button>`);
+            } else {
+                // If not deleted, show soft delete option
+                buttons.push(`<button class="btn btn-sm btn-warning" data-action="delete" data-id="${row.id}" title="Mark as deleted (soft delete)">Delete</button>`);
+                buttons.push(`<button class="btn btn-sm btn-danger" data-action="permanent-delete" data-id="${row.id}" title="Permanently delete from database and storage">Permanent Delete</button>`);
+            }
+        } else {
+            // For other table types, use the standard delete button
+            buttons.push(`<button class="btn btn-sm btn-danger" data-action="delete" data-id="${row.id}">Delete</button>`);
+        }
 
         // Additional buttons based on table type
         if (tableType === 'users') {

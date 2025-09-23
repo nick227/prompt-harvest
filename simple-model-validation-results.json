@@ -1,0 +1,526 @@
+{
+  "timestamp": "2025-09-23T12:13:02.447Z",
+  "summary": {
+    "total": 28,
+    "valid": 28,
+    "invalid": 0,
+    "warnings": 22,
+    "avgScore": 10,
+    "providers": {
+      "openai": {
+        "total": 3,
+        "valid": 3,
+        "invalid": 0
+      },
+      "dezgo": {
+        "total": 24,
+        "valid": 24,
+        "invalid": 0
+      },
+      "google": {
+        "total": 1,
+        "valid": 1,
+        "invalid": 0
+      }
+    }
+  },
+  "valid": [
+    {
+      "name": "dalle",
+      "provider": "openai",
+      "displayName": "DALL-E 3",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "score": 10
+    },
+    {
+      "name": "dalle3",
+      "provider": "openai",
+      "displayName": "DALL-E 3",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "score": 10
+    },
+    {
+      "name": "dalle2",
+      "provider": "openai",
+      "displayName": "DALL-E 2",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "score": 10
+    },
+    {
+      "name": "flux",
+      "provider": "dezgo",
+      "displayName": "Flux",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "score": 10
+    },
+    {
+      "name": "flux-pro",
+      "provider": "dezgo",
+      "displayName": "Flux Pro",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "score": 10
+    },
+    {
+      "name": "nanoBanana",
+      "provider": "google",
+      "displayName": "Google Imagen 3",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "score": 10
+    },
+    {
+      "name": "juggernaut",
+      "provider": "dezgo",
+      "displayName": "Juggernaut XL",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: juggernautxl_1024px",
+          "model": "juggernaut"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "dreamshaper",
+      "provider": "dezgo",
+      "displayName": "Dreamshaper XL",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: dreamshaperxl_1024px",
+          "model": "dreamshaper"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "dreamshaperLighting",
+      "provider": "dezgo",
+      "displayName": "Dreamshaper Lightning",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: dreamshaperxl_lightning_1024px",
+          "model": "dreamshaperLighting"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "bluepencil",
+      "provider": "dezgo",
+      "displayName": "Blue Pencil XL",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: bluepencilxl_1024px",
+          "model": "bluepencil"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "tshirt",
+      "provider": "dezgo",
+      "displayName": "T-Shirt Design",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: tshirtdesignredmond_1024px",
+          "model": "tshirt"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "juggernautReborn",
+      "provider": "dezgo",
+      "displayName": "Juggernaut Reborn",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: juggernaut_reborn",
+          "model": "juggernautReborn"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "absolute",
+      "provider": "dezgo",
+      "displayName": "Absolute Reality",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: absolute_reality_1_8_1",
+          "model": "absolute"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "realisticvision",
+      "provider": "dezgo",
+      "displayName": "Realistic Vision",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: realistic_vision_5_1",
+          "model": "realisticvision"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "icbinp",
+      "provider": "dezgo",
+      "displayName": "Icbinp",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: icbinp",
+          "model": "icbinp"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "icbinp_seco",
+      "provider": "dezgo",
+      "displayName": "Icbinp Seco",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: icbinp_seco",
+          "model": "icbinp_seco"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "hasdx",
+      "provider": "dezgo",
+      "displayName": "Hasdx",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: hasdx",
+          "model": "hasdx"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "redshift",
+      "provider": "dezgo",
+      "displayName": "Red Shift",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: redshift_diffusion_768px",
+          "model": "redshift"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "analogmadness",
+      "provider": "dezgo",
+      "displayName": "Analog Madness",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: analogmadness_7",
+          "model": "analogmadness"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "portraitplus",
+      "provider": "dezgo",
+      "displayName": "Portrait Plus",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: portrait_plus",
+          "model": "portraitplus"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "nightmareshaper",
+      "provider": "dezgo",
+      "displayName": "Nightmare Shaper",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: nightmareshaper",
+          "model": "nightmareshaper"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "openjourney",
+      "provider": "dezgo",
+      "displayName": "Open Journey",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: openjourney_2",
+          "model": "openjourney"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "abyssorange",
+      "provider": "dezgo",
+      "displayName": "Abyss Orange",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: abyss_orange_mix_2",
+          "model": "abyssorange"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "cyber",
+      "provider": "dezgo",
+      "displayName": "Cyber Real",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: cyberrealistic_3_1",
+          "model": "cyber"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "disco",
+      "provider": "dezgo",
+      "displayName": "Disco",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: disco_diffusion_style",
+          "model": "disco"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "synthwave",
+      "provider": "dezgo",
+      "displayName": "Synthwave",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: synthwavepunk_v2",
+          "model": "synthwave"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "lowpoly",
+      "provider": "dezgo",
+      "displayName": "Low Poly",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: lowpoly_world",
+          "model": "lowpoly"
+        }
+      ],
+      "score": 10
+    },
+    {
+      "name": "ink",
+      "provider": "dezgo",
+      "displayName": "Ink Punk",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        {
+          "type": "unusual_model",
+          "message": "Unusual Dezgo model: inkpunk_diffusion",
+          "model": "ink"
+        }
+      ],
+      "score": 10
+    }
+  ],
+  "invalid": [],
+  "warnings": [
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: juggernautxl_1024px",
+      "model": "juggernaut"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: dreamshaperxl_1024px",
+      "model": "dreamshaper"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: dreamshaperxl_lightning_1024px",
+      "model": "dreamshaperLighting"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: bluepencilxl_1024px",
+      "model": "bluepencil"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: tshirtdesignredmond_1024px",
+      "model": "tshirt"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: juggernaut_reborn",
+      "model": "juggernautReborn"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: absolute_reality_1_8_1",
+      "model": "absolute"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: realistic_vision_5_1",
+      "model": "realisticvision"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: icbinp",
+      "model": "icbinp"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: icbinp_seco",
+      "model": "icbinp_seco"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: hasdx",
+      "model": "hasdx"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: redshift_diffusion_768px",
+      "model": "redshift"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: analogmadness_7",
+      "model": "analogmadness"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: portrait_plus",
+      "model": "portraitplus"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: nightmareshaper",
+      "model": "nightmareshaper"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: openjourney_2",
+      "model": "openjourney"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: abyss_orange_mix_2",
+      "model": "abyssorange"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: cyberrealistic_3_1",
+      "model": "cyber"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: disco_diffusion_style",
+      "model": "disco"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: synthwavepunk_v2",
+      "model": "synthwave"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: lowpoly_world",
+      "model": "lowpoly"
+    },
+    {
+      "type": "unusual_model",
+      "message": "Unusual Dezgo model: inkpunk_diffusion",
+      "model": "ink"
+    }
+  ]
+}

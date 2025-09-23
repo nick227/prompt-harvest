@@ -16,10 +16,7 @@ export const setupAIRoutes = (app, aiController) => {
         aiController.getWordExamples.bind(aiController)
     );
 
-    app.get('/word/types/:word',
-        validateWord,
-        aiController.getWordTypes.bind(aiController)
-    );
+    // Removed conflicting word/types route - handled by wordRoutes.js
 
     app.get('/ai/word/add/:word',
         validateWord,

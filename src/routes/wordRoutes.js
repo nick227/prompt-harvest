@@ -19,7 +19,7 @@ export const setupWordRoutes = app => {
 
             const response = wordRecords.map(record => ({
                 word: record.word,
-                types: record.types
+                types: JSON.parse(record.types)
             }));
 
             response.sort((a, b) => a.word.localeCompare(b.word));
@@ -42,7 +42,7 @@ export const setupWordRoutes = app => {
 
             // Get all word records to search through (like original NeDB implementation)
             const allWordRecords = await prisma.word_types.findMany({
-                take: 1000 // Get a large number to search through
+                // Remove the take limit to get all records
             });
 
             const results = [];
@@ -59,13 +59,18 @@ export const setupWordRoutes = app => {
                 }
 
                 // Check if word is in the types array
-                if (record.types && Array.isArray(record.types)) {
-                    const hasMatch = record.types.some(type => type && type.toLowerCase().includes(word.toLowerCase())
-                    );
+                try {
+                    const typesArray = JSON.parse(record.types);
+                    if (typesArray && Array.isArray(typesArray)) {
+                        const hasMatch = typesArray.some(type => type && type.toLowerCase().includes(word.toLowerCase())
+                        );
 
-                    if (hasMatch && record.word && !results.includes(record.word)) {
-                        results.push(record.word);
+                        if (hasMatch && record.word && !results.includes(record.word)) {
+                            results.push(record.word);
+                        }
                     }
+                } catch (parseError) {
+                    console.warn(`Failed to parse types for word "${record.word}":`, parseError.message);
                 }
             });
 

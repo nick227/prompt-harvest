@@ -34,67 +34,42 @@ class AdminImageManager {
     }
 
     showImageViewerModal(image) {
-        const modalHtml = `
-            <div class="modal fade" id="imageViewerModal" tabindex="-1" role="dialog">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Image Details</h5>
-                            <button type="button" class="close" data-dismiss="modal">
-                                <span>&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <img src="${image.url}" class="img-fluid rounded" alt="Generated Image" style="max-height: 400px; object-fit: contain;">
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="image-details">
-                                        <h6>Image Information</h6>
-                                        <p><strong>ID:</strong> ${image.id}</p>
-                                        <p><strong>Prompt:</strong> ${image.prompt || 'N/A'}</p>
-                                        <p><strong>Status:</strong> <span class="badge badge-${image.status === 'active' ? 'success' : 'secondary'}">${image.status}</span></p>
-                                        <p><strong>Created:</strong> ${new Date(image.createdAt).toLocaleString()}</p>
-                                        <p><strong>User:</strong> ${image.user?.email || 'Unknown'}</p>
-                                        <p><strong>Model:</strong> ${image.model || 'N/A'}</p>
-                                        <p><strong>Size:</strong> ${image.width}x${image.height}</p>
-                                        ${image.tags && image.tags.length > 0 ? `
-                                            <p><strong>Tags:</strong> ${image.tags.join(', ')}</p>
-                                        ` : ''}
-                                        ${image.likes ? `<p><strong>Likes:</strong> ${image.likes}</p>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <a href="${image.url}" target="_blank" class="btn btn-primary">
-                                <i class="fas fa-external-link-alt"></i> Open Full Size
-                            </a>
-                        </div>
+        const modalContent = `
+            <div class="image-viewer-content">
+                <div class="image-viewer-grid">
+                    <div class="image-viewer-image">
+                        <img src="${image.url}" class="img-fluid rounded" alt="Generated Image" style="max-height: 400px; object-fit: contain;">
                     </div>
+                    <div class="image-viewer-details">
+                        <h6>Image Information</h6>
+                        <p><strong>ID:</strong> ${image.id}</p>
+                        <p><strong>Prompt:</strong> ${image.prompt || 'N/A'}</p>
+                        <p><strong>Status:</strong> <span class="badge badge-${image.status === 'active' ? 'success' : 'secondary'}">${image.status}</span></p>
+                        <p><strong>Created:</strong> ${new Date(image.createdAt).toLocaleString()}</p>
+                        <p><strong>User:</strong> ${image.user?.email || 'Unknown'}</p>
+                        <p><strong>Model:</strong> ${image.model || 'N/A'}</p>
+                        <p><strong>Size:</strong> ${image.width}x${image.height}</p>
+                        ${image.tags && image.tags.length > 0 ? `
+                            <p><strong>Tags:</strong> ${image.tags.join(', ')}</p>
+                        ` : ''}
+                        ${image.likes ? `<p><strong>Likes:</strong> ${image.likes}</p>` : ''}
+                    </div>
+                </div>
+                <div class="image-viewer-actions">
+                    <a href="${image.url}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i> Open Full Size
+                    </a>
                 </div>
             </div>
         `;
 
-        // Remove existing modal if any
-        const existingModal = document.getElementById('imageViewerModal');
-        if (existingModal) {
-            existingModal.remove();
+        // Use the unified modal system
+        if (window.adminModal) {
+            window.adminModal.show('Image Details', modalContent, { size: 'lg' });
+        } else {
+            console.error('❌ ADMIN-IMAGE: AdminModalManager not available');
+            AdminUtils.showNotification('Modal system not available', 'error');
         }
-
-        // Add modal to DOM
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
-        modal.show();
-
-        // Clean up modal when hidden
-        document.getElementById('imageViewerModal').addEventListener('hidden.bs.modal', () => {
-            document.getElementById('imageViewerModal').remove();
-        });
     }
 
     async toggleImageVisibility(imageId) {
@@ -171,30 +146,41 @@ class AdminImageManager {
         }
     }
 
-    async deleteImage(imageId) {
-        if (!confirm('Are you sure you want to delete this image? This action cannot be undone.')) {
+    async deleteImage(imageId, permanent = false) {
+        const deleteType = permanent ? 'permanently delete' : 'delete';
+        const confirmMessage = permanent
+            ? 'Are you sure you want to PERMANENTLY delete this image? This will remove it from both the database and cloud storage. This action cannot be undone.'
+            : 'Are you sure you want to delete this image? This will mark it as deleted but keep the record for audit purposes.';
+
+        if (!confirm(confirmMessage)) {
             return;
         }
 
         try {
-            // For demo purposes, simulate the delete functionality
-            console.log(`🗑️ ADMIN-IMAGE: Deleting image ${imageId}`);
+            console.log(`🗑️ ADMIN-IMAGE: ${deleteType} image ${imageId}`);
 
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Call the API service
+            const response = await window.adminApp?.apiService?.deleteImage(imageId, permanent);
 
-            // Show success notification
-            AdminUtils.showNotification(`Image deleted successfully`, 'success');
+            if (response?.success) {
+                const message = permanent
+                    ? 'Image permanently deleted successfully'
+                    : 'Image deleted successfully (soft delete)';
 
-            // Refresh the images table
-            if (window.adminApp?.dashboardManager) {
-                await window.adminApp.dashboardManager.handleHistoryRefresh('images');
+                AdminUtils.showNotification(message, 'success');
+
+                // Refresh the images table
+                if (window.adminApp?.dashboardManager) {
+                    await window.adminApp.dashboardManager.handleHistoryRefresh('images');
+                }
+
+                console.log(`✅ ADMIN-IMAGE: Image ${deleteType} successfully`);
+            } else {
+                throw new Error(response?.message || 'Delete operation failed');
             }
-
-            console.log('✅ ADMIN-IMAGE: Image deleted successfully');
         } catch (error) {
-            console.error('❌ ADMIN-IMAGE: Error deleting image:', error);
-            AdminUtils.showNotification(`Failed to delete image: ${error.message}`, 'error');
+            console.error(`❌ ADMIN-IMAGE: Error ${deleteType} image:`, error);
+            AdminUtils.showNotification(`Failed to ${deleteType} image: ${error.message}`, 'error');
         }
     }
 
@@ -218,116 +204,108 @@ class AdminImageManager {
     }
 
     showImageModerationModal(image) {
-        const modalHtml = `
-            <div class="modal fade" id="imageModerationModal" tabindex="-1" role="dialog">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Moderate Image</h5>
-                            <button type="button" class="close" data-dismiss="modal">
-                                <span>&times;</span>
+        const modalContent = `
+            <div class="image-moderation-content">
+                <div class="image-moderation-grid">
+                    <div class="image-moderation-image">
+                        <img src="${image.url}" class="img-fluid rounded" alt="Generated Image" style="max-height: 400px; object-fit: contain;">
+                    </div>
+                    <div class="image-moderation-details">
+                        <h6>Image Information</h6>
+                        <p><strong>ID:</strong> ${image.id}</p>
+                        <p><strong>Prompt:</strong> ${image.prompt || 'N/A'}</p>
+                        <p><strong>Current Status:</strong> <span class="badge badge-${image.status === 'active' ? 'success' : 'secondary'}">${image.status}</span></p>
+                        <p><strong>Created:</strong> ${new Date(image.createdAt).toLocaleString()}</p>
+                        <p><strong>User:</strong> ${image.user?.email || 'Unknown'}</p>
+
+                        <hr>
+                        <h6>Moderation Actions</h6>
+                        <div class="moderation-actions">
+                            <button type="button" class="btn btn-success btn-sm mb-2" id="approveImage">
+                                <i class="fas fa-check"></i> Approve Image
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm mb-2" id="flagImage">
+                                <i class="fas fa-flag"></i> Flag for Review
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm mb-2" id="rejectImage">
+                                <i class="fas fa-times"></i> Reject Image
                             </button>
                         </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <img src="${image.url}" class="img-fluid rounded" alt="Generated Image" style="max-height: 400px; object-fit: contain;">
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="moderation-details">
-                                        <h6>Image Information</h6>
-                                        <p><strong>ID:</strong> ${image.id}</p>
-                                        <p><strong>Prompt:</strong> ${image.prompt || 'N/A'}</p>
-                                        <p><strong>Current Status:</strong> <span class="badge badge-${image.status === 'active' ? 'success' : 'secondary'}">${image.status}</span></p>
-                                        <p><strong>Created:</strong> ${new Date(image.createdAt).toLocaleString()}</p>
-                                        <p><strong>User:</strong> ${image.user?.email || 'Unknown'}</p>
 
-                                        <hr>
-                                        <h6>Moderation Actions</h6>
-                                        <div class="moderation-actions">
-                                            <button type="button" class="btn btn-success btn-sm mb-2" id="approveImage">
-                                                <i class="fas fa-check"></i> Approve Image
-                                            </button>
-                                            <button type="button" class="btn btn-warning btn-sm mb-2" id="flagImage">
-                                                <i class="fas fa-flag"></i> Flag for Review
-                                            </button>
-                                            <button type="button" class="btn btn-danger btn-sm mb-2" id="rejectImage">
-                                                <i class="fas fa-times"></i> Reject Image
-                                            </button>
-                                        </div>
-
-                                        <div class="moderation-reason mt-3" id="moderationReason" style="display: none;">
-                                            <label for="reasonText">Reason for action:</label>
-                                            <textarea id="reasonText" class="form-control" rows="3" placeholder="Enter reason for moderation action..."></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <div class="moderation-reason mt-3" id="moderationReason" style="display: none;">
+                            <label for="reasonText">Reason for action:</label>
+                            <textarea id="reasonText" class="form-control" rows="3" placeholder="Enter reason for moderation action..."></textarea>
                         </div>
                     </div>
                 </div>
             </div>
         `;
 
-        // Remove existing modal if any
-        const existingModal = document.getElementById('imageModerationModal');
-        if (existingModal) {
-            existingModal.remove();
+        // Use the unified modal system
+        if (window.adminModal) {
+            window.adminModal.show('Moderate Image', modalContent, { size: 'lg' });
+
+            // Setup moderation action handlers after modal is shown
+            setTimeout(() => {
+                this.setupModerationHandlers(image.id);
+            }, 100);
+        } else {
+            console.error('❌ ADMIN-IMAGE: AdminModalManager not available');
+            AdminUtils.showNotification('Modal system not available', 'error');
         }
-
-        // Add modal to DOM
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('imageModerationModal'));
-        modal.show();
-
-        // Setup moderation action handlers
-        this.setupModerationHandlers(image.id, modal);
-
-        // Clean up modal when hidden
-        document.getElementById('imageModerationModal').addEventListener('hidden.bs.modal', () => {
-            document.getElementById('imageModerationModal').remove();
-        });
     }
 
-    setupModerationHandlers(imageId, modal) {
+    setupModerationHandlers(imageId) {
         const approveBtn = document.getElementById('approveImage');
         const flagBtn = document.getElementById('flagImage');
         const rejectBtn = document.getElementById('rejectImage');
         const reasonDiv = document.getElementById('moderationReason');
         const reasonText = document.getElementById('reasonText');
 
+        if (!approveBtn || !flagBtn || !rejectBtn) {
+            console.error('❌ ADMIN-IMAGE: Moderation buttons not found');
+            return;
+        }
+
         const showReasonField = () => {
-            reasonDiv.style.display = 'block';
+            if (reasonDiv) {
+                reasonDiv.style.display = 'block';
+            }
         };
 
         const hideReasonField = () => {
-            reasonDiv.style.display = 'none';
-            reasonText.value = '';
+            if (reasonDiv) {
+                reasonDiv.style.display = 'none';
+            }
+            if (reasonText) {
+                reasonText.value = '';
+            }
+        };
+
+        const closeModal = () => {
+            if (window.adminModal) {
+                window.adminModal.close();
+            }
         };
 
         approveBtn.addEventListener('click', async () => {
-            await this.performModerationAction(imageId, 'approve', reasonText.value);
-            modal.hide();
+            await this.performModerationAction(imageId, 'approve', reasonText?.value || '');
+            closeModal();
         });
 
         flagBtn.addEventListener('click', () => {
             showReasonField();
             flagBtn.onclick = async () => {
-                await this.performModerationAction(imageId, 'flag', reasonText.value);
-                modal.hide();
+                await this.performModerationAction(imageId, 'flag', reasonText?.value || '');
+                closeModal();
             };
         });
 
         rejectBtn.addEventListener('click', () => {
             showReasonField();
             rejectBtn.onclick = async () => {
-                await this.performModerationAction(imageId, 'reject', reasonText.value);
-                modal.hide();
+                await this.performModerationAction(imageId, 'reject', reasonText?.value || '');
+                closeModal();
             };
         });
     }
@@ -399,50 +377,44 @@ class AdminImageManager {
     }
 
     showTagEditModal(imageId, currentTags) {
-        // Create modal HTML
-        const modalHtml = `
-            <div class="modal fade" id="tagEditModal" tabindex="-1" role="dialog">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Edit Image Tags</h5>
-                            <button type="button" class="close" data-dismiss="modal">
-                                <span>&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label for="imageTags">Tags (comma-separated):</label>
-                                <textarea id="imageTags" class="form-control" rows="3" placeholder="Enter tags separated by commas">${currentTags.join(', ')}</textarea>
-                                <small class="form-text text-muted">Enter tags separated by commas. Tags will be automatically cleaned and validated.</small>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" id="saveTagsBtn">Save Tags</button>
-                        </div>
-                    </div>
+        const modalContent = `
+            <div class="tag-edit-content">
+                <div class="form-group">
+                    <label for="imageTags">Tags (comma-separated):</label>
+                    <textarea id="imageTags" class="form-control" rows="3" placeholder="Enter tags separated by commas">${currentTags.join(', ')}</textarea>
+                    <small class="form-text text-muted">Enter tags separated by commas. Tags will be automatically cleaned and validated.</small>
+                </div>
+                <div class="tag-edit-actions">
+                    <button type="button" class="btn btn-primary" id="saveTagsBtn">Save Tags</button>
                 </div>
             </div>
         `;
 
-        // Remove existing modal if any
-        const existingModal = document.getElementById('tagEditModal');
-        if (existingModal) {
-            existingModal.remove();
+        // Use the unified modal system
+        if (window.adminModal) {
+            window.adminModal.show('Edit Image Tags', modalContent);
+
+            // Setup save button handler after modal is shown
+            setTimeout(() => {
+                this.setupTagEditHandlers(imageId);
+            }, 100);
+        } else {
+            console.error('❌ ADMIN-IMAGE: AdminModalManager not available');
+            AdminUtils.showNotification('Modal system not available', 'error');
+        }
+    }
+
+    setupTagEditHandlers(imageId) {
+        const saveBtn = document.getElementById('saveTagsBtn');
+        const tagsInput = document.getElementById('imageTags');
+
+        if (!saveBtn || !tagsInput) {
+            console.error('❌ ADMIN-IMAGE: Tag edit elements not found');
+            return;
         }
 
-        // Add modal to DOM
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('tagEditModal'));
-        modal.show();
-
-        // Handle save button click
-        document.getElementById('saveTagsBtn').addEventListener('click', async () => {
-            const tagsInput = document.getElementById('imageTags').value;
-            const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        saveBtn.addEventListener('click', async () => {
+            const tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 
             try {
                 const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
@@ -456,7 +428,9 @@ class AdminImageManager {
                 });
 
                 if (response.ok) {
-                    modal.hide();
+                    if (window.adminModal) {
+                        window.adminModal.close();
+                    }
                     AdminUtils.showNotification('Tags updated successfully', 'success');
 
                     // Refresh the images table
@@ -471,11 +445,6 @@ class AdminImageManager {
                 console.error('❌ ADMIN-IMAGE: Error updating tags:', error);
                 AdminUtils.showNotification(`Failed to update tags: ${error.message}`, 'error');
             }
-        });
-
-        // Clean up modal when hidden
-        document.getElementById('tagEditModal').addEventListener('hidden.bs.modal', () => {
-            document.getElementById('tagEditModal').remove();
         });
     }
 

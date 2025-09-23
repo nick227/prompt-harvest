@@ -38,6 +38,9 @@ model Image {
   rating          Int?
   isPublic        Boolean   @default(false)
   isHidden        Boolean   @default(false)
+  isDeleted       Boolean   @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?   @db.VarChar(25)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   modelId         String?   @db.VarChar(25)
@@ -48,8 +51,11 @@ model Image {
   @@index([userId], map: "userId")
   @@index([isPublic], map: "isPublic")
   @@index([isHidden], map: "isHidden")
+  @@index([isDeleted], map: "isDeleted")
+  @@index([deletedAt], map: "deletedAt")
   @@index([userId, isPublic], map: "userId_isPublic")
   @@index([userId, isHidden], map: "userId_isHidden")
+  @@index([userId, isDeleted], map: "userId_isDeleted")
   @@index([modelId])
   @@index([taggedAt], map: "taggedAt")
   @@map("images")
