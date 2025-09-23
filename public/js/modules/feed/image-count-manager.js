@@ -112,7 +112,12 @@ class ImageCountManager {
                 console.log(`📊 COUNT: Successfully fetched count for ${filter}:`, this.counts[filter]);
                 return this.counts[filter];
             } else {
-                console.error('📊 COUNT: Invalid response format:', response);
+                console.error('📊 COUNT: Invalid response format:', {
+                    response,
+                    responseType: typeof response,
+                    isNumber: typeof response === 'number',
+                    filter
+                });
                 this.counts[filter] = 0;
                 return 0;
             }
@@ -151,6 +156,9 @@ class ImageCountManager {
                 console.log('📊 COUNT: Site feed data keys:', Object.keys(data.data || {}));
             }
 
+            // Debug: Log the full response for troubleshooting
+            console.log('📊 COUNT: Full site feed response:', JSON.stringify(data, null, 2));
+
             if (data.success && data.data && data.data.pagination) {
                 // The total count is in data.pagination.total
                 const totalCount = data.data.pagination.total;
@@ -159,11 +167,17 @@ class ImageCountManager {
                     console.log(`📊 COUNT: Found site total count: ${totalCount}`);
                     return totalCount;
                 } else {
-                    console.error('📊 COUNT: total is not a number:', totalCount);
+                    console.error('📊 COUNT: total is not a number:', totalCount, 'type:', typeof totalCount);
                     return 0;
                 }
             } else {
-                console.error('📊 COUNT: Invalid site feed response format - missing pagination:', data);
+                console.error('📊 COUNT: Invalid site feed response format - missing pagination:', {
+                    success: data.success,
+                    hasData: !!data.data,
+                    hasPagination: !!data.data?.pagination,
+                    dataKeys: data.data ? Object.keys(data.data) : 'no data',
+                    fullResponse: data
+                });
                 return 0;
             }
         } catch (error) {
@@ -213,6 +227,9 @@ class ImageCountManager {
                 console.log('📊 COUNT: User feed data keys:', Object.keys(data.data || {}));
             }
 
+            // Debug: Log the full response for troubleshooting
+            console.log('📊 COUNT: Full user feed response:', JSON.stringify(data, null, 2));
+
             if (data.success && data.data && data.data.pagination) {
                 // The total count is in data.pagination.total
                 const totalCount = data.data.pagination.total;
@@ -221,11 +238,17 @@ class ImageCountManager {
                     console.log(`📊 COUNT: Found user total count: ${totalCount}`);
                     return totalCount;
                 } else {
-                    console.error('📊 COUNT: total is not a number:', totalCount);
+                    console.error('📊 COUNT: total is not a number:', totalCount, 'type:', typeof totalCount);
                     return 0;
                 }
             } else {
-                console.error('📊 COUNT: Invalid user feed response format - missing pagination:', data);
+                console.error('📊 COUNT: Invalid user feed response format - missing pagination:', {
+                    success: data.success,
+                    hasData: !!data.data,
+                    hasPagination: !!data.data?.pagination,
+                    dataKeys: data.data ? Object.keys(data.data) : 'no data',
+                    fullResponse: data
+                });
                 return 0;
             }
         } catch (error) {
