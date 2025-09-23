@@ -269,7 +269,8 @@ class ImageCountManager {
             displayElement.textContent = count.toLocaleString();
             console.log(`📊 COUNT: Updated display for ${filter}: ${count}`);
         } else {
-            console.warn('📊 COUNT: Display element #num-images not found');
+            // Display element not found - this is optional functionality
+            console.log(`📊 COUNT: Image count for ${filter}: ${count} (display element not found - this is optional)`);
         }
     }
 
