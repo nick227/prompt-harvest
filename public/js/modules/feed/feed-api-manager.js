@@ -19,14 +19,12 @@ class FeedAPIManager {
 
         // Check if request is already in progress
         if (FeedAPIManager.activeRequests.has(requestKey)) {
-            console.log(`🔄 FEED: Request already in progress for ${requestKey}, waiting...`);
             return FeedAPIManager.activeRequests.get(requestKey);
         }
 
         // Check cache first
         const cached = this.getCachedRequest(requestKey);
         if (cached) {
-            console.log(`📦 FEED: Using cached response for ${requestKey}`);
             return cached;
         }
 
@@ -50,6 +48,7 @@ class FeedAPIManager {
     // Make the actual feed request
     async makeFeedRequest(filter, page, tags = []) {
         try {
+
             // Use the correct endpoint based on filter
             let url;
             if (filter === 'user') {
@@ -65,9 +64,6 @@ class FeedAPIManager {
                 url += `&tags=${encodeURIComponent(tagsParam)}`;
             }
 
-            if (window.DEBUG_MODE) {
-                console.log(`🌐 FEED: Making request to ${url} for filter: ${filter}`, tags.length > 0 ? `with tags: ${tags.join(', ')}` : '');
-            }
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -76,6 +72,7 @@ class FeedAPIManager {
                     'Authorization': `Bearer ${this.getAuthToken()}`
                 }
             });
+
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -104,6 +101,7 @@ class FeedAPIManager {
                 pagination: data.pagination || data.data?.pagination,
                 success: data.success !== false
             };
+
 
             if (window.DEBUG_MODE) {
                 console.log(`🔍 FEED: Returning result for ${filter}:`, {

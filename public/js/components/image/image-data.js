@@ -52,7 +52,7 @@ class ImageData {
             rating: parseInt(imageData.rating) || 0,
             isPublic: this.validatePublicStatus(imageData.isPublic) ? imageData.isPublic : false, // ✅ Include isPublic field with validation
             userId: imageData.userId || null, // ✅ Include userId field
-            username: imageData.username || null, // ✅ Include username field
+            username: imageData.username || null, // ✅ Include username field as-is from server
             createdAt: imageData.createdAt || null, // ✅ Include createdAt field
             tags: imageData.tags || [], // ✅ Include tags field
             element: imageData.element || null

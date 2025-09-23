@@ -45,7 +45,6 @@ class UserSystem {
             this.setupEventListeners();
 
             this.isInitialized = true;
-            console.log('👤 USER-SYSTEM: Initialized successfully');
         } catch (error) {
             console.error('❌ USER-SYSTEM: Initialization failed:', error);
         }
@@ -98,34 +97,21 @@ class UserSystem {
             // Check if userApi is authenticated
             const isApiAuthenticated = window.userApi.isAuthenticated();
 
-            console.log('🔐 USER-SYSTEM: userApi.isAuthenticated() returned:', isApiAuthenticated);
-
             if (!isApiAuthenticated) {
-                console.log('🔐 USER-SYSTEM: userApi reports not authenticated, clearing user');
-
                 this.setUser(null);
-
                 return false;
             }
 
             // Get user profile
-            console.log('🔐 USER-SYSTEM: Fetching user profile...');
-
             const userData = await window.userApi.getProfile();
-
-            console.log('🔐 USER-SYSTEM: Profile check response:', userData);
 
             // Handle different response structures
             const user = userData.data?.user || userData.user || userData;
 
             if (user && user.id) {
-                console.log('🔐 USER-SYSTEM: Valid user data found, setting user:', user.email);
-
                 this.setUser(user);
-
                 return true;
             } else {
-                console.log('🔐 USER-SYSTEM: No valid user data in profile response');
 
                 this.setUser(null);
 
@@ -191,7 +177,6 @@ class UserSystem {
             this.dispatchAuthStateChange(user);
         }
 
-        console.log('👤 USER-SYSTEM: User state updated:', user ? user.email : 'null');
     }
 
     // ============================================================================

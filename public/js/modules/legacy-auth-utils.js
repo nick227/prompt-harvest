@@ -51,9 +51,10 @@ class LegacyAuthUtils {
         // (since they can see it in their feed)
         const currentUserId = this.getCurrentUserId();
 
+        // SECURITY: Never assume ownership if userId is missing
         if (!imageData.userId) {
-            console.log('🔍 Image missing userId, assuming user owns it');
-            return true; // Assume user owns it if they can see it
+            console.warn('🔒 SECURITY: Image missing userId, denying ownership access for security');
+            return false;
         }
 
         return currentUserId && imageData.userId === currentUserId;

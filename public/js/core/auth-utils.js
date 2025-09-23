@@ -250,9 +250,10 @@ class AuthUtils {
             return false;
         }
 
-        // If image doesn't have userId, assume user owns it (since they can see it)
+        // SECURITY: Never assume ownership if userId is missing
         if (!imageData.userId) {
-            return true;
+            console.warn('🔒 SECURITY: Image missing userId, denying ownership access for security');
+            return false;
         }
 
         return imageData.userId === currentUserId;

@@ -19,6 +19,7 @@
    ========================================================================== */
 
 @media screen and (max-width: 1024px) {
+
     /* Reduce drawer width on tablets */
     :root {
         --drawer-width: 280px;
@@ -67,7 +68,7 @@
         max-width: 100%;
         top: 0;
         left: 0;
-      }
+    }
 
     .label {
         border-radius: 8px;
@@ -114,7 +115,7 @@
     }
 
     /* Remove main content padding on mobile */
-    body > main {
+    body>main {
         padding: 0 !important;
         margin: 0;
         width: 100%;
@@ -176,6 +177,7 @@
    ========================================================================== */
 
 @media screen and (max-width: 480px) {
+
     /* Smaller drawer height for small mobile */
     :root {
         --drawer-height-mobile: 35vh;
@@ -218,8 +220,8 @@
 /* Smooth transitions for all responsive changes */
 * {
     transition: margin 0.3s ease-in-out, padding 0.3s ease-in-out,
-                width 0.3s ease-in-out, height 0.3s ease-in-out,
-                transform 0.3s ease-in-out;
+        width 0.3s ease-in-out, height 0.3s ease-in-out,
+        transform 0.3s ease-in-out;
 }
 
 /* Disable transitions on reduced motion preference */
@@ -236,6 +238,7 @@
 
 /* Focus indicators for mobile */
 @media screen and (max-width: 768px) {
+
     button:focus,
     input:focus,
     select:focus,
@@ -356,6 +359,13 @@
         max-height: 200px;
         grid-template-columns: 1fr;
     }
+
+    /* Mobile compact view */
+    .prompt-output.compact-view .image-wrapper {
+        width: 116px;
+        height: 116px;
+        margin: 0 5px 5px 0;
+    }
 }
 
 /* Hide on desktop */
@@ -388,6 +398,7 @@
    ========================================================================== */
 
 @media print {
+
     #controls-drawer,
     #toggle-drawer,
     .drawer-backdrop {

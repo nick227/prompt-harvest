@@ -194,6 +194,7 @@ export const getProfile = asyncHandler(async (req, res) => {
             id: true,
             email: true,
             username: true,
+            picture: true,
             isAdmin: true,
             createdAt: true,
             updatedAt: true

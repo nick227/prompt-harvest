@@ -211,7 +211,7 @@ const cleanupAfterFailure = async(requestId, error) => {
  * @returns {Promise<Object>} Processed prompt data
  */
 // eslint-disable-next-line max-params
-const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, photogenic = false, artistic = false, req) => {
+const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, photogenic = false, artistic = false, avatar = false, req) => {
     try {
         // Validate prompt processing parameters
         const validation = FeedUtils.validatePromptProcessingParams({
@@ -233,7 +233,8 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, ph
             mashup,
             customVariables,
             photogenic,
-            artistic
+            artistic,
+            avatar
         );
 
         if (processedPrompt.error) {

@@ -55,16 +55,11 @@ class ImageEvents {
     // ========================================
 
     setupEventDelegation() {
-        console.log('🔍 IMAGE EVENTS: Setting up event delegation...');
         const imageContainer = this.findImageContainer();
 
-        console.log('🔍 IMAGE EVENTS: Image container found:', imageContainer);
-
         if (imageContainer) {
-            console.log('🔍 IMAGE EVENTS: Adding click event listener to container');
 
             imageContainer.addEventListener('click', e => {
-                console.log('🔍 IMAGE EVENTS: Container click detected, target:', e.target);
                 this.handleImageClick(e);
             });
 
@@ -390,27 +385,42 @@ class ImageEvents {
     async handlePublicStatusChange(checkbox, label, publicStatusToggle) {
         if (!this.imageManager.currentFullscreenImage) {
             console.error('No current fullscreen image available');
-
             return;
         }
 
         const currentImage = this.imageManager.currentFullscreenImage;
         const newPublicStatus = checkbox.checked;
 
-        try {
-            this.setLoadingState(checkbox, label, publicStatusToggle, true);
-
-            const success = await this.imageManager.updateImagePublicStatus(currentImage.id, newPublicStatus);
+        // Use unified public status service
+        if (window.PublicStatusService) {
+            const success = await window.PublicStatusService.updatePublicStatus(currentImage.id, newPublicStatus, {
+                updateDOM: true,
+                showNotifications: true,
+                updateCache: true
+            });
 
             if (success) {
                 this.handlePublicStatusSuccess(currentImage.id, newPublicStatus);
             } else {
                 this.handlePublicStatusFailure(checkbox, newPublicStatus);
             }
-        } catch (error) {
-            this.handlePublicStatusError(checkbox, newPublicStatus, error);
-        } finally {
-            this.setLoadingState(checkbox, label, publicStatusToggle, false);
+        } else {
+            // Fallback to original implementation
+            try {
+                this.setLoadingState(checkbox, label, publicStatusToggle, true);
+
+                const success = await this.imageManager.updateImagePublicStatus(currentImage.id, newPublicStatus);
+
+                if (success) {
+                    this.handlePublicStatusSuccess(currentImage.id, newPublicStatus);
+                } else {
+                    this.handlePublicStatusFailure(checkbox, newPublicStatus);
+                }
+            } catch (error) {
+                this.handlePublicStatusError(checkbox, newPublicStatus, error);
+            } finally {
+                this.setLoadingState(checkbox, label, publicStatusToggle, false);
+            }
         }
     }
 

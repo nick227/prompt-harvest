@@ -48,13 +48,6 @@ class FillToBottomManager {
         // Calculate how much content is below the current viewport
         const contentBelowViewport = documentHeight - (scrollTop + viewportHeight);
 
-        console.log('📏 FILL: Content analysis:', {
-            viewportHeight,
-            documentHeight,
-            scrollTop,
-            contentBelowViewport,
-            minFillHeight: this.minFillHeight
-        });
 
         // Need more content if there's less than minFillHeight pixels below viewport
         return contentBelowViewport < this.minFillHeight;

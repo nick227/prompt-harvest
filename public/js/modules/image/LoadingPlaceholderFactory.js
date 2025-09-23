@@ -369,12 +369,11 @@ class LoadingPlaceholderFactory {
             return row;
         };
 
-        // Add skeleton rows for each metadata field
-        metadata.appendChild(createSkeletonRow('Provider', '12'));
-        metadata.appendChild(createSkeletonRow('Guidance', '8'));
-        metadata.appendChild(createSkeletonRow('Status', '16'));
-        metadata.appendChild(createSkeletonRow('Created', '20'));
+        // Add skeleton rows for each metadata field (focused fields only)
+        metadata.appendChild(createSkeletonRow('Model', '12'));
         metadata.appendChild(createSkeletonRow('Rating', '10'));
+        metadata.appendChild(createSkeletonRow('Creator', '16'));
+        metadata.appendChild(createSkeletonRow('Visibility', '12'));
 
         return metadata;
     }

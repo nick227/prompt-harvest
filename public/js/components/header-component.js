@@ -134,17 +134,11 @@ class HeaderComponent {
         // Override the user system's UI creation methods to prevent conflicts
         if (window.userSystem && window.userSystem.setupUI) {
             const _originalSetupUI = window.userSystem.setupUI.bind(window.userSystem);
-
-            window.userSystem.setupUI = () => {
-                // Don't create new containers - we handle this in the header
-                console.log('🔒 Header component: Preventing duplicate auth containers');
-            };
         }
     }
 
     updateHeaderForUser() {
         if (!window.userSystem) {
-            console.log('🔒 HEADER: userSystem not available');
 
             return;
         }
@@ -162,8 +156,6 @@ class HeaderComponent {
         }
 
         this.lastAuthState = currentState;
-
-        console.log('🔒 HEADER: Authentication state:', { isAuthenticated, user: user?.email });
 
         const authLinks = document.getElementById('auth-links');
         const userInfo = document.getElementById('user-info');
@@ -204,19 +196,12 @@ class HeaderComponent {
         // Check if user is admin
         const isAdmin = user?.isAdmin === true;
 
-        console.log('🔒 HEADER: Checking admin status:', {
-            email: user?.email,
-            isAdmin,
-            userObject: user
-        });
-
         // Check if admin link already exists
         const existingAdminLink = document.querySelector('.admin-link');
         const hasAdminLink = existingAdminLink !== null;
 
         // Only update if there's a change needed
         if (isAdmin && !hasAdminLink) {
-            console.log('🔒 HEADER: User is admin - adding admin link');
 
             // Find the user-info container
             const userInfo = document.getElementById('user-info');
@@ -241,16 +226,9 @@ class HeaderComponent {
                 } else {
                     userInfo.appendChild(adminLink);
                 }
-
-                console.log('🔒 HEADER: Admin link added successfully');
             }
         } else if (!isAdmin && hasAdminLink) {
-            console.log('🔒 HEADER: User is not admin - removing admin link');
             this.removeAdminLink();
-        } else if (isAdmin && hasAdminLink) {
-            console.log('🔒 HEADER: Admin link already exists - no change needed');
-        } else {
-            console.log('🔒 HEADER: User is not admin - no admin link needed');
         }
     }
 
@@ -259,7 +237,6 @@ class HeaderComponent {
 
         if (existingAdminLink) {
             existingAdminLink.remove();
-            console.log('🔒 HEADER: Admin link removed');
         }
     }
 
@@ -274,7 +251,6 @@ class HeaderComponent {
 
         // Listen for authentication state changes
         window.addEventListener('authStateChanged', () => {
-            console.log('🔒 HEADER: Auth state changed event received');
             this.updateHeaderForUser();
         });
 
@@ -283,7 +259,6 @@ class HeaderComponent {
             const originalSetUser = window.userSystem.setUser.bind(window.userSystem);
 
             window.userSystem.setUser = user => {
-                console.log('🔒 HEADER: User system setUser called with:', user?.email || 'null');
                 originalSetUser(user);
                 // Small delay to ensure user system state is fully updated
                 setTimeout(() => this.updateHeaderForUser(), 10);
@@ -300,8 +275,6 @@ class HeaderComponent {
                 // Only update if there's a meaningful change
                 if (this.lastKnownAuthState !== currentAuthState ||
                     this.lastKnownUser !== (currentUser?.email || null)) {
-
-                    console.log('🔒 HEADER: Fallback auth state check - updating header');
                     this.lastKnownAuthState = currentAuthState;
                     this.lastKnownUser = currentUser?.email || null;
                     this.updateHeaderForUser();

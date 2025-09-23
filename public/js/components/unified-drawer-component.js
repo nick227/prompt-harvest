@@ -460,7 +460,7 @@ class UnifiedDrawerComponent {
                 <div class="${containerClass}">
                     <div class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
                         <a href="/" class="flex justify-between w-full">Home</a>
-                        <a href="/billing.html" class="flex justify-between w-full">Billing</a>
+                        <a href="/billing.html" class="flex justify-between w-full">Account</a>
                         <a href="/faq.html" class="flex justify-between w-full">FAQ</a>
                     </div>
                 </div>
@@ -613,7 +613,6 @@ class UnifiedDrawerComponent {
 
         checkboxes.forEach(checkbox => {
             values[checkbox.name] = checkbox.checked;
-            console.log(`📋 UNIFIED DRAWER: getFormValues - ${checkbox.name}: ${checkbox.checked}`);
         });
 
         // Get select values
@@ -678,7 +677,6 @@ class UnifiedDrawerComponent {
             const isMobileUpdate = window.mobileControlsManager && window.mobileControlsManager.isUpdatingFromMobile;
 
             if (isMobileUpdate) {
-                console.log('🔄 UNIFIED DRAWER: Skipping mobile HTML update - mobile is managing its own state');
 
                 // Still trigger mobile sorting even if we skip HTML update
                 this.sortMobileProviderList();
@@ -697,7 +695,6 @@ class UnifiedDrawerComponent {
                 });
             });
 
-            console.log('🔄 UNIFIED DRAWER: Updating mobile provider list, preserving states:', currentStates);
 
             // Update the HTML
             mobileProviderList.innerHTML = html;
@@ -709,7 +706,6 @@ class UnifiedDrawerComponent {
                 if (checkbox) {
                     checkbox.checked = state.checked;
                     checkbox.indeterminate = state.indeterminate;
-                    console.log(`✅ UNIFIED DRAWER: Restored ${key} checkbox to ${state.checked}`);
                 }
             });
         }
@@ -756,7 +752,6 @@ class UnifiedDrawerComponent {
             return labelA.localeCompare(labelB);
         });
 
-        console.log('🔄 UNIFIED DRAWER: Sorting mobile provider list - checked items first, then alphabetical');
 
         // Create a document fragment to avoid multiple DOM reflows - same logic as desktop
         const fragment = document.createDocumentFragment();
@@ -786,10 +781,8 @@ class UnifiedDrawerComponent {
                 top: 0,
                 behavior: 'smooth'
             });
-            console.log('📱 UNIFIED DRAWER: Scrolled mobile provider list to top');
         }
 
-        console.log('✅ UNIFIED DRAWER: Mobile provider list sorted successfully');
     }
 
     // Method to update prompt history in both drawers
@@ -816,7 +809,6 @@ class UnifiedDrawerComponent {
 
     saveCheckboxState(name, checked) {
         localStorage.setItem(`drawer_${name}`, checked.toString());
-        console.log(`📋 UNIFIED DRAWER: Saved ${name} checkbox state to localStorage:`, checked);
     }
 
     loadCheckboxState(name) {
@@ -830,21 +822,16 @@ class UnifiedDrawerComponent {
         checkboxNames.forEach(name => {
             const savedState = this.loadCheckboxState(name);
 
-            console.log(`📋 UNIFIED DRAWER: Loading ${name} checkbox state:`, savedState);
-
             // Update desktop drawer
             const desktopCheckbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
-            console.log(`📋 UNIFIED DRAWER: Desktop ${name} checkbox found:`, !!desktopCheckbox);
             if (desktopCheckbox) {
                 desktopCheckbox.checked = savedState;
-                console.log(`📋 UNIFIED DRAWER: Desktop ${name} checkbox set to:`, desktopCheckbox.checked);
             }
 
             // Update mobile drawer
             const mobileCheckbox = this.mobileDrawer?.querySelector(`input[name="${name}"]`);
             if (mobileCheckbox) {
                 mobileCheckbox.checked = savedState;
-                console.log(`📋 UNIFIED DRAWER: Mobile ${name} checkbox set to:`, mobileCheckbox.checked);
             }
         });
     }
@@ -857,7 +844,6 @@ class UnifiedDrawerComponent {
             const desktopCheckbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
             if (desktopCheckbox) {
                 desktopCheckbox.addEventListener('change', (e) => {
-                    console.log(`📋 UNIFIED DRAWER: ${name} checkbox changed to ${e.target.checked}`);
                     this.saveCheckboxState(name, e.target.checked);
                     this.syncCheckboxToMobile(name, e.target.checked);
                 });
@@ -867,7 +853,6 @@ class UnifiedDrawerComponent {
             const mobileCheckbox = this.mobileDrawer?.querySelector(`input[name="${name}"]`);
             if (mobileCheckbox) {
                 mobileCheckbox.addEventListener('change', (e) => {
-                    console.log(`📋 UNIFIED DRAWER: ${name} mobile checkbox changed to ${e.target.checked}`);
                     this.saveCheckboxState(name, e.target.checked);
                     this.syncCheckboxToDesktop(name, e.target.checked);
                 });
@@ -885,27 +870,10 @@ class UnifiedDrawerComponent {
 
     syncCheckboxToDesktop(name, checked) {
         const desktopCheckbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
+
         if (desktopCheckbox && desktopCheckbox.checked !== checked) {
             desktopCheckbox.checked = checked;
         }
-    }
-
-
-    // Test method to verify checkbox functionality
-    testCheckboxes() {
-        console.log('📋 UNIFIED DRAWER: Testing checkbox functionality...');
-        const testCheckboxes = ['photogenic', 'artistic'];
-
-        testCheckboxes.forEach(name => {
-            const checkbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
-            console.log(`📋 UNIFIED DRAWER: ${name} checkbox found:`, !!checkbox);
-            if (checkbox) {
-                console.log(`📋 UNIFIED DRAWER: ${name} checkbox checked:`, checkbox.checked);
-            }
-        });
-
-        const formValues = this.getFormValues('desktop');
-        console.log('📋 UNIFIED DRAWER: Form values:', formValues);
     }
 }
 
@@ -913,24 +881,10 @@ class UnifiedDrawerComponent {
 document.addEventListener('DOMContentLoaded', () => {
     window.unifiedDrawerComponent = new UnifiedDrawerComponent();
 
-    // Add global test function
-    window.testUnifiedDrawerCheckboxes = () => {
-        if (window.unifiedDrawerComponent) {
-            window.unifiedDrawerComponent.testCheckboxes();
-        } else {
-            console.warn('unifiedDrawerComponent not available');
-        }
-    };
-
     // Add function to manually check checkbox state
-    window.checkCheckboxState = (name) => {
+    window.checkCheckboxState = name => {
         const checkbox = document.querySelector(`input[name="${name}"]`);
-        console.log(`📋 CHECKBOX STATE: ${name}`, {
-            found: !!checkbox,
-            checked: checkbox?.checked,
-            visualElement: checkbox?.nextElementSibling,
-            visualClasses: checkbox?.nextElementSibling?.className
-        });
+
         return checkbox?.checked;
     };
 });

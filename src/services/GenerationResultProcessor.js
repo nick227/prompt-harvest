@@ -22,13 +22,14 @@ export class GenerationResultProcessor {
 
         try {
             // Step 2: Save image metadata to database
+            const userId = DatabaseService.getUserId(req);
             const imageData = {
                 prompt,
                 original,
                 provider: result.provider,
                 imageUrl,
                 promptId,
-                userId: DatabaseService.getUserId(req),
+                userId,
                 guidance: result.guidance || 10,
                 model: result.model || null,
                 autoPublic
@@ -37,9 +38,21 @@ export class GenerationResultProcessor {
             // Log imageData being passed to database save
             console.log('🔍 PROCESSOR DEBUG: ImageData being passed to saveImageToDatabase:', {
                 imageData,
+                userId,
                 autoPublicInImageData: imageData.autoPublic,
                 autoPublicType: typeof imageData.autoPublic
             });
+
+            // Critical check for userId
+            if (!userId) {
+                console.log('🚨 CRITICAL: userId is null - this image will show "Unknown" in the UI');
+                console.log('🚨 CRITICAL: req object:', {
+                    hasReq: !!req,
+                    hasUser: !!req?.user,
+                    hasUserId: !!req?.user?.id,
+                    userObject: req?.user
+                });
+            }
 
             const savedImage = await this.saveImageToDatabase(imageData);
 

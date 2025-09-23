@@ -326,46 +326,29 @@ class ImageViewUtils {
             return row;
         };
 
-        // Add provider row
-        const providerRow = createMetadataRow('Provider', imageData.provider || 'Unknown');
-        metadata.appendChild(providerRow);
-
-        // Add guidance row
-        const guidanceRow = createMetadataRow('Guidance', imageData.guidance || 'N/A');
-        metadata.appendChild(guidanceRow);
-
-        // Add status row
-        const statusRow = createMetadataRow('Status', imageData.isPublic ? 'Public' : 'Private');
-        const statusValue = statusRow.querySelector('.metadata-value');
-        statusValue.style.color = imageData.isPublic ? '#10b981' : '#f59e0b';
-        metadata.appendChild(statusRow);
-
-        // Add date row
-        const dateText = imageData.createdAt ?
-            new Date(imageData.createdAt).toLocaleDateString() :
-            'Just now';
-        const dateRow = createMetadataRow('Created', dateText);
-        metadata.appendChild(dateRow);
+        // Add model row (provider)
+        const modelRow = createMetadataRow('Model', imageData.provider || 'Unknown');
+        metadata.appendChild(modelRow);
 
         // Add rating row
         const ratingRow = createMetadataRow('Rating', `★ ${imageData.rating || 0}`);
         metadata.appendChild(ratingRow);
 
-        // Add rating buttons if available
-        if (window.RatingButtons) {
-            const ratingButtons = new window.RatingButtons(imageData.id, imageData.rating);
-            const buttonsContainer = ratingButtons.createRatingButtons();
-            const buttonsRow = createMetadataRow('Rate', '');
-            const buttonsValue = buttonsRow.querySelector('.metadata-value');
-            buttonsValue.innerHTML = '';
-            buttonsValue.appendChild(buttonsContainer);
-            metadata.appendChild(buttonsRow);
+        // Add creator row (username)
+        const creatorRow = createMetadataRow('Creator', imageData.username || 'Unknown');
+        metadata.appendChild(creatorRow);
+
+        // Add isPublic row - only for owner
+        if (this.shouldShowPublicToggle(imageData)) {
+            const publicRow = createMetadataRow('Visibility', imageData.isPublic ? 'Public' : 'Private');
+            const publicValue = publicRow.querySelector('.metadata-value');
+            publicValue.style.color = imageData.isPublic ? '#10b981' : '#f59e0b';
+            metadata.appendChild(publicRow);
         }
 
         // Add tags if available
         if (imageData.tags && Array.isArray(imageData.tags) && imageData.tags.length > 0) {
             const tagsContainer = ImageViewUtils.createTagsContainer(imageData.tags);
-
             metadata.appendChild(tagsContainer);
         }
 
@@ -437,67 +420,88 @@ class ImageViewUtils {
             const imageId = checkbox.getAttribute('data-image-id');
             const newStatus = checkbox.checked;
 
-            // Update DOM immediately
-            this.updateImageInDOM(imageId, { isPublic: newStatus });
-
-            // Show loading state
-            checkbox.disabled = true;
-            label.textContent = 'Updating...';
-            checkboxContainer.style.opacity = '0.6';
-
-            try {
-                // Call API to update server
-                const response = await fetch(`/api/images/${imageId}/public-status`, {
-                    method: 'PUT',
-                    headers: this.getAuthHeaders(),
-                    body: JSON.stringify({ isPublic: newStatus })
+            // Use unified public status service
+            if (window.PublicStatusService) {
+                const success = await window.PublicStatusService.updatePublicStatus(imageId, newStatus, {
+                    updateDOM: true,
+                    showNotifications: true,
+                    updateCache: true
                 });
 
-                if (response.ok) {
-                    console.log(`✅ Public status updated from ${viewType} view`);
-
-                    // Update cache if image manager is available
-                    if (window.imageManager && window.imageManager.data) {
-                        window.imageManager.data.updateCachedImage(imageId, { isPublic: newStatus });
-                    }
-
-                    // Update fullscreen checkbox if it's currently open for this image
-                    this.updateFullscreenCheckboxIfCurrent(imageId, newStatus);
-
-                    // Update the corresponding view checkbox
-                    const otherViewType = viewType === 'list' ? 'compact' : 'list';
-
-                    if (otherViewType === 'list') {
-                        this.updateListViewCheckboxIfExists(imageId, newStatus);
-                    } else {
-                        this.updateCompactViewCheckboxIfExists(imageId, newStatus);
-                    }
-
-                    // Remove image from feed if it became private and we're in site view
-                    // In mine view, keep the image visible so user can manage their private images
-                    if (!newStatus && this.isCurrentlyInSiteView()) {
-                        this.removeImageFromFeedIfAvailable(imageId);
-                    }
-                } else {
-                    console.error(`❌ Failed to update public status from ${viewType} view`);
-                    // Revert on failure
-                    checkbox.checked = !newStatus;
-                    this.updateImageInDOM(imageId, { isPublic: !newStatus });
+                if (success && !newStatus && this.isCurrentlyInSiteView()) {
+                    this.removeImageFromFeedIfAvailable(imageId);
                 }
-            } catch (error) {
-                console.error(`❌ Error updating public status from ${viewType} view:`, error);
-                // Revert on error
-                checkbox.checked = !newStatus;
-                this.updateImageInDOM(imageId, { isPublic: !newStatus });
-            } finally {
-                // Restore UI
-                checkbox.disabled = false;
-                label.textContent = 'Public';
-                checkboxContainer.style.opacity = '1';
+            } else {
+                console.error('❌ PublicStatusService not available, using fallback');
+                // Fallback to original implementation
+                this._handlePublicStatusChangeFallback(imageId, newStatus, checkbox, label, checkboxContainer, viewType);
             }
         });
 
         return checkboxContainer;
+    }
+
+    /**
+     * Fallback method for handling public status changes
+     * @private
+     */
+    _handlePublicStatusChangeFallback(imageId, newStatus, checkbox, label, checkboxContainer, viewType) {
+        // Update DOM immediately
+        this.updateImageInDOM(imageId, { isPublic: newStatus });
+
+        // Show loading state
+        checkbox.disabled = true;
+        label.textContent = 'Updating...';
+        checkboxContainer.style.opacity = '0.6';
+
+        // Call API to update server
+        fetch(`/api/images/${imageId}/public-status`, {
+            method: 'PUT',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify({ isPublic: newStatus })
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log(`✅ Public status updated from ${viewType} view (fallback)`);
+                return response.json();
+            } else {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+        })
+        .then(() => {
+            // Update cache if image manager is available
+            if (window.imageManager && window.imageManager.data) {
+                window.imageManager.data.updateCachedImage(imageId, { isPublic: newStatus });
+            }
+
+            // Update fullscreen checkbox if it's currently open for this image
+            this.updateFullscreenCheckboxIfCurrent(imageId, newStatus);
+
+            // Update the corresponding view checkbox
+            const otherViewType = viewType === 'list' ? 'compact' : 'list';
+            if (otherViewType === 'list') {
+                this.updateListViewCheckboxIfExists(imageId, newStatus);
+            } else {
+                this.updateCompactViewCheckboxIfExists(imageId, newStatus);
+            }
+
+            // Remove image from feed if it became private and we're in site view
+            if (!newStatus && this.isCurrentlyInSiteView()) {
+                this.removeImageFromFeedIfAvailable(imageId);
+            }
+        })
+        .catch(error => {
+            console.error(`❌ Error updating public status from ${viewType} view (fallback):`, error);
+            // Revert on error
+            checkbox.checked = !newStatus;
+            this.updateImageInDOM(imageId, { isPublic: !newStatus });
+        })
+        .finally(() => {
+            // Restore UI
+            checkbox.disabled = false;
+            label.textContent = 'Public';
+            checkboxContainer.style.opacity = '1';
+        });
     }
 
     /**
@@ -597,17 +601,60 @@ class ImageViewUtils {
                     return;
                 }
 
-                if (window.imageComponent && window.imageComponent.openFullscreen) {
-                    window.imageComponent.openFullscreen(imageData);
-                } else if (window.imageManager && window.imageManager.openFullscreen) {
-                    window.imageManager.openFullscreen(imageData);
+                // Extract data from the actual image element instead of using passed imageData
+                const imgElement = imageThumb.querySelector('img');
+                if (imgElement) {
+                    // Check all image elements in the document
+                    const allImages = document.querySelectorAll('img[data-id]');
+
+                    // Check if clicked image matches any of the images with dataset
+                    const clickedSrc = imgElement.src;
+                    const matchingImage = Array.from(allImages).find(img => img.src === clickedSrc);
+
+                    // Try to extract data using available methods
+                    let extractedData = null;
+                    let sourceElement = imgElement;
+
+                    // If the clicked image doesn't have dataset, try to find a matching image that does
+                    if (!imgElement.dataset.id && matchingImage) {
+                        sourceElement = matchingImage;
+                    }
+
+                    if (window.imageManager && window.imageManager.data) {
+                        extractedData = window.imageManager.data.extractImageDataFromElement(sourceElement);
+                    } else {
+                        // Fallback: extract data manually
+                        extractedData = {
+                            id: sourceElement.dataset.id || 'unknown',
+                            url: sourceElement.src,
+                            title: sourceElement.alt,
+                            prompt: sourceElement.dataset.prompt || sourceElement.dataset.final || '',
+                            original: sourceElement.dataset.original || '',
+                            final: sourceElement.dataset.final || sourceElement.dataset.prompt || '',
+                            provider: sourceElement.dataset.provider || '',
+                            guidance: sourceElement.dataset.guidance || '',
+                            rating: parseInt(sourceElement.dataset.rating) || 0,
+                            isPublic: sourceElement.dataset.isPublic === 'true' || false,
+                            userId: sourceElement.dataset.userId || null,
+                            username: sourceElement.dataset.username || null,
+                            createdAt: sourceElement.dataset.createdAt || null,
+                            tags: sourceElement.dataset.tags ? JSON.parse(sourceElement.dataset.tags) : []
+                        };
+                    }
+
+                    if (extractedData && window.imageComponent && window.imageComponent.openFullscreen) {
+                        window.imageComponent.openFullscreen(extractedData);
+                    } else if (extractedData && window.imageManager && window.imageManager.openFullscreen) {
+                        window.imageManager.openFullscreen(extractedData);
+                    } else {
+                        console.error('❌ LIST VIEW: Cannot open fullscreen - no fullscreen methods available', {
+                            imageComponent: !!window.imageComponent,
+                            imageManager: !!window.imageManager,
+                            hasExtractedData: !!extractedData
+                        });
+                    }
                 } else {
-                    console.error('❌ LIST VIEW: Cannot open fullscreen - no fullscreen methods available', {
-                        imageComponent: !!window.imageComponent,
-                        imageManager: !!window.imageManager,
-                        imageComponentOpenFullscreen: !!(window.imageComponent && window.imageComponent.openFullscreen),
-                        imageManagerOpenFullscreen: !!(window.imageManager && window.imageManager.openFullscreen)
-                    });
+                    console.error('❌ LIST VIEW: No image element found in imageThumb');
                 }
             });
         } else {
@@ -625,8 +672,6 @@ class ImageViewUtils {
         try {
             // Check if already enhanced
             if (wrapper.querySelector('.compact-view') && wrapper.querySelector('.list-view')) {
-                console.log('🔄 Wrapper already enhanced, skipping enhancement');
-
                 return true;
             }
 
@@ -822,15 +867,27 @@ class ImageViewUtils {
                 transition: all 0.2s ease;
             `;
 
+            // Add active class if tag is currently active
+            if (window.tagRouter && window.tagRouter.isTagActive(tag)) {
+                tagElement.classList.add('tag-chip-active');
+                tagElement.style.background = 'rgba(34, 197, 94, 0.3)';
+                tagElement.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                tagElement.style.color = '#22c55e';
+            }
+
             // Add hover effects
             tagElement.addEventListener('mouseenter', () => {
-                tagElement.style.background = 'rgba(59, 130, 246, 0.3)';
-                tagElement.style.transform = 'scale(1.05)';
+                if (!tagElement.classList.contains('tag-chip-active')) {
+                    tagElement.style.background = 'rgba(59, 130, 246, 0.3)';
+                    tagElement.style.transform = 'scale(1.05)';
+                }
             });
 
             tagElement.addEventListener('mouseleave', () => {
-                tagElement.style.background = 'rgba(59, 130, 246, 0.2)';
-                tagElement.style.transform = 'scale(1)';
+                if (!tagElement.classList.contains('tag-chip-active')) {
+                    tagElement.style.background = 'rgba(59, 130, 246, 0.2)';
+                    tagElement.style.transform = 'scale(1)';
+                }
             });
 
             // Add click handler to filter by tag
@@ -842,7 +899,7 @@ class ImageViewUtils {
 
                 // Use tag router if available
                 if (window.TagRouter && window.tagRouter) {
-                    window.tagRouter.setActiveTags([tag]);
+                    window.tagRouter.addTag(tag);
                 } else {
                     // Fallback: update URL directly
                     const url = new URL(window.location);
@@ -914,12 +971,11 @@ class ImageViewUtils {
             return false;
         }
 
-        // Only show toggle if current user owns the image
-        // If userId is not in the image data, assume it's the user's image
-        // (since they can see it in their feed)
+        // SECURITY: Only show toggle if current user owns the image
+        // Never assume ownership if userId is missing - this prevents unauthorized access
         if (!imageData.userId) {
-            console.log('🔍 Image missing userId, assuming user owns it');
-            return true; // Assume user owns it if they can see it
+            console.warn('🔒 SECURITY: Image missing userId, denying ownership access for security');
+            return false;
         }
 
         return imageData.userId === currentUserId;

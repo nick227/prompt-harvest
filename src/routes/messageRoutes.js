@@ -86,29 +86,34 @@ router.get('/user', verifyUser, async (req, res) => {
 
         const messages = await prisma.message.findMany({
             where: { userId },
-            include: {
-                user: {
-                    select: { username: true, email: true }
-                },
-                admin: {
-                    select: { username: true, email: true }
-                },
-                replies: {
-                    include: {
-                        user: {
-                            select: { username: true, email: true }
-                        },
-                        admin: {
-                            select: { username: true, email: true }
-                        }
-                    },
-                    orderBy: { createdAt: 'asc' }
-                }
-            },
             orderBy: { createdAt: 'desc' }
         });
 
-        res.json({ success: true, messages });
+        // Get user and admin details separately
+        const userIds = [...new Set(messages.map(m => m.userId).filter(Boolean))];
+        const adminIds = [...new Set(messages.map(m => m.adminId).filter(Boolean))];
+
+        const users = await prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, username: true, email: true }
+        });
+
+        const admins = await prisma.user.findMany({
+            where: { id: { in: adminIds } },
+            select: { id: true, username: true, email: true }
+        });
+
+        const userMap = new Map(users.map(u => [u.id, u]));
+        const adminMap = new Map(admins.map(a => [a.id, a]));
+
+        // Attach user and admin data to messages
+        const messagesWithUsers = messages.map(message => ({
+            ...message,
+            user: userMap.get(message.userId) || null,
+            admin: adminMap.get(message.adminId) || null
+        }));
+
+        res.json({ success: true, messages: messagesWithUsers });
     } catch (error) {
         console.error('Error fetching user messages:', error);
         res.status(500).json({ error: 'Failed to fetch messages' });

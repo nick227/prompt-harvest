@@ -115,10 +115,11 @@ class UnifiedAuthUtils {
             return false;
         }
 
-        // If image doesn't have userId, assume user owns it (since they can see it)
+        // SECURITY: Never assume ownership if userId is missing
+        // This prevents unauthorized access to images with missing ownership data
         if (!imageData.userId) {
-            console.log('🔍 Image missing userId, assuming user owns it');
-            return true;
+            console.warn('🔒 SECURITY: Image missing userId, denying ownership access for security');
+            return false;
         }
 
         return imageData.userId === currentUserId;

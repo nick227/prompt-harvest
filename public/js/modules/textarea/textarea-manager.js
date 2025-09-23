@@ -33,12 +33,6 @@ class TextAreaManager {
         this.textArea = Utils.dom.get(TEXTAREA_CONFIG.selectors.textArea);
         this.matchesEl = Utils.dom.get(TEXTAREA_CONFIG.selectors.matches);
 
-        console.log('🔍 TEXTAREA MANAGER: Initializing...', {
-            textArea: !!this.textArea,
-            matchesEl: !!this.matchesEl,
-            textAreaSelector: TEXTAREA_CONFIG.selectors.textArea,
-            matchesSelector: TEXTAREA_CONFIG.selectors.matches
-        });
 
         this.loadSavedHeight();
         Utils.dom.init(TEXTAREA_CONFIG.selectors);

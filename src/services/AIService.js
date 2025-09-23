@@ -86,7 +86,7 @@ export class AIService {
 
     // Prompt Processing
     // eslint-disable-next-line max-params
-    async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', photogenic = false, artistic = false, req = null) {
+    async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', photogenic = false, artistic = false, avatar = false, req = null) {
         // This will be implemented when we extract the prompt service
         // For now, we'll import the feed module directly
         const feed = await import('../feed.js');
@@ -99,6 +99,7 @@ export class AIService {
             customVariables,
             photogenic,
             artistic,
+            avatar,
             req
         );
     }

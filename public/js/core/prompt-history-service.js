@@ -44,6 +44,7 @@ class PromptHistoryService {
      */
     initMobile() {
         const mobileContainerId = 'mobile-prompt-history';
+
         this.mobileContainer = document.getElementById(mobileContainerId);
 
         if (!this.mobileContainer) {
@@ -213,11 +214,13 @@ class PromptHistoryService {
         // Clear existing prompts
         if (this.container) {
             const existingPrompts = this.container.querySelectorAll('.prompt-item');
+
             existingPrompts.forEach(prompt => prompt.remove());
         }
 
         if (this.mobileContainer) {
             const existingPrompts = this.mobileContainer.querySelectorAll('.prompt-item');
+
             existingPrompts.forEach(prompt => prompt.remove());
         }
 
@@ -297,11 +300,12 @@ class PromptHistoryService {
             console.error('❌ PROMPT HISTORY: API error response:', {
                 status: response.status,
                 statusText: response.statusText,
-                errorText: errorText
+                errorText
             });
 
             if (response.status === 401) {
                 console.log('🔍 PROMPT HISTORY: User not authenticated, skipping prompt history');
+
                 return { success: false, error: { message: 'Not authenticated' } };
             }
 
@@ -387,6 +391,7 @@ class PromptHistoryService {
         // Also add to mobile container if it exists
         if (this.mobileContainer) {
             const mobilePromptElement = promptElement.cloneNode(true);
+
             this.mobileContainer.insertBefore(mobilePromptElement, this.mobileLoadMoreButton);
         }
     }
@@ -401,6 +406,7 @@ class PromptHistoryService {
         if (this.container) {
             // Clear existing prompts
             const existingPrompts = this.container.querySelectorAll('.prompt-item');
+
             existingPrompts.forEach(prompt => prompt.remove());
 
             // Add new prompts
@@ -430,17 +436,11 @@ class PromptHistoryService {
         const date = new Date(prompt.createdAt);
         const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
-        // Truncate prompt text
-        const truncatedPrompt = prompt.prompt.length > 100 ?
-            `${prompt.prompt.substring(0, 100)}...` :
-            prompt.prompt;
-
         promptDiv.innerHTML = `
             <div class="prompt-text text-white text-sm mb-2" title="${prompt.prompt.replace(/"/g, '&quot;')}">
-                ${truncatedPrompt}
+                ${prompt.prompt}
             </div>
-            <div class="prompt-meta text-gray-400 text-xs flex justify-between items-center">
-                <span class="provider">${prompt.provider}</span>
+            <div class="prompt-meta text-gray-400 text-xs">
                 <span class="date">${formattedDate}</span>
             </div>
         `;
@@ -549,12 +549,14 @@ class PromptHistoryService {
         if (this.container) {
             // Remove all prompt elements but keep the load more button
             const promptElements = this.container.querySelectorAll('.prompt-item');
+
             promptElements.forEach(element => element.remove());
         }
 
         if (this.mobileContainer) {
             // Remove all prompt elements from mobile container
             const mobilePromptElements = this.mobileContainer.querySelectorAll('.prompt-item');
+
             mobilePromptElements.forEach(element => element.remove());
         }
 

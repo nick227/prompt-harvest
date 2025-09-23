@@ -283,13 +283,14 @@ const mashupPrompt = prompt => {
 const processPromptText = async(prompt, customDict) => await wordTypeManager.processPromptText(prompt, customDict);
 
 /**
- * Append stock text based on photogenic and artistic flags
+ * Append stock text based on photogenic, artistic, and avatar flags
  * @param {string} prompt - Original prompt
  * @param {boolean} photogenic - Whether to append photogenic text
  * @param {boolean} artistic - Whether to append artistic text
+ * @param {boolean} avatar - Whether to append avatar text
  * @returns {string} Prompt with stock text appended
  */
-const appendStockText = (prompt, photogenic, artistic) => {
+const appendStockText = (prompt, photogenic, artistic, avatar) => {
 
     const randomArtisticTexts = ['beautiful', 'aesthetic', 'stunning', 'gorgeous', 'glamorous', 'fantastic', 'magnificent', 'incredible', 'spectacular', 'marvelous'];
     const randomArtisticText = randomArtisticTexts[Math.floor(Math.random() * randomArtisticTexts.length)];
@@ -301,6 +302,10 @@ const appendStockText = (prompt, photogenic, artistic) => {
 
     if (artistic) {
         stockText = `artistic creative, illustration, ultra-detailed, expressive, ${randomArtisticText}`;
+    }
+
+    if (avatar) {
+        stockText = `professional headshot, portrait photography, clean background, professional lighting, high quality, detailed facial features, ${randomArtisticText}`;
     }
 
     stockText = stockText.split(' ').sort(() => Math.random() - 0.5).join(' ');
@@ -352,10 +357,11 @@ const applyPromptModifications = async(processedString, options, customDict, ori
  * @param {string} customVariables - Custom variables string
  * @param {boolean} photogenic - Whether to append photogenic text
  * @param {boolean} artistic - Whether to append artistic text
+ * @param {boolean} avatar - Whether to append avatar text
  * @returns {Promise<Object>} Processed prompt data
  */
 // eslint-disable-next-line max-params
-const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, photogenic = false, artistic = false) => {
+const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, photogenic = false, artistic = false, avatar = false) => {
     try {
         // Add detailed logging for debugging
         console.log('🔍 buildPrompt called with:', {
@@ -366,7 +372,8 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, ph
             mashup: mashup ? 'present' : 'false',
             customVariables: customVariables ? 'present' : 'false',
             photogenic: photogenic ? 'true' : 'false',
-            artistic: artistic ? 'true' : 'false'
+            artistic: artistic ? 'true' : 'false',
+            avatar: avatar ? 'true' : 'false'
         });
 
         if (typeof prompt !== 'string' || !prompt) {
@@ -379,14 +386,15 @@ const buildPrompt = async(prompt, multiplier, mixup, mashup, customVariables, ph
         const customDict = processCustomVariables(customVariables, {});
         let processedString = await processPromptText(prompt, customDict);
 
-        // Apply stock text based on photogenic and artistic flags
+        // Apply stock text based on photogenic, artistic, and avatar flags
         console.log('🔍 PROMPT PROCESSOR: Before appendStockText:', {
             processedString: processedString ? `${processedString.substring(0, 100)}...` : 'empty',
             photogenic,
-            artistic
+            artistic,
+            avatar
         });
 
-        processedString = appendStockText(processedString, photogenic, artistic);
+        processedString = appendStockText(processedString, photogenic, artistic, avatar);
 
         console.log('🔍 PROMPT PROCESSOR: After appendStockText:', {
             processedString: processedString ? `${processedString.substring(0, 100)}...` : 'empty'

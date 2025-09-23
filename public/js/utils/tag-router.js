@@ -17,6 +17,11 @@ class TagRouter {
         window.addEventListener('popstate', () => {
             this.handleURLChange();
         });
+
+        // Notify listeners after a short delay to ensure all listeners are subscribed
+        setTimeout(() => {
+            this.notifyListeners();
+        }, 100);
     }
 
     /**
@@ -28,8 +33,9 @@ class TagRouter {
             const tagParam = urlParams.get('tag');
 
             if (tagParam) {
-                // console.log(`🏷️ TAG ROUTER: Initial tag parameter found: ${tagParam}`);
-                this.setActiveTags([tagParam]);
+                // Parse multiple tags from comma-separated string
+                const tags = tagParam.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+                this.setActiveTags(tags);
                 // Notify listeners about initial tag state
                 this.notifyListeners();
             } else {
@@ -57,6 +63,7 @@ class TagRouter {
     setActiveTags(tags) {
         this.currentTags = tags || [];
         this.updateURL();
+        this.notifyListeners();
     }
 
     /**
@@ -149,7 +156,6 @@ class TagRouter {
      */
     subscribe(listenerId, callback) {
         this.listeners.set(listenerId, callback);
-        // console.log(`🏷️ TAG ROUTER: Subscribed listener ${listenerId}, total listeners: ${this.listeners.size}`);
     }
 
     /**
@@ -166,13 +172,56 @@ class TagRouter {
      */
     notifyListeners() {
         const tags = this.getActiveTags();
-        // console.log(`🏷️ TAG ROUTER: Notifying ${this.listeners.size} listeners of tag change:`, tags);
 
         this.listeners.forEach((callback, listenerId) => {
             try {
                 callback(tags, listenerId);
             } catch (error) {
                 console.error(`❌ TAG ROUTER: Error in listener ${listenerId}:`, error);
+            }
+        });
+
+        // Update all tag chips with active state
+        this.updateTagChips();
+    }
+
+    /**
+     * Update all tag chips to reflect active state
+     */
+    updateTagChips() {
+        const activeTags = this.getActiveTags();
+
+        // Update list view tag chips
+        const listTagChips = document.querySelectorAll('.list-tags-container span');
+        listTagChips.forEach(chip => {
+            const tagText = chip.textContent.trim();
+            if (activeTags.includes(tagText)) {
+                chip.classList.add('tag-chip-active');
+                chip.style.background = 'rgba(34, 197, 94, 0.3)';
+                chip.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                chip.style.color = '#22c55e';
+            } else {
+                chip.classList.remove('tag-chip-active');
+                chip.style.background = 'rgba(59, 130, 246, 0.2)';
+                chip.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                chip.style.color = '#60a5fa';
+            }
+        });
+
+        // Update info box tag chips
+        const infoBoxTagChips = document.querySelectorAll('.info-box-tag-chip');
+        infoBoxTagChips.forEach(chip => {
+            const tagText = chip.textContent.trim();
+            if (activeTags.includes(tagText)) {
+                chip.classList.add('tag-chip-active');
+                chip.style.background = 'rgba(34, 197, 94, 0.3)';
+                chip.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                chip.style.color = '#22c55e';
+            } else {
+                chip.classList.remove('tag-chip-active');
+                chip.style.background = 'rgba(59, 130, 246, 0.2)';
+                chip.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                chip.style.color = 'rgb(96, 165, 250)';
             }
         });
     }

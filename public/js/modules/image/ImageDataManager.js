@@ -216,7 +216,7 @@ class ImageDataManager {
                imageData.userName ||
                imageData.creator ||
                imageData.author ||
-               null;
+               (imageData.userId ? 'Unknown User' : 'Anonymous');
     }
 
     /**
@@ -256,7 +256,6 @@ class ImageDataManager {
      */
     extractImageDataFromElement(img) {
         // Extracting image data from element
-
         const rawData = {
             id: img.dataset.id || img.dataset.imageId,
             url: img.src,

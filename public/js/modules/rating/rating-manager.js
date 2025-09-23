@@ -1,4 +1,4 @@
-// rating Manager - Consolidated from setupRatingFilter.js and setupKeyboardListeners.js
+// rating Manager - Consolidated from setupKeyboardListeners.js
 class RatingManager {
     constructor() {
         this.config = RATING_CONFIG;
@@ -14,7 +14,6 @@ class RatingManager {
         }
 
         this.setupKeyboardListeners();
-        this.setupRatingFilter();
 
         this.isInitialized = true;
 
@@ -38,34 +37,6 @@ class RatingManager {
                 }
             }
         });
-    }
-
-    setupRatingFilter() {
-        // Try to find the dropdown container immediately
-        const dropdownContainer = document.getElementById('rating-dropdown');
-
-        if (dropdownContainer) {
-            this.createRatingDropdown(dropdownContainer);
-        } else {
-            // If not found immediately, try again after a short delay
-            setTimeout(() => {
-                const retryContainer = document.getElementById('rating-dropdown');
-
-                if (retryContainer) {
-                    this.createRatingDropdown(retryContainer);
-                } else {
-                    // Try one more time with a longer delay
-                    setTimeout(() => {
-                        const finalRetryContainer = document.getElementById('rating-dropdown');
-                        if (finalRetryContainer) {
-                            this.createRatingDropdown(finalRetryContainer);
-                        } else {
-                            console.warn('Rating dropdown container not found after retries, filter functionality disabled');
-                        }
-                    }, 500);
-                }
-            }, 100);
-        }
     }
 
     createRatingDropdown(_container) {

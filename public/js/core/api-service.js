@@ -203,9 +203,13 @@ class ApiService {
             });
         }
 
-        // Only log headers for auth endpoints or when debugging
-        if (endpoint.includes('/api/auth/') || window.location.search.includes('debug')) {
-            console.log('🔑 API: Request headers for', endpoint, ':', headers);
+        // Only log headers when debugging (and never log auth tokens)
+        if (window.location.search.includes('debug') && !endpoint.includes('/api/auth/')) {
+            const safeHeaders = { ...headers };
+            if (safeHeaders.Authorization) {
+                safeHeaders.Authorization = safeHeaders.Authorization.substring(0, 20) + '...';
+            }
+            console.log('🔑 API: Request headers for', endpoint, ':', safeHeaders);
         }
 
         const requestOptions = this.buildRequestOptions(method, headers, data, options);
@@ -552,7 +556,16 @@ class ImageApiService extends ApiService {
             throw new Error('Image ID is required');
         }
 
-        return this.get(`/api/images/${id}`);
+        console.log('🔍 API-SERVICE: Getting image by ID:', id);
+        const result = await this.get(`/api/images/${id}`);
+        console.log('🔍 API-SERVICE: Image API response:', {
+            success: result.success,
+            hasData: !!result.data,
+            username: result.data?.username,
+            userId: result.data?.userId,
+            fullResponse: result
+        });
+        return result;
     }
 
     /**

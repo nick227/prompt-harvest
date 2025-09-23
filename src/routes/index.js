@@ -13,6 +13,7 @@ import { setupWordRoutes } from './wordRoutes.js';
 import { setupPromptRoutes } from './promptRoutes.js';
 import setupViolationRoutes from './violationRoutes.js';
 import { setupAdminPromoRoutes } from './adminPromoRoutes.js';
+import { setupProfileRoutes } from './profileRoutes.js';
 import creditsRouter from './credits.js';
 import packagesRouter from './packages.js';
 import providersRouter from './providers.js';
@@ -27,6 +28,7 @@ import { LikeController } from '../controllers/LikeController.js';
 import { TagController } from '../controllers/TagController.js';
 import { TransactionController } from '../controllers/TransactionController.js';
 import { PromptController } from '../controllers/PromptController.js';
+import { ProfileController } from '../controllers/ProfileController.js';
 import { EnhancedImageService } from '../services/EnhancedImageService.js';
 import { AIService } from '../services/AIService.js';
 import { LikeService } from '../services/LikeService.js';
@@ -81,6 +83,7 @@ export const setupRoutes = async app => {
     let tagController;
     let transactionController;
     let promptController;
+    let profileController;
 
     try {
         aiController = new AIController(aiService);
@@ -90,6 +93,7 @@ export const setupRoutes = async app => {
         tagController = new TagController(tagService);
         transactionController = new TransactionController();
         promptController = new PromptController();
+        profileController = new ProfileController();
     } catch (error) {
         console.error('❌ Failed to initialize controllers:', error.message);
         process.exit(1);
@@ -107,6 +111,8 @@ export const setupRoutes = async app => {
 
     setupEnhancedImageRoutes(app, enhancedImageController); // Enhanced routes with circuit breakers
     console.log('✅ MAIN ROUTES: Enhanced image routes setup completed');
+    setupProfileRoutes(app, profileController); // Profile management routes
+    console.log('✅ MAIN ROUTES: Profile routes setup completed');
     setupFeedRoutes(app, enhancedImageController);
     setupAIRoutes(app, aiController);
     setupConfigRoutes(app, configController);

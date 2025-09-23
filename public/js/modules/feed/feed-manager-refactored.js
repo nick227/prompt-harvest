@@ -86,25 +86,25 @@ class FeedManager {
     async setupTagRouter() {
         if (window.tagRouter) {
             this.tagRouter = window.tagRouter;
-            // console.log('🏷️ FEED MANAGER: Using global tag router for subscription');
+            console.log('🏷️ FEED MANAGER: Using global tag router for subscription');
         }
 
         if (this.tagRouter) {
-            // console.log('🏷️ FEED MANAGER: Subscribing to tag router changes');
+            console.log('🏷️ FEED MANAGER: Subscribing to tag router changes');
             this.tagRouter.subscribe('feedManager', this.handleTagChange);
-            // console.log('🏷️ FEED MANAGER: Subscription completed, current listeners:', this.tagRouter.listeners.size);
+            console.log('🏷️ FEED MANAGER: Subscription completed, current listeners:', this.tagRouter.listeners.size);
         } else {
-            // console.log('🏷️ FEED MANAGER: Tag router not available yet, will connect later');
+            console.log('🏷️ FEED MANAGER: Tag router not available yet, will connect later');
         }
     }
 
     // Connect to tag router when it becomes available
     connectTagRouter() {
         if (window.tagRouter && !this.tagRouter) {
-            // console.log('🏷️ FEED MANAGER: Connecting to tag router that became available');
+            console.log('🏷️ FEED MANAGER: Connecting to tag router that became available');
             this.tagRouter = window.tagRouter;
             this.tagRouter.subscribe('feedManager', this.handleTagChange);
-            // console.log('🏷️ FEED MANAGER: Tag router connected successfully');
+            console.log('🏷️ FEED MANAGER: Tag router connected successfully');
         }
     }
 
@@ -163,22 +163,17 @@ class FeedManager {
     // Handle tag changes from tag router
     async handleTagChange(activeTags) {
         try {
-
             console.log('🏷️ FEED MANAGER: Tag change detected:', activeTags);
 
             // Update tag filter indicator
             if (this.uiManager.updateTagFilterIndicator) {
-                console.log('🏷️ FEED MANAGER: Updating tag filter indicator');
                 this.uiManager.updateTagFilterIndicator(activeTags);
             }
 
             // Get current filter
             const currentFilter = this.filterManager.getCurrentFilter();
 
-            console.log(`🏷️ FEED MANAGER: Current filter: ${currentFilter}`);
-
             // Reload images with new tag filter
-            console.log('🏷️ FEED MANAGER: Reloading images with tag filter');
             await this.loadFilterImages(currentFilter);
 
         } catch (error) {
@@ -265,18 +260,14 @@ class FeedManager {
             // Check if user can access user filter
             if (filter === FEED_CONSTANTS.FILTERS.USER && !this.apiManager.isUserAuthenticated()) {
                 this.uiManager.showLoginPrompt();
-
                 return;
             }
 
             // Start smooth transition (fade out current content)
             const promptOutput = await this.uiManager.startSmoothTransition();
 
-
             // Get current active tags from tag router
             const activeTags = this.tagRouter ? this.tagRouter.getActiveTags() : [];
-
-            // console.log('🏷️ FEED MANAGER: Loading images with tags:', activeTags);
 
             // Load images from API with tag filtering
             const result = await this.apiManager.loadFeedImages(filter, 0, activeTags);

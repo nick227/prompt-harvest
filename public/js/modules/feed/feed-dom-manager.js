@@ -57,7 +57,6 @@ class FeedDOMManager {
         const existingWrapper = promptOutput.querySelector(`[data-image-id="${imageData.id}"]`);
 
         if (existingWrapper) {
-            console.log('🔄 DOM MANAGER: Image already exists, skipping duplicate:', imageData.id);
 
             return false;
         }
@@ -66,7 +65,6 @@ class FeedDOMManager {
         const loadingPlaceholder = promptOutput.querySelector('.loading-placeholder');
 
         if (loadingPlaceholder) {
-            console.log('🔄 Replacing loading placeholder with generated image');
 
             return this.replaceLoadingPlaceholder(loadingPlaceholder, imageData, filter);
         }
@@ -110,23 +108,15 @@ class FeedDOMManager {
         wrapper.dataset.tags = imageData.tags ? JSON.stringify(imageData.tags) : '';
         wrapper.dataset.taggedAt = imageData.taggedAt || '';
 
-        // Create image element using image component
+
         if (window.imageComponent) {
-            console.log('🔍 FEED-DOM-MANAGER: Adding image to feed with data:', {
-                id: imageData.id,
-                username: imageData.username,
-                userId: imageData.userId,
-                createdAt: imageData.createdAt,
-                tags: imageData.tags
-            });
-            
             const imageElement = window.imageComponent.createImageElement(imageData);
 
             wrapper.appendChild(imageElement);
 
             // Cache the image data in the image manager
             if (window.imageManager && window.imageManager.data) {
-        // Caching newly added image
+                // Caching newly added image
                 window.imageManager.data.cacheImage({
                     ...imageData,
                     element: wrapper
@@ -138,7 +128,6 @@ class FeedDOMManager {
 
         // Enhance wrapper with dual views if view manager is available
         if (window.feedManager && window.feedManager.viewManager) {
-            console.log('🔄 DOM MANAGER: Enhancing new image wrapper with dual views');
             window.feedManager.viewManager.enhanceNewImageWrapper(wrapper);
         } else {
             // Try to enhance later when FeedManager is available
@@ -153,8 +142,8 @@ class FeedDOMManager {
 
         const tryEnhance = () => {
             if (window.feedManager && window.feedManager.viewManager) {
-                console.log('🔄 DOM MANAGER: Enhancing wrapper with dual views (delayed)');
                 window.feedManager.viewManager.enhanceNewImageWrapper(wrapper);
+
                 return;
             }
 
@@ -204,11 +193,9 @@ class FeedDOMManager {
 
     // Replace dual view placeholder
     replaceDualViewPlaceholder(loadingWrapper, imageData, filter) {
-        console.log('🔄 MANUAL FIX: Replacing dual view loading placeholder with manual structure');
 
         // Get current view mode to determine what to create
         const currentView = window.feedManager?.viewManager?.currentView || 'compact';
-        console.log('🔄 Current view mode:', currentView);
 
         // Update wrapper data attributes first
         loadingWrapper.dataset.imageId = imageData.id;
@@ -223,13 +210,14 @@ class FeedDOMManager {
 
         if (currentView === 'compact') {
             // COMPACT VIEW: Only create compact view with image, no metadata table
-            console.log('🔄 Creating compact view only (no metadata table)');
 
             const compactView = document.createElement('div');
+
             compactView.className = 'compact-view';
             compactView.style.cssText = 'width: 100%; height: 100%; position: relative; display: block;';
 
             const compactImg = document.createElement('img');
+
             compactImg.src = imageData.url;
             compactImg.alt = `Generated image: ${imageData.prompt} (${imageData.provider})`;
             compactImg.className = 'generated-image image-loaded';
@@ -260,15 +248,15 @@ class FeedDOMManager {
             loadingWrapper.classList.remove('list');
 
         } else {
-            // LIST VIEW: Create both views but show only list view
-            console.log('🔄 Creating both views for list mode');
 
             // Create compact view (hidden in list mode)
             const compactView = document.createElement('div');
+
             compactView.className = 'compact-view';
             compactView.style.cssText = 'width: 100%; height: 100%; position: relative; display: none;';
 
             const compactImg = document.createElement('img');
+
             compactImg.src = imageData.url;
             compactImg.alt = `Generated image: ${imageData.prompt} (${imageData.provider})`;
             compactImg.className = 'generated-image image-loaded';
@@ -295,13 +283,16 @@ class FeedDOMManager {
 
             // Create list view (visible in list mode)
             const listView = document.createElement('div');
+
             listView.className = 'list-view';
             listView.style.cssText = 'display: flex; background: var(--color-surface-primary); border-color: var(--color-border-primary);';
 
             // Create list view thumbnail
             const listImageThumb = document.createElement('div');
+
             listImageThumb.className = 'list-image-thumb';
             const listThumbImg = document.createElement('img');
+
             listThumbImg.src = imageData.url;
             listThumbImg.alt = `Generated image: ${imageData.prompt} (${imageData.provider})`;
 
@@ -323,36 +314,44 @@ class FeedDOMManager {
 
             // Create list view content
             const listContent = document.createElement('div');
+
             listContent.className = 'list-content';
 
             // Create header
             const listHeader = document.createElement('div');
+
             listHeader.className = 'list-header';
             const listTitle = document.createElement('h3');
+
             listTitle.className = 'list-title';
             listTitle.textContent = `Generated image: ${imageData.prompt} (${imageData.provider})`;
             listHeader.appendChild(listTitle);
 
             // Create prompt section
             const listPromptSection = document.createElement('div');
+
             listPromptSection.className = 'list-prompt-section';
 
             const originalLabel = document.createElement('span');
+
             originalLabel.className = 'list-prompt-label';
             originalLabel.style.cssText = 'color: rgb(156, 163, 175); font-size: 12px; font-weight: bold; margin-right: 8px; display: block; margin-bottom: 4px;';
             originalLabel.textContent = 'Original Prompt:';
 
             const originalText = document.createElement('div');
+
             originalText.className = 'list-prompt-text';
             originalText.style.cssText = 'color: rgb(209, 213, 219); font-size: 14px; margin-bottom: 8px; padding: 8px; background: rgba(55, 65, 81, 0.3); border-radius: 4px; border-left: 3px solid rgb(107, 114, 128);';
             originalText.textContent = imageData.original || imageData.prompt;
 
             const finalLabel = document.createElement('span');
+
             finalLabel.className = 'list-prompt-label';
             finalLabel.style.cssText = 'color: rgb(156, 163, 175); font-size: 12px; font-weight: bold; margin-right: 8px; display: block; margin-bottom: 4px;';
             finalLabel.textContent = 'Final Prompt:';
 
             const finalText = document.createElement('div');
+
             finalText.className = 'list-prompt-text';
             finalText.style.cssText = 'color: rgb(209, 213, 219); font-size: 14px; margin-bottom: 8px; padding: 8px; background: rgba(55, 65, 81, 0.3); border-radius: 4px; border-left: 3px solid rgb(16, 185, 129);';
             finalText.textContent = imageData.prompt;
@@ -364,6 +363,7 @@ class FeedDOMManager {
 
             // Create metadata using the working method
             const listMetadata = document.createElement('div');
+
             listMetadata.className = 'list-metadata';
 
             // Use the working createListViewMetadata method
@@ -374,27 +374,43 @@ class FeedDOMManager {
                 console.warn('⚠️ ImageViewUtils.createListViewMetadata not available, using fallback');
             }
 
-            // Create public checkbox container
+            // Create public checkbox container - ONLY if user owns the image
             const listPublicCheckboxContainer = document.createElement('div');
+
             listPublicCheckboxContainer.className = 'list-public-checkbox-container';
             listPublicCheckboxContainer.style.cssText = 'background: rgba(0, 0, 0, 0.7); padding: 4px 8px; border-radius: 12px; z-index: 10; pointer-events: auto;';
 
-            const publicCheckbox = document.createElement('input');
-            publicCheckbox.type = 'checkbox';
-            publicCheckbox.className = 'public-status-checkbox';
-            publicCheckbox.id = `public-toggle-list-${imageData.id}`;
-            publicCheckbox.checked = imageData.isPublic || false;
-            publicCheckbox.setAttribute('data-image-id', imageData.id);
-            publicCheckbox.setAttribute('aria-label', 'Toggle public visibility');
+            // SECURITY: Check if user owns the image before showing interactive checkbox
+            if (window.UnifiedAuthUtils && window.UnifiedAuthUtils.shouldShowPublicToggle(imageData)) {
+                // User owns the image - show interactive checkbox
+                const publicCheckbox = document.createElement('input');
 
-            const publicLabel = document.createElement('label');
-            publicLabel.className = 'public-status-label';
-            publicLabel.setAttribute('for', `public-toggle-list-${imageData.id}`);
-            publicLabel.style.cssText = 'color: white; font-size: 11px; font-weight: bold; margin-left: 4px; cursor: pointer;';
-            publicLabel.textContent = 'Public';
+                publicCheckbox.type = 'checkbox';
+                publicCheckbox.className = 'public-status-checkbox';
+                publicCheckbox.id = `public-toggle-list-${imageData.id}`;
+                publicCheckbox.checked = imageData.isPublic || false;
+                publicCheckbox.setAttribute('data-image-id', imageData.id);
+                publicCheckbox.setAttribute('aria-label', 'Toggle public visibility');
 
-            listPublicCheckboxContainer.appendChild(publicCheckbox);
-            listPublicCheckboxContainer.appendChild(publicLabel);
+                const publicLabel = document.createElement('label');
+
+                publicLabel.className = 'public-status-label';
+                publicLabel.setAttribute('for', `public-toggle-list-${imageData.id}`);
+                publicLabel.style.cssText = 'color: white; font-size: 11px; font-weight: bold; margin-left: 4px; cursor: pointer;';
+                publicLabel.textContent = 'Public';
+
+                listPublicCheckboxContainer.appendChild(publicCheckbox);
+                listPublicCheckboxContainer.appendChild(publicLabel);
+            } else {
+                // User doesn't own the image - show read-only status
+                const publicDisplay = document.createElement('div');
+
+                publicDisplay.className = 'list-public-display';
+                publicDisplay.textContent = imageData.isPublic ? 'Public' : 'Private';
+                publicDisplay.style.cssText = 'color: white; font-size: 11px; font-weight: bold;';
+
+                listPublicCheckboxContainer.appendChild(publicDisplay);
+            }
 
             // Assemble list content
             listContent.appendChild(listHeader);
@@ -424,8 +440,6 @@ class FeedDOMManager {
             window.feedManager.viewManager.ensureViewApplied();
         }
 
-        console.log('✅ MANUAL FIX: Dual view loading placeholder replaced with view-appropriate structure');
-
         // Handle auto download for dual view placeholder replacement (this is always a new generation)
         this.handleAutoDownloadForFeed(imageData, true);
 
@@ -434,11 +448,9 @@ class FeedDOMManager {
 
     // Fallback method for dual view placeholder replacement
     replaceDualViewPlaceholderFallback(loadingWrapper, imageData, filter) {
-        console.log('🔄 Using fallback dual view replacement method');
 
         // Get current view mode to determine what to update
         const currentView = window.feedManager?.viewManager?.currentView || 'compact';
-        console.log('🔄 Fallback: Current view mode:', currentView);
 
         // Create the actual image element
         const img = document.createElement('img');
@@ -461,20 +473,18 @@ class FeedDOMManager {
         loadingWrapper.dataset.filter = filter;
 
         if (currentView === 'compact') {
-            // COMPACT VIEW: Only update compact view, skip list view
-            console.log('🔄 Fallback: Updating compact view only');
 
             const compactView = loadingWrapper.querySelector('.compact-view');
+
             if (compactView) {
                 compactView.innerHTML = '';
                 compactView.appendChild(img);
             }
         } else {
-            // LIST VIEW: Update both views
-            console.log('🔄 Fallback: Updating both views for list mode');
 
             // Find the compact view and replace its content
             const compactView = loadingWrapper.querySelector('.compact-view');
+
             if (compactView) {
                 compactView.innerHTML = '';
                 compactView.appendChild(img);
@@ -482,6 +492,7 @@ class FeedDOMManager {
 
             // Find the list view and update its complete content
             const listView = loadingWrapper.querySelector('.list-view');
+
             if (listView) {
                 this.updateCompleteListViewContent(listView, imageData);
             }
@@ -493,9 +504,11 @@ class FeedDOMManager {
 
         // Ensure the wrapper has the correct view class
         const promptOutput = loadingWrapper.closest('.prompt-output');
+
         if (promptOutput && window.feedManager && window.feedManager.viewManager) {
             const { viewManager } = window.feedManager;
             const { currentView } = viewManager;
+
             if (currentView === 'list') {
                 loadingWrapper.classList.add('list');
                 loadingWrapper.classList.remove('compact');
@@ -508,14 +521,11 @@ class FeedDOMManager {
             window.feedManager.viewManager.ensureViewApplied();
         }
 
-        console.log('✅ Dual view loading placeholder replaced using fallback method');
-
         return true;
     }
 
     // Replace simple placeholder
     replaceSimplePlaceholder(loadingPlaceholder, imageData, filter) {
-        console.log('🔄 Replacing simple loading placeholder');
 
         // Create new image wrapper
         const wrapper = this.createImageWrapper(imageData, filter);
@@ -527,8 +537,6 @@ class FeedDOMManager {
             container.replaceChild(wrapper, loadingPlaceholder);
         }
 
-        console.log('✅ Simple loading placeholder replaced successfully');
-
         // Handle auto download for simple placeholder replacement (this is always a new generation)
         this.handleAutoDownloadForFeed(imageData, true);
 
@@ -537,7 +545,6 @@ class FeedDOMManager {
 
     // Update complete list view content
     updateCompleteListViewContent(listView, imageData) {
-        console.log('🔄 DOM MANAGER: Updating complete list view content for image:', imageData.id);
 
         // Update thumbnail
         const thumbnailContainer = listView.querySelector('.list-image-thumb');
@@ -557,7 +564,6 @@ class FeedDOMManager {
             `;
 
             thumbnailContainer.appendChild(thumbnailImg);
-            console.log('✅ DOM MANAGER: Updated thumbnail');
         } else {
             console.warn('⚠️ DOM MANAGER: No thumbnail container found');
         }
@@ -567,7 +573,6 @@ class FeedDOMManager {
 
         if (titleElement) {
             titleElement.textContent = imageData.title || 'Generated Image';
-            console.log('✅ DOM MANAGER: Updated title');
         } else {
             console.warn('⚠️ DOM MANAGER: No title element found');
         }
@@ -576,7 +581,6 @@ class FeedDOMManager {
 
         if (loadingIndicator) {
             loadingIndicator.remove();
-            console.log('✅ DOM MANAGER: Removed loading indicator');
         }
 
         // Update prompt section with actual prompt data
@@ -584,7 +588,6 @@ class FeedDOMManager {
 
         if (promptSection) {
             window.ImageViewUtils.createListViewPromptSection(imageData, promptSection);
-            console.log('✅ DOM MANAGER: Updated prompt section');
         } else {
             console.warn('⚠️ DOM MANAGER: No prompt section found');
         }
@@ -593,17 +596,16 @@ class FeedDOMManager {
         const metadata = listView.querySelector('.list-metadata');
 
         if (metadata) {
-            console.log('✅ DOM MANAGER: Found existing metadata element, updating...');
             window.ImageViewUtils.createListViewMetadata(imageData, metadata);
-            console.log('✅ DOM MANAGER: Updated metadata successfully');
         } else {
             console.warn('⚠️ DOM MANAGER: No metadata element found, creating new one...');
             // Create metadata element if it doesn't exist
             const contentArea = listView.querySelector('.list-content');
+
             if (contentArea) {
                 const newMetadata = window.ImageViewUtils.createListViewMetadata(imageData);
+
                 contentArea.appendChild(newMetadata);
-                console.log('✅ DOM MANAGER: Created and added new metadata element');
             } else {
                 console.error('❌ DOM MANAGER: No content area found to add metadata');
             }
@@ -612,10 +614,7 @@ class FeedDOMManager {
         // Ensure list view has proper height styling
         if (listView.style.minHeight === '') {
             listView.style.minHeight = '120px'; // Ensure minimum height
-            console.log('✅ DOM MANAGER: Set minimum height for list view');
         }
-
-        console.log('✅ DOM MANAGER: Complete list view content update finished');
     }
 
 
@@ -729,7 +728,6 @@ class FeedDOMManager {
 
             if (imageWrapper) {
                 imageWrapper.remove();
-                console.log(`🗑️ Removed image ${imageId} from feed`);
 
                 return true;
             }
@@ -800,27 +798,15 @@ class FeedDOMManager {
     handleAutoDownloadForFeed(imageData, isNewGeneration = false) {
         // Only trigger auto download for new generations, not existing images loaded on page load
         if (!isNewGeneration) {
-            console.log('📥 AUTO DOWNLOAD FEED: Skipping download for existing image (not a new generation)');
             return;
         }
 
         const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
 
-        console.log('📥 AUTO DOWNLOAD FEED DEBUG:', {
-            isNewGeneration,
-            autoDownloadFound: !!autoDownload,
-            autoDownloadChecked: autoDownload?.checked,
-            allAutoDownloadCheckboxes: document.querySelectorAll('input[name="autoDownload"]').length,
-            imageData: imageData.url || imageData.imageUrl
-        });
-
         if (autoDownload) {
-            console.log('📥 AUTO DOWNLOAD: Triggering download for new feed image:', imageData.url || imageData.imageUrl);
 
             // Use a more reliable download method that should show Save As dialog
             this.downloadImageFile(imageData.url || imageData.imageUrl);
-        } else {
-            console.log('📥 AUTO DOWNLOAD FEED: Checkbox not found or not checked, skipping download');
         }
     }
 
@@ -845,7 +831,6 @@ class FeedDOMManager {
                 a.click();
                 document.body.removeChild(a);
 
-                console.log('📥 AUTO DOWNLOAD: Fallback download triggered for:', fileName);
             } catch (fallbackError) {
                 console.error('❌ AUTO DOWNLOAD: All download methods failed:', fallbackError);
             }
@@ -855,10 +840,10 @@ class FeedDOMManager {
     // Download image as blob to force Save As dialog
     async downloadImageAsBlob(imageUrl) {
         try {
-            console.log('📥 AUTO DOWNLOAD: Fetching image as blob for download...');
 
             // Fetch the image as a blob
             const response = await fetch(imageUrl);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -870,6 +855,7 @@ class FeedDOMManager {
             const objectUrl = URL.createObjectURL(blob);
 
             const a = document.createElement('a');
+
             a.href = objectUrl;
             a.download = fileName;
             a.style.display = 'none';
@@ -881,7 +867,6 @@ class FeedDOMManager {
             // Clean up object URL
             URL.revokeObjectURL(objectUrl);
 
-            console.log('📥 AUTO DOWNLOAD: Blob download triggered for:', fileName);
         } catch (error) {
             console.error('❌ AUTO DOWNLOAD: Blob download failed:', error);
             throw error; // Re-throw to trigger fallback
@@ -897,6 +882,7 @@ class FeedDOMManager {
             // If no filename or extension, generate one
             if (!fileName || !fileName.includes('.')) {
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
                 return `generated-image-${timestamp}.jpg`;
             }
 
@@ -904,6 +890,7 @@ class FeedDOMManager {
         } catch (error) {
             // Fallback filename
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
             return `generated-image-${timestamp}.jpg`;
         }
     }

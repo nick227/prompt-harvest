@@ -2,12 +2,9 @@
 // Image Manager - Business logic layer orchestrating UI, events, and data
 class ImageManager {
     constructor() {
-        console.log('🔍 IMAGE-MANAGER: Constructor called');
         this.ui = null;
         this.data = new ImageData();
-        console.log('🔍 IMAGE-MANAGER: Creating ImageEvents...');
         this.events = new ImageEvents(this);
-        console.log('🔍 IMAGE-MANAGER: ImageEvents created:', this.events);
         this.fullscreenContainer = null;
         this.currentFullscreenImage = null;
         this.isInitialized = false;
@@ -39,7 +36,6 @@ class ImageManager {
         this.isInitialized = true;
 
         // Setup event delegation for image clicks
-        console.log('🔍 IMAGE-MANAGER: Setting up event delegation...');
         this.events.setupEventDelegation();
     }
 
@@ -148,19 +144,13 @@ class ImageManager {
 
     // Fullscreen Methods
     async openFullscreen(imageData) {
-        console.log('🔍 IMAGE-MANAGER: openFullscreen called with:', imageData);
-
         if (!this.validateAndPrepareFullscreen(imageData)) {
-            console.log('🔍 IMAGE-MANAGER: Validation failed, not opening fullscreen');
             return;
         }
-
-        console.log('🔍 IMAGE-MANAGER: Validation passed, setting up fullscreen...');
         this.prepareFullscreenContainer();
         this.setupFullscreenComponents();
         this.displayFullscreen();
         this.setupFullscreenBehavior();
-        console.log('🔍 IMAGE-MANAGER: Fullscreen setup completed');
     }
 
     /**
@@ -194,20 +184,8 @@ class ImageManager {
         if (cachedImage) {
             // Use cached data but prioritize fresh data from API response
             this.currentFullscreenImage = { ...cachedImage, ...imageData };
-            console.log('🔍 FULLSCREEN DEBUG: Using cached data with fresh API data:', {
-                cachedUsername: cachedImage.username,
-                freshUsername: imageData.username,
-                finalUsername: this.currentFullscreenImage.username,
-                cachedIsPublic: cachedImage.isPublic,
-                freshIsPublic: imageData.isPublic,
-                finalIsPublic: this.currentFullscreenImage.isPublic
-            });
         } else {
             this.currentFullscreenImage = this.data.normalizeImageData(imageData);
-            console.log('🔍 FULLSCREEN DEBUG: Using fresh API data (no cache):', {
-                username: this.currentFullscreenImage.username,
-                isPublic: this.currentFullscreenImage.isPublic
-            });
         }
     }
 
@@ -224,14 +202,10 @@ class ImageManager {
     setupFullscreenComponents() {
         const imageContainer = this.ui.createFullscreenImageContainer(this.currentFullscreenImage);
         const infoBox = this.ui.createInfoBox(this.currentFullscreenImage);
-        console.log('🔍 IMAGE-MANAGER: Created infoBox:', infoBox);
-        console.log('🔍 IMAGE-MANAGER: InfoBox HTML:', infoBox.outerHTML);
         const navControls = this.ui.createNavigationControls();
 
         // Setup all component events
-        console.log('🔍 IMAGE-MANAGER: Setting up component events...');
         this.setupComponentEvents(navControls, infoBox);
-        console.log('🔍 IMAGE-MANAGER: Component events setup completed');
 
         // Store components for display
         this.fullscreenComponents = { imageContainer, infoBox, navControls };
@@ -246,21 +220,14 @@ class ImageManager {
      * @param {HTMLElement} infoBox - Info box element
      */
     setupComponentEvents(navControls, infoBox) {
-        console.log('🔍 IMAGE-MANAGER: setupComponentEvents called with:', { navControls, infoBox });
-        console.log('🔍 IMAGE-MANAGER: Events object:', this.events);
-
         // Setup navigation events
-        console.log('🔍 IMAGE-MANAGER: Setting up navigation events...');
         this.events.setupNavigationButtonEvents(navControls, this.currentFullscreenImage);
 
         // Setup rating display events
-        console.log('🔍 IMAGE-MANAGER: Setting up rating display events...');
         const { spacer } = this.events.setupRatingDisplayEvents(null, infoBox);
 
         // Setup info box toggle functionality
-        console.log('🔍 IMAGE-MANAGER: Setting up info box toggle functionality...');
         const toggleBtn = infoBox.querySelector('.info-box-toggle');
-        console.log('🔍 IMAGE-MANAGER: Setting up toggle events, toggleBtn:', toggleBtn, 'infoBox:', infoBox);
         this.events.setupToggleButtonEvents(toggleBtn, infoBox);
 
         // Setup public status toggle events

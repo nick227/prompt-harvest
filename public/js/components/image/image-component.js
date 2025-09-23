@@ -46,12 +46,9 @@ class ImageComponent {
 
     // Delegate all methods to the manager for backward compatibility
     setupEventDelegation() {
-        console.log('🔍 IMAGE-COMPONENT: setupEventDelegation called');
         if (!this.ensureManager()) {
-            console.log('🔍 IMAGE-COMPONENT: Manager not available');
             return;
         }
-        console.log('🔍 IMAGE-COMPONENT: Calling manager.events.setupEventDelegation()');
         this.manager.events.setupEventDelegation();
     }
 
@@ -59,7 +56,13 @@ class ImageComponent {
         if (!this.ensureManager()) {
             return null;
         }
-        return this.manager.ui.createImageElement(imageData);
+
+        try {
+            return this.manager.ui.createImageElement(imageData);
+        } catch (error) {
+            console.error('Error in createImageElement:', error);
+            return null;
+        }
     }
 
     createImageWrapper(imageData) {

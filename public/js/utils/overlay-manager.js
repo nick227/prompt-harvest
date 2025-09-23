@@ -25,8 +25,6 @@ class OverlayManager {
             return;
         }
 
-        console.log('🎭 OVERLAY: Showing overlay for container', containerId);
-        console.log('🎭 OVERLAY: Container', container);
 
         this.createOverlayElement(container);
 
@@ -56,8 +54,6 @@ class OverlayManager {
         // Append overlay to container
         container.prepend(overlay);
 
-        console.log('🎭 OVERLAY: Overlay element created', overlay);
-        console.log('🎭 OVERLAY: Container', container);
     }
 
     /**

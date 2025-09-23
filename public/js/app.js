@@ -450,6 +450,14 @@ const validateImageGeneration = () => {
 // Initialize application when DOM is ready
 document.addEventListener('DOMContentLoaded', async() => {
 
+    // Initialize global tag router FIRST, before app initialization
+    if (window.TagRouter) {
+        window.tagRouter = new window.TagRouter();
+        console.log('✅ TAG ROUTER: Global tag router initialized');
+    } else {
+        console.warn('⚠️ TAG ROUTER: TagRouter not available');
+    }
+
     const app = new AppLoader();
 
     await app.init();
@@ -457,17 +465,18 @@ document.addEventListener('DOMContentLoaded', async() => {
     // Make app available globally
     window.app = app;
 
-    // Initialize global tag router
-    if (window.TagRouter) {
-        window.tagRouter = new window.TagRouter();
-        // console.log('✅ TAG ROUTER: Global tag router initialized');
+    // Connect feed manager to tag router after app initialization
+    if (window.tagRouter && window.feedManager && window.feedManager.connectTagRouter) {
+        window.feedManager.connectTagRouter();
+        console.log('✅ TAG ROUTER: Connected to feed manager');
 
-        // Connect feed manager to tag router if it's already initialized
-        if (window.feedManager && window.feedManager.connectTagRouter) {
-            window.feedManager.connectTagRouter();
-        }
-    } else {
-        console.warn('⚠️ TAG ROUTER: TagRouter not available');
+        // Notify listeners after connection to ensure initial tag state is processed
+        setTimeout(() => {
+            if (window.tagRouter.getActiveTags().length > 0) {
+                console.log('🏷️ TAG ROUTER: Notifying listeners of initial tag state');
+                window.tagRouter.notifyListeners();
+            }
+        }, 100);
     }
 
     // Verify generation component is available

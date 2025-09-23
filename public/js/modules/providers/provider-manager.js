@@ -284,7 +284,6 @@ class ProviderManager {
         if (window.mobileControlsManager && typeof window.mobileControlsManager.updateProviderList === 'function' && !this.isUpdatingMobile) {
             this.isUpdatingMobile = true;
             setTimeout(() => {
-                console.log('🔄 PROVIDER MANAGER: Updating mobile provider list after sortProviderList');
                 window.mobileControlsManager.updateProviderList(this.providerList.innerHTML);
                 this.isUpdatingMobile = false;
             }, 50);

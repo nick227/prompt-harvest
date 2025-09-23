@@ -10,10 +10,6 @@ class HybridTabService {
     async init() {
         this.currentUserId = this.getCurrentUserId();
         this.isInitialized = true;
-        console.log('🔍 HYBRID TAB: Auth token check:', {
-            hasToken: !!localStorage.getItem('authToken'),
-            tokenPreview: `${localStorage.getItem('authToken')?.substring(0, 20)}...`
-        });
     }
 
     // Get current user ID - single source of truth

@@ -62,6 +62,7 @@ export class EnhancedImageController {
                 'auto-enhance': autoEnhance,
                 photogenic,
                 artistic,
+                avatar,
                 autoPublic
             } = req.validatedData || req.body;
 
@@ -75,16 +76,34 @@ export class EnhancedImageController {
                 validatedDataKeys: Object.keys(req.validatedData || {})
             });
 
-            // Log artistic and photogenic values for debugging
-            console.log('🔍 CONTROLLER DEBUG: artistic and photogenic values received:', {
+            // Log artistic, photogenic, and avatar values for debugging
+            console.log('🔍 CONTROLLER DEBUG: artistic, photogenic, and avatar values received:', {
                 artistic,
                 artisticType: typeof artistic,
                 photogenic,
                 photogenicType: typeof photogenic,
+                avatar,
+                avatarType: typeof avatar,
                 fullBody: req.body
             });
 
             const userId = req.user?.id;
+
+            // Debug authentication status
+            console.log('🔍 CONTROLLER DEBUG: Authentication status:', {
+                hasReq: !!req,
+                hasUser: !!req.user,
+                hasUserId: !!req.user?.id,
+                userId,
+                userEmail: req.user?.email,
+                userObject: req.user
+            });
+
+            if (!userId) {
+                console.log('🚨 CONTROLLER CRITICAL: No userId found - this will result in userId: null in database');
+                console.log('🚨 CONTROLLER CRITICAL: req object keys:', Object.keys(req));
+                console.log('🚨 CONTROLLER CRITICAL: req.user:', req.user);
+            }
 
             // Validate image generation parameters
             validateImageGenerationParams({ prompt, providers, guidance });
@@ -100,6 +119,7 @@ export class EnhancedImageController {
                 autoEnhance,
                 photogenic,
                 artistic,
+                avatar,
                 autoPublic
             };
 

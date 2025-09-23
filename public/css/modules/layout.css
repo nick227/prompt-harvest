@@ -326,7 +326,9 @@
 }
 
 .list-content .metadata-row {
-    display: contents;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .list-content .metadata-label {

@@ -67,6 +67,9 @@ class FeedViewManager {
 
         const imageWrappers = promptOutput.querySelectorAll('.image-wrapper');
 
+        let enhancedCount = 0;
+        let skippedCount = 0;
+
         imageWrappers.forEach((wrapper, _index) => {
             try {
                 const hasCompactView = wrapper.querySelector('.compact-view');
@@ -74,11 +77,18 @@ class FeedViewManager {
 
                 if (!hasCompactView && !hasListView) {
                     this.enhanceImageWrapper(wrapper);
+                    enhancedCount++;
+                } else {
+                    skippedCount++;
                 }
             } catch (error) {
                 console.error('❌ VIEW: Failed to enhance wrapper:', error, wrapper);
             }
         });
+
+        if (enhancedCount > 0 || skippedCount > 0) {
+            console.log(`🔄 VIEW MANAGER: Enhanced ${enhancedCount} wrappers, skipped ${skippedCount} already enhanced`);
+        }
 
     }
 
@@ -235,6 +245,7 @@ class FeedViewManager {
         setTimeout(() => {
             if (window.feedManager && window.feedManager.fillToBottomManager) {
                 const currentFilter = window.feedManager.getCurrentFilter();
+
                 window.feedManager.fillToBottomManager.checkAndFillToBottom(currentFilter);
             }
         }, 100);
@@ -266,20 +277,24 @@ class FeedViewManager {
      * @param {HTMLElement} wrapper - Wrapper element to enhance
      */
     enhanceNewImageWrapper(wrapper) {
-        console.log('🔄 VIEW MANAGER: enhanceNewImageWrapper called for wrapper:', wrapper);
-
         // Check if already enhanced to prevent duplicate enhancement
         if (wrapper.querySelector('.compact-view') && wrapper.querySelector('.list-view')) {
-            console.log('🔄 VIEW MANAGER: Wrapper already enhanced, skipping enhancement');
-
-            return;
+            return; // Skip silently - no need to log every skip
         }
 
-        console.log('🔄 VIEW MANAGER: Scheduling enhancement in 50ms');
+        // Check if enhancement is already scheduled for this wrapper
+        if (wrapper.dataset.enhancementScheduled === 'true') {
+            return; // Skip silently - no need to log every skip
+        }
+
+        // Mark as scheduled to prevent duplicate scheduling
+        wrapper.dataset.enhancementScheduled = 'true';
+
         // Add a small delay to ensure the image element is fully loaded
         setTimeout(() => {
-            console.log('🔄 VIEW MANAGER: Executing enhancement now');
             this.enhanceImageWrapper(wrapper);
+            // Clear the scheduled flag after completion
+            wrapper.dataset.enhancementScheduled = 'false';
         }, 50);
     }
 
@@ -287,13 +302,12 @@ class FeedViewManager {
      * Force re-application of current view to all images
      */
     forceReapplyView() {
-
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
-            // First, ensure all images are enhanced
+            // Only enhance images that aren't already enhanced
             this.enhanceExistingImages();
 
-            // Then apply the current view to all images
+            // Apply the current view to all images (this is the main purpose of forceReapplyView)
             this.applyCurrentViewToAllImages();
 
             // Also ensure the container has the right classes

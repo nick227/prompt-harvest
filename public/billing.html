@@ -57,6 +57,114 @@
         <div id="error-message" class="error-message" role="alert" aria-live="polite"></div>
         <div id="success-message" class="success-message" role="alert" aria-live="polite"></div>
 
+        <!-- Profile Management Section -->
+        <section class="history-section" aria-label="Profile Management">
+            <h2><i class="fas fa-user-cog" aria-hidden="true"></i> Profile Settings</h2>
+            <div class="profile-section">
+                <div class="profile-form">
+                    <!-- Current Profile Display -->
+                    <div class="current-profile-display">
+                        <div class="profile-avatar-container">
+                            <img id="current-avatar" src="" alt="Current profile picture" class="profile-avatar">
+                            <div class="avatar-overlay">
+                                <i class="fas fa-camera" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="current-username">Loading...</h3>
+                            <p id="current-email">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- Username Change Form -->
+                    <div class="form-group">
+                        <label for="username-input" class="form-label">Username</label>
+                        <div class="username-input-container">
+                            <input
+                                type="text"
+                                id="username-input"
+                                name="username"
+                                placeholder="Enter new username"
+                                class="form-input username-input"
+                                maxlength="50"
+                                aria-label="New username"
+                                aria-describedby="username-help username-status"
+                            >
+                            <div class="username-actions">
+                                <button id="update-username-btn" type="button" disabled>
+                                    <i class="fas fa-save" aria-hidden="true"></i> Update
+                                </button>
+                            </div>
+                        </div>
+                        <div id="username-status" class="input-status" role="alert" aria-live="polite"></div>
+                        <div id="username-help" class="form-help">
+                            Choose a unique username. It will be visible to other users. Availability is checked automatically.
+                        </div>
+                    </div>
+
+                    <!-- Avatar Selection -->
+                    <div class="form-group">
+                        <label class="form-label">Profile Picture</label>
+                        <div class="avatar-options">
+                            <!-- Upload Option -->
+                            <div class="avatar-option">
+                                <input type="radio" id="avatar-upload" name="avatar-type" value="upload" class="avatar-radio">
+                                <label for="avatar-upload" class="avatar-option-label">
+                                    <i class="fas fa-upload" aria-hidden="true"></i>
+                                    <span>Upload Image</span>
+                                </label>
+                                <input type="file" id="avatar-file-input" accept="image/*" class="hidden" aria-label="Upload profile picture">
+                            </div>
+
+                            <!-- AI Generation Option -->
+                            <div class="avatar-option">
+                                <input type="radio" id="avatar-generate" name="avatar-type" value="generate" class="avatar-radio">
+                                <label for="avatar-generate" class="avatar-option-label">
+                                    <i class="fas fa-magic" aria-hidden="true"></i>
+                                    <span>Generate with AI</span>
+                                </label>
+                            </div>
+
+                            <!-- Existing Images Option -->
+                            <div class="avatar-option">
+                                <input type="radio" id="avatar-existing" name="avatar-type" value="existing" class="avatar-radio">
+                                <label for="avatar-existing" class="avatar-option-label">
+                                    <i class="fas fa-images" aria-hidden="true"></i>
+                                    <span>Use Existing Image</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- AI Generation Widget -->
+                        <div id="ai-generation-form" class="ai-generation-form hidden">
+                            <div id="profile-avatar-generator"></div>
+                        </div>
+
+                        <!-- Existing Images Grid -->
+                        <div id="existing-images-grid" class="existing-images-grid hidden">
+                            <div class="loading-placeholder">
+                                <div class="loading-spinner" aria-hidden="true"></div>
+                                <p>Loading your images...</p>
+                            </div>
+                        </div>
+
+                        <!-- Upload Preview -->
+                        <div id="upload-preview" class="upload-preview hidden">
+                            <img id="upload-preview-img" src="" alt="Upload preview" class="upload-preview-image">
+                            <button id="remove-upload" class="btn btn-danger btn-sm" type="button">
+                                <i class="fas fa-times" aria-hidden="true"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons removed - each avatar type handles its own save operation -->
+
+                    <!-- Profile Update Status -->
+                    <div id="profile-update-status" class="profile-status" role="alert" aria-live="polite"></div>
+                </div>
+            </div>
+        </section>
+
         <!-- Current Balance & Quick Actions -->
         <section class="billing-grid" aria-label="Account Overview">
             <!-- Current Balance Card -->
@@ -189,20 +297,6 @@
             </div>
         </section>
 
-        <!-- Image History Section -->
-        <section class="history-section" aria-label="Image History">
-            <h2><i class="fas fa-history" aria-hidden="true"></i> Image History</h2>
-            <div id="image-history">
-                <!-- Skeleton loading -->
-                <div class="skeleton-card">
-                    <div class="skeleton-line skeleton"></div>
-                    <div class="skeleton-line skeleton"></div>
-                    <div class="skeleton-line skeleton"></div>
-                    <div class="skeleton-line medium skeleton"></div>
-                </div>
-            </div>
-        </section>
-
         <!-- Credit History Section -->
         <section class="history-section" aria-label="Credit History">
             <h2><i class="fas fa-list" aria-hidden="true"></i> Credit History</h2>
@@ -264,6 +358,20 @@
                 </div>
             </div>
         </section>
+
+        <!-- Image History Section -->
+        <section class="history-section" aria-label="Image History">
+            <h2><i class="fas fa-history" aria-hidden="true"></i> Image History</h2>
+            <div id="image-history">
+                <!-- Skeleton loading -->
+                <div class="skeleton-card">
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line skeleton"></div>
+                    <div class="skeleton-line medium skeleton"></div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- Scripts - loaded at end for performance -->
@@ -295,6 +403,12 @@
     <script src="js/services/messaging-service.js"></script>
     <script src="js/components/messaging/message-component.js"></script>
     <script src="js/components/messaging/user-messaging.js"></script>
+
+    <!-- AI Image Generator Widget -->
+    <link rel="stylesheet" href="css/ai-image-generator-widget.css">
+
+    <!-- Profile Management System -->
+    <script type="module" src="js/modules/profile/profile-manager-refactored.js"></script>
 
     <!-- Performance monitoring (optional) -->
     <script>

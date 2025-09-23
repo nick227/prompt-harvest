@@ -185,12 +185,13 @@ export class EnhancedImageService {
                 customVariables = '',
                 autoEnhance = false,
                 photogenic = false,
-                artistic = false
+                artistic = false,
+                avatar = false
             } = options;
 
             // Check if prompt needs processing
             const hasVariables = (/\$\{[^}]+\}/).test(prompt);
-            const needsProcessing = hasVariables || multiplier || mixup || mashup || customVariables || photogenic || artistic;
+            const needsProcessing = hasVariables || multiplier || mixup || mashup || customVariables || photogenic || artistic || avatar;
 
             let processedPrompt = prompt;
             let promptId = null;
@@ -206,7 +207,8 @@ export class EnhancedImageService {
                         false, // mashup - now handled after AI enhancement
                         customVariables,
                         photogenic,
-                        artistic
+                        artistic,
+                        avatar
                     );
 
                     ({ prompt: processedPrompt, promptId } = result);
@@ -422,6 +424,7 @@ export class EnhancedImageService {
                 '', // customVariables
                 false, // photogenic
                 false, // artistic
+                false, // avatar
                 req
             );
 
@@ -509,10 +512,27 @@ export class EnhancedImageService {
             throw new Error('Access denied');
         }
 
+        // Get username for this image
+        let username = null;
+        if (image.userId) {
+            console.log('🔍 GET-IMAGE-BY-ID: Looking up user for userId:', image.userId);
+            const user = await this.prisma.user.findUnique({
+                where: { id: image.userId },
+                select: { id: true, username: true, email: true }
+            });
+            console.log('🔍 GET-IMAGE-BY-ID: User lookup result:', user);
+            username = user ? (user.username || (user.email ? user.email : 'Unknown User')) : (image.userId ? 'Unknown User' : 'Anonymous');
+            console.log('🔍 GET-IMAGE-BY-ID: Final username:', username);
+        } else {
+            console.log('🔍 GET-IMAGE-BY-ID: No userId found, setting Anonymous');
+            username = 'Anonymous';
+        }
+
         // Normalize image data
         return {
             id: image.id,
             userId: image.userId,
+            username: username,
             prompt: image.prompt,
             original: image.original,
             imageUrl: image.imageUrl,
@@ -535,7 +555,7 @@ export class EnhancedImageService {
             throw new ValidationError('User ID is required to update public status');
         }
 
-        // First, verify the user owns the image
+        // First, verify the user owns the image and get current status
         const image = await this.imageRepository.findById(imageId);
 
         if (!image) {
@@ -544,6 +564,12 @@ export class EnhancedImageService {
 
         if (image.userId !== userId) {
             throw new ValidationError('You can only update the public status of your own images');
+        }
+
+        // Skip database update if status is already the same
+        if (image.isPublic === isPublic) {
+            console.log(`🔄 PUBLIC-STATUS: Image ${imageId} already has isPublic=${isPublic}, skipping update`);
+            return { result: image, id: imageId, isPublic, skipped: true };
         }
 
         const result = await this.imageRepository.updatePublicStatus(imageId, isPublic);
@@ -590,15 +616,25 @@ export class EnhancedImageService {
         const userIds = [...new Set(result.images.map(img => img.userId))];
         const users = await this.prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: { id: true, username: true }
+            select: { id: true, username: true, email: true }
         });
-        const userMap = new Map(users.map(user => [user.id, user.username]));
+        const userMap = new Map(users.map(user => [user.id, user.username || (user.email ? user.email : 'Unknown User')]));
+
+        // Debug user lookup
+        console.log('🔍 GET-IMAGES: User lookup debug:', {
+            userIds,
+            usersFound: users.length,
+            userMapEntries: Array.from(userMap.entries()),
+            sampleImageUserId: result.images[0]?.userId,
+            sampleImageUsername: userMap.get(result.images[0]?.userId),
+            users: users
+        });
 
         // Normalize image data
         const normalizedImages = result.images.map(image => ({
             id: image.id,
             userId: image.userId, // ✅ Added userId for client-side filtering
-            username: userMap.get(image.userId) || 'Unknown', // ✅ Added username from user map
+            username: userMap.get(image.userId) || (image.userId ? 'Unknown User' : 'Anonymous'), // ✅ Added username from user map (fallback to email)
             prompt: image.prompt,
             original: image.original,
             imageUrl: image.imageUrl,
@@ -760,9 +796,9 @@ export class EnhancedImageService {
         const userIds = [...new Set(result.images.map(img => img.userId))];
         const users = await this.prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: { id: true, username: true }
+            select: { id: true, username: true, email: true }
         });
-        const userMap = new Map(users.map(user => [user.id, user.username]));
+        const userMap = new Map(users.map(user => [user.id, user.username || (user.email ? user.email : 'Unknown User')]));
 
         // Normalize image data
         const normalizedImages = result.images.map(image => ({
@@ -815,11 +851,14 @@ export class EnhancedImageService {
 
         // Get unique user IDs and fetch usernames
         const userIds = [...new Set(result.images.map(img => img.userId))];
+        console.log('🔍 GET-USER-OWN-IMAGES: User IDs found:', userIds);
         const users = await this.prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: { id: true, username: true }
+            select: { id: true, username: true, email: true }
         });
-        const userMap = new Map(users.map(user => [user.id, user.username]));
+        console.log('🔍 GET-USER-OWN-IMAGES: Users found:', users);
+        const userMap = new Map(users.map(user => [user.id, user.username || (user.email ? user.email : 'Unknown User')]));
+        console.log('🔍 GET-USER-OWN-IMAGES: User map:', Array.from(userMap.entries()));
 
         // Normalize image data
         const normalizedImages = result.images.map(image => ({

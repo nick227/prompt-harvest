@@ -54,16 +54,19 @@ class UnifiedInfoBox {
 
         // Create info box container
         const infoBox = this.createElement('div', finalConfig);
+
         infoBox.className = finalConfig.infoBoxClass;
         infoBox.setAttribute('role', 'complementary');
         infoBox.setAttribute('aria-label', 'Image information');
 
         // Create header
         const header = this.createHeader(imageData, finalConfig);
+
         infoBox.appendChild(header);
 
         // Create content
         const content = this.createContent(imageData, finalConfig);
+
         infoBox.appendChild(content);
 
         return infoBox;
@@ -77,18 +80,22 @@ class UnifiedInfoBox {
      */
     createHeader(imageData, config) {
         const header = this.createElement('div', config);
+
         header.className = config.headerClass;
 
         // Create title
         const title = this.createElement(config.titleElement, config);
+
         title.className = config.titleClass;
 
         // Set title text based on configuration
         const titleText = this.getTitleText(imageData, config);
+
         title.textContent = titleText;
 
         // Create toggle button
         const toggle = this.createElement('button', config);
+
         toggle.className = config.toggleClass;
         toggle.textContent = config.toggleText;
         toggle.setAttribute('aria-label', config.toggleAriaLabel);
@@ -111,14 +118,17 @@ class UnifiedInfoBox {
      */
     createContent(imageData, config) {
         const content = this.createElement('div', config);
+
         content.className = config.contentClass;
 
         // Create metadata section
         const metadata = this.createMetadataSection(imageData, config);
+
         content.appendChild(metadata);
 
         // Create prompts section
         const prompts = this.createPromptsSection(imageData, config);
+
         content.appendChild(prompts);
 
         return content;
@@ -132,6 +142,7 @@ class UnifiedInfoBox {
      */
     createMetadataSection(imageData, config) {
         const metadata = this.createElement('div', config);
+
         metadata.className = 'info-box-meta';
 
         // Create metadata items
@@ -147,6 +158,7 @@ class UnifiedInfoBox {
         metadataItems.forEach(item => {
             const itemConfig = { ...config, imageData };
             const itemElement = this.createMetadataItem(item.label, item.value, itemConfig);
+
             metadata.appendChild(itemElement);
         });
 
@@ -162,6 +174,7 @@ class UnifiedInfoBox {
      */
     createMetadataItem(label, value, config) {
         const item = this.createElement('div', config);
+
         item.className = 'info-box-meta-item';
 
         // Add special class for rating items
@@ -170,10 +183,12 @@ class UnifiedInfoBox {
         }
 
         const labelElement = this.createElement('div', config);
+
         labelElement.className = 'info-box-meta-label';
         labelElement.textContent = label;
 
         const valueElement = this.createElement('div', config);
+
         valueElement.className = 'info-box-meta-value';
 
         // Handle both string values and HTML elements
@@ -188,6 +203,7 @@ class UnifiedInfoBox {
         // Add rating buttons for rating items
         if (label === 'Rating' && config.imageData) {
             const ratingButtons = this.createRatingButtons(config.imageData);
+
             valueElement.appendChild(ratingButtons);
         }
 
@@ -205,24 +221,29 @@ class UnifiedInfoBox {
      */
     createPromptsSection(imageData, config) {
         const prompts = this.createElement('div', config);
+
         prompts.className = 'info-box-prompts';
 
         // Original prompt
         if (imageData.original) {
-            const originalPrompt = this.createPromptItem('', imageData.original, config);
+            const originalPrompt = this.createPromptItem('PROMPT', imageData.original, config);
+
             prompts.appendChild(originalPrompt);
         }
 
         // Final prompt (check both 'final' and 'prompt' properties)
         const finalPromptText = imageData.final || imageData.prompt;
+
         if (finalPromptText) {
-            const finalPrompt = this.createPromptItem('', finalPromptText, config);
+            const finalPrompt = this.createPromptItem('FINAL', finalPromptText, config);
+
             prompts.appendChild(finalPrompt);
         }
 
         // Add tags as full-width item if available
         if (imageData.tags && Array.isArray(imageData.tags) && imageData.tags.length > 0) {
-            const tagsItem = this.createPromptItem('Tags', this.formatTags(imageData.tags), config);
+            const tagsItem = this.createPromptItem('TAGS', this.formatTags(imageData.tags), config);
+
             prompts.appendChild(tagsItem);
         }
 
@@ -238,17 +259,28 @@ class UnifiedInfoBox {
      */
     createPromptItem(label, value, config) {
         const item = this.createElement('div', config);
+
         item.className = 'info-box-prompt-item';
 
         const labelElement = this.createElement('div', config);
+
         labelElement.className = 'info-box-prompt-label';
         labelElement.textContent = label;
 
         const valueElement = this.createElement('div', config);
+
         valueElement.className = 'info-box-prompt-value';
-        valueElement.textContent = value;
-        valueElement.title = value; // Full text on hover
-        valueElement.setAttribute('data-copy-text', value);
+
+        // Handle both string and DOM element values
+        if (typeof value === 'string') {
+            valueElement.textContent = value;
+            valueElement.title = value; // Full text on hover
+            valueElement.setAttribute('data-copy-text', value);
+        } else if (value instanceof HTMLElement) {
+            valueElement.appendChild(value);
+        } else {
+            valueElement.textContent = String(value);
+        }
 
         item.appendChild(labelElement);
         item.appendChild(valueElement);
@@ -275,9 +307,11 @@ class UnifiedInfoBox {
         }
 
         const toggle = this.createElement('div', config);
+
         toggle.className = 'info-box-public-toggle';
 
         const checkbox = this.createElement('input', config);
+
         checkbox.type = 'checkbox';
         checkbox.className = 'public-status-checkbox';
         checkbox.id = `public-toggle-${imageData.id}`;
@@ -286,6 +320,7 @@ class UnifiedInfoBox {
         checkbox.setAttribute('data-image-id', imageData.id);
 
         const label = this.createElement('label', config);
+
         label.className = 'public-status-label';
         label.htmlFor = `public-toggle-${imageData.id}`;
         label.textContent = 'Public';
@@ -334,15 +369,18 @@ class UnifiedInfoBox {
         // Try to get user ID from various sources
         if (window.userApi && window.userApi.getCurrentUser) {
             const user = window.userApi.getCurrentUser();
+
             return user?.id || user?._id;
         }
 
         // Fallback: try to get from localStorage or other sources
         try {
             const token = localStorage.getItem('authToken');
+
             if (token) {
                 // Decode JWT token to get user ID (basic implementation)
                 const payload = JSON.parse(atob(token.split('.')[1]));
+
                 return payload.userId || payload.id;
             }
         } catch (error) {
@@ -412,9 +450,11 @@ class UnifiedInfoBox {
 
         try {
             const dateObj = new Date(date);
+
             if (isNaN(dateObj.getTime())) {
                 return 'Invalid date';
             }
+
             return `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
         } catch (error) {
             return 'Invalid date';
@@ -427,7 +467,15 @@ class UnifiedInfoBox {
      * @returns {string} Formatted created by string
      */
     formatCreatedBy(imageData) {
-        const username = imageData.username || 'Unknown';
+        // Use username from server, fallback to appropriate message if not available
+        let { username } = imageData;
+
+        if (!username && imageData.userId) {
+            username = 'Unknown User';
+        } else if (!username) {
+            username = 'Anonymous';
+        }
+
         const date = imageData.createdAt;
 
         if (!date) {
@@ -436,10 +484,12 @@ class UnifiedInfoBox {
 
         try {
             const dateObj = new Date(date);
+
             if (isNaN(dateObj.getTime())) {
                 return username;
             }
             const formattedDate = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
+
             return `${username} (${formattedDate})`;
         } catch (error) {
             return username;
@@ -455,7 +505,81 @@ class UnifiedInfoBox {
         if (!tags || !Array.isArray(tags) || tags.length === 0) {
             return 'No tags';
         }
-        return tags.join(', ');
+
+        // Create clickable tag elements
+        const tagsContainer = document.createElement('div');
+
+        tagsContainer.className = 'info-box-tags-container';
+        tagsContainer.style.display = 'flex';
+        tagsContainer.style.flexWrap = 'wrap';
+        tagsContainer.style.gap = '6px';
+
+        tags.forEach(tag => {
+            const tagElement = document.createElement('span');
+
+            tagElement.className = 'info-box-tag-chip';
+            tagElement.textContent = tag;
+            tagElement.style.cssText = `
+                display: inline-flex;
+                align-items: center;
+                background: rgba(59, 130, 246, 0.2);
+                color: rgb(96, 165, 250);
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                white-space: nowrap;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                user-select: none;
+            `;
+
+            // Add active class if tag is currently active
+            if (window.tagRouter && window.tagRouter.isTagActive(tag)) {
+                tagElement.classList.add('tag-chip-active');
+                tagElement.style.background = 'rgba(34, 197, 94, 0.3)';
+                tagElement.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                tagElement.style.color = '#22c55e';
+            }
+
+            // Add hover effect
+            tagElement.addEventListener('mouseenter', () => {
+                if (!tagElement.classList.contains('tag-chip-active')) {
+                    tagElement.style.background = 'rgba(59, 130, 246, 0.3)';
+                    tagElement.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+                }
+            });
+
+            tagElement.addEventListener('mouseleave', () => {
+                if (!tagElement.classList.contains('tag-chip-active')) {
+                    tagElement.style.background = 'rgba(59, 130, 246, 0.2)';
+                    tagElement.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                }
+            });
+
+            // Add click handler to add tag
+            tagElement.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log(`🏷️ INFO BOX TAG CLICK: Adding tag: ${tag}`);
+
+                // Add tag to active tags
+                if (window.tagRouter && window.tagRouter.addTag) {
+                    window.tagRouter.addTag(tag);
+                } else {
+                    // Fallback: update URL directly
+                    const url = new URL(window.location);
+
+                    url.searchParams.set('tag', tag);
+                    window.location.href = url.toString();
+                }
+            });
+
+            tagsContainer.appendChild(tagElement);
+        });
+
+        return tagsContainer;
     }
 
     /**
@@ -466,10 +590,12 @@ class UnifiedInfoBox {
     createRatingButtons(imageData) {
         if (!window.RatingButtons) {
             console.warn('RatingButtons component not available');
+
             return document.createElement('span');
         }
 
         const ratingButtons = new window.RatingButtons(imageData.id, imageData.rating);
+
         return ratingButtons.createRatingButtons();
     }
 }

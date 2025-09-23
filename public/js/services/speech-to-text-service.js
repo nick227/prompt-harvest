@@ -39,7 +39,6 @@ class SpeechToTextService {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
         if (!SpeechRecognition) {
-            console.log('ℹ️ SPEECH: Speech recognition not supported in this browser - feature disabled');
             return;
         }
 

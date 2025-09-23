@@ -11,30 +11,24 @@ model User {
   id              String   @id @default(cuid()) @db.VarChar(25)
   email           String   @db.VarChar(255)
   username        String   @db.VarChar(100)
-  password        String?  @db.VarChar(255) // Made optional for OAuth users
-  googleId        String?  @unique @db.VarChar(50) // Google OAuth ID
-  name            String?  @db.VarChar(100) // Full name from Google
-  picture         String?  @db.VarChar(500) // Profile picture URL
-  isEmailVerified Boolean  @default(false) // Email verification status
+  password        String?  @db.VarChar(255)
   resetToken      String?  @db.VarChar(500)
   isAdmin         Boolean  @default(false)
   isSuspended     Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   creditBalance   Int      @default(0)
-  images          Image[]
-  stripePayments  StripePayment[]
-  messages        Message[]
-  adminMessages   Message[] @relation("AdminMessages")
+  googleId        String?  @unique @db.VarChar(50)
+  isEmailVerified Boolean  @default(false)
+  name            String?  @db.VarChar(100)
+  picture         String?  @db.VarChar(500)
 
-  @@unique([email]) // Ensure email uniqueness
   @@map("users")
 }
 
 model Image {
   id              String    @id @default(cuid()) @db.VarChar(25)
   userId          String    @db.VarChar(25)
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   prompt          String    @db.Text
   original        String    @db.Text
   imageUrl        String    @db.VarChar(500)
@@ -59,6 +53,25 @@ model Image {
   @@index([modelId])
   @@index([taggedAt], map: "taggedAt")
   @@map("images")
+}
+
+model UserMedia {
+  id           String   @id @default(cuid()) @db.VarChar(25)
+  userId       String   @db.VarChar(25)
+  filename     String   @db.VarChar(100)
+  originalName String   @db.VarChar(100)
+  url          String   @db.VarChar(255)
+  mimeType     String   @db.VarChar(50)
+  size         Int
+  mediaType    String   @db.VarChar(20)
+  purpose      String   @db.VarChar(30)
+  isActive     Boolean  @default(true)
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId], map: "userId")
+  @@map("user_media")
 }
 
 model Transaction {
@@ -146,7 +159,6 @@ model word_types {
 model StripePayment {
   stripeSessionId       String   @unique @db.VarChar(100)
   userId                String   @db.VarChar(25)
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount                Float
   credits               Int
   status                String   @default("pending") @db.VarChar(50)
@@ -218,7 +230,6 @@ model PromoCode {
   expiresAt          DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
-  redemptions        PromoRedemption[]
 
   @@index([code])
   @@index([isActive])
@@ -232,7 +243,6 @@ model PromoRedemption {
   promoCodeId String   @db.VarChar(25)
   credits     Int
   createdAt   DateTime @default(now())
-  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, promoCodeId], map: "userId_promoCodeId")
   @@index([userId])
@@ -245,7 +255,6 @@ model Model {
   id           String   @id @default(cuid()) @db.VarChar(25)
   provider     String   @db.VarChar(50)
   providerId   String?  @db.VarChar(50)
-  providerRef  Provider? @relation(fields: [providerId], references: [id], onDelete: Cascade)
   name         String   @db.VarChar(100)
   displayName  String   @db.VarChar(100)
   description  String?  @db.Text
@@ -273,7 +282,6 @@ model Provider {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  models      Model[]
 
   @@index([name])
   @@index([isActive])
@@ -304,7 +312,7 @@ model SystemSettings {
   key         String   @unique @db.VarChar(100)
   value       String   @db.Text
   description String?  @db.VarChar(255)
-  dataType    String   @default("string") @db.VarChar(20) // string, number, boolean, json
+  dataType    String   @default("string") @db.VarChar(20)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -315,19 +323,15 @@ model SystemSettings {
 }
 
 model Message {
-  id          String   @id @default(cuid()) @db.VarChar(25)
-  userId      String   @db.VarChar(25)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  adminId     String?  @db.VarChar(25)
-  admin       User?    @relation("AdminMessages", fields: [adminId], references: [id], onDelete: SetNull)
-  message     String   @db.Text
-  isFromUser  Boolean  @default(true)
-  isRead      Boolean  @default(false)
-  parentId    String?  @db.VarChar(25)
-  parent      Message? @relation("MessageReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies     Message[] @relation("MessageReplies")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid()) @db.VarChar(25)
+  userId     String   @db.VarChar(25)
+  adminId    String?  @db.VarChar(25)
+  message    String   @db.Text
+  isFromUser Boolean  @default(true)
+  isRead     Boolean  @default(false)
+  parentId   String?  @db.VarChar(25)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([userId])
   @@index([adminId])

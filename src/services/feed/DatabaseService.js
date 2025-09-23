@@ -336,11 +336,13 @@ const getUserId = req => {
         hasUserId: !!req?.user?.id,
         userId: req?.user?.id,
         userEmail: req?.user?.email,
-        userKeys: req?.user ? Object.keys(req.user) : 'no user'
+        userKeys: req?.user ? Object.keys(req.user) : 'no user',
+        fullUserObject: req?.user
     });
 
     if (!req || !req.user || !req.user.id) {
-        console.log('🔍 DATABASE SERVICE: getUserId returning null');
+        console.log('🔍 DATABASE SERVICE: getUserId returning null - AUTHENTICATION ISSUE DETECTED');
+        console.log('🔍 DATABASE SERVICE: This will result in userId: null in database');
 
         return null;
     }
