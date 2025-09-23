@@ -106,7 +106,7 @@ class ImageCountManager {
                 return 0;
             }
 
-            if (response && typeof response === 'number') {
+            if (response !== null && response !== undefined && typeof response === 'number' && response >= 0) {
                 this.counts[filter] = response;
                 this.lastFetchTime[filter] = Date.now();
                 console.log(`📊 COUNT: Successfully fetched count for ${filter}:`, this.counts[filter]);
