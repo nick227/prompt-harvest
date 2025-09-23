@@ -13,22 +13,46 @@ export const setupWordRoutes = app => {
         try {
             console.log('🔍 /words endpoint called - fetching from MySQL');
 
+            // Test database connection first
+            await prisma.$connect();
+            console.log('✅ Database connection successful');
+
             const wordRecords = await prisma.word_types.findMany({
                 select: { word: true, types: true }
             });
 
-            const response = wordRecords.map(record => ({
-                word: record.word,
-                types: JSON.parse(record.types)
-            }));
+            console.log(`📊 Found ${wordRecords.length} word records in database`);
+
+            const response = wordRecords.map(record => {
+                try {
+                    return {
+                        word: record.word,
+                        types: JSON.parse(record.types)
+                    };
+                } catch (parseError) {
+                    console.warn(`⚠️ Failed to parse types for word "${record.word}":`, parseError.message);
+                    return {
+                        word: record.word,
+                        types: []
+                    };
+                }
+            });
 
             response.sort((a, b) => a.word.localeCompare(b.word));
 
-            console.log(`✅ Found ${response.length} words in MySQL`);
+            console.log(`✅ Returning ${response.length} words to client`);
             res.json(response);
         } catch (error) {
             console.error('❌ Error fetching words:', error);
-            res.status(500).json({ error: 'Failed to fetch words' });
+            console.error('❌ Error details:', {
+                message: error.message,
+                code: error.code,
+                stack: error.stack
+            });
+            res.status(500).json({ 
+                error: 'Failed to fetch words',
+                message: error.message 
+            });
         }
     });
 

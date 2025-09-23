@@ -519,17 +519,20 @@ const initFeedManager = async() => {
     }
 };
 
-// Initialize immediately - tag router will be connected later if available
-const initImmediately = () => {
-    // console.log('🏷️ FEED MANAGER: Initializing immediately...');
+// Initialize with a small delay to ensure all dependencies are loaded
+const initWithDelay = () => {
+    // console.log('🏷️ FEED MANAGER: Initializing with delay...');
     // console.log('🏷️ FEED MANAGER: window.tagRouter exists:', !!window.tagRouter);
     // console.log('🏷️ FEED MANAGER: window.TagRouter exists:', !!window.TagRouter);
 
-    initFeedManager().catch(console.error);
+    // Small delay to ensure all dependencies are loaded
+    setTimeout(() => {
+        initFeedManager().catch(console.error);
+    }, 100);
 };
 
-// Start initialization immediately
-initImmediately();
+// Start initialization with delay
+initWithDelay();
 
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {
