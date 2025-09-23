@@ -98,8 +98,17 @@ class ModelInterface {
             return null;
         }
 
+        // Map provider names to provider types for ImageGenerator
+        const providerTypeMap = {
+            'openai': 'openai',
+            'dezgo': 'dezgo',
+            'google': 'google'
+        };
+
+        const providerType = providerTypeMap[model.provider] || model.provider;
+
         return {
-            type: model.provider,
+            type: providerType,
             url: model.apiUrl,
             model: model.apiModel,
             size: model.apiSize

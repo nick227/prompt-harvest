@@ -58,6 +58,17 @@ export const STATIC_MODELS = {
         apiModel: 'flux_1_schnell',
         apiSize: '1024x1024'
     },
+    'flux-pro': {
+        provider: 'dezgo',
+        name: 'flux-pro',
+        displayName: 'Flux Pro',
+        description: 'Flux 1.0 Pro model for high-quality image generation',
+        costPerImage: 1,
+        isActive: true,
+        apiUrl: 'https://api.dezgo.com/text2image_flux',
+        apiModel: 'flux_1_pro',
+        apiSize: '1024x1024'
+    },
 
     // Google Models
     nanoBanana: {
