@@ -391,47 +391,101 @@ async function fixDatabaseSchema() {
     try {
         console.log('  🔧 Adding missing columns to images table...');
         
-        // Add the missing columns
-        await prisma.$executeRaw`ALTER TABLE images ADD COLUMN IF NOT EXISTS isDeleted BOOLEAN DEFAULT FALSE`;
-        console.log('    ✅ Added isDeleted column');
+        // Try direct SQL approach first
+        try {
+            await prisma.$executeRaw`ALTER TABLE images ADD COLUMN isDeleted BOOLEAN DEFAULT FALSE`;
+            console.log('    ✅ Added isDeleted column');
+        } catch (error) {
+            if (error.message.includes('Duplicate column name')) {
+                console.log('    ⚠️  isDeleted column already exists');
+            } else {
+                console.log('    ⚠️  isDeleted column error:', error.message);
+            }
+        }
         
-        await prisma.$executeRaw`ALTER TABLE images ADD COLUMN IF NOT EXISTS deletedAt DATETIME NULL`;
-        console.log('    ✅ Added deletedAt column');
+        try {
+            await prisma.$executeRaw`ALTER TABLE images ADD COLUMN deletedAt DATETIME NULL`;
+            console.log('    ✅ Added deletedAt column');
+        } catch (error) {
+            if (error.message.includes('Duplicate column name')) {
+                console.log('    ⚠️  deletedAt column already exists');
+            } else {
+                console.log('    ⚠️  deletedAt column error:', error.message);
+            }
+        }
         
-        await prisma.$executeRaw`ALTER TABLE images ADD COLUMN IF NOT EXISTS deletedBy VARCHAR(25) NULL`;
-        console.log('    ✅ Added deletedBy column');
+        try {
+            await prisma.$executeRaw`ALTER TABLE images ADD COLUMN deletedBy VARCHAR(25) NULL`;
+            console.log('    ✅ Added deletedBy column');
+        } catch (error) {
+            if (error.message.includes('Duplicate column name')) {
+                console.log('    ⚠️  deletedBy column already exists');
+            } else {
+                console.log('    ⚠️  deletedBy column error:', error.message);
+            }
+        }
         
         // Add indexes for the new columns
         try {
-            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_images_isDeleted ON images(isDeleted)`;
+            await prisma.$executeRaw`CREATE INDEX idx_images_isDeleted ON images(isDeleted)`;
             console.log('    ✅ Added isDeleted index');
-            
-            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_images_deletedAt ON images(deletedAt)`;
+        } catch (error) {
+            if (error.message.includes('Duplicate key name')) {
+                console.log('    ⚠️  isDeleted index already exists');
+            } else {
+                console.log('    ⚠️  isDeleted index error:', error.message);
+            }
+        }
+        
+        try {
+            await prisma.$executeRaw`CREATE INDEX idx_images_deletedAt ON images(deletedAt)`;
             console.log('    ✅ Added deletedAt index');
-            
-            await prisma.$executeRaw`CREATE INDEX IF NOT EXISTS idx_images_userId_isDeleted ON images(userId, isDeleted)`;
+        } catch (error) {
+            if (error.message.includes('Duplicate key name')) {
+                console.log('    ⚠️  deletedAt index already exists');
+            } else {
+                console.log('    ⚠️  deletedAt index error:', error.message);
+            }
+        }
+        
+        try {
+            await prisma.$executeRaw`CREATE INDEX idx_images_userId_isDeleted ON images(userId, isDeleted)`;
             console.log('    ✅ Added userId_isDeleted index');
-        } catch (indexError) {
-            console.log('    ⚠️  Some indexes may already exist, continuing...');
+        } catch (error) {
+            if (error.message.includes('Duplicate key name')) {
+                console.log('    ⚠️  userId_isDeleted index already exists');
+            } else {
+                console.log('    ⚠️  userId_isDeleted index error:', error.message);
+            }
+        }
+        
+        // Verify the columns exist
+        try {
+            const testResult = await prisma.$queryRaw`SELECT isDeleted, deletedAt, deletedBy FROM images LIMIT 1`;
+            console.log('    ✅ Schema verification successful - all columns exist');
+        } catch (error) {
+            console.log('    ❌ Schema verification failed:', error.message);
+            throw new Error(`Schema verification failed: ${error.message}`);
         }
         
         console.log('  ✅ Database schema fix completed');
     } catch (error) {
-        console.log('  ⚠️  Schema fix may have already been applied:', error.message);
+        console.log('  ❌ Database schema fix failed:', error.message);
+        throw error;
     }
 }
 
 async function fixModelConfigurations() {
     try {
         console.log('  🔧 Updating model configurations...');
-        
+
         // Import static models
         const { STATIC_MODELS } = await import('../src/config/static-models.js');
         const correctConfigs = Object.values(STATIC_MODELS);
-        
+
         let fixedCount = 0;
         let createdCount = 0;
-        
+
         for (const correctConfig of correctConfigs) {
             try {
                 const existingModel = await prisma.model.findUnique({
@@ -442,7 +496,7 @@ async function fixModelConfigurations() {
                         }
                     }
                 });
-                
+
                 if (existingModel) {
                     // Update existing model
                     await prisma.model.update({
@@ -474,7 +528,7 @@ async function fixModelConfigurations() {
                 console.log(`    ⚠️  Failed to update ${correctConfig.provider}/${correctConfig.name}: ${error.message}`);
             }
         }
-        
+
         console.log(`    📊 Updated: ${fixedCount} models, Created: ${createdCount} models`);
         console.log('  ✅ Model configuration fix completed');
     } catch (error) {
