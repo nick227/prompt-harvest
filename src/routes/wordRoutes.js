@@ -49,9 +49,9 @@ export const setupWordRoutes = app => {
                 code: error.code,
                 stack: error.stack
             });
-            res.status(500).json({ 
+            res.status(500).json({
                 error: 'Failed to fetch words',
-                message: error.message 
+                message: error.message
             });
         }
     });
