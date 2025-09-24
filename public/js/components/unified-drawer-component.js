@@ -347,14 +347,14 @@ class UnifiedDrawerComponent {
 
     getEnhancementSection(multiplierId) {
         return `
-            <div class="space-y-2">
+            <div class="space-y-2 mb-4">
                 <label class="block text-sm font-medium text-gray-300">Multiplier Text</label>
                 <input type="text" id="${multiplierId}" placeholder="Enter enhancement text..."
                     class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600
                     focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
                     transition-all placeholder-gray-400" />
             </div>
-            <div class="flex gap-4">
+            <div class="flex gap-12">
                 ${this.getEnhancementCheckboxes(['mixup', 'mashup'])}
             </div>
             <div class="flex gap-4">
