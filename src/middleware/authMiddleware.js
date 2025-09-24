@@ -26,7 +26,13 @@ export const authenticateToken = async (req, res, next) => {
             return next();
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        // Require JWT_SECRET for security
+        if (!process.env.JWT_SECRET) {
+            console.error('🔐 AUTH MIDDLEWARE: JWT_SECRET not configured - rejecting token');
+            return res.status(401).json({ error: 'Authentication not configured' });
+        }
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // Get user from database
         const user = await prisma.user.findUnique({
@@ -88,7 +94,13 @@ export const authenticateTokenRequired = async (req, res, next) => {
         console.log('🔐 BACKEND: Token received, length:', token.length);
         console.log('🔐 BACKEND: Token preview:', `${token.substring(0, 20)}...`);
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        // Require JWT_SECRET for security
+        if (!process.env.JWT_SECRET) {
+            console.error('🔐 BACKEND: JWT_SECRET not configured - rejecting token');
+            return res.status(401).json({ error: 'Authentication not configured' });
+        }
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         console.log('🔐 BACKEND: JWT decoded successfully:', { userId: decoded.userId, iat: decoded.iat, exp: decoded.exp });
 
