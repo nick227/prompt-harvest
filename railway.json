@@ -1,7 +1,7 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install && npx prisma generate && node railway-deploy-with-migration.js"
+    "buildCommand": "npm install && npx prisma generate && node railway-deploy-clean.js"
   },
   "deploy": {
     "startCommand": "node server.js",
