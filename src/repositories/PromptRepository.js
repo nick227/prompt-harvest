@@ -23,17 +23,8 @@ export class PromptRepository extends PrismaBaseRepository {
             skip
         });
 
-        // Handle anonymous users - get recent prompts from anonymous users
-        let whereClause = { userId };
-
-        if (userId === 'anonymous' || userId?.startsWith('anonymous_')) {
-            // For anonymous users, get recent prompts from all anonymous users
-            whereClause = {
-                userId: {
-                    startsWith: 'anonymous_'
-                }
-            };
-        }
+        // Only handle authenticated users
+        const whereClause = { userId };
 
         console.log('🔍 PROMPT REPOSITORY: Query details:', {
             userId,
@@ -56,48 +47,9 @@ export class PromptRepository extends PrismaBaseRepository {
             })
         ]);
 
-        // If no prompts found, try to get some recent prompts to debug
+        // Log if no prompts found for debugging
         if (prompts.length === 0) {
-            console.log('🔍 PROMPT REPOSITORY: No prompts found, checking recent prompts in database');
-
-            // Get the 5 most recent prompts to see what's in the database
-            const recentPrompts = await this.prisma.prompts.findMany({
-                orderBy: { createdAt: 'desc' },
-                take: 5
-            });
-
-            console.log('🔍 PROMPT REPOSITORY: Recent prompts in database:', {
-                count: recentPrompts.length,
-                sampleUserIds: recentPrompts.map(p => p.userId),
-                samplePrompts: recentPrompts.map(p => ({
-                    id: p.id,
-                    userId: p.userId,
-                    prompt: `${p.prompt?.substring(0, 50)}...`,
-                    createdAt: p.createdAt
-                }))
-            });
-        }
-
-        // If no prompts found and we're looking for anonymous prompts, try a fallback query
-        if (prompts.length === 0 && (userId === 'anonymous' || userId?.startsWith('anonymous_'))) {
-            console.log('🔍 PROMPT REPOSITORY: No prompts found with startsWith, trying fallback query');
-
-            // Try to get any prompts that contain 'anonymous' in the userId
-            const fallbackPrompts = await this.prisma.prompts.findMany({
-                where: {
-                    userId: {
-                        contains: 'anonymous'
-                    }
-                },
-                orderBy: { createdAt: 'desc' },
-                skip,
-                take: limit
-            });
-
-            if (fallbackPrompts.length > 0) {
-                console.log('🔍 PROMPT REPOSITORY: Fallback query found prompts:', fallbackPrompts.length);
-                prompts.push(...fallbackPrompts);
-            }
+            console.log('🔍 PROMPT REPOSITORY: No prompts found for user:', userId);
         }
 
         console.log('🔍 PROMPT REPOSITORY: findByUserId result:', {

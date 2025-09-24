@@ -1,10 +1,26 @@
-// Unified Drawer Component - Single component for both desktop and mobile drawer rendering
+// Unified Drawer Component - Refactored for DRY principles
 class UnifiedDrawerComponent {
     constructor() {
         this.isMobile = window.innerWidth <= 768;
         this.desktopDrawer = null;
         this.mobileOverlay = null;
         this.mobileDrawer = null;
+        this.desktopToggleButton = null;
+
+        // Common styling constants
+        this.styles = {
+            drawer: 'fixed left-0 top-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl border-r border-gray-700',
+            mobileOverlay: 'fixed inset-0 bg-black bg-opacity-50 z-40 hidden mobile-only',
+            mobileDrawer: 'fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto',
+            toggleButton: 'fixed top-4 left-4 z-50 w-10 h-10 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-600 rounded-lg shadow-lg backdrop-blur-sm transition-all duration-200 ease-in-out desktop-only',
+            container: 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50',
+            title: 'text-lg font-semibold',
+            section: 'mb-8 max-sm:mb-4'
+        };
+
+        // Common checkbox names for persistence
+        this.checkboxNames = ['autoDownload', 'autoPublic', 'photogenic', 'artistic', 'mixup', 'mashup'];
+
         this.init();
     }
 
@@ -15,34 +31,42 @@ class UnifiedDrawerComponent {
         this.setupCheckboxPersistence();
     }
 
+    // Helper method to get variant-specific classes
+    getVariantClasses(variant = 'desktop', baseClasses = {}) {
+        const isMobile = variant === 'mobile';
+
+        return {
+            section: isMobile ? 'mb-8' : this.styles.section,
+            title: isMobile ? this.styles.title : `${this.styles.title} max-sm:text-base`,
+            titleContainer: isMobile ? 'flex items-center gap-2 mb-4' : 'flex items-center gap-2 mb-4 max-sm:mb-2',
+            container: isMobile ? this.styles.container : `${this.styles.container} max-sm:p-3`,
+            ...baseClasses
+        };
+    }
+
+    // Helper method to get variant-specific IDs
+    getVariantId(baseId, variant = 'desktop') {
+        return variant === 'mobile' ? `mobile-${baseId}` : baseId;
+    }
+
     createDesktopDrawer() {
         const existingDrawer = document.getElementById('controls-drawer');
 
         if (existingDrawer) {
             this.desktopDrawer = existingDrawer;
-
-            // Setup close button for existing drawer (with small delay to ensure DOM is ready)
-            setTimeout(() => {
-                this.setupDrawerCloseButton();
-            }, 10);
+            this.setupDrawerCloseButton();
             this.createDesktopToggleButton();
 
             return;
         }
 
-        // Create desktop drawer if it doesn't exist
         this.desktopDrawer = document.createElement('div');
         this.desktopDrawer.id = 'controls-drawer';
-        this.desktopDrawer.className = 'fixed left-0 top-0 h-full w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto shadow-2xl border-r border-gray-700';
-
+        this.desktopDrawer.className = this.styles.drawer;
         this.desktopDrawer.innerHTML = this.getDrawerContent();
 
-        // Setup close button inside drawer (with small delay to ensure DOM is ready)
-        setTimeout(() => {
-            this.setupDrawerCloseButton();
-        }, 10);
+        setTimeout(() => this.setupDrawerCloseButton(), 10);
 
-        // Insert before main content
         const main = document.querySelector('main');
 
         if (main) {
@@ -56,45 +80,24 @@ class UnifiedDrawerComponent {
         const closeBtn = document.getElementById('desktop-drawer-close-btn');
 
         if (closeBtn) {
-            console.log('✅ Desktop drawer close button found and event listener attached');
             closeBtn.addEventListener('click', e => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🔘 Desktop drawer close button clicked');
                 this.closeDesktopDrawer();
             });
-        } else {
-            console.warn('⚠️ Desktop drawer close button not found!');
         }
     }
 
     closeDesktopDrawer() {
-        console.log('🔘 closeDesktopDrawer() called');
-
         if (!this.desktopDrawer) {
-            console.warn('⚠️ Desktop drawer not found in closeDesktopDrawer()');
-
             return;
         }
 
-        console.log('✅ Closing desktop drawer');
         this.desktopDrawer.style.transform = 'translateX(-100%)';
-
-        // Update toggle button to show hamburger icon
-        if (this.desktopToggleButton) {
-            this.desktopToggleButton.innerHTML = `
-                <svg class="w-5 h-5 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            `;
-            this.desktopToggleButton.setAttribute('title', 'Open Controls Drawer');
-            console.log('✅ Toggle button updated to hamburger icon');
-        }
+        this.updateToggleButtonIcon(false);
     }
 
     createDesktopToggleButton() {
-        // Check if toggle button already exists
         const existingToggle = document.getElementById('desktop-drawer-toggle');
 
         if (existingToggle) {
@@ -103,31 +106,41 @@ class UnifiedDrawerComponent {
             return;
         }
 
-        // Create desktop toggle button
         this.desktopToggleButton = document.createElement('button');
         this.desktopToggleButton.id = 'desktop-drawer-toggle';
-        this.desktopToggleButton.className = 'fixed top-4 left-4 z-50 w-10 h-10 bg-gray-800/80 hover:bg-gray-700/80 ' +
-            'border border-gray-600 rounded-lg shadow-lg backdrop-blur-sm transition-all duration-200 ease-in-out desktop-only';
+        this.desktopToggleButton.className = this.styles.toggleButton;
         this.desktopToggleButton.setAttribute('aria-label', 'Toggle Controls Drawer');
         this.desktopToggleButton.setAttribute('title', 'Toggle Controls Drawer');
 
-        // Add close icon (drawer is open by default)
-        this.desktopToggleButton.innerHTML = `
-            <svg class="w-5 h-5 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        `;
+        this.updateToggleButtonIcon(true);
 
-        // Add click event listener
-        this.desktopToggleButton.addEventListener('click', () => {
-            this.toggleDesktopDrawer();
-        });
+        this.desktopToggleButton.addEventListener('click', () => this.toggleDesktopDrawer());
 
-        // Insert into body
         document.body.appendChild(this.desktopToggleButton);
+    }
 
-        // Drawer is open by default - no initial hiding
+    updateToggleButtonIcon(isOpen) {
+        if (!this.desktopToggleButton) {
+            return;
+        }
+
+        const icon = isOpen ? 'close' : 'hamburger';
+        const title = isOpen ? 'Close Controls Drawer' : 'Open Controls Drawer';
+
+        this.desktopToggleButton.innerHTML = this.getIconSVG(icon);
+
+        this.desktopToggleButton.setAttribute('title', title);
+    }
+
+    getIconSVG(type) {
+        const icons = {
+            close: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
+            hamburger: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>'
+        };
+
+        return `<svg class="w-5 h-5 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">${
+            icons[type]
+        }</svg>`;
     }
 
     toggleDesktopDrawer() {
@@ -137,27 +150,9 @@ class UnifiedDrawerComponent {
 
         const isHidden = this.desktopDrawer.style.transform === 'translateX(-100%)';
 
-        if (isHidden) {
-            // Open drawer
-            this.desktopDrawer.style.transform = 'translateX(0)';
-            this.desktopToggleButton.innerHTML = `
-                <svg class="w-5 h-5 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            `;
-            this.desktopToggleButton.setAttribute('title', 'Close Controls Drawer');
-        } else {
-            // Close drawer
-            this.desktopDrawer.style.transform = 'translateX(-100%)';
-            this.desktopToggleButton.innerHTML = `
-                <svg class="w-5 h-5 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            `;
-            this.desktopToggleButton.setAttribute('title', 'Open Controls Drawer');
-        }
+        this.desktopDrawer.style.transform = isHidden ? 'translateX(0)' : 'translateX(-100%)';
+
+        this.updateToggleButtonIcon(!isHidden);
     }
 
     createMobileDrawer() {
@@ -170,19 +165,17 @@ class UnifiedDrawerComponent {
             return;
         }
 
-        // Create mobile overlay and drawer
         this.mobileOverlay = document.createElement('div');
         this.mobileOverlay.id = 'mobile-controls-overlay';
-        this.mobileOverlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-40 hidden mobile-only';
+        this.mobileOverlay.className = this.styles.mobileOverlay;
 
         this.mobileDrawer = document.createElement('div');
         this.mobileDrawer.id = 'mobile-controls-drawer';
-        this.mobileDrawer.className = 'fixed inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto';
-
+        this.mobileDrawer.className = this.styles.mobileDrawer;
         this.mobileDrawer.innerHTML = this.getMobileDrawerContent();
+
         this.mobileOverlay.appendChild(this.mobileDrawer);
 
-        // Insert after desktop drawer
         if (this.desktopDrawer) {
             this.desktopDrawer.parentNode.insertBefore(this.mobileOverlay, this.desktopDrawer.nextSibling);
         }
@@ -190,16 +183,12 @@ class UnifiedDrawerComponent {
 
     getDrawerContent() {
         return `
-            <!-- Drawer Header with Close Button -->
             <div class="flex items-center justify-between p-4 border-b border-gray-700 drawer-header">
                 <h2 class="text-xl font-semibold text-white">Controls</h2>
                 <button id="desktop-drawer-close-btn" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    ${this.getIconSVG('close')}
                 </button>
             </div>
-
             <div class="p-6">
                 ${this.getSearchSection()}
                 ${this.getFaqSection()}
@@ -213,17 +202,12 @@ class UnifiedDrawerComponent {
 
     getMobileDrawerContent() {
         return `
-            <!-- Mobile Header with Close Button -->
             <div class="flex items-center justify-between p-4 border-b border-gray-700">
                 <h2 class="text-xl font-semibold text-white justify-center align-center flex w-full">Controls</h2>
                 <button id="mobile-close-btn" class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    ${this.getIconSVG('close')}
                 </button>
             </div>
-
-            <!-- Mobile Controls Content -->
             <div class="p-6">
                 ${this.getFaqSection('mobile')}
                 ${this.getProvidersSection('mobile')}
@@ -240,7 +224,8 @@ class UnifiedDrawerComponent {
                 <div class="flex gap-2 sub-controls">
                     <div class="search w-full">
                         <input type="text" name="image-search" placeholder="Search"
-                            class="w-full bg-white text-gray-800 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            class="w-full bg-white text-gray-800 px-3 py-2 rounded
+                            focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                 </div>
             </div>
@@ -248,18 +233,15 @@ class UnifiedDrawerComponent {
     }
 
     getProvidersSection(variant = 'desktop') {
-        const providerListId = variant === 'mobile' ? 'mobile-provider-list' : 'provider-list';
-        const sectionClass = variant === 'mobile' ? 'mb-8' : 'mb-8 max-sm:mb-4';
-        const containerClass = variant === 'mobile' ? 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50' : 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3';
-        const titleClass = variant === 'mobile' ? 'text-lg font-semibold text-green-400' : 'text-lg font-semibold text-green-400 max-sm:text-base';
-        const titleContainerClass = variant === 'mobile' ? 'flex items-stretch gap-2 mb-4 w-full' : 'flex items-stretch gap-2 mb-4 max-sm:mb-2 w-full';
+        const classes = this.getVariantClasses(variant);
+        const providerListId = this.getVariantId('provider-list', variant);
 
         return `
-            <div class="${sectionClass}" data-section="providers">
-                <div class="${titleContainerClass}">
-                    <h3 class="${titleClass}">Models</h3>
+            <div class="${classes.section}" data-section="providers">
+                <div class="${classes.titleContainer}">
+                    <h3 class="${classes.title} text-green-400">Models</h3>
                 </div>
-                <div class="${containerClass}">
+                <div class="${classes.container}">
                     <div id="${providerListId}" class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
                         <!-- Providers will be populated by JavaScript -->
                     </div>
@@ -269,98 +251,98 @@ class UnifiedDrawerComponent {
     }
 
     getSettingsSection(variant = 'desktop') {
-        const multiplierId = variant === 'mobile' ? 'mobile-multiplier' : 'multiplier';
-        const sectionClass = variant === 'mobile' ? 'mb-8' : 'mb-8 max-sm:mb-4';
-        const titleClass = variant === 'mobile' ? 'text-lg font-semibold text-blue-400' : 'text-lg font-semibold text-blue-400 max-sm:text-base';
-        const titleContainerClass = variant === 'mobile' ? 'flex items-center gap-2 mb-4' : 'flex items-center gap-2 mb-4 max-sm:mb-2';
-        const containerClass = variant === 'mobile' ? 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50' : 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3';
-        const guidanceClass = variant === 'mobile' ? 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4' : 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4 max-sm:p-3 max-sm:space-y-3';
-        const enhancementClass = variant === 'mobile' ? 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4' : 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 space-y-4 max-sm:p-3 max-sm:space-y-3';
+        const classes = this.getVariantClasses(variant);
+        const multiplierId = this.getVariantId('multiplier', variant);
 
         return `
-            <div class="${sectionClass}" data-section="settings">
-                <div class="${titleContainerClass}">
-                    <h3 class="${titleClass}">Settings</h3>
+            <div class="${classes.section}" data-section="settings">
+                <div class="${classes.titleContainer}">
+                    <h3 class="${classes.title} text-blue-400">Settings</h3>
                 </div>
-                <div class="${containerClass}">
-                    <label class="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" name="autoPublic" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
-                        <span class="text-gray-200 group-hover:text-white transition-colors">Auto Public</span>
-                    </label>
-                </div>
-                <div class="${containerClass}">
-                    <label class="flex items-center gap-3 cursor-pointer group">
-                        <input type="checkbox" name="autoDownload" class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
-                        <span class="text-gray-200 group-hover:text-white transition-colors">Auto Download</span>
-                    </label>
-                </div>
-                <!-- Guidance Section -->
-                <div class="${guidanceClass}">
+                ${this.getCheckboxGroup(['autoPublic', 'autoDownload'], classes.container)}
+                <div class="${classes.container}">
                     ${this.getGuidanceSelects()}
                 </div>
-                <!-- Prompt Enhancement Section -->
-                <div class="${enhancementClass}">
+                <div class="${classes.container}">
                     ${this.getEnhancementSection(multiplierId)}
                 </div>
             </div>
         `;
     }
 
+    getCheckboxGroup(checkboxNames, containerClass) {
+        return checkboxNames.map(name => `
+            <div class="${containerClass}">
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" name="${name}"
+                        class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded
+                        focus:ring-blue-500 focus:ring-2" />
+                    <span class="text-gray-200 group-hover:text-white transition-colors">
+                        ${this.getCheckboxLabel(name)}
+                    </span>
+                </label>
+            </div>
+        `).join('');
+    }
+
+    getCheckboxLabel(name) {
+        const labels = {
+            autoPublic: 'Auto Public',
+            autoDownload: 'Auto Download',
+            photogenic: 'Photogenic',
+            artistic: 'Artistic',
+            mixup: 'Mixup',
+            mashup: 'Mashup'
+        };
+
+        return labels[name] || name;
+    }
+
     getGuidanceSelects() {
+        const guidanceOptions = this.generateGuidanceOptions();
+
         return `
             <div class="space-y-2">
                 <label class="block text-sm font-medium text-gray-300">Bottom Guidance</label>
-                <select class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" name="guidance-bottom">
-                    <option value>None</option>
-                    <option value="1">1 - Minimal</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5 - Balanced</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10 - Strong</option>
-                    <option value="11">11</option>
-                    <option value="12">12</option>
-                    <option value="13">13</option>
-                    <option value="14">14</option>
-                    <option value="15">15</option>
-                    <option value="16">16</option>
-                    <option value="17">17</option>
-                    <option value="18">18</option>
-                    <option value="19">19</option>
-                    <option value="20">20 - Maximum</option>
+                <select class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600
+                    focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    name="guidance-bottom">
+                    ${guidanceOptions}
                 </select>
             </div>
             <div class="space-y-2">
                 <label class="block text-sm font-medium text-gray-300">Top Guidance</label>
-                <select class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" name="guidance-top">
-                    <option value>None</option>
-                    <option value="1">1 - Minimal</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5 - Balanced</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10 - Strong</option>
-                    <option value="11">11</option>
-                    <option value="12">12</option>
-                    <option value="13">13</option>
-                    <option value="14">14</option>
-                    <option value="15">15</option>
-                    <option value="16">16</option>
-                    <option value="17">17</option>
-                    <option value="18">18</option>
-                    <option value="19">19</option>
-                    <option value="20">20 - Maximum</option>
+                <select class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600
+                    focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                    name="guidance-top">
+                    ${guidanceOptions}
                 </select>
             </div>
         `;
+    }
+
+    generateGuidanceOptions() {
+        const options = ['<option value>None</option>'];
+
+        for (let i = 1; i <= 20; i++) {
+            let label;
+
+            if (i === 1) {
+                label = '1 - Minimal';
+            } else if (i === 5) {
+                label = '5 - Balanced';
+            } else if (i === 10) {
+                label = '10 - Strong';
+            } else if (i === 20) {
+                label = '20 - Maximum';
+            } else {
+                label = i.toString();
+            }
+
+            options.push(`<option value="${i}">${label}</option>`);
+        }
+
+        return options.join('');
     }
 
     getEnhancementSection(multiplierId) {
@@ -368,57 +350,55 @@ class UnifiedDrawerComponent {
             <div class="space-y-2">
                 <label class="block text-sm font-medium text-gray-300">Multiplier Text</label>
                 <input type="text" id="${multiplierId}" placeholder="Enter enhancement text..."
-                    class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-400" />
+                    class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600
+                    focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                    transition-all placeholder-gray-400" />
             </div>
             <div class="flex gap-4">
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" name="mixup" class="w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2" />
-                    <span class="text-gray-200 group-hover:text-white transition-colors">Mixup</span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" name="mashup" class="w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2" />
-                    <span class="text-gray-200 group-hover:text-white transition-colors">Mashup</span>
-                </label>
+                ${this.getEnhancementCheckboxes(['mixup', 'mashup'])}
             </div>
             <div class="flex gap-4">
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" name="photogenic" class="w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2" />
-                    <span class="text-gray-200 group-hover:text-white transition-colors">Photogenic</span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" name="artistic" class="w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2" />
-                    <span class="text-gray-200 group-hover:text-white transition-colors">Artistic</span>
-                </label>
+                ${this.getEnhancementCheckboxes(['photogenic', 'artistic'])}
             </div>
         `;
     }
 
+    getEnhancementCheckboxes(names) {
+        return names.map(name => `
+            <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" name="${name}"
+                    class="w-5 h-5 text-purple-600 bg-gray-700 border-gray-600 rounded
+                    focus:ring-purple-500 focus:ring-2" />
+                <span class="text-gray-200 group-hover:text-white transition-colors">
+                    ${this.getCheckboxLabel(name)}
+                </span>
+            </label>
+        `).join('');
+    }
+
     getThemeSection(variant = 'desktop') {
-        const themeSelectId = variant === 'mobile' ? 'mobile-theme-select' : 'theme-select';
-        const sectionClass = variant === 'mobile' ? 'mb-8' : 'mb-8 max-sm:mb-4';
-        const titleClass = variant === 'mobile' ? 'text-lg font-semibold text-purple-400' : 'text-lg font-semibold text-purple-400 max-sm:text-base';
-        const titleContainerClass = variant === 'mobile' ? 'flex items-center gap-2 mb-4' : 'flex items-center gap-2 mb-4 max-sm:mb-2';
-        const containerClass = variant === 'mobile' ? 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50' : 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3';
+        const classes = this.getVariantClasses(variant);
+        const themeSelectId = this.getVariantId('theme-select', variant);
 
         return `
-            <div class="${sectionClass}" data-section="theme">
-                <div class="${titleContainerClass}">
-                    <h3 class="${titleClass}">🎨 Theme</h3>
+            <div class="${classes.section}" data-section="theme">
+                <div class="${classes.titleContainer}">
+                    <h3 class="${classes.title} text-purple-400">🎨 Theme</h3>
                 </div>
-                <div class="${containerClass}">
+                <div class="${classes.container}">
                     <div class="space-y-3">
                         <label class="block text-sm font-medium text-gray-300">Choose Theme</label>
                         <select id="${themeSelectId}"
-                                class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                            class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600
+                            focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                            transition-all">
                             <option value="default">🌙 Default Dark</option>
                             <option value="apple">🍎 Apple Light</option>
                             <option value="monokai">🎨 Monokai</option>
                             <option value="highcontrast">⚫ High Contrast</option>
                             <option value="discord">💜 Discord</option>
                         </select>
-                        <div class="text-xs text-gray-400 mt-2">
-                            Themes instantly change all site colors
-                        </div>
+                        <div class="text-xs text-gray-400 mt-2">Themes instantly change all site colors</div>
                     </div>
                 </div>
             </div>
@@ -426,18 +406,15 @@ class UnifiedDrawerComponent {
     }
 
     getPromptHistorySection(variant = 'desktop') {
-        const historyId = variant === 'mobile' ? 'mobile-prompt-history' : 'prompt-history';
-        const sectionClass = variant === 'mobile' ? 'mb-8' : 'mb-8 max-sm:mb-4';
-        const titleClass = variant === 'mobile' ? 'text-lg font-semibold text-blue-400' : 'text-lg font-semibold text-blue-400 max-sm:text-base';
-        const titleContainerClass = variant === 'mobile' ? 'flex items-center gap-2 mb-4' : 'flex items-center gap-2 mb-4 max-sm:mb-2';
-        const containerClass = variant === 'mobile' ? 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50' : 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3';
+        const classes = this.getVariantClasses(variant);
+        const historyId = this.getVariantId('prompt-history', variant);
 
         return `
-            <div class="${sectionClass}" data-section="history">
-                <div class="${titleContainerClass}">
-                    <h3 class="${titleClass}">History</h3>
+            <div class="${classes.section}" data-section="history">
+                <div class="${classes.titleContainer}">
+                    <h3 class="${classes.title} text-blue-400">History</h3>
                 </div>
-                <div class="${containerClass}">
+                <div class="${classes.container}">
                     <div id="${historyId}" class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
                         <!-- Prompt history will be populated by JavaScript -->
                     </div>
@@ -447,17 +424,14 @@ class UnifiedDrawerComponent {
     }
 
     getFaqSection(variant = 'desktop') {
-        const sectionClass = variant === 'mobile' ? 'mb-8' : 'mb-8 max-sm:mb-4';
-        const titleClass = variant === 'mobile' ? 'text-lg font-semibold text-blue-400' : 'text-lg font-semibold text-blue-400 max-sm:text-base';
-        const titleContainerClass = variant === 'mobile' ? 'flex items-center gap-2 mb-4' : 'flex items-center gap-2 mb-4 max-sm:mb-2';
-        const containerClass = variant === 'mobile' ? 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50' : 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 max-sm:p-3';
+        const classes = this.getVariantClasses(variant);
 
         return `
-            <div class="${sectionClass}" data-section="faq">
-                <div class="${titleContainerClass}">
-                    <h3 class="${titleClass}">Pages</h3>
+            <div class="${classes.section}" data-section="faq">
+                <div class="${classes.titleContainer}">
+                    <h3 class="${classes.title} text-blue-400">Pages</h3>
                 </div>
-                <div class="${containerClass}">
+                <div class="${classes.container}">
                     <div class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
                         <a href="/" class="flex justify-between w-full">Home</a>
                         <a href="/billing.html" class="flex justify-between w-full">Account</a>
@@ -482,111 +456,91 @@ class UnifiedDrawerComponent {
 
     handleResponsiveChange() {
         // Trigger re-initialization of managers when switching between mobile/desktop
-        if (window.controlsDrawer && typeof window.controlsDrawer.handleResize === 'function') {
+        if (window.controlsDrawer?.handleResize) {
             window.controlsDrawer.handleResize();
         }
 
-        if (window.mobileControlsManager && typeof window.mobileControlsManager.setupResizeListener === 'function') {
-            // Force re-initialization
-            const wasMobile = !this.isMobile;
-
-            if (wasMobile !== this.isMobile) {
-                if (this.isMobile) {
-                    // Ensure mobile drawer exists before re-initializing mobile controls
-                    this.createMobileDrawer();
-                    window.mobileControlsManager.reinit();
-                } else {
-                    window.mobileControlsManager.cleanup();
-                }
+        if (window.mobileControlsManager) {
+            if (this.isMobile) {
+                this.createMobileDrawer();
+                window.mobileControlsManager.reinit();
+            } else {
+                window.mobileControlsManager.cleanup();
             }
         }
 
         // Handle desktop toggle button visibility
         if (this.desktopToggleButton) {
-            if (this.isMobile) {
-                // Hide desktop toggle button on mobile
-                this.desktopToggleButton.style.display = 'none';
-            } else {
-                // Show desktop toggle button on desktop
-                this.desktopToggleButton.style.display = 'block';
-            }
+            this.desktopToggleButton.style.display = this.isMobile ? 'none' : 'block';
         }
     }
 
-    // Method to sync data between desktop and mobile drawers
+    // Consolidated sync methods
     syncDrawers() {
         if (!this.desktopDrawer || !this.mobileDrawer) {
             return;
         }
 
-        // Sync form controls
         this.syncFormControls();
+
         this.syncProviderList();
+
         this.syncPromptHistory();
     }
 
     syncFormControls() {
-        // Sync checkboxes
-        const desktopCheckboxes = this.desktopDrawer.querySelectorAll('input[type="checkbox"]');
+        this.syncFormElements('input[type="checkbox"]', element => element.checked);
 
-        desktopCheckboxes.forEach(desktopCheckbox => {
-            const mobileCheckbox = this.mobileDrawer.querySelector(`input[name="${desktopCheckbox.name}"]`);
+        this.syncFormElements('select', element => element.value);
 
-            if (mobileCheckbox) {
-                mobileCheckbox.checked = desktopCheckbox.checked;
+        this.syncFormElements('input[type="text"], input[type="number"]', element => element.value);
+    }
+
+    syncFormElements(selector, getValue) {
+        const desktopElements = this.desktopDrawer.querySelectorAll(selector);
+
+        desktopElements.forEach(desktopElement => {
+            const mobileElement = this.mobileDrawer.querySelector(
+                `[name="${desktopElement.name}"], [id="${desktopElement.id}"]`
+            );
+
+            if (mobileElement) {
+                const value = getValue(desktopElement);
+
+                if (mobileElement.type === 'checkbox') {
+                    mobileElement.checked = value;
+                } else {
+                    mobileElement.value = value;
+                }
             }
         });
-
-        // Sync selects
-        const desktopSelects = this.desktopDrawer.querySelectorAll('select');
-
-        desktopSelects.forEach(desktopSelect => {
-            const mobileSelect = this.mobileDrawer.querySelector(`select[name="${desktopSelect.name}"], select[id="${desktopSelect.id}"]`);
-
-            if (mobileSelect) {
-                mobileSelect.value = desktopSelect.value;
-            }
-        });
-
-        // Sync inputs
-        const desktopInputs = this.desktopDrawer.querySelectorAll('input[type="text"], input[type="number"]');
-
-        desktopInputs.forEach(desktopInput => {
-            const mobileInput = this.mobileDrawer.querySelector(`input[name="${desktopInput.name}"], input[id="${desktopInput.id}"]`);
-
-            if (mobileInput) {
-                mobileInput.value = desktopInput.value;
-            }
-        });
-
-        // Sync theme select
-        const desktopThemeSelect = document.getElementById('theme-select');
-        const mobileThemeSelect = document.getElementById('mobile-theme-select');
-
-        if (desktopThemeSelect && mobileThemeSelect) {
-            mobileThemeSelect.value = desktopThemeSelect.value;
-        }
     }
 
     syncProviderList() {
         const desktopProviderList = document.getElementById('provider-list');
         const mobileProviderList = document.getElementById('mobile-provider-list');
 
-        if (desktopProviderList && mobileProviderList) {
-            // Instead of overwriting the entire HTML, sync individual checkbox states
-            // This preserves mobile event listeners and state
-            const desktopCheckboxes = desktopProviderList.querySelectorAll('input[name="providers"], input[id="all"]');
-            const mobileCheckboxes = mobileProviderList.querySelectorAll('input[name="providers"], input[id="all"]');
-
-            desktopCheckboxes.forEach(desktopCheckbox => {
-                const mobileCheckbox = mobileProviderList.querySelector(`input[name="${desktopCheckbox.name}"], input[id="${desktopCheckbox.id}"]`);
-
-                if (mobileCheckbox) {
-                    mobileCheckbox.checked = desktopCheckbox.checked;
-                    mobileCheckbox.indeterminate = desktopCheckbox.indeterminate;
-                }
-            });
+        if (!desktopProviderList || !mobileProviderList) {
+            return;
         }
+
+        const desktopCheckboxes = desktopProviderList.querySelectorAll(
+            'input[name="providers"], input[id="all"]'
+        );
+        const _mobileCheckboxes = mobileProviderList.querySelectorAll(
+            'input[name="providers"], input[id="all"]'
+        );
+
+        desktopCheckboxes.forEach(desktopCheckbox => {
+            const mobileCheckbox = mobileProviderList.querySelector(
+                `[name="${desktopCheckbox.name}"], [id="${desktopCheckbox.id}"]`
+            );
+
+            if (mobileCheckbox) {
+                mobileCheckbox.checked = desktopCheckbox.checked;
+                mobileCheckbox.indeterminate = desktopCheckbox.indeterminate;
+            }
+        });
     }
 
     syncPromptHistory() {
@@ -598,7 +552,7 @@ class UnifiedDrawerComponent {
         }
     }
 
-    // Method to get all form values from either drawer
+    // Consolidated form value methods
     getFormValues(variant = 'desktop') {
         const drawer = variant === 'mobile' ? this.mobileDrawer : this.desktopDrawer;
 
@@ -607,32 +561,21 @@ class UnifiedDrawerComponent {
         }
 
         const values = {};
+        const elements = drawer.querySelectorAll('input, select');
 
-        // Get checkbox values
-        const checkboxes = drawer.querySelectorAll('input[type="checkbox"]');
+        elements.forEach(element => {
+            const key = element.name || element.id;
 
-        checkboxes.forEach(checkbox => {
-            values[checkbox.name] = checkbox.checked;
-        });
-
-        // Get select values
-        const selects = drawer.querySelectorAll('select');
-
-        selects.forEach(select => {
-            values[select.name || select.id] = select.value;
-        });
-
-        // Get input values
-        const inputs = drawer.querySelectorAll('input[type="text"], input[type="number"]');
-
-        inputs.forEach(input => {
-            values[input.name || input.id] = input.value;
+            if (key) {
+                values[key] = element.type === 'checkbox'
+                    ? element.checked
+                    : element.value;
+            }
         });
 
         return values;
     }
 
-    // Method to set form values in either drawer
     setFormValues(values, variant = 'desktop') {
         const drawer = variant === 'mobile' ? this.mobileDrawer : this.desktopDrawer;
 
@@ -653,65 +596,67 @@ class UnifiedDrawerComponent {
         });
     }
 
-    // Method to set current theme in both drawers
     setCurrentTheme(themeName) {
-        const desktopThemeSelect = document.getElementById('theme-select');
-        const mobileThemeSelect = document.getElementById('mobile-theme-select');
+        const themeSelects = ['theme-select', 'mobile-theme-select'];
 
-        if (desktopThemeSelect) {
-            desktopThemeSelect.value = themeName;
-        }
-        if (mobileThemeSelect) {
-            mobileThemeSelect.value = themeName;
-        }
+        themeSelects.forEach(id => {
+            const select = document.getElementById(id);
+
+            if (select) {
+                select.value = themeName;
+            }
+        });
     }
 
-    // Method to update provider list in both drawers
     updateProviderList(html) {
         const mobileProviderList = document.getElementById('mobile-provider-list');
 
-        // Only update mobile provider list to avoid losing desktop event listeners
-        // Desktop provider list should be managed by the provider manager directly
-        if (mobileProviderList) {
-            // Check if this is a mobile-initiated update (don't overwrite mobile HTML, but still sort)
-            const isMobileUpdate = window.mobileControlsManager && window.mobileControlsManager.isUpdatingFromMobile;
-
-            if (isMobileUpdate) {
-
-                // Still trigger mobile sorting even if we skip HTML update
-                this.sortMobileProviderList();
-
-                return;
-            }
-
-            // Preserve current mobile checkbox states before updating
-            const currentStates = new Map();
-            const mobileCheckboxes = mobileProviderList.querySelectorAll('input[type="checkbox"]');
-
-            mobileCheckboxes.forEach(checkbox => {
-                currentStates.set(checkbox.name || checkbox.id, {
-                    checked: checkbox.checked,
-                    indeterminate: checkbox.indeterminate
-                });
-            });
-
-
-            // Update the HTML
-            mobileProviderList.innerHTML = html;
-
-            // Restore the checkbox states
-            currentStates.forEach((state, key) => {
-                const checkbox = mobileProviderList.querySelector(`input[name="${key}"], input[id="${key}"]`);
-
-                if (checkbox) {
-                    checkbox.checked = state.checked;
-                    checkbox.indeterminate = state.indeterminate;
-                }
-            });
+        if (!mobileProviderList) {
+            return;
         }
+
+        const isMobileUpdate = window.mobileControlsManager?.isUpdatingFromMobile;
+
+        if (isMobileUpdate) {
+            this.sortMobileProviderList();
+
+            return;
+        }
+
+        // Preserve checkbox states
+        const currentStates = this.preserveCheckboxStates(mobileProviderList);
+
+        mobileProviderList.innerHTML = html;
+
+        this.restoreCheckboxStates(mobileProviderList, currentStates);
     }
 
-    // Sort mobile provider list using the same logic as desktop
+    preserveCheckboxStates(container) {
+        const states = new Map();
+        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+        checkboxes.forEach(checkbox => {
+            states.set(checkbox.name || checkbox.id, {
+                checked: checkbox.checked,
+                indeterminate: checkbox.indeterminate
+            });
+        });
+
+        return states;
+    }
+
+    restoreCheckboxStates(container, states) {
+        states.forEach((state, key) => {
+            const checkbox = container.querySelector(`[name="${key}"], [id="${key}"]`);
+
+            if (checkbox) {
+                checkbox.checked = state.checked;
+
+                checkbox.indeterminate = state.indeterminate;
+            }
+        });
+    }
+
     sortMobileProviderList() {
         const mobileProviderList = document.getElementById('mobile-provider-list');
 
@@ -719,25 +664,16 @@ class UnifiedDrawerComponent {
             return;
         }
 
-        // Get all provider labels (which contain the checkboxes) - same logic as desktop
-        const providerLabels = Array.from(mobileProviderList.querySelectorAll('label'));
+        const providerLabels = Array.from(mobileProviderList.querySelectorAll('label'))
+            .filter(label => label.querySelector('input[name="providers"]'));
 
-        // Filter out the "all" label - same logic as desktop
-        const providerLabelsOnly = providerLabels.filter(label => {
-            const checkbox = label.querySelector('input[name="providers"]');
-
-            return checkbox !== null;
-        });
-
-        // Sort by checked status first (checked at top), then alphabetically - same logic as desktop
-        providerLabelsOnly.sort((a, b) => {
+        providerLabels.sort((a, b) => {
             const checkboxA = a.querySelector('input[name="providers"]');
             const checkboxB = b.querySelector('input[name="providers"]');
 
             const isCheckedA = checkboxA.checked;
             const isCheckedB = checkboxB.checked;
 
-            // If one is checked and the other isn't, checked comes first
             if (isCheckedA && !isCheckedB) {
                 return -1;
             }
@@ -745,62 +681,47 @@ class UnifiedDrawerComponent {
                 return 1;
             }
 
-            // If both have same checked status, sort alphabetically by label text
             const labelA = a.querySelector('span').textContent.toLowerCase();
             const labelB = b.querySelector('span').textContent.toLowerCase();
 
             return labelA.localeCompare(labelB);
         });
 
-
-        // Create a document fragment to avoid multiple DOM reflows - same logic as desktop
         const fragment = document.createDocumentFragment();
 
-        // Add sorted provider labels to fragment
-        providerLabelsOnly.forEach(label => {
-            fragment.appendChild(label);
-        });
+        providerLabels.forEach(label => fragment.appendChild(label));
 
-        // Find the "all" label to maintain its position at the end - same logic as desktop
         const allCheckbox = mobileProviderList.querySelector('#all');
-        const allLabel = allCheckbox ? allCheckbox.closest('label') : null;
+        const allLabel = allCheckbox?.closest('label');
 
         if (allLabel) {
             fragment.appendChild(allLabel);
         }
 
-        // Clear the container and append the fragment
         mobileProviderList.innerHTML = '';
         mobileProviderList.appendChild(fragment);
 
-        // Scroll mobile provider list to top if there are checked items - same logic as desktop
         const checkedProviders = mobileProviderList.querySelectorAll('input[name="providers"]:checked');
 
         if (checkedProviders.length > 0) {
-            mobileProviderList.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            mobileProviderList.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
     }
 
-    // Method to update prompt history in both drawers
     updatePromptHistory(html) {
-        const desktopPromptHistory = document.getElementById('prompt-history');
-        const mobilePromptHistory = document.getElementById('mobile-prompt-history');
+        const historyElements = ['prompt-history', 'mobile-prompt-history'];
 
-        if (desktopPromptHistory) {
-            desktopPromptHistory.innerHTML = html;
-        }
-        if (mobilePromptHistory) {
-            mobilePromptHistory.innerHTML = html;
-        }
+        historyElements.forEach(id => {
+            const element = document.getElementById(id);
+
+            if (element) {
+                element.innerHTML = html;
+            }
+        });
     }
 
-    // Checkbox persistence methods
+    // Consolidated checkbox persistence
     setupCheckboxPersistence() {
-        // Load saved states when drawers are created
         setTimeout(() => {
             this.loadCheckboxStates();
             this.attachCheckboxListeners();
@@ -812,67 +733,55 @@ class UnifiedDrawerComponent {
     }
 
     loadCheckboxState(name) {
-        const saved = localStorage.getItem(`drawer_${name}`);
-        return saved === 'true';
+        return localStorage.getItem(`drawer_${name}`) === 'true';
     }
 
     loadCheckboxStates() {
-        const checkboxNames = ['autoDownload', 'autoPublic', 'photogenic', 'artistic', 'mixup', 'mashup'];
-
-        checkboxNames.forEach(name => {
+        this.checkboxNames.forEach(name => {
             const savedState = this.loadCheckboxState(name);
 
-            // Update desktop drawer
-            const desktopCheckbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
-            if (desktopCheckbox) {
-                desktopCheckbox.checked = savedState;
-            }
+            this.setCheckboxState(name, savedState);
+        });
+    }
 
-            // Update mobile drawer
-            const mobileCheckbox = this.mobileDrawer?.querySelector(`input[name="${name}"]`);
-            if (mobileCheckbox) {
-                mobileCheckbox.checked = savedState;
+    setCheckboxState(name, checked) {
+        const selectors = [
+            this.desktopDrawer?.querySelector(`input[name="${name}"]`),
+            this.mobileDrawer?.querySelector(`input[name="${name}"]`)
+        ];
+
+        selectors.forEach(checkbox => {
+            if (checkbox) {
+                checkbox.checked = checked;
             }
         });
     }
 
     attachCheckboxListeners() {
-        const checkboxNames = ['autoDownload', 'autoPublic', 'photogenic', 'artistic', 'mixup', 'mashup'];
-
-        checkboxNames.forEach(name => {
-            // Desktop drawer listener
-            const desktopCheckbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
-            if (desktopCheckbox) {
-                desktopCheckbox.addEventListener('change', (e) => {
-                    this.saveCheckboxState(name, e.target.checked);
-                    this.syncCheckboxToMobile(name, e.target.checked);
-                });
-            }
-
-            // Mobile drawer listener
-            const mobileCheckbox = this.mobileDrawer?.querySelector(`input[name="${name}"]`);
-            if (mobileCheckbox) {
-                mobileCheckbox.addEventListener('change', (e) => {
-                    this.saveCheckboxState(name, e.target.checked);
-                    this.syncCheckboxToDesktop(name, e.target.checked);
-                });
-            }
+        this.checkboxNames.forEach(name => {
+            this.attachCheckboxListener(name, 'desktop', 'mobile');
+            this.attachCheckboxListener(name, 'mobile', 'desktop');
         });
     }
 
+    attachCheckboxListener(name, sourceVariant, targetVariant) {
+        const sourceDrawer = sourceVariant === 'mobile' ? this.mobileDrawer : this.desktopDrawer;
+        const checkbox = sourceDrawer?.querySelector(`input[name="${name}"]`);
 
-    syncCheckboxToMobile(name, checked) {
-        const mobileCheckbox = this.mobileDrawer?.querySelector(`input[name="${name}"]`);
-        if (mobileCheckbox && mobileCheckbox.checked !== checked) {
-            mobileCheckbox.checked = checked;
+        if (checkbox) {
+            checkbox.addEventListener('change', e => {
+                this.saveCheckboxState(name, e.target.checked);
+                this.syncCheckboxToTarget(name, e.target.checked, targetVariant);
+            });
         }
     }
 
-    syncCheckboxToDesktop(name, checked) {
-        const desktopCheckbox = this.desktopDrawer?.querySelector(`input[name="${name}"]`);
+    syncCheckboxToTarget(name, checked, targetVariant) {
+        const targetDrawer = targetVariant === 'mobile' ? this.mobileDrawer : this.desktopDrawer;
+        const targetCheckbox = targetDrawer?.querySelector(`input[name="${name}"]`);
 
-        if (desktopCheckbox && desktopCheckbox.checked !== checked) {
-            desktopCheckbox.checked = checked;
+        if (targetCheckbox && targetCheckbox.checked !== checked) {
+            targetCheckbox.checked = checked;
         }
     }
 }
@@ -881,7 +790,7 @@ class UnifiedDrawerComponent {
 document.addEventListener('DOMContentLoaded', () => {
     window.unifiedDrawerComponent = new UnifiedDrawerComponent();
 
-    // Add function to manually check checkbox state
+    // Add utility function
     window.checkCheckboxState = name => {
         const checkbox = document.querySelector(`input[name="${name}"]`);
 
@@ -891,4 +800,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for global access
 window.UnifiedDrawerComponent = UnifiedDrawerComponent;
-

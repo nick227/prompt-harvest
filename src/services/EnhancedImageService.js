@@ -774,6 +774,74 @@ export class EnhancedImageService {
         };
     }
 
+    async getUserPublicImages(userId, limit = 20, page = 1) {
+        console.log('🔄 ENHANCED-IMAGE-SERVICE: getUserPublicImages called with:', { userId, limit, page });
+
+        this.validateUserInput(userId);
+
+        const offset = (page - 1) * limit;
+
+        try {
+            // SECURITY: Get user's public images ONLY - never private images
+            const images = await this.prisma.image.findMany({
+                where: {
+                    userId: userId,
+                    isPublic: true  // CRITICAL: Only public images for profile pages
+                },
+                select: {
+                    id: true,
+                    prompt: true,
+                    original: true,
+                    imageUrl: true,
+                    provider: true,
+                    rating: true,
+                    isPublic: true,
+                    userId: true,
+                    createdAt: true,
+                    updatedAt: true
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                skip: offset,
+                take: limit
+            });
+
+            // Get total count for pagination
+            const totalCount = await this.prisma.image.count({
+                where: {
+                    userId: userId,
+                    isPublic: true
+                }
+            });
+
+            const hasMore = (offset + limit) < totalCount;
+
+            console.log(`✅ ENHANCED-IMAGE-SERVICE: Found ${images.length} public images for user ${userId}`);
+
+            return {
+                success: true,
+                images: images,
+                pagination: {
+                    page: page,
+                    limit: limit,
+                    totalCount: totalCount,
+                    hasMore: hasMore,
+                    totalPages: Math.ceil(totalCount / limit)
+                }
+            };
+
+        } catch (error) {
+            console.error('❌ ENHANCED-IMAGE-SERVICE: Error getting user public images:', error);
+            return {
+                success: false,
+                error: 'Failed to get user public images',
+                images: [],
+                pagination: {}
+            };
+        }
+    }
+
     async getFeed(userId, limit = 8, page = 0, tags = []) {
         // Site feed should always show only public images from all users
         // regardless of authentication status

@@ -6,6 +6,8 @@ import { ImageStorageService } from '../services/ImageStorageService.js';
 import { formatErrorResponse, formatSuccessResponse } from '../utils/ResponseFormatter.js';
 import { generateRequestId, logRequestStart, logRequestSuccess, logRequestError } from '../utils/RequestLogger.js';
 import crypto from 'crypto';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 export class ProfileController {
     constructor() {
@@ -494,6 +496,149 @@ export class ProfileController {
             const duration = Date.now() - startTime;
             const errorResponse = formatErrorResponse('Failed to upload profile picture', requestId, duration, error.message);
             logRequestError(requestId, 'Upload Avatar', duration, error);
+
+            return res.status(500).json(errorResponse);
+        }
+    }
+
+    /**
+     * Get public user profile page
+     * GET /u/:username
+     */
+    async getPublicProfile(req, res) {
+        const requestId = req.id || generateRequestId();
+        const startTime = Date.now();
+
+        try {
+            const { username } = req.params;
+
+            if (!username || typeof username !== 'string' || username.trim().length === 0) {
+                return res.status(400).json(formatErrorResponse('Username is required', requestId, Date.now() - startTime));
+            }
+
+            // Get user by username
+            const user = await this.prisma.user.findFirst({
+                where: {
+                    username: username.trim()
+                },
+                select: {
+                    id: true,
+                    username: true,
+                    picture: true,
+                    createdAt: true
+                }
+            });
+
+            if (!user) {
+                return res.status(404).send(`
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>User Not Found - AutoImage</title>
+                        <link rel="stylesheet" href="/css/optimized.css">
+                        <link rel="stylesheet" href="/css/mobile.css">
+                        <link rel="icon" href="/images/favicon.png" type="image/png">
+                    </head>
+                    <body class="bg-gray-800 text-gray-200 w-full min-h-screen">
+                        <div class="flex items-center justify-center min-h-screen">
+                            <div class="text-center">
+                                <h1 class="text-4xl font-bold mb-4">User Not Found</h1>
+                                <p class="text-gray-400 mb-8">The user "${username}" does not exist.</p>
+                                <a href="/" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">Go Home</a>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                `);
+            }
+
+            // Serve the profile.html template
+            const __filename = fileURLToPath(import.meta.url);
+            const __dirname = path.dirname(__filename);
+            const profilePath = path.join(__dirname, '../../public/profile.html');
+            res.sendFile(profilePath);
+
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse('Failed to load profile page', requestId, duration, error.message);
+
+            logRequestError(requestId, 'Get Public Profile', duration, error);
+
+            return res.status(500).json(errorResponse);
+        }
+    }
+
+    /**
+     * Get public user profile data (API)
+     * GET /api/profile/:username
+     */
+    async getPublicProfileData(req, res) {
+        const requestId = req.id || generateRequestId();
+        const startTime = Date.now();
+
+        try {
+            const { username } = req.params;
+            const { page = 1, limit = 20 } = req.query;
+
+            if (!username || typeof username !== 'string' || username.trim().length === 0) {
+                return res.status(400).json(formatErrorResponse('Username is required', requestId, Date.now() - startTime));
+            }
+
+            const pageNum = Math.max(1, parseInt(page) || 1);
+            const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 20));
+
+            // Get user by username
+            const user = await this.prisma.user.findFirst({
+                where: {
+                    username: username.trim()
+                },
+                select: {
+                    id: true,
+                    username: true,
+                    picture: true,
+                    createdAt: true
+                }
+            });
+
+            if (!user) {
+                return res.status(404).json(formatErrorResponse('User not found', requestId, Date.now() - startTime));
+            }
+
+            // Get user's public images
+            const result = await this.enhancedImageService.getUserPublicImages(user.id, limitNum, pageNum);
+
+            if (result.error || result.success === false) {
+                const duration = Date.now() - startTime;
+                const errorResponse = formatErrorResponse(result.error || 'Failed to get user images', requestId, duration);
+
+                logRequestError(requestId, 'Get Public Profile Data', duration, result);
+
+                return res.status(errorResponse.statusCode || 500).json(errorResponse);
+            }
+
+            const response = formatSuccessResponse({
+                user: user,
+                images: result.images || [],
+                pagination: result.pagination || {}
+            }, requestId, Date.now() - startTime);
+
+            logRequestSuccess(requestId, 'Get Public Profile Data', Date.now() - startTime, {
+                username: username.trim(),
+                userId: user.id,
+                page: pageNum,
+                limit: limitNum,
+                imageCount: result?.images?.length || 0
+            });
+
+            return res.json(response);
+
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            const errorResponse = formatErrorResponse('Failed to get public profile data', requestId, duration, error.message);
+
+            logRequestError(requestId, 'Get Public Profile Data', duration, error);
 
             return res.status(500).json(errorResponse);
         }

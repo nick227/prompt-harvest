@@ -715,7 +715,9 @@ class FeedDOMManager {
                 // If not transitioning, clear immediately (for initial load)
                 promptOutput.innerHTML = '';
             }
-            this.overlayManager.showOverlay();
+            if (this.overlayManager) {
+                this.overlayManager.showOverlay();
+            }
         }
     }
 

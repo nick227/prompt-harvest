@@ -13,9 +13,10 @@ class FeedAPIManager {
     }
 
     // Load feed images for specific filter with deduplication
-    async loadFeedImages(filter, page = 1, tags = []) {
+    async loadFeedImages(filter, page = 1, tags = [], customEndpoint = null) {
         const tagsKey = tags.length > 0 ? `-tags-${tags.join(',')}` : '';
-        const requestKey = `${filter}-${page}${tagsKey}`;
+        const endpointKey = customEndpoint ? `-custom-${customEndpoint}` : '';
+        const requestKey = `${filter}-${page}${tagsKey}${endpointKey}`;
 
         // Check if request is already in progress
         if (FeedAPIManager.activeRequests.has(requestKey)) {
@@ -29,7 +30,7 @@ class FeedAPIManager {
         }
 
         // Create new request
-        const requestPromise = this.makeFeedRequest(filter, page, tags);
+        const requestPromise = this.makeFeedRequest(filter, page, tags, customEndpoint);
         FeedAPIManager.activeRequests.set(requestKey, requestPromise);
 
         try {
@@ -46,12 +47,14 @@ class FeedAPIManager {
     }
 
     // Make the actual feed request
-    async makeFeedRequest(filter, page, tags = []) {
+    async makeFeedRequest(filter, page, tags = [], customEndpoint = null) {
         try {
 
-            // Use the correct endpoint based on filter
+            // Use custom endpoint if provided, otherwise use the correct endpoint based on filter
             let url;
-            if (filter === 'user') {
+            if (customEndpoint) {
+                url = customEndpoint;
+            } else if (filter === 'user') {
                 url = `/api/feed/user?page=${page}`;
             } else {
                 // Use dedicated site feed endpoint to ensure only public images
@@ -88,6 +91,9 @@ class FeedAPIManager {
             } else if (data.data && data.data.items) {
                 // formatSuccessResponse/formatPaginatedResponse structure: { data: { items: [...] } }
                 images = data.data.items;
+            } else if (data.data && data.data.images) {
+                // Profile API structure: { data: { images: [...] } }
+                images = data.data.images;
             } else if (data.items) {
                 // Direct items property
                 images = data.items;
@@ -101,6 +107,11 @@ class FeedAPIManager {
                 pagination: data.pagination || data.data?.pagination,
                 success: data.success !== false
             };
+
+            // Preserve user data if present (for profile pages)
+            if (data.user || data.data?.user) {
+                result.user = data.user || data.data.user;
+            }
 
 
             if (window.DEBUG_MODE) {

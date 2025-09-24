@@ -83,5 +83,11 @@ export const setupProfileRoutes = (app, profileController) => {
         profileController.uploadAvatar.bind(profileController)
     );
 
+    // Public user profile page - no authentication required
+    router.get('/u/:username', profileController.getPublicProfile.bind(profileController));
+
+    // Public user profile API - get user's public images
+    router.get('/api/profile/:username', profileController.getPublicProfileData.bind(profileController));
+
     app.use(router);
 };

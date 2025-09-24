@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title id="profile-title">User Profile - AutoImage</title>
+    <link rel="stylesheet" href="/css/optimized.css" />
+    <link rel="stylesheet" href="/css/mobile.css" />
+    <link rel="stylesheet" href="/css/credits-modal.css" />
+    <link rel="icon" href="/images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Configuration -->
+    <script src="/js/config/tailwind-config.js"></script>
+    <!-- Input Helper Functions -->
+    <script src="/js/utils/input-helpers.js"></script>
+</head>
+
+<body class="bg-gray-800 text-gray-200 w-full min-h-screen">
+
+    <!-- Profile page uses header component for auth widget (no drawer needed) -->
+
+    <main class="flex-col gap-4 h-full max-w-[1080px] mx-auto main-container">
+        <!-- Profile Header -->
+        <div id="profile-header" class="w-full mb-6 p-6 bg-gray-800/50 rounded-xl border border-gray-700/50">
+            <div class="flex items-center gap-4 mb-4">
+                <div id="profile-avatar" class="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-2xl text-gray-400"></i>
+                </div>
+                <div>
+                    <h1 id="profile-username" class="text-2xl font-bold text-white">Loading...</h1>
+                    <p id="profile-joined" class="text-gray-400 text-sm">Loading...</p>
+                </div>
+            </div>
+            <div id="profile-stats" class="flex gap-6 text-sm">
+                <div class="text-center">
+                    <div id="image-count" class="text-xl font-semibold text-blue-400">-</div>
+                    <div class="text-gray-400">Images</div>
+                </div>
+                <div class="text-center">
+                    <div id="member-since" class="text-xl font-semibold text-green-400">-</div>
+                    <div class="text-gray-400">Member Since</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Navigation -->
+        <div class="w-full mb-4">
+            <div class="flex items-center gap-2">
+                <button id="back-to-home" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Home
+                </button>
+                <div class="flex-1"></div>
+                <!-- Pagination removed - using infinite scroll -->
+            </div>
+        </div>
+
+        <!-- Image Display (reuse existing feed structure) -->
+        <div class="w-full flex flex-col min-w-0 mt-4 section-images">
+            <div class="flex flex-col h-full">
+                <!-- Controls Bar -->
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-4 flex-wrap">
+                    <div class="view-switch flex items-center gap-2 flex-wrap w-full">
+                        <!-- View Switch -->
+                        <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors">
+                            <input type="radio" name="view" value="list"> List</label>
+                        <label class="bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors"
+                            data-owner="1">
+                            <input type="radio" name="view" value="compact" checked> Compact</label>
+                    </div>
+                </div>
+
+                <!-- Image Grid (reuse existing container) -->
+                <div id="image-container-main" class="prompt-output flex flex-wrap gap-2 pb-16 h-full overflow-y-auto hidden"></div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="profile-loading" class="hidden flex justify-center items-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <span class="ml-3 text-gray-400">Loading profile...</span>
+        </div>
+
+        <!-- No Images Message -->
+        <div id="no-images-message" class="hidden text-center py-12">
+            <i class="fas fa-image text-6xl text-gray-600 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-400 mb-2">No Public Images</h3>
+            <p class="text-gray-500">This user hasn't shared any public images yet.</p>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+
+    <!-- Header Component -->
+    <script src="/js/components/header-component.js"></script>
+
+    <!-- Theme Service (simplified palette system) -->
+    <script src="/js/themes/managers/ColorPaletteManager.js"></script>
+    <script src="/js/themes/composers/ThemeComposer.js"></script>
+    <script src="/js/themes/ThemeCSSGenerator.js"></script>
+    <script src="/js/themes/ThemeServiceTester.js"></script>
+    <script src="/js/themes/SimpleThemeService.js"></script>
+    <script src="/js/themes/ThemeValidator.js"></script>
+    <script src="/js/themes/ThemePreview.js"></script>
+    <script src="/js/themes/ThemeReadabilityTester.js"></script>
+
+    <!-- Theme Manager (for consistent theming) -->
+    <script src="/js/components/theme-manager.js"></script>
+
+    <!-- Core modules (minimal set for profile page) -->
+    <script src="/js/core/constants.js"></script>
+    <script src="/js/core/utils.js"></script>
+    <script src="/js/core/api-service.js"></script>
+    <script src="/js/core/auth-utils.js"></script>
+    <script src="/js/core/unified-auth-utils.js"></script>
+    <!-- Unified User System (essential for auth widget) -->
+    <script src="/js/core/user-system.js"></script>
+
+    <!-- Stats Service (needed for header component) -->
+    <script src="/js/services/stats-service.js"></script>
+    <script src="/js/services/public-status-service.js"></script>
+    <script src="/js/components/transaction-stats-component.js"></script>
+
+    <!-- Image Component (Refactored Architecture) -->
+    <script src="/js/components/image/ui-config.js"></script>
+    <!-- Image Event Dependencies (must load before image-events.js) -->
+    <script src="/js/modules/ImageDetection.js"></script>
+    <script src="/js/modules/legacy-auth-utils.js"></script>
+    <script src="/js/modules/NotificationManager.js"></script>
+    <script src="/js/modules/TouchEventHandler.js"></script>
+
+    <script src="/js/components/image/image-placeholder-handler.js"></script>
+    <script src="/js/components/image/image-elements.js"></script>
+    <script src="/js/components/image/navigation-controls.js"></script>
+    <script src="/js/components/image/fullscreen-components.js"></script>
+    <script src="/js/components/image/image-ui-manager.js"></script>
+    <script src="/js/components/image/image-events.js"></script>
+    <script src="/js/components/image/image-data.js"></script>
+    <script src="/js/components/image/image-manager.js"></script>
+    <script src="/js/components/image/image-component.js"></script>
+
+    <!-- Unified Info Box Component -->
+    <script src="/js/components/image/unified-info-box.js"></script>
+
+    <!-- Simplified Navigation System -->
+    <script src="/js/components/image/simplified-navigation.js"></script>
+    <script src="/js/components/image/navigation-integration.js"></script>
+
+    <!-- Profile page doesn't need form components -->
+
+    <!-- Profile page doesn't need generation or feed components -->
+
+    <!-- Shared Utilities (must be loaded first) -->
+    <script src="/js/modules/shared/image-dom-utils.js"></script>
+    <script src="/js/modules/shared/image-view-utils.js"></script>
+
+    <!-- Profile page doesn't need generation components -->
+
+    <!-- Feed System Components (reuse existing with custom endpoint) -->
+    <script src="/js/modules/feed/feed-constants.js"></script>
+    <script src="/js/modules/feed/feed-cache-manager.js"></script>
+    <script src="/js/modules/feed/feed-dom-manager.js"></script>
+    <script src="/js/modules/feed/feed-api-manager.js"></script>
+    <script src="/js/modules/feed/feed-ui-manager.js"></script>
+    <script src="/js/modules/feed/feed-view-manager.js"></script>
+    <script src="/js/modules/feed/fill-to-bottom-manager.js"></script>
+
+    <!-- Profile page initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Initialize header component for auth widget and stats
+                if (window.HeaderComponent) {
+                    window.headerComponent = new HeaderComponent();
+                }
+
+                // Initialize theme manager for consistent theming
+                if (window.ThemeManager) {
+                    window.themeManager = new ThemeManager();
+                }
+            } catch (error) {
+                console.error('❌ PROFILE PAGE: Failed to initialize:', error);
+            }
+        });
+    </script>
+
+    <!-- Profile Feed Manager -->
+    <script src="/js/modules/profile-feed-manager.js"></script>
+
+    <!-- Profile Router -->
+    <script src="/js/modules/profile-router.js"></script>
+
+    <!-- Profile Component -->
+    <script src="/js/components/profile-component.js"></script>
+
+    <!-- Profile page doesn't need main app loader -->
+
+</body>
+
+</html>

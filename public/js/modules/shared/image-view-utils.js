@@ -319,7 +319,13 @@ class ImageViewUtils {
 
             const valueElement = document.createElement('span');
             valueElement.className = 'metadata-value';
-            valueElement.textContent = value;
+
+            // Check if value contains HTML (like our username links)
+            if (value.includes('<a ')) {
+                valueElement.innerHTML = value;
+            } else {
+                valueElement.textContent = value;
+            }
 
             row.appendChild(labelElement);
             row.appendChild(valueElement);
@@ -357,9 +363,9 @@ class ImageViewUtils {
     }
 
     /**
-     * Format username with proper fallback logic
+     * Format username with proper fallback logic and profile link
      * @param {Object} imageData - Image data object
-     * @returns {string} Formatted username
+     * @returns {string} Formatted username with hyperlink
      */
     static formatUsername(imageData) {
         let { username } = imageData;
@@ -370,7 +376,12 @@ class ImageViewUtils {
             username = 'Anonymous';
         }
 
-        return username;
+        // Create hyperlink for username
+        if (username === 'Anonymous' || username === 'Unknown User') {
+            return username;
+        }
+
+        return `<a href="/u/${encodeURIComponent(username)}" class="text-blue-400 hover:text-blue-300 underline transition-colors">${username}</a>`;
     }
 
     /**

@@ -462,9 +462,9 @@ class UnifiedInfoBox {
     }
 
     /**
-     * Format created by information (username and date)
+     * Format created by information (username and date) with profile link
      * @param {Object} imageData - Image data object
-     * @returns {string} Formatted created by string
+     * @returns {string} Formatted created by string with hyperlink
      */
     formatCreatedBy(imageData) {
         // Use username from server, fallback to appropriate message if not available
@@ -478,21 +478,26 @@ class UnifiedInfoBox {
 
         const date = imageData.createdAt;
 
+        // Create hyperlink for username
+        const usernameLink = username === 'Anonymous' || username === 'Unknown User'
+            ? username
+            : `<a href="/u/${encodeURIComponent(username)}" class="text-blue-400 hover:text-blue-300 underline transition-colors">${username}</a>`;
+
         if (!date) {
-            return username;
+            return usernameLink;
         }
 
         try {
             const dateObj = new Date(date);
 
             if (isNaN(dateObj.getTime())) {
-                return username;
+                return usernameLink;
             }
             const formattedDate = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
 
-            return `${username} (${formattedDate})`;
+            return `${usernameLink} (${formattedDate})`;
         } catch (error) {
-            return username;
+            return usernameLink;
         }
     }
 

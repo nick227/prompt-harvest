@@ -68,14 +68,12 @@
 .btn-primary:hover:not(:disabled) {
   background-color: var(--color-interactive-primary-hover);
   border-color: var(--color-interactive-primary-hover);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-dark-md);
 }
 
 .btn-primary:active:not(:disabled) {
   background-color: var(--color-interactive-primary-active);
   border-color: var(--color-interactive-primary-active);
-  transform: translateY(0);
   box-shadow: var(--shadow-dark-sm);
 }
 
@@ -88,7 +86,6 @@
 .btn-secondary:hover:not(:disabled) {
   background-color: var(--color-surface-tertiary);
   border-color: var(--color-border-secondary);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-dark-md);
 }
 
@@ -101,7 +98,6 @@
 .btn-outline:hover:not(:disabled) {
   background-color: var(--color-surface-secondary);
   border-color: var(--color-border-secondary);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-dark-md);
 }
 
@@ -114,7 +110,6 @@
 .btn-ghost:hover:not(:disabled) {
   background-color: var(--color-surface-secondary);
   color: var(--color-text-primary);
-  transform: translateY(-1px);
 }
 
 .btn-danger {
@@ -126,7 +121,6 @@
 .btn-danger:hover:not(:disabled) {
   background-color: var(--color-red-500);
   border-color: var(--color-red-500);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-dark-md);
 }
 
@@ -139,7 +133,6 @@
 .btn-success:hover:not(:disabled) {
   background-color: var(--color-green-500);
   border-color: var(--color-green-500);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-dark-md);
 }
 
@@ -229,7 +222,6 @@
 .card:hover {
   border-color: var(--color-border-secondary);
   box-shadow: var(--shadow-dark-md);
-  transform: translateY(-2px);
 }
 
 .card-header {
@@ -730,26 +722,23 @@
 }
 
 #desktop-drawer-close-btn {
-  background-color: transparent !important;
-  border-color: transparent !important;
+  border-radius: 50% !important;
+  background-color: rgba(0, 0, 0, 0.8);
   color: var(--color-text-primary) !important;
   transition: all 0.2s ease-in-out !important;
 }
 
 #desktop-drawer-close-btn:hover {
-  background-color: var(--color-surface-tertiary) !important;
-  transform: translateY(-1px) !important;
+    background-color: rgba(0, 0, 0, 1);
 }
 
 #desktop-drawer-toggle:hover {
   background-color: var(--color-surface-tertiary) !important;
   border-color: var(--color-border-secondary) !important;
-  transform: translateY(-1px) !important;
   box-shadow: var(--shadow-dark-md) !important;
 }
 
 #desktop-drawer-toggle:active {
-  transform: translateY(0) !important;
   box-shadow: var(--shadow-dark-sm) !important;
 }
 

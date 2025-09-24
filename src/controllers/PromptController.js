@@ -25,21 +25,35 @@ export class PromptController {
             // Extract pagination parameters from query
             const { limit, page } = req.query;
 
-            // Handle anonymous users
-            const actualUserId = req.user?.id || 'anonymous';
+            // Only allow authenticated users
+            if (!req.user?.id) {
+                console.log('🔍 PROMPT CONTROLLER: User not authenticated, returning empty prompts');
+                return res.json({
+                    success: true,
+                    data: {
+                        prompts: [],
+                        pagination: {
+                            total: 0,
+                            hasMore: false,
+                            page: parseInt(page) || 0,
+                            limit: parseInt(limit) || 10
+                        }
+                    },
+                    requestId,
+                    duration: Date.now() - startTime,
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            const actualUserId = req.user.id;
 
             console.log('🔍 PROMPT CONTROLLER: User details:', {
                 isAuthenticated: !!req.user,
-                userId: req.user?.id,
-                userEmail: req.user?.email,
+                userId: req.user.id,
+                userEmail: req.user.email,
                 actualUserId,
                 query: req.query
             });
-
-            // For anonymous users, we'll show recent prompts from all anonymous users
-            if (!req.user?.id) {
-                console.log('🔍 PROMPT CONTROLLER: Anonymous user accessing prompts');
-            }
 
             // Get prompts from service
             const result = await this.promptService.getUserPrompts(actualUserId, { limit, page });

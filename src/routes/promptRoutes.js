@@ -1,14 +1,15 @@
 import {
     apiRateLimit,
     sanitizeInput,
-    authenticateToken
+    authenticateToken,
+    authenticateTokenRequired
 } from '../middleware/index.js';
 
 export const setupPromptRoutes = (app, promptController) => {
-    // Get user prompts with pagination (allow anonymous access)
+    // Get user prompts with pagination (authenticated users only)
     app.get('/api/prompts',
         apiRateLimit,
-        authenticateToken,
+        authenticateTokenRequired,
         sanitizeInput,
         promptController.getUserPrompts.bind(promptController)
     );
