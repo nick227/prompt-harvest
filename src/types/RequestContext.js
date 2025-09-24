@@ -1,6 +1,6 @@
 /**
  * Request Context Types
- * 
+ *
  * Ensures authentication context is preserved throughout the request lifecycle
  */
 
@@ -12,7 +12,7 @@ export class RequestContext {
         if (!userId) {
             throw new Error('RequestContext: userId is required');
         }
-        
+
         this.req = req;
         this.userId = userId;
         this.userEmail = userEmail;
@@ -20,7 +20,7 @@ export class RequestContext {
         this.requestId = null;
         this.timestamp = Date.now();
     }
-    
+
     /**
      * Create context from authenticated request
      */
@@ -28,28 +28,28 @@ export class RequestContext {
         if (!req?.user?.id) {
             throw new Error('RequestContext: No authenticated user found in request');
         }
-        
+
         return new RequestContext(
             req,
             req.user.id,
             req.user.email
         );
     }
-    
+
     /**
      * Set prompt ID for tracking
      */
     setPromptId(promptId) {
         this.promptId = promptId;
     }
-    
+
     /**
      * Set request ID for tracking
      */
     setRequestId(requestId) {
         this.requestId = requestId;
     }
-    
+
     /**
      * Get user info for database operations
      */
@@ -60,7 +60,7 @@ export class RequestContext {
             isAdmin: this.req.user?.isAdmin || false
         };
     }
-    
+
     /**
      * Validate context is still valid
      */
@@ -73,7 +73,7 @@ export class RequestContext {
         }
         return true;
     }
-    
+
     /**
      * Create a copy for safe passing
      */

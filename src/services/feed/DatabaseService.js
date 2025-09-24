@@ -181,9 +181,10 @@ const savePromptToDatabase = async promptData => {
     const prisma = getPrismaClient();
 
     try {
-        // Handle anonymous users differently
-        if (!promptData.userId) {
+        // Handle anonymous users differently - check for null, undefined, or empty string
+        if (!promptData.userId || promptData.userId === null || promptData.userId === 'null' || promptData.userId === '') {
             console.log('⏭️ Anonymous user - saving prompt with temporary ID');
+            console.log('🔍 DEBUG: userId value:', promptData.userId, 'type:', typeof promptData.userId);
 
             // For anonymous users, we could save to a separate table or use a special userId
             // For now, we'll use a special anonymous userId

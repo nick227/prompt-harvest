@@ -1,6 +1,6 @@
 /**
  * Prompt Templating Utilities
- * 
+ *
  * Handles variable substitution and text normalization
  */
 
@@ -11,7 +11,7 @@ export function normalizeText(text) {
     if (typeof text !== 'string') {
         return '';
     }
-    
+
     return text
         .replace(/\s+/g, ' ') // Replace multiple spaces with single space
         .replace(/\s*,\s*,/g, ',') // Remove double commas
@@ -28,9 +28,9 @@ export function substituteVariables(text, variables = {}) {
     if (typeof text !== 'string') {
         return '';
     }
-    
+
     let result = text;
-    
+
     // Handle ${variable} syntax
     result = result.replace(/\$\{([^}]+)\}/g, (match, varName) => {
         const value = variables[varName.trim()];
@@ -40,7 +40,7 @@ export function substituteVariables(text, variables = {}) {
         }
         return String(value);
     });
-    
+
     return normalizeText(result);
 }
 
@@ -51,13 +51,13 @@ export function processPromptTemplate(template, variables = {}) {
     if (!template) {
         return '';
     }
-    
+
     // First, substitute variables
     let processed = substituteVariables(template, variables);
-    
+
     // Then normalize the text
     processed = normalizeText(processed);
-    
+
     return processed;
 }
 
@@ -66,12 +66,12 @@ export function processPromptTemplate(template, variables = {}) {
  */
 export function validatePromptTemplate(template, requiredVariables = []) {
     const errors = [];
-    
+
     if (!template || typeof template !== 'string') {
         errors.push('Template must be a non-empty string');
         return { isValid: false, errors };
     }
-    
+
     // Check for required variables
     for (const varName of requiredVariables) {
         const pattern = new RegExp(`\\$\\{${varName}\\}`);
@@ -79,7 +79,7 @@ export function validatePromptTemplate(template, requiredVariables = []) {
             errors.push(`Required variable '${varName}' not found in template`);
         }
     }
-    
+
     return {
         isValid: errors.length === 0,
         errors

@@ -1,6 +1,6 @@
 /**
  * Cache Manager with Debouncing
- * 
+ *
  * Prevents excessive cache refreshes and log flooding
  */
 
@@ -11,20 +11,20 @@ class CacheManager {
         this.refreshInterval = 5000; // 5 seconds minimum between refreshes
         this.pendingRefreshes = new Set();
     }
-    
+
     /**
      * Get cache with debouncing
      */
     async get(key, fetcher, options = {}) {
-        const { 
+        const {
             ttl = 30000, // 30 seconds default TTL
             debounceMs = this.refreshInterval,
-            forceRefresh = false 
+            forceRefresh = false
         } = options;
-        
+
         const now = Date.now();
         const lastRefresh = this.lastRefresh.get(key) || 0;
-        
+
         // Check if we have valid cached data
         if (!forceRefresh && this.cache.has(key)) {
             const cached = this.cache.get(key);
@@ -32,14 +32,14 @@ class CacheManager {
                 return cached.data;
             }
         }
-        
+
         // Check if we should debounce
         if (!forceRefresh && now - lastRefresh < debounceMs) {
             // Return stale data if available, otherwise wait
             if (this.cache.has(key)) {
                 return this.cache.get(key).data;
             }
-            
+
             // Wait for pending refresh
             if (this.pendingRefreshes.has(key)) {
                 return new Promise((resolve) => {
@@ -54,11 +54,11 @@ class CacheManager {
                 });
             }
         }
-        
+
         // Perform refresh
         return this.refresh(key, fetcher);
     }
-    
+
     /**
      * Refresh cache data
      */
@@ -76,17 +76,17 @@ class CacheManager {
                 checkPending();
             });
         }
-        
+
         this.pendingRefreshes.add(key);
         this.lastRefresh.set(key, Date.now());
-        
+
         try {
             const data = await fetcher();
             this.cache.set(key, {
                 data,
                 timestamp: Date.now()
             });
-            
+
             return data;
         } catch (error) {
             console.error(`❌ CACHE: Failed to refresh ${key}:`, error.message);
@@ -95,7 +95,7 @@ class CacheManager {
             this.pendingRefreshes.delete(key);
         }
     }
-    
+
     /**
      * Clear cache
      */
@@ -108,7 +108,7 @@ class CacheManager {
             this.lastRefresh.clear();
         }
     }
-    
+
     /**
      * Get cache stats
      */

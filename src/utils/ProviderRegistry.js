@@ -1,6 +1,6 @@
 /**
  * Provider Registry and Utilities
- * 
+ *
  * Manages provider routing and prevents duplicates
  */
 
@@ -9,7 +9,7 @@
  */
 export const PROVIDER_TYPE_MAP = {
     'openai': 'openai',
-    'dezgo': 'dezgo', 
+    'dezgo': 'dezgo',
     'google': 'google',
     'stability': 'dezgo', // Map stability to dezgo since we don't have stability handler
     'stabilityAi': 'dezgo' // Alternative stability mapping
@@ -39,13 +39,13 @@ export function validateProviders(providers) {
     if (!Array.isArray(providers)) {
         throw new Error('Providers must be an array');
     }
-    
+
     const deduplicated = deduplicateProviders(providers);
-    
+
     if (deduplicated.length === 0) {
         throw new Error('At least one provider must be specified');
     }
-    
+
     return deduplicated;
 }
 

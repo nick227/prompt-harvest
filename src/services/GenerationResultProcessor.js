@@ -8,6 +8,15 @@ export class GenerationResultProcessor {
      */
     async processSuccessfulResult(result, context) {
         const { prompt, original, promptId, req, autoPublic } = context;
+        
+        // Debug promptId preservation
+        console.log('🔍 PROMPTID DEBUG: promptId in context:', {
+            promptId,
+            promptIdType: typeof promptId,
+            isNull: promptId === null,
+            isUndefined: promptId === undefined,
+            contextKeys: Object.keys(context)
+        });
 
         // Log autoPublic value received in processor
         console.log('🔍 PROCESSOR DEBUG: autoPublic value received in processSuccessfulResult:', {

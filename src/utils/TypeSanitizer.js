@@ -1,6 +1,6 @@
 /**
  * Type Sanitization Utilities
- * 
+ *
  * Ensures proper type conversion and prevents string/boolean confusion
  */
 
@@ -31,13 +31,13 @@ export function sanitizeBoolean(value, defaultValue = false) {
  */
 export function sanitizeBooleanFields(obj, booleanFields = []) {
     const sanitized = { ...obj };
-    
+
     for (const field of booleanFields) {
         if (field in sanitized) {
             sanitized[field] = sanitizeBoolean(sanitized[field]);
         }
     }
-    
+
     return sanitized;
 }
 
@@ -48,7 +48,7 @@ export function sanitizePromptOptions(options) {
     const booleanFields = [
         'mixup', 'mashup', 'photogenic', 'artistic', 'autoPublic', 'autoEnhance'
     ];
-    
+
     return sanitizeBooleanFields(options, booleanFields);
 }
 

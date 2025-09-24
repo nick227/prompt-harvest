@@ -138,7 +138,9 @@ const generate = async options => {
         console.log('🔍 FEED DEBUG: Context being passed to processGenerationResults:', {
             context,
             autoPublicInContext: context.autoPublic,
-            autoPublicType: typeof context.autoPublic
+            autoPublicType: typeof context.autoPublic,
+            promptIdInContext: context.promptId,
+            promptIdType: typeof context.promptId
         });
 
         const processedResults = await processGenerationResults(results, context);
