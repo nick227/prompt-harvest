@@ -8,7 +8,7 @@ export class GenerationResultProcessor {
      */
     async processSuccessfulResult(result, context) {
         const { prompt, original, promptId, req, autoPublic } = context;
-        
+
         // Debug promptId preservation
         console.log('🔍 PROMPTID DEBUG: promptId in context:', {
             promptId,

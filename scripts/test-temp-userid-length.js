@@ -2,7 +2,7 @@
 
 /**
  * Test Temporary User ID Length
- * 
+ *
  * This script tests the actual length of temporary user IDs
  */
 
