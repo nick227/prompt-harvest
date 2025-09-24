@@ -421,6 +421,29 @@ class AppLoader {
     }
 }
 
+// Calculate guidance value from top and bottom guidance inputs
+const calculateGuidance = (topValue, bottomValue) => {
+    const top = parseInt(topValue) || 0;
+    const bottom = parseInt(bottomValue) || 0;
+
+    // If both values are provided, use the average
+    if (top > 0 && bottom > 0) {
+        return { guidance: Math.round((top + bottom) / 2) };
+    }
+
+    // If only one value is provided, use that
+    if (top > 0) {
+        return { guidance: top };
+    }
+
+    if (bottom > 0) {
+        return { guidance: bottom };
+    }
+
+    // Default to 10 if no values provided
+    return { guidance: 10 };
+};
+
 // Shared validation function for image generation
 const validateImageGeneration = () => {
     const textArea = document.querySelector('#prompt-textarea');
@@ -440,11 +463,54 @@ const validateImageGeneration = () => {
         return { valid: false };
     }
 
-    return {
+    // Get all form data including autoEnhance, mixup, etc.
+    const formData = {};
+
+    // Get form values from the unified drawer component
+    if (window.unifiedDrawerComponent) {
+        const drawerValues = window.unifiedDrawerComponent.getFormValues('desktop');
+        Object.assign(formData, drawerValues);
+    }
+
+    // Also get values directly from form elements as fallback
+    const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
+    const mixupCheckbox = document.querySelector('input[name="mixup"]');
+    const mashupCheckbox = document.querySelector('input[name="mashup"]');
+    const photogenicCheckbox = document.querySelector('input[name="photogenic"]');
+    const artisticCheckbox = document.querySelector('input[name="artistic"]');
+    const multiplierInput = document.querySelector('#multiplier');
+    const guidanceTop = document.querySelector('select[name="guidance-top"]');
+    const guidanceBottom = document.querySelector('select[name="guidance-bottom"]');
+
+    // Calculate guidance
+    const guidanceData = calculateGuidance(guidanceTop?.value, guidanceBottom?.value);
+
+    const result = {
         valid: true,
         prompt: textArea.value.trim(),
-        providers: selectedProviders
+        providers: selectedProviders,
+        autoEnhance: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : false,
+        mixup: mixupCheckbox ? mixupCheckbox.checked : false,
+        mashup: mashupCheckbox ? mashupCheckbox.checked : false,
+        photogenic: photogenicCheckbox ? photogenicCheckbox.checked : false,
+        artistic: artisticCheckbox ? artisticCheckbox.checked : false,
+        multiplier: multiplierInput ? multiplierInput.value.trim() : '',
+        guidance: guidanceData.guidance,
+        original: textArea.value.trim(),
+        formData: formData
     };
+
+    console.log('🔍 FRONTEND DEBUG: validateImageGeneration result:', {
+        autoEnhance: result.autoEnhance,
+        autoEnhanceCheckbox: autoEnhanceCheckbox,
+        checkboxChecked: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : 'checkbox not found',
+        mixup: result.mixup,
+        mashup: result.mashup,
+        photogenic: result.photogenic,
+        artistic: result.artistic
+    });
+
+    return result;
 };
 
 // Initialize application when DOM is ready

@@ -8,8 +8,8 @@ class ImageGenerationAPI {
         this.isGenerating = false;
     }
 
-    async generateImage(prompt, providers = []) {
-        console.log('🚀 API CALL: generateImage started', { prompt, providers });
+    async generateImage(prompt, providers = [], options = {}) {
+        console.log('🚀 API CALL: generateImage started', { prompt, providers, options });
 
         if (this.isGenerating) {
             console.warn('⚠️ Generation already in progress');
@@ -20,10 +20,20 @@ class ImageGenerationAPI {
         const promptObj = {
             prompt,
             promptId: Date.now().toString(),
-            original: prompt
+            original: prompt,
+            ...options // Include all form data options
         };
 
         console.log('🔧 API CALL: promptObj created', promptObj);
+        console.log('🔧 API CALL: options breakdown:', {
+            autoEnhance: options.autoEnhance,
+            mixup: options.mixup,
+            mashup: options.mashup,
+            photogenic: options.photogenic,
+            artistic: options.artistic,
+            multiplier: options.multiplier,
+            guidance: options.guidance
+        });
 
         try {
             this.isGenerating = true;
@@ -112,71 +122,81 @@ class ImageGenerationAPI {
         formData.append('original', prompt);
 
         this.addGuidanceValues(formData);
-        this.addEnhancementParameters(formData);
+        this.addEnhancementParameters(formData, promptObj);
 
         return formData;
     }
 
-    addEnhancementParameters(formData) {
-        console.log('📋 ENHANCEMENT: addEnhancementParameters called');
-        // Get form values from the unified drawer component
-        let drawerValues = {};
+    addEnhancementParameters(formData, promptObj = {}) {
+        console.log('📋 ENHANCEMENT: addEnhancementParameters called with promptObj:', promptObj);
 
-        if (window.unifiedDrawerComponent) {
-            drawerValues = window.unifiedDrawerComponent.getFormValues('desktop');
-            console.log('📋 ENHANCEMENT: Drawer values:', drawerValues);
+        // Use values from promptObj if available, otherwise fall back to DOM queries
+        const autoEnhance = promptObj.autoEnhance || false;
+        const mixup = promptObj.mixup || false;
+        const mashup = promptObj.mashup || false;
+        const photogenic = promptObj.photogenic || false;
+        const artistic = promptObj.artistic || false;
+        const multiplier = promptObj.multiplier || '';
+        const guidance = promptObj.guidance || 10;
 
-            // Debug specific checkboxes
-            const photogenicCheckbox = document.querySelector('input[name="photogenic"]');
-            const artisticCheckbox = document.querySelector('input[name="artistic"]');
-            console.log('📋 ENHANCEMENT: photogenic checkbox found:', !!photogenicCheckbox, 'checked:', photogenicCheckbox?.checked);
-            console.log('📋 ENHANCEMENT: artistic checkbox found:', !!artisticCheckbox, 'checked:', artisticCheckbox?.checked);
-        } else {
-            console.warn('📋 ENHANCEMENT: unifiedDrawerComponent not available');
+        console.log('📋 ENHANCEMENT: Using values:', {
+            autoEnhance,
+            mixup,
+            mashup,
+            photogenic,
+            artistic,
+            multiplier,
+            guidance
+        });
+
+        // Add multiplier if provided
+        if (multiplier && multiplier.trim()) {
+            console.log('📋 ENHANCEMENT: Adding multiplier:', multiplier);
+            formData.append('multiplier', multiplier.trim());
         }
 
-        // Get multiplier value
-        const multiplierInput = document.querySelector('#multiplier');
-
-        if (multiplierInput && multiplierInput.value.trim()) {
-            console.log('📋 ENHANCEMENT: Adding multiplier:', multiplierInput.value);
-            formData.append('multiplier', multiplierInput.value.trim());
-        }
-
-        // Get mixup checkbox
-        if (drawerValues.mixup) {
+        // Add mixup if enabled
+        if (mixup) {
             console.log('📋 ENHANCEMENT: Adding mixup: true');
             formData.append('mixup', 'true');
         }
 
-        // Get mashup checkbox
-        if (drawerValues.mashup) {
+        // Add mashup if enabled
+        if (mashup) {
             console.log('📋 ENHANCEMENT: Adding mashup: true');
             formData.append('mashup', 'true');
         }
 
-        // Get auto-enhance checkbox
-        if (drawerValues['auto-enhance']) {
+        // Add auto-enhance if enabled
+        console.log('📋 ENHANCEMENT: autoEnhance value:', autoEnhance, 'type:', typeof autoEnhance);
+        if (autoEnhance) {
             console.log('📋 ENHANCEMENT: Adding auto-enhance: true');
             formData.append('auto-enhance', 'true');
+        } else {
+            console.log('📋 ENHANCEMENT: autoEnhance is false, not adding to form data');
         }
 
-        // Get photogenic checkbox
-        console.log('📋 ENHANCEMENT: photogenic value:', drawerValues.photogenic, 'type:', typeof drawerValues.photogenic);
-        if (drawerValues.photogenic) {
+        // Add photogenic if enabled
+        if (photogenic) {
             console.log('📋 ENHANCEMENT: Adding photogenic: true');
             formData.append('photogenic', 'true');
         }
 
-        // Get artistic checkbox
-        console.log('📋 ENHANCEMENT: artistic value:', drawerValues.artistic, 'type:', typeof drawerValues.artistic);
-        if (drawerValues.artistic) {
+        // Add artistic if enabled
+        if (artistic) {
             console.log('📋 ENHANCEMENT: Adding artistic: true');
             formData.append('artistic', 'true');
         }
 
-        // Get autoPublic checkbox
-        if (drawerValues.autoPublic) {
+        // Add guidance if provided
+        if (guidance && guidance !== 10) {
+            console.log('📋 ENHANCEMENT: Adding guidance:', guidance);
+            formData.append('guidance', guidance.toString());
+        }
+
+        // Add autoPublic if provided
+        if (promptObj.autoPublic) {
+            console.log('📋 ENHANCEMENT: Adding autoPublic: true');
             formData.append('autoPublic', 'true');
         }
 

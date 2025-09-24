@@ -132,12 +132,68 @@ class ImageUIState {
             errors.push('Please select at least one AI provider');
         }
 
-        return {
+        // Get all form data including autoEnhance, mixup, etc.
+        const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
+        const mixupCheckbox = document.querySelector('input[name="mixup"]');
+        const mashupCheckbox = document.querySelector('input[name="mashup"]');
+        const photogenicCheckbox = document.querySelector('input[name="photogenic"]');
+        const artisticCheckbox = document.querySelector('input[name="artistic"]');
+        const multiplierInput = document.querySelector('#multiplier');
+        const guidanceTop = document.querySelector('select[name="guidance-top"]');
+        const guidanceBottom = document.querySelector('select[name="guidance-bottom"]');
+
+        // Calculate guidance
+        const guidanceData = this.calculateGuidance(guidanceTop?.value, guidanceBottom?.value);
+
+        const result = {
             isValid: errors.length === 0,
             errors,
             prompt,
-            providers
+            providers,
+            autoEnhance: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : false,
+            mixup: mixupCheckbox ? mixupCheckbox.checked : false,
+            mashup: mashupCheckbox ? mashupCheckbox.checked : false,
+            photogenic: photogenicCheckbox ? photogenicCheckbox.checked : false,
+            artistic: artisticCheckbox ? artisticCheckbox.checked : false,
+            multiplier: multiplierInput ? multiplierInput.value.trim() : '',
+            guidance: guidanceData.guidance,
+            original: prompt
         };
+
+        console.log('🔍 UI VALIDATION DEBUG: validateGenerationInputs result:', {
+            autoEnhance: result.autoEnhance,
+            autoEnhanceCheckbox: autoEnhanceCheckbox,
+            checkboxChecked: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : 'checkbox not found',
+            mixup: result.mixup,
+            mashup: result.mashup,
+            photogenic: result.photogenic,
+            artistic: result.artistic
+        });
+
+        return result;
+    }
+
+    // Calculate guidance value from top and bottom guidance inputs
+    calculateGuidance(topValue, bottomValue) {
+        const top = parseInt(topValue) || 0;
+        const bottom = parseInt(bottomValue) || 0;
+
+        // If both values are provided, use the average
+        if (top > 0 && bottom > 0) {
+            return { guidance: Math.round((top + bottom) / 2) };
+        }
+
+        // If only one value is provided, use that
+        if (top > 0) {
+            return { guidance: top };
+        }
+
+        if (bottom > 0) {
+            return { guidance: bottom };
+        }
+
+        // Default to 10 if no values provided
+        return { guidance: 10 };
     }
 
     showValidationErrors(errors) {

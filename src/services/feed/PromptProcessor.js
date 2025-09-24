@@ -255,7 +255,39 @@ const shufflePrompt = prompt => {
         return prompt || '';
     }
 
-    return shuffleArray(prompt.split(', ')).join(', ');
+    const preview = `${prompt.substring(0, 100)}...`;
+
+    console.log('🔀 MIXUP: Starting shuffle for prompt:', {
+        original: preview,
+        length: prompt.length
+    });
+
+    // Try different splitting strategies
+    const strategies = [
+        { splitter: /, /, joiner: ', ' },
+        { splitter: ',', joiner: ', ' },
+        { splitter: /\s+(and|or|with|in|on|at|by|for|to|of|the|a|an)\s+/i, joiner: ' ' }
+    ];
+
+    for (const strategy of strategies) {
+        const parts = prompt.split(strategy.splitter);
+
+        if (parts.length > 1) {
+            console.log('🔀 MIXUP: Found parts to shuffle:', parts.length);
+
+            const shuffled = shuffleArray(parts);
+            const result = shuffled.join(strategy.joiner);
+
+            console.log('🔀 MIXUP: Shuffled result:', `${result.substring(0, 100)}...`);
+
+            return result;
+        }
+    }
+
+    // If no logical separation found, just return the original prompt
+    console.log('🔀 MIXUP: No suitable separation found, returning original prompt');
+
+    return prompt;
 };
 
 /**

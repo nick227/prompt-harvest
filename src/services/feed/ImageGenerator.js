@@ -16,6 +16,8 @@ import OpenAI from 'openai';
 import axios from 'axios';
 import dotenv from 'dotenv';
 import FormData from 'form-data';
+import http from 'http';
+import https from 'https';
 import modelInterface from '../ModelInterface.js';
 
 // Ensure dotenv is loaded
@@ -363,6 +365,19 @@ const getAvailableDezgoModels = async () => {
     }));
 };
 
+const isRetryableError = error => {
+    // Retry on network errors, timeouts, and 499 status codes
+    if (error.code === 'ECONNABORTED' || error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        return true;
+    }
+
+    if (error.response?.status === 499 || error.response?.status === 503) {
+        return true;
+    }
+
+    return false;
+};
+
 const handleDezgoError = error => {
     console.error('❌ DEZGO: Error details:', {
         status: error.response?.status,
@@ -372,8 +387,7 @@ const handleDezgoError = error => {
     });
 
     if (error.response) {
-        const { status } = error.response;
-        const { data } = error.response;
+        const { status, data } = error.response;
 
         if (status === 400) {
             return {
@@ -503,6 +517,9 @@ const makeDezgoRequest = async (url, prompt, model, guidance) => {
             params.guidance = 1; // Minimal guidance for lightning models
         } else if (url.includes('text2image_sdxl')) {
             params.guidance = Math.min(Math.max(guidance || 7.5, 1), 20); // SDXL models
+        } else if (model.includes('redshift')) {
+            // Redshift models work better with lower guidance
+            params.guidance = Math.min(Math.max(guidance || 5, 1), 15);
         } else {
             params.guidance = Math.min(Math.max(guidance || 7.5, 1), 20); // Standard models
         }
@@ -523,8 +540,19 @@ const makeDezgoRequest = async (url, prompt, model, guidance) => {
                 'User-Agent': 'Image-Harvest/1.0'
             },
             responseType: 'arraybuffer',
-            timeout: 180000, // 3 minutes for slower models like abyss_orange_mix_2
-            maxRedirects: 3
+            timeout: model.includes('redshift') ? 600000 : 300000, // 10 minutes for redshift, 5 minutes for others
+            maxRedirects: 3,
+            // Add connection keep-alive and retry settings
+            httpAgent: new http.Agent({
+                keepAlive: true,
+                timeout: model.includes('redshift') ? 600000 : 300000,
+                maxSockets: 1
+            }),
+            httpsAgent: new https.Agent({
+                keepAlive: true,
+                timeout: model.includes('redshift') ? 600000 : 300000,
+                maxSockets: 1
+            })
         });
 
         const duration = Date.now() - startTime;
@@ -536,37 +564,55 @@ const makeDezgoRequest = async (url, prompt, model, guidance) => {
 };
 
 const generateDezgoImage = async(prompt, guidance, url, model = 'flux_1_schnell') => {
-    try {
-        const keyValidation = validateDezgoApiKey();
+    const maxRetries = model.includes('redshift') || model.includes('abyss') ? 2 : 1;
+    let lastError;
 
-        if (keyValidation) {
-            return keyValidation;
-        }
-        const response = await makeDezgoRequest(url, prompt, model, guidance);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const keyValidation = validateDezgoApiKey();
 
-        if (!response.data) {
-            console.error('❌ DEZGO: Invalid response - no data:', response);
-
-            return { error: 'Invalid response', details: response };
-        }
-
-
-        return Buffer.from(response.data).toString('base64');
-    } catch (error) {
-        console.error('❌ DEZGO: Error in generateDezgoImage:', error.message);
-        console.error('❌ DEZGO: Full error details:', {
-            status: error.response?.status,
-            statusText: error.response?.statusText,
-            data: error.response?.data ? error.response.data.toString() : 'No data',
-            config: {
-                url: error.config?.url,
-                method: error.config?.method,
-                data: error.config?.data
+            if (keyValidation) {
+                return keyValidation;
             }
-        });
 
-        return handleDezgoError(error);
+            console.log(`🔄 DEZGO: Attempt ${attempt}/${maxRetries} for model ${model}`);
+            const response = await makeDezgoRequest(url, prompt, model, guidance);
+
+            if (!response.data) {
+                console.error('❌ DEZGO: Invalid response - no data:', response);
+                return { error: 'Invalid response', details: response };
+            }
+
+            console.log(`✅ DEZGO: Success on attempt ${attempt} for model ${model}`);
+            return Buffer.from(response.data).toString('base64');
+
+        } catch (error) {
+            lastError = error;
+            console.error(`❌ DEZGO: Error in generateDezgoImage (attempt ${attempt}/${maxRetries}):`, error.message);
+            console.error('❌ DEZGO: Full error details:', {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data ? error.response.data.toString() : 'No data',
+                config: {
+                    url: error.config?.url,
+                    method: error.config?.method,
+                    data: error.config?.data
+                }
+            });
+
+            // If this is a retryable error and we have attempts left, wait before retrying
+            if (attempt < maxRetries && isRetryableError(error)) {
+                const waitTime = attempt * 5000; // 5s, 10s
+                console.log(`⏳ DEZGO: Waiting ${waitTime}ms before retry...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+                continue;
+            }
+
+            return handleDezgoError(error);
+        }
     }
+
+    return handleDezgoError(lastError);
 };
 
 // ============================================================================
@@ -690,8 +736,7 @@ const generateImagenImage = async(prompt, guidance, userId = null) => {
  */
 const handleImagenError = error => {
     if (error.response) {
-        const { status } = error.response;
-        const { data } = error.response;
+        const { status, data } = error.response;
 
         if (status === 400) {
             return {
@@ -862,9 +907,7 @@ const generateRandomProviderImage = async(providers, prompt, guidance, userId = 
  * @returns {Promise<Array>} Array of available provider names
  */
 const getAvailableProviders = async () => {
-    const validModelNames = await modelInterface.getValidModelNames();
-
-    return validModelNames;
+    return await modelInterface.getValidModelNames();
 };
 
 /**

@@ -35,10 +35,19 @@ export class AIEnhancementService {
             throw new Error('Prompt is required and must be a non-empty string');
         }
 
+        console.log('🤖 AI ENHANCEMENT: Starting enhancement for prompt:', {
+            originalLength: prompt.length,
+            preview: prompt.substring(0, 100) + '...',
+            model: this.model,
+            maxTokens: this.maxTokens,
+            temperature: this.temperature
+        });
+
         try {
             const systemPrompt = this.buildSystemPrompt();
             const userPrompt = this.buildUserPrompt(prompt);
 
+            console.log('🤖 AI ENHANCEMENT: Sending request to OpenAI...');
             const response = await this.openai.chat.completions.create({
                 model: this.model,
                 messages: [
@@ -55,18 +64,33 @@ export class AIEnhancementService {
                 temperature: this.temperature
             });
 
+            console.log('🤖 AI ENHANCEMENT: OpenAI response received:', {
+                hasChoices: !!response.choices,
+                choicesLength: response.choices?.length || 0,
+                usage: response.usage
+            });
+
             const enhancedPrompt = response.choices[0]?.message?.content?.trim();
 
             if (!enhancedPrompt) {
                 throw new Error('No enhanced prompt received from OpenAI');
             }
 
+            console.log('✅ AI ENHANCEMENT: Successfully enhanced prompt:', {
+                originalLength: prompt.length,
+                enhancedLength: enhancedPrompt.length,
+                preview: enhancedPrompt.substring(0, 100) + '...'
+            });
+
             return enhancedPrompt;
 
         } catch (error) {
             console.error('❌ AI ENHANCEMENT: Failed to enhance prompt', {
                 error: error.message,
-                prompt
+                errorType: error.constructor.name,
+                prompt: prompt.substring(0, 100) + '...',
+                model: this.model,
+                maxTokens: this.maxTokens
             });
 
             // Return original prompt if enhancement fails

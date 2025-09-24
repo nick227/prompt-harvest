@@ -221,8 +221,17 @@ export class EnhancedImageService {
             // Step 2: Apply AI enhancement if requested
             if (autoEnhance && processedPrompt) {
                 try {
-                    console.log('🤖 AI ENHANCEMENT: Applying AI enhancement to processed prompt');
+                    console.log('🤖 AI ENHANCEMENT: Applying AI enhancement to processed prompt:', {
+                        originalLength: processedPrompt.length,
+                        preview: processedPrompt.substring(0, 100) + '...'
+                    });
                     const enhancedPrompt = await aiEnhancementService.enhancePrompt(processedPrompt);
+
+                    console.log('🤖 AI ENHANCEMENT: Enhancement completed:', {
+                        originalLength: processedPrompt.length,
+                        enhancedLength: enhancedPrompt.length,
+                        changed: processedPrompt !== enhancedPrompt
+                    });
 
                     processedPrompt = enhancedPrompt;
                 } catch (error) {
@@ -247,7 +256,17 @@ export class EnhancedImageService {
 
                     // Apply mixup (shuffle comma-separated parts)
                     if (mixup) {
+                        console.log('🔀 MIXUP: Applying mixup to prompt:', {
+                            originalLength: processedPrompt.length,
+                            preview: processedPrompt.substring(0, 100) + '...'
+                        });
+                        const beforeMixup = processedPrompt;
                         processedPrompt = shufflePrompt(processedPrompt);
+                        console.log('🔀 MIXUP: Mixup completed:', {
+                            originalLength: beforeMixup.length,
+                            mixedLength: processedPrompt.length,
+                            changed: beforeMixup !== processedPrompt
+                        });
                     }
 
                     // Apply mashup (shuffle space-separated words)

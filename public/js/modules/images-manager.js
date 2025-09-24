@@ -23,8 +23,8 @@ class ImagesManager {
         this.isInitialized = true;
     }
 
-    async generateImage(prompt, providers = []) {
-        console.log('🚀 MANAGER: generateImage started', { prompt, providers });
+    async generateImage(prompt, providers = [], options = {}) {
+        console.log('🚀 MANAGER: generateImage started', { prompt, providers, options });
 
         // Check if user is authenticated
         if (!window.userApi || !window.userApi.isAuthenticated()) {
@@ -33,8 +33,8 @@ class ImagesManager {
         }
 
         try {
-            // Generate image via API
-            const imageData = await this.api.generateImage(prompt, providers);
+            // Generate image via API with options
+            const imageData = await this.api.generateImage(prompt, providers, options);
 
             // Add to DOM
             const img = this.dom.addImageToOutput(imageData, false);
@@ -126,10 +126,11 @@ class ImagesManager {
         try {
             console.log('🔧 FLOW: Starting generateImage', {
                 prompt: validation.prompt,
-                providers: validation.providers
+                providers: validation.providers,
+                options: validation
             });
 
-            await this.generateImage(validation.prompt, validation.providers);
+            await this.generateImage(validation.prompt, validation.providers, validation);
             console.log('✅ FLOW: generateImage completed successfully');
 
             this.ui.showGenerationSuccess();
