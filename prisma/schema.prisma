@@ -130,7 +130,7 @@ model prompt_clauses {
 
 model prompts {
   id        String   @id @db.VarChar(25)
-  userId    String   @db.VarChar(25)
+  userId    String   @db.VarChar(50)
   prompt    String   @db.Text
   original  String   @db.Text
   provider  String   @db.VarChar(50)
