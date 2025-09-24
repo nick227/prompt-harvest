@@ -2,7 +2,7 @@
 
 /**
  * Clean Railway Deployment Script
- * 
+ *
  * This script handles Railway deployment with minimal, essential operations:
  * 1. Push Prisma schema to database
  * 2. Seed basic data if needed
@@ -70,7 +70,7 @@ async function verifyDeployment() {
         const userCount = await prisma.user.count();
         const modelCount = await prisma.models.count();
         const wordTypeCount = await prisma.word_types.count();
-        
+
         console.log(`  📊 Users: ${userCount}`);
         console.log(`  📊 Models: ${modelCount}`);
         console.log(`  📊 Word Types: ${wordTypeCount}`);
