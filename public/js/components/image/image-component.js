@@ -1,218 +1,235 @@
-// Image Component - Main entry point using separated architecture
+// Image Component - Main entry point using unified navigation
 class ImageComponent {
     constructor() {
-        this.manager = null;
+        this.navigation = null;
         this.isInitialized = false;
     }
 
     init() {
-        // Create manager if not already created
-        if (!this.manager) {
-            if (typeof window.ImageManager === 'undefined') {
-                console.error('❌ ImageComponent: ImageManager not available yet');
-                return false;
+        // Create unified navigation if not already created
+        if (!this.navigation) {
+            if (typeof window.UnifiedNavigation === 'undefined') {
+                console.warn('⚠️ ImageComponent: UnifiedNavigation not available yet, will retry later');
+                // Don't fail - we can still create image elements
+            } else {
+                this.navigation = new window.UnifiedNavigation();
             }
-            this.manager = new window.ImageManager();
         }
 
-        this.manager.init();
+        this.setupEventDelegation();
         this.isInitialized = true;
 
-        // Expose manager to global scope for other components
-        window.imageManager = this.manager;
+        // Expose navigation to global scope for other components
+        if (this.navigation) {
+            window.imageNavigation = this.navigation;
+        }
+
+        // Expose component for backward compatibility with feed system
+        window.imageComponent = this;
         return true;
     }
 
-    // Ensure manager is available
-    ensureManager() {
-        if (!this.manager) {
-            if (typeof window.ImageManager === 'undefined') {
-                console.error('❌ ImageComponent: ImageManager not available');
+    // Ensure navigation is available
+    ensureNavigation() {
+        if (!this.navigation) {
+            if (typeof window.UnifiedNavigation === 'undefined') {
+                console.error('❌ ImageComponent: UnifiedNavigation not available');
                 return false;
             }
-            this.manager = new window.ImageManager();
-            this.manager.init();
+            this.navigation = new window.UnifiedNavigation();
         }
         return true;
     }
 
-    // Public method to re-setup event delegation (useful for debugging)
-    reSetupEventDelegation() {
-        if (!this.ensureManager()) {
-            return;
-        }
-        this.manager.reSetupEventDelegation();
-    }
-
-    // Delegate all methods to the manager for backward compatibility
+    // Setup event delegation for image clicks
     setupEventDelegation() {
-        if (!this.ensureManager()) {
+        const imageContainer = document.querySelector('.prompt-output');
+        if (!imageContainer) {
+            console.warn('⚠️ No image container found for event delegation');
             return;
         }
-        this.manager.events.setupEventDelegation();
-    }
 
-    createImageElement(imageData) {
-        if (!this.ensureManager()) {
-            return null;
-        }
-
-        try {
-            return this.manager.ui.createImageElement(imageData);
-        } catch (error) {
-            console.error('Error in createImageElement:', error);
-            return null;
-        }
-    }
-
-    createImageWrapper(imageData) {
-        if (!this.ensureManager()) {
-            return null;
-        }
-        return this.manager.ui.createImageWrapper(imageData);
-    }
-
-    renderImage(imageData, _container) {
-        return this.manager.renderImage(imageData, _container);
-    }
-
-    renderImages(images, _container) {
-        return this.manager.renderImages(images, _container);
-    }
-
-    openFullscreen(imageData) {
-        if (!this.ensureManager()) {
-            return false;
-        }
-        return this.manager.openFullscreen(imageData);
-    }
-
-    closeFullscreen() {
-        return this.manager.closeFullscreen();
-    }
-
-    navigateImage(direction) {
-        return this.manager.navigateImage(direction);
-    }
-
-    removeImage(imageId) {
-        return this.manager.removeImage(imageId);
-    }
-
-    updateImageRating(imageId, rating) {
-        return this.manager.updateImageRating(imageId, rating);
-    }
-
-    updateImagePublicStatus(imageId, isPublic) {
-        return this.manager.updateImagePublicStatus(imageId, isPublic);
-    }
-
-    rateImageInFullscreen(rating) {
-        return this.manager.rateImageInFullscreen(rating);
-    }
-
-    downloadImage(imageData) {
-        return this.manager.downloadImage(imageData);
-    }
-
-    getImageById(imageId) {
-        return this.manager.getImageById(imageId);
-    }
-
-    getAllImages() {
-        return this.manager.getAllImages();
-    }
-
-    clearAllImages() {
-        return this.manager.clearAllImages();
-    }
-
-    clearImageOrderCache() {
-        return this.manager.clearImageOrderCache();
-    }
-
-    // Public API Methods
-    initialize() {
-        this.init();
-    }
-
-    refresh() {
-        return this.manager.refresh();
-    }
-
-    // Export functions for global access (maintaining backward compatibility)
-    renderImageGlobal(imageData, _container) {
-        return this.manager.renderImageGlobal(imageData, _container);
-    }
-
-    openFullscreenGlobal(imageData) {
-        return this.manager.openFullscreenGlobal(imageData);
-    }
-
-    closeFullscreenGlobal() {
-        return this.manager.closeFullscreenGlobal();
-    }
-
-    // Statistics and utility methods
-    getImageStats() {
-        return this.manager.getImageStats();
-    }
-
-    exportImageData() {
-        return this.manager.exportImageData();
-    }
-
-    importImageData(data) {
-        return this.manager.importImageData(data);
-    }
-
-
-    generateId() {
-        return this.manager.data.generateId();
-    }
-
-    validateImageData(imageData) {
-        return this.manager.data.validateImageData(imageData);
-    }
-
-    handleImageError(img) {
-        img.src = this.manager.ui.config.defaults?.errorImage || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
-    }
-
-    makeFileNameSafe(name) {
-        return this.manager.data.makeFileNameSafe(name);
-    }
-
-    toggleLike(imageId) {
-        const cached = this.manager.data.getCachedImage(imageId);
-
-        if (cached) {
-            const isLiked = cached.element.classList.contains(this.manager.ui.config.classes.liked);
-
-            if (isLiked) {
-                cached.element.classList.remove(this.manager.ui.config.classes.liked);
-            } else {
-                cached.element.classList.add(this.manager.ui.config.classes.liked);
+        // Use event delegation for image clicks
+        imageContainer.addEventListener('click', (e) => {
+            const img = e.target.closest('img[data-id], img[data-image-id]');
+            if (!img) {
+                return;
             }
 
-            return !isLiked;
+            // Check if it's a generated image
+            const isGeneratedImage = img.classList.contains('generated-image') ||
+                                   img.style.cursor === 'pointer' ||
+                                   img.dataset.id ||
+                                   img.src.includes('uploads/');
+
+            if (!isGeneratedImage) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Open fullscreen using unified navigation
+            if (this.ensureNavigation()) {
+                this.navigation.openFullscreen(img);
+            }
+        });
+    }
+
+    // Create image element (simplified)
+    createImageElement(imageData) {
+        // Check for both 'url' and 'imageUrl' properties
+        const imageUrl = imageData?.url || imageData?.imageUrl;
+
+        if (!imageData || !imageUrl) {
+            console.warn('⚠️ ImageComponent: Invalid imageData or missing URL');
+            return null;
         }
 
-        return false;
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = imageData.title || 'Generated Image';
+        img.className = 'generated-image';
+        img.style.cursor = 'pointer';
+
+        // Set data attributes
+        if (imageData.id) {
+            img.dataset.id = imageData.id;
+        }
+        if (imageData.prompt) {
+            img.dataset.prompt = imageData.prompt;
+        }
+        if (imageData.provider) {
+            img.dataset.provider = imageData.provider;
+        }
+        if (imageData.rating) {
+            img.dataset.rating = imageData.rating;
+        }
+        if (imageData.isPublic !== undefined) {
+            img.dataset.isPublic = imageData.isPublic;
+        }
+        if (imageData.userId) {
+            img.dataset.userId = imageData.userId;
+        }
+        if (imageData.username) {
+            img.dataset.username = imageData.username;
+        }
+        if (imageData.createdAt) {
+            img.dataset.createdAt = imageData.createdAt;
+        }
+
+        return img;
     }
 
-    getAllVisibleImages() {
-        return this.manager.data.getAllVisibleImages();
+    // Create image wrapper
+    createImageWrapper(imageData) {
+        if (!imageData) {
+            return null;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'image-wrapper';
+
+        const img = this.createImageElement(imageData);
+        if (img) {
+            wrapper.appendChild(img);
+        }
+
+        return wrapper;
+    }
+
+    // Render image to container
+    renderImage(imageData, container) {
+        if (!imageData || !container) {
+            return null;
+        }
+
+        const wrapper = this.createImageWrapper(imageData);
+        if (wrapper) {
+            container.appendChild(wrapper);
+        }
+
+        return wrapper;
+    }
+
+    // Render multiple images
+    renderImages(images, container) {
+        if (!Array.isArray(images) || !container) {
+            return [];
+        }
+
+        const renderedImages = [];
+        images.forEach(imageData => {
+            const rendered = this.renderImage(imageData, container);
+            if (rendered) {
+                renderedImages.push(rendered);
+            }
+        });
+
+        return renderedImages;
+    }
+
+    // Open fullscreen (delegate to navigation)
+    openFullscreen(imageData) {
+        if (!this.ensureNavigation()) {
+            console.warn('⚠️ ImageComponent: Navigation not available for fullscreen');
+            return;
+        }
+
+        // Find the image element in DOM
+        const img = document.querySelector(`img[data-id="${imageData.id}"], img[data-image-id="${imageData.id}"]`);
+        if (img) {
+            this.navigation.openFullscreen(img);
+        }
+    }
+
+    // Close fullscreen (delegate to navigation)
+    closeFullscreen() {
+        if (this.ensureNavigation()) {
+            this.navigation.closeFullscreen();
+        }
+    }
+
+    // Navigate to next image
+    navigateNext() {
+        if (this.ensureNavigation()) {
+            this.navigation.navigateNext();
+        }
+    }
+
+    // Navigate to previous image
+    navigatePrevious() {
+        if (this.ensureNavigation()) {
+            this.navigation.navigatePrevious();
+        }
+    }
+
+    // Clean up
+    destroy() {
+        if (this.navigation) {
+            this.navigation.cleanup();
+            this.navigation = null;
+        }
+        this.isInitialized = false;
     }
 }
 
-// Export for testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ImageComponent;
-}
-
-// Initialize global instance
+// Export for global access
 if (typeof window !== 'undefined') {
     window.ImageComponent = ImageComponent;
-    window.imageComponent = new ImageComponent();
+
+    // Auto-initialize immediately to make it available for feed system
+    if (!window.imageComponent) {
+        window.imageComponent = new ImageComponent();
+
+        // Try to initialize, but don't fail if dependencies aren't ready
+        try {
+            const success = window.imageComponent.init();
+            if (!success) {
+                console.warn('⚠️ ImageComponent initialization deferred - dependencies not ready');
+            }
+        } catch (error) {
+            console.warn('⚠️ ImageComponent initialization failed:', error);
+        }
+    }
 }

@@ -7,7 +7,7 @@ import { circuitBreakerManager } from '../utils/CircuitBreaker.js';
 import { TransactionService } from './TransactionService.js';
 import { formatErrorResponse } from '../utils/ResponseFormatter.js';
 import databaseClient from '../database/PrismaClient.js';
-import { aiEnhancementService } from './AIEnhancementService.js';
+import { aiEnhancementService } from './ai/features/AIEnhancementService.js';
 import SimplifiedCreditService from './credit/SimplifiedCreditService.js';
 import { CreditManagementService } from './credit/CreditManagementService.js';
 import { ImageManagementService } from './ImageManagementService.js';
@@ -51,6 +51,12 @@ export class EnhancedImageService {
         });
 
         try {
+            // Check and deduct credits BEFORE generation starts
+            const creditResult = await this.validateAndDeductCredits(userId, providers, prompt, requestId);
+            if (!creditResult.success) {
+                throw new Error(creditResult.error);
+            }
+
             const result = await this.executeImageGeneration(prompt, providers, guidance, userId, options, requestId);
             const duration = Date.now() - startTime;
 
@@ -61,13 +67,13 @@ export class EnhancedImageService {
                 prompt: prompt ? `${prompt.substring(0, 30)}...` : 'undefined'
             });
 
-            // Only deduct credits if image generation was completely successful
-            // (including successful save to storage and database)
+            // Log transaction for successful generation
             if (result.success && result.id && result.imageUrl) {
                 await this.logTransactionIfNeeded(userId, providers[0]);
-                await this.deductCreditsForGeneration(userId, providers, prompt, requestId);
             } else {
-                console.warn(`⚠️ CREDITS: Skipping credit deduction - generation not fully successful [${requestId}]`);
+                // Refund credits if generation failed
+                console.warn(`⚠️ CREDITS: Refunding credits due to generation failure [${requestId}]`);
+                await this.refundCreditsForGeneration(userId, creditResult.cost, requestId);
             }
 
             return result;
@@ -1002,14 +1008,24 @@ export class EnhancedImageService {
     }
 
     /**
-     * Deduct credits for successful image generation
+     * Validate and deduct credits before generation
      * @param {string} userId - User ID
      * @param {Array} providers - Array of providers used
      * @param {string} prompt - Generation prompt
      * @param {string} requestId - Request ID for tracking
      */
-    async deductCreditsForGeneration(userId, providers, prompt, requestId) {
-        return await this.creditService.deductCreditsForGeneration(userId, providers, prompt, requestId);
+    async validateAndDeductCredits(userId, providers, prompt, requestId) {
+        return await this.creditService.validateAndDeductCredits(userId, providers, prompt, requestId);
+    }
+
+    /**
+     * Refund credits for failed generation
+     * @param {string} userId - User ID
+     * @param {number} amount - Amount to refund
+     * @param {string} requestId - Request ID for tracking
+     */
+    async refundCreditsForGeneration(userId, amount, requestId) {
+        return await this.creditService.refundCreditsForGeneration(userId, amount, requestId);
     }
 
     // Health check method

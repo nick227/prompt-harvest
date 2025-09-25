@@ -197,18 +197,19 @@ class BillingAPIManager {
     }
 
     /**
-     * Get credit history
+     * Get promo code redemptions
      * @returns {Promise<Array>}
      */
-    async getCreditHistory() {
+    async getPromoRedemptions() {
         try {
-            const response = await this.retryOperation(() => apiService.get(this.config.ENDPOINTS.CREDIT_HISTORY)
+            const response = await this.retryOperation(() => apiService.get('/api/credits/promo-redemptions')
             );
 
-            return response.transactions || [];
+            return response.redemptions || [];
         } catch (error) {
-            console.error('❌ BILLING API: Failed to get credit history:', error);
-            throw new Error('Failed to load credit history');
+            console.error('❌ BILLING API: Failed to get promo redemptions:', error);
+            // Return empty array instead of throwing to prevent breaking payment history
+            return [];
         }
     }
 

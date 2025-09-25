@@ -10,9 +10,33 @@ class ImageManager {
         this.isInitialized = false;
         this.domCache = new Map(); // Cache for DOM elements
         this.cleanupFunctions = []; // Track cleanup functions
+        this.navigation = null; // UnifiedNavigation instance
 
         // Initialize UI when available
         this.initializeUI();
+        this.initializeNavigation();
+    }
+
+    initializeNavigation() {
+        // Use the global navigation instance from ImageComponent if available
+        if (window.imageNavigation) {
+            this.navigation = window.imageNavigation;
+        } else if (typeof window.UnifiedNavigation !== 'undefined') {
+            this.navigation = new window.UnifiedNavigation();
+        } else {
+            // Retry when UnifiedNavigation becomes available
+            const checkNavigation = () => {
+                if (window.imageNavigation) {
+                    this.navigation = window.imageNavigation;
+                } else if (typeof window.UnifiedNavigation !== 'undefined') {
+                    this.navigation = new window.UnifiedNavigation();
+                } else {
+                    setTimeout(checkNavigation, 100);
+                }
+            };
+
+            checkNavigation();
+        }
     }
 
     initializeUI() {
@@ -144,6 +168,26 @@ class ImageManager {
 
     // Fullscreen Methods
     async openFullscreen(imageData) {
+        if (!this.navigation) {
+            console.warn('UnifiedNavigation not available, falling back to legacy method');
+
+            return this.openFullscreenLegacy(imageData);
+        }
+
+        // Find the image element in DOM and delegate to UnifiedNavigation
+        const img = document.querySelector(`img[data-id="${imageData.id}"], img[data-image-id="${imageData.id}"]`);
+
+        if (img) {
+            this.navigation.openFullscreen(img);
+        } else {
+            console.warn('Image element not found in DOM, falling back to legacy method');
+
+            return this.openFullscreenLegacy(imageData);
+        }
+    }
+
+    // Legacy fullscreen method (kept for fallback)
+    async openFullscreenLegacy(imageData) {
         if (!this.validateAndPrepareFullscreen(imageData)) {
             return;
         }
@@ -226,9 +270,7 @@ class ImageManager {
         // Setup rating display events
         const { spacer } = this.events.setupRatingDisplayEvents(null, infoBox);
 
-        // Setup info box toggle functionality
-        const toggleBtn = infoBox.querySelector('.info-box-toggle');
-        this.events.setupToggleButtonEvents(toggleBtn, infoBox);
+        // Info box toggle functionality is now handled in unified-info-box.js
 
         // Setup public status toggle events
         const publicToggle = infoBox.querySelector('.info-box-public-toggle');
@@ -266,14 +308,15 @@ class ImageManager {
     }
 
     closeFullscreen() {
-        if (this.fullscreenContainer) {
-            this.fullscreenContainer.style.display = 'none';
-            this.currentFullscreenImage = null;
-
+        if (this.navigation) {
+            this.navigation.closeFullscreen();
             // Re-enable infinite scroll when exiting fullscreen
             this.enableInfiniteScroll();
-
-            // Clean up event listeners and components
+        } else if (this.fullscreenContainer) {
+            // Legacy fallback
+            this.fullscreenContainer.style.display = 'none';
+            this.currentFullscreenImage = null;
+            this.enableInfiniteScroll();
             this.cleanupFullscreenComponents();
         }
     }
@@ -303,25 +346,33 @@ class ImageManager {
 
     // Navigation Methods
     navigateImage(direction) {
+        if (this.navigation) {
+            // Delegate to UnifiedNavigation
+            if (direction === 'next') {
+                this.navigation.navigateNext();
+            } else if (direction === 'prev') {
+                this.navigation.navigatePrevious();
+            }
+        } else {
+            // Legacy fallback
+            const allImages = this.data.getAllVisibleImages();
 
-        const allImages = this.data.getAllVisibleImages();
+            if (allImages.length === 0) {
+                return;
+            }
 
-        if (allImages.length === 0) {
+            let targetImage = null;
 
-            return;
+            if (direction === 'next') {
+                targetImage = this.data.getNextImage(this.currentFullscreenImage?.id);
+            } else if (direction === 'prev') {
+                targetImage = this.data.getPreviousImage(this.currentFullscreenImage?.id);
+            }
+
+            if (targetImage) {
+                this.openFullscreenLegacy(targetImage);
+            }
         }
-
-        let targetImage = null;
-
-        if (direction === 'next') {
-            targetImage = this.data.getNextImage(this.currentFullscreenImage?.id);
-        } else if (direction === 'prev') {
-            targetImage = this.data.getPreviousImage(this.currentFullscreenImage?.id);
-        }
-
-        if (targetImage) {
-            this.openFullscreen(targetImage);
-        } else { /* Empty block */ }
     }
 
     // Image Management Methods
@@ -563,7 +614,13 @@ class ImageManager {
 
     // Download Methods
     downloadImage(imageData) {
-        this.downloadImageAsBlob(imageData.url, imageData.title);
+        if (this.navigation) {
+            // Delegate to UnifiedNavigation
+            this.navigation.downloadImage();
+        } else {
+            // Legacy fallback
+            this.downloadImageAsBlob(imageData.url, imageData.title);
+        }
     }
 
     // Download image as blob to force Save As dialog
@@ -573,6 +630,7 @@ class ImageManager {
 
             // Fetch the image as a blob
             const response = await fetch(imageUrl);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -584,6 +642,7 @@ class ImageManager {
             const objectUrl = URL.createObjectURL(blob);
 
             const a = document.createElement('a');
+
             a.href = objectUrl;
             a.download = fileName;
             a.style.display = 'none';
@@ -602,6 +661,7 @@ class ImageManager {
             // Fallback to old method
             try {
                 const link = document.createElement('a');
+
                 link.href = imageUrl;
                 link.download = `${this.data.makeFileNameSafe(title || 'image')}.png`;
                 link.style.display = 'none';
@@ -668,6 +728,9 @@ class ImageManager {
      * Clean up all resources and event listeners
      */
     destroy() {
+        // Don't clean up shared navigation instance - just remove reference
+        this.navigation = null;
+
         // Clean up fullscreen components
         this.cleanupFullscreenComponents();
 

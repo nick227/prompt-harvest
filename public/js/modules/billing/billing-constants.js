@@ -15,7 +15,6 @@ const BILLING_CONSTANTS = {
 
         // History elements
         PAYMENT_HISTORY: '#payment-history',
-        CREDIT_HISTORY: '#credit-history',
         IMAGE_HISTORY: '#image-history',
 
         // Message elements
@@ -42,7 +41,6 @@ const BILLING_CONSTANTS = {
         REDEEM: '/api/credits/redeem',
         USER_STATS: '/api/credits/stats', // User statistics endpoint
         PAYMENT_HISTORY: '/api/credits/payments',
-        CREDIT_HISTORY: '/api/credits/history',
         IMAGE_HISTORY: '/api/images/user' // User's image generation history
     },
 
@@ -53,7 +51,6 @@ const BILLING_CONSTANTS = {
             BALANCE: 'balance',
             PACKAGES: 'creditPackages',
             USAGE_STATS: 'usageStats',
-            CREDIT_HISTORY: 'creditHistory',
             PAYMENT_HISTORY: 'paymentHistory'
         }
     },

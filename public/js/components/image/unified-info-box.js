@@ -4,7 +4,7 @@
 
 /**
  * UnifiedInfoBox - Unified implementation for image info boxes
- * Replaces duplicate implementations in SimplifiedNavigation and FullscreenComponents
+ * Replaces duplicate implementations in legacy navigation systems
  * Supports both simple and modern configurations
  */
 class UnifiedInfoBox {
@@ -104,8 +104,57 @@ class UnifiedInfoBox {
             toggle.setAttribute('data-action', 'toggle-info');
         }
 
+        // Add click event to toggle button
+        toggle.addEventListener('click', e => {
+            e.stopPropagation(); // Prevent header click from firing
+
+            // Find the info box content
+            const infoBox = toggle.closest('.info-box');
+
+            if (infoBox) {
+                const content = infoBox.querySelector('.info-box-content');
+
+                if (content) {
+                    // Toggle collapsed class
+                    content.classList.toggle('collapsed');
+                    content.classList.toggle('expanded');
+
+                    // Update toggle button text
+                    const isCollapsed = content.classList.contains('collapsed');
+
+                    toggle.textContent = isCollapsed ? '+' : '−';
+                }
+            }
+        });
+
         header.appendChild(title);
         header.appendChild(toggle);
+
+        // Add click event to header for toggling
+        header.addEventListener('click', e => {
+            // Don't toggle if clicking on the toggle button itself
+            if (e.target === toggle || toggle.contains(e.target)) {
+                return;
+            }
+
+            // Find the info box content
+            const infoBox = header.closest('.info-box');
+
+            if (infoBox) {
+                const content = infoBox.querySelector('.info-box-content');
+
+                if (content) {
+                    // Toggle collapsed class
+                    content.classList.toggle('collapsed');
+                    content.classList.toggle('expanded');
+
+                    // Update toggle button text
+                    const isCollapsed = content.classList.contains('collapsed');
+
+                    toggle.textContent = isCollapsed ? '+' : '−';
+                }
+            }
+        });
 
         return header;
     }
@@ -481,7 +530,8 @@ class UnifiedInfoBox {
         // Create hyperlink for username
         const usernameLink = username === 'Anonymous' || username === 'Unknown User'
             ? username
-            : `<a href="/u/${encodeURIComponent(username)}" class="text-blue-400 hover:text-blue-300 underline transition-colors">${username}</a>`;
+            : `<a href="/u/${encodeURIComponent(username)}" ` +
+              `class="text-blue-400 hover:text-blue-300 underline transition-colors">${username}</a>`;
 
         if (!date) {
             return usernameLink;

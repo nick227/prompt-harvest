@@ -245,6 +245,7 @@ const setupTagRoutes = app => {
     });
 };
 
+
 const setupWordRoutes = app => {
     app.get('/word/type/:word', async(req, res) => {
         const word = decodeURIComponent(req.params.word).toLowerCase();

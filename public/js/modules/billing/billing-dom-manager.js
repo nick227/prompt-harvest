@@ -35,7 +35,6 @@ class BillingDOMManager {
 
             // History elements
             paymentHistory: document.querySelector(this.config.SELECTORS.PAYMENT_HISTORY),
-            creditHistory: document.querySelector(this.config.SELECTORS.CREDIT_HISTORY),
             imageHistory: document.querySelector(this.config.SELECTORS.IMAGE_HISTORY),
 
             // Message elements
@@ -58,7 +57,7 @@ class BillingDOMManager {
      * @throws {Error} If critical elements are missing
      */
     validateCriticalElements() {
-        const criticalElements = ['currentCredits', 'paymentHistory', 'creditHistory'];
+        const criticalElements = ['currentCredits', 'paymentHistory'];
         const missing = criticalElements.filter(key => !this.elements[key]);
 
         if (missing.length > 0) {

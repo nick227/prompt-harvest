@@ -195,9 +195,9 @@ class RatingButtons {
             img.dataset.rating = rating.toString();
         }
 
-        // Update the image component cache if available
-        if (window.imageComponent) {
-            window.imageComponent.updateImageRating(this.imageId, rating);
+        // Update the image manager cache if available
+        if (window.imageManager && window.imageManager.updateImageRating) {
+            window.imageManager.updateImageRating(this.imageId, rating);
         }
 
         // Update the rating display in both list view and fullscreen
@@ -278,23 +278,24 @@ class RatingButtons {
     }
 
     /**
-     * Get current fullscreen image ID from image component
+     * Get current fullscreen image ID from navigation system
      * @returns {string|null} Current fullscreen image ID
      */
     getCurrentFullscreenImageId() {
-        if (window.imageComponent && window.imageComponent.currentFullscreenImage) {
-            return window.imageComponent.currentFullscreenImage.id;
+        if (window.imageNavigation && window.imageNavigation.currentImageElement) {
+            return window.imageNavigation.currentImageElement.dataset.id ||
+                   window.imageNavigation.currentImageElement.dataset.imageId;
         }
         return null;
     }
 
     /**
-     * Set current fullscreen image ID in image component
+     * Set current fullscreen image ID in navigation system
      * @param {string} imageId - Image ID to set
      */
     setCurrentFullscreenImageId(imageId) {
-        if (window.imageComponent && window.imageComponent.currentFullscreenImage) {
-            window.imageComponent.currentFullscreenImage.id = imageId;
+        if (window.imageNavigation && window.imageNavigation.currentImageElement) {
+            window.imageNavigation.currentImageElement.dataset.id = imageId;
         }
     }
 

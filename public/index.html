@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/optimized.css" />
     <link rel="stylesheet" href="css/mobile.css" />
     <link rel="stylesheet" href="css/credits-modal.css" />
+    <link rel="stylesheet" href="css/ai-chat-widget.css" />
     <link rel="icon" href="/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -72,9 +73,12 @@
                         class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2" />
                     <button
                         class="btn-replace bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap mr-2">Replace</button>
-                    <button
-                        class="btn-record bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap"><i
-                            class="fas fa-microphone"></i></button>
+                        <button
+                            class="btn-record mr-2 bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap"><i
+                                class="fas fa-microphone"></i></button>
+                                <button
+                                    class="btn-magic bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap"><i
+                                        class="fas fa-wand-magic-sparkles"></i></button>
                 </div>
 
             </div>
@@ -190,34 +194,22 @@
 
     <!-- Services -->
     <script src="js/services/speech-to-text-service.js"></script>
+    <script src="js/services/prompt-organizer-service.js"></script>
 
-    <!-- Image Component (Refactored Architecture) -->
+    <!-- Unified Navigation System (replaces all image navigation) -->
+    <script src="js/components/image/unified-info-box.js"></script>
+    <script src="js/components/image/unified-navigation.js"></script>
+
+    <!-- Core Image Components (minimal) -->
     <script src="js/components/image/ui-config.js"></script>
-    <!-- Image Event Dependencies (must load before image-events.js) -->
-    <script src="js/modules/ImageDetection.js"></script>
-    <script src="js/modules/legacy-auth-utils.js"></script>
-    <script src="js/modules/NotificationManager.js"></script>
-    <script src="js/modules/TouchEventHandler.js"></script>
-
-    <script src="js/components/image/image-placeholder-handler.js"></script>
     <script src="js/components/image/image-elements.js"></script>
-    <script src="js/components/image/navigation-controls.js"></script>
-    <script src="js/components/image/fullscreen-components.js"></script>
-    <script src="js/components/image/image-ui-manager.js"></script>
-    <script src="js/components/image/image-events.js"></script>
-    <script src="js/components/image/image-data.js"></script>
-    <script src="js/components/image/image-manager.js"></script>
     <script src="js/components/image/image-component.js"></script>
 
-    <!-- Unified Info Box Component -->
-    <script src="js/components/image/unified-info-box.js"></script>
-
-    <!-- Simplified Navigation System -->
-    <script src="js/components/image/simplified-navigation.js"></script>
-    <script src="js/components/image/navigation-integration.js"></script>
+    <!-- Navigation Test (development only) - removed for production -->
 
     <!-- Component modules -->
     <script src="js/components/multiselect-dropdown.js"></script>
+    <script src="js/components/ai-chat-widget.js"></script>
 
     <!-- Feature modules -->
     <!-- TextArea Module (Refactored) -->

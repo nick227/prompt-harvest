@@ -8,8 +8,6 @@ class ImageEvents {
         this.currentKeyHandler = null;
         this.currentClickHandler = null;
 
-        // Reset info box to new default behavior (one-time)
-        this.resetInfoBoxToNewDefault();
 
         // Debug module availability
         // console.log('🔍 Available modules:', {
@@ -69,31 +67,20 @@ class ImageEvents {
     }
 
     handleImageClick(e) {
-        console.log('🔍 IMAGE EVENTS: Image click detected');
         const img = this.getImageFromEvent(e);
 
         if (!img) {
-            console.log('🔍 IMAGE EVENTS: No img element found');
-
             return;
         }
 
-        console.log('🔍 IMAGE EVENTS: Found img element:', img);
-
         // Check if we're already in fullscreen mode to avoid conflicts
         if (this.isFullscreenActive()) {
-            console.log('🔍 IMAGE EVENTS: Already in fullscreen, ignoring click');
-
             return;
         }
 
         const isGeneratedImage = this.isGeneratedImage(img);
 
-        console.log('🔍 IMAGE EVENTS: Is generated image:', isGeneratedImage);
-
         if (!isGeneratedImage) {
-            console.log('🔍 IMAGE EVENTS: Not a generated image, ignoring');
-
             return;
         }
 
@@ -102,16 +89,6 @@ class ImageEvents {
 
         const imageData = this.imageManager.data.extractImageDataFromElement(img);
 
-        console.log('🔍 IMAGE EVENTS: Extracted image data:', imageData);
-        console.log('🔍 IMAGE EVENTS: Image element dataset:', {
-            id: img.dataset.id,
-            username: img.dataset.username,
-            userId: img.dataset.userId,
-            createdAt: img.dataset.createdAt,
-            tags: img.dataset.tags
-        });
-
-        console.log('🔍 IMAGE EVENTS: Opening fullscreen...');
         this.imageManager.openFullscreen(imageData);
     }
 
@@ -162,15 +139,12 @@ class ImageEvents {
         // Also try to get from imageManager if available
         let fullscreenContainer = this.imageManager?.fullscreenContainer || document.querySelector('.full-screen');
 
-        console.log('🔍 IMAGE EVENTS: Setting up touch events, container found:', fullscreenContainer);
-
         if (!fullscreenContainer) {
-            console.warn('⚠️ IMAGE EVENTS: No fullscreen container found for touch events');
+            console.warn('⚠️ No fullscreen container found for touch events');
             // Try again after a short delay in case container is created later
             setTimeout(() => {
                 fullscreenContainer = this.imageManager?.fullscreenContainer || document.querySelector('.full-screen');
                 if (fullscreenContainer) {
-                    console.log('🔍 IMAGE EVENTS: Retrying touch setup, container found:', fullscreenContainer);
                     this.touchHandler.setup(fullscreenContainer);
                 }
             }, 100);
@@ -200,107 +174,6 @@ class ImageEvents {
     // UI COMPONENT EVENT HANDLERS
     // ========================================
 
-    setupToggleButtonEvents(toggleBtn, infoBox) {
-        console.log('🔍 SETUP: setupToggleButtonEvents called with:', { toggleBtn, infoBox });
-
-        // Safety check - ensure toggle button exists
-        if (!toggleBtn) {
-            console.warn('⚠️ Toggle button not found in info box');
-            console.log('🔍 Available elements in info box:', infoBox.querySelectorAll('*'));
-
-            return;
-        }
-
-        const infoBoxContent = infoBox.querySelector('.info-box-content');
-
-        if (!infoBoxContent) {
-            console.warn('⚠️ Info box content not found');
-
-            return;
-        }
-
-        // Get saved state from localStorage or default to collapsed
-        const savedState = this.getInfoBoxState();
-        const keepOpen = this.getInfoBoxKeepOpen();
-        let isExpanded = keepOpen || savedState;
-
-        // Apply saved state
-        if (isExpanded) {
-            infoBoxContent.classList.remove('collapsed');
-            infoBoxContent.classList.add('expanded');
-            if (keepOpen) {
-                infoBoxContent.classList.add('keep-open');
-            }
-        } else {
-            infoBoxContent.classList.remove('expanded');
-            infoBoxContent.classList.add('collapsed');
-        }
-
-        // Set initial toggle button text based on current state
-        toggleBtn.textContent = isExpanded ? '−' : '+';
-        console.log('🔍 Initial toggle button text:', toggleBtn.textContent, 'saved state:', savedState);
-
-        const toggleInfoBox = () => {
-            const keepOpen = this.getInfoBoxKeepOpen();
-
-            // If keep-open is enabled, don't allow collapsing
-            if (keepOpen && !isExpanded) {
-                console.log('🔍 Keep-open enabled, preventing collapse');
-
-                return;
-            }
-
-            console.log('🔍 Toggling info box, current state:', isExpanded);
-            isExpanded = !isExpanded;
-
-            if (isExpanded) {
-                console.log('🔍 Expanding info box');
-                infoBoxContent.classList.remove('collapsed');
-                infoBoxContent.classList.add('expanded');
-                if (keepOpen) {
-                    infoBoxContent.classList.add('keep-open');
-                }
-                toggleBtn.textContent = '−';
-            } else {
-                console.log('🔍 Collapsing info box');
-                infoBoxContent.classList.remove('expanded', 'keep-open');
-                infoBoxContent.classList.add('collapsed');
-                toggleBtn.textContent = '+';
-            }
-
-            // Save the new state (only if not keep-open)
-            if (!keepOpen) {
-                this.saveInfoBoxState(isExpanded);
-            }
-            console.log('🔍 Info box classes after toggle:', infoBoxContent.className);
-        };
-
-        // Toggle on button click
-        toggleBtn.addEventListener('click', e => {
-            e.stopPropagation();
-            toggleInfoBox();
-        });
-
-        // Toggle on header click
-        const header = infoBox.querySelector('.info-box-header');
-
-        if (header) {
-            console.log('🔍 Header found, setting up click event');
-            header.addEventListener('click', e => {
-                console.log('🔍 Header clicked, target:', e.target, 'toggleBtn:', toggleBtn);
-                // Check if the click was on the toggle button or its children
-                if (e.target !== toggleBtn && !toggleBtn.contains(e.target)) {
-                    console.log('🔍 Toggling info box from header click');
-                    toggleInfoBox();
-                } else {
-                    console.log('🔍 Click was on toggle button, ignoring header click');
-                }
-            });
-        } else {
-            console.warn('⚠️ Header not found in info box');
-            console.log('🔍 Available elements in info box:', infoBox.querySelectorAll('*'));
-        }
-    }
 
     setupButtonHoverEffects(_btn) {
         _btn.onmouseenter = () => {
@@ -315,21 +188,10 @@ class ImageEvents {
         };
     }
 
-    setupNavigationButtonEvents(navControls, imageData) {
-        const prevBtn = this.imageManager.ui.createButton('← Previous');
-        const downloadBtn = this.imageManager.ui.createButton('Download');
-        const nextBtn = this.imageManager.ui.createButton('Next →');
-        const closeBtn = this.imageManager.ui.createButton('× Close');
-
-        prevBtn.addEventListener('click', () => this.imageManager.navigateImage('prev'));
-        downloadBtn.addEventListener('click', () => this.imageManager.downloadImage(imageData));
-        nextBtn.addEventListener('click', () => this.imageManager.navigateImage('next'));
-        closeBtn.addEventListener('click', () => this.imageManager.closeFullscreen());
-
-        navControls.appendChild(prevBtn);
-        navControls.appendChild(downloadBtn);
-        navControls.appendChild(nextBtn);
-        navControls.appendChild(closeBtn);
+    setupNavigationButtonEvents(_navControls, _imageData) {
+        // Navigation is now handled by UnifiedNavigation
+        // This method is kept for backward compatibility but does nothing
+        // The UnifiedNavigation system handles all navigation controls
     }
 
     setupRatingDisplayEvents(_ratingDisplay, _infoBox) {
@@ -385,6 +247,7 @@ class ImageEvents {
     async handlePublicStatusChange(checkbox, label, publicStatusToggle) {
         if (!this.imageManager.currentFullscreenImage) {
             console.error('No current fullscreen image available');
+
             return;
         }
 
@@ -492,15 +355,11 @@ class ImageEvents {
 
     // Method to re-setup touch events when fullscreen container is created
     reSetupTouchEvents() {
-        console.log('🔍 IMAGE EVENTS: Re-setting up touch events');
         this.setupTouchEvents();
     }
 
     // Debug method to test touch events manually
     debugTouchEvents() {
-        console.log('🔍 IMAGE EVENTS: Debug touch events');
-        console.log('ImageManager fullscreen container:', this.imageManager?.fullscreenContainer);
-        console.log('DOM fullscreen container:', document.querySelector('.full-screen'));
         console.log('Touch handler:', this.touchHandler);
         this.setupTouchEvents();
     }
@@ -629,94 +488,6 @@ class ImageEvents {
         return null;
     }
 
-    // ========================================
-    // INFO BOX STATE PERSISTENCE
-    // ========================================
-    //
-    // Usage Examples:
-    //
-    // 1. Normal behavior (remembers last state):
-    //    - User toggles info box → state saved automatically
-    //    - Page refresh → info box opens in last saved state (defaults to collapsed)
-    //    - Image change → info box opens in last saved state
-    //
-    // 2. Force keep info boxes open:
-    //    imageEvents.setInfoBoxKeepOpen(true);  // Always keep open
-    //    imageEvents.setInfoBoxKeepOpen(false); // Normal toggle behavior
-    //
-    // 3. Reset to default (collapsed):
-    //    imageEvents.saveInfoBoxState(false);
-    //
-
-    getInfoBoxState() {
-        try {
-            const saved = localStorage.getItem('infoBoxExpanded');
-
-            return saved !== null ? JSON.parse(saved) : false; // Default to collapsed
-        } catch (error) {
-            console.warn('Could not retrieve info box state:', error);
-
-            return false; // Default to collapsed on error
-        }
-    }
-
-    // Method to clear info box state (useful for resetting to default)
-    clearInfoBoxState() {
-        try {
-            localStorage.removeItem('infoBoxExpanded');
-            console.log('🔍 Cleared info box state from localStorage');
-        } catch (error) {
-            console.warn('Could not clear info box state:', error);
-        }
-    }
-
-    // Method to reset info box to new default behavior (one-time)
-    resetInfoBoxToNewDefault() {
-        try {
-            // Check if we've already reset to the new default
-            const hasReset = localStorage.getItem('infoBoxDefaultReset');
-
-            if (!hasReset) {
-                // Clear the old state and mark as reset
-                localStorage.removeItem('infoBoxExpanded');
-                localStorage.setItem('infoBoxDefaultReset', 'true');
-                console.log('🔍 Reset info box to new default behavior (collapsed)');
-            }
-        } catch (error) {
-            console.warn('Could not reset info box to new default:', error);
-        }
-    }
-
-    saveInfoBoxState(isExpanded) {
-        try {
-            localStorage.setItem('infoBoxExpanded', JSON.stringify(isExpanded));
-            console.log('🔍 Saved info box state:', isExpanded);
-        } catch (error) {
-            console.warn('Could not save info box state:', error);
-        }
-    }
-
-    // Utility method to force keep info boxes open
-    setInfoBoxKeepOpen(keepOpen = true) {
-        try {
-            localStorage.setItem('infoBoxKeepOpen', JSON.stringify(keepOpen));
-            console.log('🔍 Set info box keep open:', keepOpen);
-        } catch (error) {
-            console.warn('Could not set info box keep open:', error);
-        }
-    }
-
-    getInfoBoxKeepOpen() {
-        try {
-            const saved = localStorage.getItem('infoBoxKeepOpen');
-
-            return saved !== null ? JSON.parse(saved) : false;
-        } catch (error) {
-            console.warn('Could not retrieve info box keep open state:', error);
-
-            return false;
-        }
-    }
 }
 
 // Export for global access

@@ -305,11 +305,10 @@ class BillingUIManager {
         console.log('🔄 BILLING UI: Refreshing all data...');
         this.dataManager.clearCache();
 
-        // Refresh balance, usage stats, and credit history
+        // Refresh balance and usage stats
         await Promise.allSettled([
             this.refreshBalance(),
-            this.refreshUsageStats(),
-            this.refreshCreditHistory()
+            this.refreshUsageStats()
         ]);
 
         // Trigger custom event for data refresh
@@ -344,20 +343,6 @@ class BillingUIManager {
         }
     }
 
-    /**
-     * Refresh credit history
-     */
-    async refreshCreditHistory() {
-        try {
-            const transactions = await this.apiManager.getCreditHistory();
-
-            this.dataManager.setCreditHistory(transactions);
-            this.updateCreditHistory(transactions);
-            this.dataManager.setCachedData(this.config.CACHE.KEYS.CREDIT_HISTORY, transactions);
-        } catch (error) {
-            console.warn('⚠️ BILLING UI: Background credit history refresh failed:', error);
-        }
-    }
 
     /**
      * Add event listener with cleanup tracking
@@ -388,10 +373,11 @@ class BillingUIManager {
     }
 
     /**
-     * Update payment history display
+     * Update payment history display (includes Stripe payments and promo code redemptions)
      * @param {Array} payments - Payment history data
+     * @param {Array} promoRedemptions - Promo code redemption data
      */
-    updatePaymentHistory(payments) {
+    updatePaymentHistory(payments, promoRedemptions = []) {
         const container = this.domManager.getElement('paymentHistory');
 
         if (!container) {
@@ -400,88 +386,63 @@ class BillingUIManager {
             return;
         }
 
-        if (!payments || payments.length === 0) {
+        // Combine payments and promo redemptions
+        const allTransactions = [
+            ...(payments || []).map(payment => ({
+                ...payment,
+                type: 'payment',
+                displayAmount: `$${(payment.amount / 100).toFixed(2)}`,
+                displayCredits: `${payment.credits} credits`,
+                status: payment.status,
+                icon: 'fas fa-credit-card'
+            })),
+            ...(promoRedemptions || []).map(promo => ({
+                ...promo,
+                type: 'promo',
+                displayAmount: 'Free',
+                displayCredits: `${promo.credits} credits`,
+                status: 'redeemed',
+                icon: 'fas fa-ticket-alt'
+            }))
+        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        if (allTransactions.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-receipt" aria-hidden="true"></i>
                     <h3>No Payment History</h3>
-                    <p>You haven't made any purchases yet.</p>
+                    <p>You haven't made any purchases or redeemed any promo codes yet.</p>
                 </div>
             `;
 
             return;
         }
 
-        const paymentItems = payments.map(payment => `
+        const transactionItems = allTransactions.map(transaction => `
             <div class="payment-item">
                 <div class="payment-info">
-                    <div class="payment-amount">$${(payment.amount / 100).toFixed(2)}</div>
-                    <div class="payment-credits">${payment.credits} credits</div>
+                    <div class="payment-amount">
+                        <i class="${transaction.icon}" aria-hidden="true"></i>
+                        ${transaction.displayAmount}
+                    </div>
+                    <div class="payment-credits">${transaction.displayCredits}</div>
                 </div>
                 <div class="payment-details">
-                    <div class="payment-status status-${payment.status}">${payment.status}</div>
-                    <div class="payment-date">${new Date(payment.createdAt).toLocaleDateString()}</div>
+                    <div class="payment-status status-${transaction.status}">
+                        ${transaction.type === 'promo' ? 'Promo Redeemed' : transaction.status}
+                    </div>
+                    <div class="payment-date">${new Date(transaction.createdAt).toLocaleDateString()}</div>
                 </div>
             </div>
         `).join('');
 
         container.innerHTML = `
             <div class="payment-list">
-                ${paymentItems}
-            </div>
-        `;
-    }
-
-    /**
-     * Update credit history display
-     * @param {Array} transactions - Credit transaction data
-     */
-    updateCreditHistory(transactions) {
-        const container = this.domManager.getElement('creditHistory');
-
-        if (!container) {
-            console.warn('⚠️ BILLING UI: Credit history container not found');
-
-            return;
-        }
-
-        if (!transactions || transactions.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-coins" aria-hidden="true"></i>
-                    <h3>No Credit History</h3>
-                    <p>No credit transactions found.</p>
-                </div>
-            `;
-
-            return;
-        }
-
-        const transactionItems = transactions.map(transaction => {
-            const isPositive = transaction.amount > 0;
-            const amountClass = isPositive ? 'positive' : 'negative';
-            const amountPrefix = isPositive ? '+' : '';
-
-            return `
-                <div class="credit-transaction">
-                    <div class="transaction-info">
-                        <div class="transaction-description">${transaction.description}</div>
-                        <div class="transaction-type">${transaction.type}</div>
-                    </div>
-                    <div class="transaction-details">
-                        <div class="transaction-amount ${amountClass}">${amountPrefix}${transaction.amount}</div>
-                        <div class="transaction-date">${new Date(transaction.createdAt).toLocaleDateString()}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        container.innerHTML = `
-            <div class="credit-list">
                 ${transactionItems}
             </div>
         `;
     }
+
 
     /**
      * Update image history display

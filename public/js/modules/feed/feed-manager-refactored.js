@@ -86,25 +86,24 @@ class FeedManager {
     async setupTagRouter() {
         if (window.tagRouter) {
             this.tagRouter = window.tagRouter;
-            console.log('🏷️ FEED MANAGER: Using global tag router for subscription');
+            // Using global tag router for subscription
         }
 
         if (this.tagRouter) {
-            console.log('🏷️ FEED MANAGER: Subscribing to tag router changes');
+            // Subscribing to tag router changes
             this.tagRouter.subscribe('feedManager', this.handleTagChange);
-            console.log('🏷️ FEED MANAGER: Subscription completed, current listeners:', this.tagRouter.listeners.size);
         } else {
-            console.log('🏷️ FEED MANAGER: Tag router not available yet, will connect later');
+            // Tag router not available yet, will connect later
         }
     }
 
     // Connect to tag router when it becomes available
     connectTagRouter() {
         if (window.tagRouter && !this.tagRouter) {
-            console.log('🏷️ FEED MANAGER: Connecting to tag router that became available');
+            // Connecting to tag router that became available
             this.tagRouter = window.tagRouter;
             this.tagRouter.subscribe('feedManager', this.handleTagChange);
-            console.log('🏷️ FEED MANAGER: Tag router connected successfully');
+            // Tag router connected successfully
         }
     }
 
@@ -114,7 +113,7 @@ class FeedManager {
             const currentTags = this.tagRouter.getActiveTags();
 
             if (currentTags.length > 0) {
-                console.log('🏷️ FEED MANAGER: Updating tag filter indicator with initial tags:', currentTags);
+                // Updating tag filter indicator with initial tags
                 this.uiManager.updateTagFilterIndicator(currentTags);
             }
         }
@@ -163,7 +162,7 @@ class FeedManager {
     // Handle tag changes from tag router
     async handleTagChange(activeTags) {
         try {
-            console.log('🏷️ FEED MANAGER: Tag change detected:', activeTags);
+            // Tag change detected
 
             // Update tag filter indicator
             if (this.uiManager.updateTagFilterIndicator) {
@@ -211,7 +210,7 @@ class FeedManager {
             const currentFilter = this.filterManager.getCurrentFilter();
 
             if (window.DEBUG_MODE) {
-                console.log(`🚀 FEED MANAGER: Loading initial feed for filter: ${currentFilter}`);
+                // Loading initial feed for filter
             }
 
             await this.loadFilterImages(currentFilter);
@@ -227,7 +226,7 @@ class FeedManager {
             // Check if filter manager is already initialized AND has a current filter set
             if (this.filterManager && this.filterManager.isInitialized && this.filterManager.currentFilter) {
                 if (window.DEBUG_MODE) {
-                    console.log('✅ FEED MANAGER: Filter manager is already ready with filter:', this.filterManager.currentFilter);
+                    // Filter manager is already ready
                 }
                 resolve();
 
@@ -237,7 +236,7 @@ class FeedManager {
             // Listen for filter manager ready event
             const handleFilterReady = event => {
                 if (window.DEBUG_MODE) {
-                    console.log('✅ FEED MANAGER: Filter manager ready event received with filter:', event.detail?.currentFilter);
+                    // Filter manager ready event received
                 }
                 window.removeEventListener('filterManagerReady', handleFilterReady);
                 resolve();
@@ -481,7 +480,7 @@ const initFeedManager = async() => {
         return;
     }
 
-    console.log('✅ FEED MANAGER: All dependencies available, proceeding with initialization');
+    // All dependencies available, proceeding with initialization
 
     try {
         // console.log('🏷️ FEED MANAGER: Creating FeedManager instance...');

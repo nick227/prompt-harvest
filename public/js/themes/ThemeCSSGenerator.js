@@ -196,13 +196,13 @@ span {
 }
 
 /* Button States */
-.btn-generate, .btn-replace, .btn-record {
+.btn-generate, .btn-replace, .btn-record, .btn-magic {
     background-color: var(--color-interactive-primary) !important;
     color: ${isLight ? '#ffffff' : 'var(--color-text-primary)'} !important;
     border-color: var(--color-border-primary) !important;
 }
 
-.btn-generate:hover, .btn-replace:hover, .btn-record:hover {
+.btn-generate:hover, .btn-replace:hover, .btn-record:hover, .btn-magic:hover {
     background-color: var(--color-interactive-primary-hover) !important;
 }
 

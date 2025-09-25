@@ -30,9 +30,7 @@ class AppLoader {
         await this.waitForDependencies(['Utils', 'StateManager', 'API_ENDPOINTS', 'apiService', 'userApi', 'imageApi']);
 
         // Initialize auth state manager early to prevent multiple auth queries
-        if (window.authStateManager) {
-            console.log('🔐 APP: Auth state manager available');
-        } else {
+        if (!window.authStateManager) {
             console.warn('⚠️ APP: Auth state manager not available');
         }
     }
@@ -46,6 +44,7 @@ class AppLoader {
             ['rating', () => window.ratingManager, ['Utils']],
             ['stats', () => window.statsManager, ['Utils']],
             ['images', () => window.imagesManager, ['Utils']],
+            ['imageComponent', () => new window.ImageComponent(), ['UnifiedNavigation']],
             ['controlsDrawer', () => new window.ControlsDrawer(), []]
         ];
 
@@ -146,7 +145,7 @@ class AppLoader {
             window.promptHistoryService.init('prompt-history');
             window.promptHistoryService.initMobile();
 
-            console.log('✅ APP: Prompt history service initialized');
+            // Prompt history service initialized
         } catch (error) {
             console.error('❌ APP: Failed to initialize prompt history service:', error);
         }
@@ -181,7 +180,7 @@ class AppLoader {
             if (window.feedManager?.init) {
                 try {
                     await window.feedManager.init();
-                    console.log('✅ APP: FeedManager initialized successfully');
+                    // FeedManager initialized successfully
 
                     return;
                 } catch (error) {
@@ -210,6 +209,13 @@ class AppLoader {
             window.imagesManager.init();
         }
 
+        // Initialize image component for fullscreen navigation
+        if (window.imageComponent && window.imageComponent.init) {
+            window.imageComponent.init();
+        } else if (window.ImageComponent) {
+            window.imageComponent = new window.ImageComponent();
+            window.imageComponent.init();
+        }
 
         this.initializeProviderManager();
     }
@@ -519,7 +525,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     // Initialize global tag router FIRST, before app initialization
     if (window.TagRouter) {
         window.tagRouter = new window.TagRouter();
-        console.log('✅ TAG ROUTER: Global tag router initialized');
+        // Global tag router initialized
     } else {
         console.warn('⚠️ TAG ROUTER: TagRouter not available');
     }
@@ -534,7 +540,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     // Connect feed manager to tag router after app initialization
     if (window.tagRouter && window.feedManager && window.feedManager.connectTagRouter) {
         window.feedManager.connectTagRouter();
-        console.log('✅ TAG ROUTER: Connected to feed manager');
+        // Connected to feed manager
 
         // Notify listeners after connection to ensure initial tag state is processed
         setTimeout(() => {

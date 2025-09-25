@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize the simplified theme service
     if (typeof SimpleThemeService !== 'undefined') {
         window.themeService = new SimpleThemeService();
-        console.log('✅ Simple Theme Service initialized');
+        // Simple Theme Service initialized
     }
 
     // Initialize theme manager
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.themeValidator = new ThemeValidator();
             window.debugTheme = () => window.themeValidator.validateThemeSystem();
             window.healthCheck = () => window.themeValidator.quickHealthCheck();
-            console.log('🔧 Debug commands available: debugTheme(), healthCheck()');
+            // Debug commands available: debugTheme(), healthCheck()
         }
 
         // Add readability testing commands
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.themeReadabilityTester = new ThemeReadabilityTester();
             window.testThemeReadability = () => window.themeReadabilityTester.testAllThemes();
             window.quickReadabilityCheck = () => window.themeReadabilityTester.quickCheck();
-            console.log('🔍 Readability commands available: testThemeReadability(), quickReadabilityCheck()');
+            // Readability commands available: testThemeReadability(), quickReadabilityCheck()
         }
     }, 100);
 });

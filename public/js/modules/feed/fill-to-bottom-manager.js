@@ -25,10 +25,10 @@ class FillToBottomManager {
             const needsMore = this.needsMoreContent();
 
             if (needsMore) {
-                console.log('📏 FILL: Page needs more content to fill to bottom');
+                // Page needs more content to fill to bottom
                 return await this.loadMoreContent(filter);
             } else {
-                console.log('✅ FILL: Page is adequately filled');
+                // Page is adequately filled
                 return false;
             }
         } finally {
@@ -62,11 +62,11 @@ class FillToBottomManager {
         const cache = this.cacheManager.getCache(filter);
 
         if (!cache || !cache.hasMore) {
-            console.log('📏 FILL: No more content available to load');
+            // No more content available to load
             return false;
         }
 
-        console.log('📏 FILL: Loading more content to fill page');
+        // Loading more content to fill page
 
         try {
             const nextPage = cache.currentPage + 1;
@@ -82,7 +82,7 @@ class FillToBottomManager {
                     this.domManager.addImageToFeed(image, filter);
                 });
 
-                console.log(`📏 FILL: Added ${result.images.length} images to fill page`);
+                // Added images to fill page
                 return true;
             }
 

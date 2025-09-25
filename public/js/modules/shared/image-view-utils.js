@@ -499,9 +499,8 @@ class ImageViewUtils {
         })
         .then(() => {
             // Update cache if image manager is available
-            if (window.imageManager && window.imageManager.data) {
-                window.imageManager.data.updateCachedImage(imageId, { isPublic: newStatus });
-            }
+            // Note: Cache updates are now handled by the unified navigation system
+            // No need for separate cache management
 
             // Update fullscreen checkbox if it's currently open for this image
             this.updateFullscreenCheckboxIfCurrent(imageId, newStatus);
@@ -602,14 +601,8 @@ class ImageViewUtils {
      * @param {boolean} isPublic - New public status
      */
     static updateFullscreenCheckboxIfCurrent(imageId, isPublic) {
-        if (window.imageManager && window.imageManager.currentFullscreenImage &&
-            window.imageManager.currentFullscreenImage.id === imageId) {
-            // Update the current fullscreen image data
-            window.imageManager.currentFullscreenImage.isPublic = isPublic;
-
-            // Refresh the fullscreen UI to reflect the change
-            window.imageManager.refreshFullscreenUI();
-        }
+        // Note: Fullscreen updates are now handled by the unified navigation system
+        // No need for separate fullscreen management
     }
 
     /**

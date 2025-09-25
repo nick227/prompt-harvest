@@ -11,6 +11,7 @@ import { setupAuthRoutes } from './authRoutes.js';
 import { setupTransactionRoutes } from './transactionRoutes.js';
 import { setupWordRoutes } from './wordRoutes.js';
 import { setupPromptRoutes } from './promptRoutes.js';
+import { setupAIChatRoutes } from './aiChatRoutes.js';
 import setupViolationRoutes from './violationRoutes.js';
 import { setupAdminPromoRoutes } from './adminPromoRoutes.js';
 import { setupProfileRoutes } from './profileRoutes.js';
@@ -30,7 +31,7 @@ import { TransactionController } from '../controllers/TransactionController.js';
 import { PromptController } from '../controllers/PromptController.js';
 import { ProfileController } from '../controllers/ProfileController.js';
 import { EnhancedImageService } from '../services/EnhancedImageService.js';
-import { AIService } from '../services/AIService.js';
+import { AIPromptService } from '../services/ai/features/AIPromptService.js';
 import { LikeService } from '../services/LikeService.js';
 import { TagService } from '../services/TagService.js';
 import { ImageRepository } from '../repositories/ImageRepository.js';
@@ -66,7 +67,7 @@ export const setupRoutes = async app => {
     let tagService;
 
     try {
-        aiService = new AIService();
+        aiService = new AIPromptService();
         enhancedImageService = new EnhancedImageService(imageRepository, aiService);
         likeService = new LikeService();
         tagService = new TagService();
@@ -123,6 +124,7 @@ export const setupRoutes = async app => {
     setupTransactionRoutes(app, transactionController); // Transaction accounting routes
     setupWordRoutes(app); // Word types and examples routes
     setupPromptRoutes(app, promptController); // User prompts routes
+    setupAIChatRoutes(app); // AI Chat widget routes
     app.use('/api/violations', setupViolationRoutes); // Violation tracking routes
     setupAdminPromoRoutes(app); // Admin promo code management routes
     app.use('/api/credits', creditsRouter); // Credits and payment routes

@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import wordTypeManager from '../../lib/word-type-manager.js';
-import configManager from '../config/ConfigManager.js';
+import wordTypeManager from '../../../lib/word-type-manager.js';
+import configManager from '../../config/ConfigManager.js';
 
 export class AIService {
     constructor() {
@@ -89,7 +89,7 @@ export class AIService {
     async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', photogenic = false, artistic = false, avatar = false, req = null) {
         // This will be implemented when we extract the prompt service
         // For now, we'll import the feed module directly
-        const feed = await import('../feed.js');
+        const feed = await import('../../feed.js');
 
         return await feed.default.buildPrompt(
             prompt,

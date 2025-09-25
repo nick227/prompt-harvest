@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { EnhancedImageService } from '../services/EnhancedImageService.js';
 import { ImageRepository } from '../repositories/ImageRepository.js';
-import { AIService } from '../services/AIService.js';
+import { AIPromptService } from '../services/ai/features/AIPromptService.js';
 import { ImageStorageService } from '../services/ImageStorageService.js';
 import { formatErrorResponse, formatSuccessResponse } from '../utils/ResponseFormatter.js';
 import { generateRequestId, logRequestStart, logRequestSuccess, logRequestError } from '../utils/RequestLogger.js';
@@ -13,7 +13,7 @@ export class ProfileController {
     constructor() {
         this.prisma = new PrismaClient();
         this.imageRepository = new ImageRepository();
-        this.aiService = new AIService();
+        this.aiService = new AIPromptService();
         this.enhancedImageService = new EnhancedImageService(this.imageRepository, this.aiService);
         this.imageStorageService = new ImageStorageService('cdn'); // Use CDN storage for profile pictures
     }

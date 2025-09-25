@@ -169,10 +169,10 @@ class RatingManager {
 
             // If no dataset id, try to extract from src or use a fallback
             if (!id) {
-                // Try to get ID from the image component's current fullscreen image
-                if (window.imageComponent && window.imageComponent.currentFullscreenImage) {
-                    const { id: imageId } = window.imageComponent.currentFullscreenImage;
-
+                // Try to get ID from the navigation system's current image
+                if (window.imageNavigation && window.imageNavigation.currentImageElement) {
+                    const imageId = window.imageNavigation.currentImageElement.dataset.id ||
+                                   window.imageNavigation.currentImageElement.dataset.imageId;
                     id = imageId;
                 }
 
@@ -204,9 +204,9 @@ class RatingManager {
                 // Update image dataset
                 img.dataset.rating = rating.toString();
 
-                // Update the image component cache
-                if (window.imageComponent) {
-                    window.imageComponent.updateImageRating(id, rating);
+                // Update the image manager cache
+                if (window.imageManager && window.imageManager.updateImageRating) {
+                    window.imageManager.updateImageRating(id, rating);
                 }
 
                 // Refresh the rating dropdown to include the new rating

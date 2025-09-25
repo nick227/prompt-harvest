@@ -233,26 +233,6 @@ const setupStripe = (app, express) => {
         }
     });
 
-    // User credit history route (separate from balance)
-    app.get('/api/user/credit-history', async (req, res) => {
-        try {
-            const transactions = await SimplifiedCreditService.getCreditHistory(req.user.id, 50);
-
-            res.json({
-                transactions: transactions.map(transaction => ({
-                    id: transaction.id,
-                    amount: transaction.amount,
-                    type: transaction.type,
-                    description: transaction.description,
-                    createdAt: transaction.createdAt,
-                    metadata: transaction.metadata
-                }))
-            });
-        } catch (error) {
-            console.error('❌ Error getting user credit history:', error);
-            res.status(500).json({ error: 'Failed to get credit history' });
-        }
-    });
 
     console.log('✅ Stripe routes configured successfully');
 };

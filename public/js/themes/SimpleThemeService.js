@@ -23,7 +23,7 @@ class SimpleThemeService {
             this.loadThemes();
             this.applyTheme(savedTheme);
             this.setupEventListeners();
-            console.log('✅ SimpleThemeService initialized successfully');
+            // SimpleThemeService initialized successfully
         } catch (error) {
             console.error('❌ Failed to initialize SimpleThemeService:', error);
             // Apply fallback theme

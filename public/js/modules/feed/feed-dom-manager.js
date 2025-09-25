@@ -83,12 +83,8 @@ class FeedDOMManager {
             window.feedManager.viewManager.ensureViewApplied();
         }
 
-        if (window.imageManager && window.imageManager.data) {
-            const dataToCache = {
-                ...imageData,
-                element: wrapper
-            };
-        }
+        // Note: Caching is now handled by the unified navigation system
+        // No need for separate cache management
 
         // Note: Auto download is NOT called here for existing images loaded from database
         // Auto download is only called from specific new generation paths
@@ -112,16 +108,14 @@ class FeedDOMManager {
         if (window.imageComponent) {
             const imageElement = window.imageComponent.createImageElement(imageData);
 
-            wrapper.appendChild(imageElement);
-
-            // Cache the image data in the image manager
-            if (window.imageManager && window.imageManager.data) {
-                // Caching newly added image
-                window.imageManager.data.cacheImage({
-                    ...imageData,
-                    element: wrapper
-                });
+            if (imageElement) {
+                wrapper.appendChild(imageElement);
+            } else {
+                console.error('❌ DOM MANAGER: createImageElement returned null');
             }
+
+            // Note: Caching is now handled by the unified navigation system
+            // No need for separate cache management
         } else {
             console.error('❌ DOM MANAGER: window.imageComponent does not exist!');
         }

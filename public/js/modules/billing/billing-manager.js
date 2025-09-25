@@ -147,7 +147,6 @@ class BillingManager {
         const secondaryPromises = [
             this.loadUsageStats(),
             this.loadPaymentHistory(),
-            this.loadCreditHistory(),
             this.loadImageHistory()
         ];
 
@@ -278,36 +277,21 @@ class BillingManager {
     }
 
     /**
-     * Load payment history
+     * Load payment history (includes Stripe payments and promo code redemptions)
      */
     async loadPaymentHistory() {
         try {
             console.log('🔄 BILLING: Loading payment history...');
             const payments = await this.apiManager.getPaymentHistory();
+            const promoRedemptions = await this.apiManager.getPromoRedemptions();
 
             this.dataManager.setPaymentHistory(payments);
-            this.uiManager.updatePaymentHistory(payments);
-            console.log(`✅ BILLING: Loaded ${payments.length} payment records`);
+            this.dataManager.setPromoRedemptions(promoRedemptions);
+            this.uiManager.updatePaymentHistory(payments, promoRedemptions);
+            console.log(`✅ BILLING: Loaded ${payments.length} payment records and ${promoRedemptions.length} promo redemptions`);
         } catch (error) {
             console.error('❌ BILLING: Failed to load payment history:', error);
             this.uiManager.showError('Failed to load payment history');
-        }
-    }
-
-    /**
-     * Load credit history
-     */
-    async loadCreditHistory() {
-        try {
-            console.log('🔄 BILLING: Loading credit history...');
-            const transactions = await this.apiManager.getCreditHistory();
-
-            this.dataManager.setCreditHistory(transactions);
-            this.uiManager.updateCreditHistory(transactions);
-            console.log(`✅ BILLING: Loaded ${transactions.length} credit transactions`);
-        } catch (error) {
-            console.error('❌ BILLING: Failed to load credit history:', error);
-            this.uiManager.showError('Failed to load credit history');
         }
     }
 

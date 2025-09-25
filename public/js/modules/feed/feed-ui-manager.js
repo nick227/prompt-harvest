@@ -276,7 +276,7 @@ class FeedUIManager {
     // Setup tag overlays for visual feedback
     setupTagOverlays() {
         // No initialization needed - CSS handles the ::after element
-        console.log('🎭 OVERLAY: Tag overlays ready (using existing CSS ::after)');
+        // Tag overlays ready (using existing CSS ::after)
     }
 
     // Update tag filter indicator
@@ -308,11 +308,11 @@ class FeedUIManager {
                 tagsInUseContainer.appendChild(tagChip);
             });
 
-            console.log(`🏷️ TAG FILTER: Updated tags-in-use container with ${activeTags.length} tags`);
+            // Updated tags-in-use container
         } else {
             // Hide the container
             tagsInUseContainer.classList.add('hidden');
-            console.log('🏷️ TAG FILTER: Hidden tags-in-use container (no active tags)');
+            // Hidden tags-in-use container (no active tags)
         }
     }
 
@@ -384,14 +384,14 @@ class FeedUIManager {
 
     // Remove a specific tag from the active filter
     removeTag(tagToRemove) {
-        console.log(`🏷️ TAG FILTER: Removing tag: ${tagToRemove}`);
+        // Removing tag
 
         // Get current active tags from tag router
         if (window.tagRouter) {
             const currentTags = window.tagRouter.getActiveTags();
             const updatedTags = currentTags.filter(tag => tag !== tagToRemove);
 
-            console.log(`🏷️ TAG FILTER: Updated tags:`, updatedTags);
+            // Updated tags
 
             // Update tag router with remaining tags
             window.tagRouter.setActiveTags(updatedTags);

@@ -8,7 +8,7 @@ class BillingDataManager {
             currentUser: null,
             creditPackages: [],
             paymentHistory: [],
-            creditHistory: [],
+            promoRedemptions: [],
             isLoading: false,
             cache: new Map(),
             lastUpdated: new Map()
@@ -81,19 +81,19 @@ class BillingDataManager {
     }
 
     /**
-     * Set credit history
-     * @param {Array} history - Credit history array
+     * Set promo redemptions
+     * @param {Array} redemptions - Promo redemptions array
      */
-    setCreditHistory(history) {
-        this.state.creditHistory = history;
+    setPromoRedemptions(redemptions) {
+        this.state.promoRedemptions = redemptions;
     }
 
     /**
-     * Get credit history
+     * Get promo redemptions
      * @returns {Array}
      */
-    getCreditHistory() {
-        return this.state.creditHistory;
+    getPromoRedemptions() {
+        return this.state.promoRedemptions;
     }
 
     /**
@@ -241,7 +241,7 @@ class BillingDataManager {
             hasUser: !!this.state.currentUser,
             packagesCount: this.state.creditPackages.length,
             paymentHistoryCount: this.state.paymentHistory.length,
-            creditHistoryCount: this.state.creditHistory.length,
+            promoRedemptionsCount: this.state.promoRedemptions.length,
             isLoading: this.state.isLoading,
             cacheSize: this.state.cache.size
         };
@@ -255,7 +255,7 @@ class BillingDataManager {
             currentUser: null,
             creditPackages: [],
             paymentHistory: [],
-            creditHistory: [],
+            promoRedemptions: [],
             isLoading: false,
             cache: new Map(),
             lastUpdated: new Map()

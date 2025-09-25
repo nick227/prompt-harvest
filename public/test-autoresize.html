@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoResize Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #prompt-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            line-height: 1.5;
+            resize: none;
+            font-family: inherit;
+        }
+        #prompt-textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .test-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>AutoResize Test - Triple Height System</h1>
+        <p>This textarea automatically resizes through three height levels based on content:</p>
+        <ul>
+            <li><strong>Level 1 (Initial):</strong> Default height for normal content</li>
+            <li><strong>Level 2 (Double):</strong> 2x height for longer content</li>
+            <li><strong>Level 3 (Triple):</strong> 3x height for extreme content</li>
+        </ul>
+
+        <textarea id="prompt-textarea" rows="6" placeholder="Type or paste content here to test autoResize...">This is a test textarea with some initial content. The autoResize feature should work with typing, pasting, and programmatic content changes.</textarea>
+
+        <div class="test-buttons">
+            <button class="btn-primary" onclick="testShortContent()">Short Content</button>
+            <button class="btn-secondary" onclick="testMediumContent()">Medium Content</button>
+            <button class="btn-success" onclick="testLongContent()">Long Content</button>
+            <button class="btn-info" onclick="testVeryLongContent()">Very Long Content</button>
+            <button class="btn-warning" onclick="testExtremeContent()">Extreme Content</button>
+            <button class="btn-primary" onclick="clearContent()">Clear</button>
+        </div>
+
+        <div class="info">
+            <strong>Current Height:</strong> <span id="current-height">Calculating...</span><br>
+            <strong>Height Level:</strong> <span id="height-level">Calculating...</span><br>
+            <strong>Initial Height:</strong> <span id="initial-height">Calculating...</span><br>
+            <strong>Double Height:</strong> <span id="double-height">Calculating...</span><br>
+            <strong>Triple Height:</strong> <span id="triple-height">Calculating...</span><br>
+            <strong>Content Lines:</strong> <span id="content-lines">Calculating...</span>
+        </div>
+    </div>
+
+    <script>
+        // Store initial height
+        let initialHeight = null;
+
+        // Improved autoResize implementation for testing
+        function autoResize() {
+            const textArea = document.getElementById('prompt-textarea');
+            if (!textArea) return;
+
+            // Store initial height on first call
+            if (initialHeight === null) {
+                initialHeight = textArea.offsetHeight;
+            }
+
+            const content = textArea.value;
+
+            // Handle empty content - always reset to initial height
+            if (!content.trim()) {
+                textArea.style.height = `${initialHeight}px`;
+                updateInfo();
+                return;
+            }
+
+            // Get computed styles once and cache them
+            const computedStyle = window.getComputedStyle(textArea);
+            const lineHeight = parseInt(computedStyle.lineHeight) || 20;
+            const paddingTop = parseInt(computedStyle.paddingTop) || 8;
+            const paddingBottom = parseInt(computedStyle.paddingBottom) || 8;
+            const borderTop = parseInt(computedStyle.borderTopWidth) || 0;
+            const borderBottom = parseInt(computedStyle.borderBottomWidth) || 0;
+
+            // Calculate content area height in initial state
+            const contentHeight = initialHeight - paddingTop - paddingBottom - borderTop - borderBottom;
+            const linesInInitialHeight = Math.floor(contentHeight / lineHeight);
+
+            // Count actual lines (including wrapped lines)
+            const explicitLines = content.split('\n').length;
+
+            // Reset height to auto to measure actual content height
+            textArea.style.height = 'auto';
+            const actualContentHeight = textArea.scrollHeight - paddingTop - paddingBottom - borderTop - borderBottom;
+            const actualLines = Math.ceil(actualContentHeight / lineHeight);
+
+            // Use the greater of explicit lines or calculated lines for accuracy
+            const totalLines = Math.max(explicitLines, actualLines);
+
+            // Calculate height levels
+            const doubleHeight = initialHeight * 2;
+            const tripleHeight = initialHeight * 3;
+            const linesInDoubleHeight = linesInInitialHeight * 2;
+            const linesInTripleHeight = linesInInitialHeight * 3;
+
+            // Determine appropriate height based on content
+            if (totalLines <= linesInInitialHeight) {
+                // Content fits in initial height - reset to initial height
+                textArea.style.height = `${initialHeight}px`;
+            } else if (totalLines <= linesInDoubleHeight) {
+                // Content fits in double height - expand up to double height
+                const naturalHeight = textArea.scrollHeight;
+                const newHeight = Math.min(doubleHeight, naturalHeight);
+
+                textArea.style.height = `${newHeight}px`;
+            } else if (totalLines <= linesInTripleHeight) {
+                // Content fits in triple height - expand up to triple height
+                const naturalHeight = textArea.scrollHeight;
+                const newHeight = Math.min(tripleHeight, naturalHeight);
+
+                textArea.style.height = `${newHeight}px`;
+            } else {
+                // Content exceeds triple height - cap at triple height
+                textArea.style.height = `${tripleHeight}px`;
+            }
+
+            // Update info display
+            updateInfo();
+        }
+
+        function updateInfo() {
+            const textArea = document.getElementById('prompt-textarea');
+            const computedStyle = window.getComputedStyle(textArea);
+            const lineHeight = parseInt(computedStyle.lineHeight) || 20;
+            const paddingTop = parseInt(computedStyle.paddingTop) || 8;
+            const paddingBottom = parseInt(computedStyle.paddingBottom) || 8;
+            const borderTop = parseInt(computedStyle.borderTopWidth) || 0;
+            const borderBottom = parseInt(computedStyle.borderBottomWidth) || 0;
+
+            const currentHeight = textArea.offsetHeight;
+            const contentLines = Math.ceil(textArea.value.split('\n').length);
+
+            // Calculate height levels
+            const doubleHeight = initialHeight ? initialHeight * 2 : 0;
+            const tripleHeight = initialHeight ? initialHeight * 3 : 0;
+
+            // Calculate lines that fit in initial height
+            const contentHeight = (initialHeight || currentHeight) - paddingTop - paddingBottom - borderTop - borderBottom;
+            const linesInInitialHeight = Math.floor(contentHeight / lineHeight);
+
+            // Determine current height level
+            let heightLevel = 'Unknown';
+            if (initialHeight) {
+                if (currentHeight <= initialHeight + 5) {
+                    heightLevel = '1 (Initial)';
+                } else if (currentHeight <= doubleHeight + 5) {
+                    heightLevel = '2 (Double)';
+                } else if (currentHeight <= tripleHeight + 5) {
+                    heightLevel = '3 (Triple)';
+                } else {
+                    heightLevel = '3+ (Beyond Triple)';
+                }
+            }
+
+            document.getElementById('current-height').textContent = `${currentHeight}px`;
+            document.getElementById('height-level').textContent = heightLevel;
+            document.getElementById('initial-height').textContent = `${initialHeight || 0}px`;
+            document.getElementById('double-height').textContent = `${doubleHeight}px`;
+            document.getElementById('triple-height').textContent = `${tripleHeight}px`;
+            document.getElementById('content-lines').textContent = `${contentLines} (fits in ${linesInInitialHeight})`;
+        }
+
+        // Test content functions
+        function testShortContent() {
+            document.getElementById('prompt-textarea').value = 'Short content.';
+            autoResize();
+        }
+
+        function testMediumContent() {
+            document.getElementById('prompt-textarea').value = `This is medium content that should make the textarea grow a bit.
+It has multiple lines but not too many.
+This should test the autoResize functionality effectively.`;
+            autoResize();
+        }
+
+        function testLongContent() {
+            document.getElementById('prompt-textarea').value = `This is a longer content that should make the textarea grow significantly.
+It contains multiple paragraphs and lines of text.
+This should test how the autoResize handles content that requires more space.
+The textarea should expand to accommodate this content.
+But it should not exceed the maximum height limit.
+This is a good test for the autoResize feature.`;
+            autoResize();
+        }
+
+        function testVeryLongContent() {
+            document.getElementById('prompt-textarea').value = `This is very long content that should test the double height limit.
+It contains many paragraphs and lines of text.
+This should test how the autoResize handles content that exceeds the initial height.
+The textarea should expand to the double height and then stop.
+This is a comprehensive test for the autoResize feature.
+It should demonstrate that the textarea respects the height boundaries.
+Even with very long content, the textarea should not exceed double the default height.
+This tests the double height limit of the autoResize functionality.
+The content should scroll within the textarea when it reaches the maximum height.
+This ensures a good user experience even with extensive content.`;
+            autoResize();
+        }
+
+        function testExtremeContent() {
+            document.getElementById('prompt-textarea').value = `This is EXTREME content that should test the triple height limit!
+It contains an enormous amount of text that goes far beyond normal usage.
+This should test how the autoResize handles content that exceeds the double height.
+The textarea should expand to the triple height and then stop.
+This is an extreme test for the autoResize feature with three height levels.
+It should demonstrate that the textarea respects the triple height boundaries.
+Even with extremely long content, the textarea should not exceed triple the default height.
+This tests the triple height limit of the autoResize functionality.
+The content should scroll within the textarea when it reaches the triple height maximum.
+This ensures a good user experience even with massive amounts of content.
+This is paragraph after paragraph of text to really push the limits.
+Each line adds to the overall height calculation.
+The autoResize should intelligently determine when to stop growing.
+This is the ultimate test of the three-level height system.
+Initial height for normal content, double height for longer content, and triple height for extreme content.
+The system should gracefully handle all these scenarios without breaking.
+This content is designed to trigger the triple height level and test its limits thoroughly.`;
+            autoResize();
+        }
+
+        function clearContent() {
+            document.getElementById('prompt-textarea').value = '';
+            autoResize();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const textArea = document.getElementById('prompt-textarea');
+
+            // Add event listeners
+            textArea.addEventListener('input', autoResize);
+            textArea.addEventListener('paste', () => {
+                setTimeout(autoResize, 10);
+            });
+
+            // Initial resize and info update
+            autoResize();
+            updateInfo();
+        });
+    </script>
+</body>
+</html>

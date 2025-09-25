@@ -87,7 +87,7 @@ class FeedViewManager {
         });
 
         if (enhancedCount > 0 || skippedCount > 0) {
-            console.log(`🔄 VIEW MANAGER: Enhanced ${enhancedCount} wrappers, skipped ${skippedCount} already enhanced`);
+            // Enhanced wrappers, skipped already enhanced
         }
 
     }

@@ -85,36 +85,6 @@ router.get('/balance', async (req, res) => {
     }
 });
 
-/**
- * Get user's credit history
- * GET /api/credits/history?limit=50
- */
-router.get('/history', validatePagination, async (req, res) => {
-    try {
-        const userId = req.user?.id;
-
-        if (!userId) {
-            return res.status(401).json({ error: 'Authentication required' });
-        }
-
-        const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100
-        const history = await SimplifiedCreditService.getCreditHistory(userId, limit);
-
-        return res.json({
-            success: true,
-            history,
-            count: history.length
-        });
-
-    } catch (error) {
-        console.error('💳 CREDITS-API: Error getting history:', error);
-
-        return res.status(500).json({
-            error: 'Failed to get credit history',
-            message: error.message
-        });
-    }
-});
 
 /**
  * Get user statistics
@@ -288,6 +258,56 @@ router.post('/redeem', strictRateLimit, promoRedemptionRateLimit, validateConten
     }
 });
 
+/**
+ * Get user's promo code redemptions
+ * GET /api/credits/promo-redemptions
+ */
+router.get('/promo-redemptions', validatePagination, async (req, res) => {
+    try {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100
+
+        const redemptions = await prisma.promoRedemption.findMany({
+            where: { userId },
+            include: {
+                promoCode: {
+                    select: {
+                        code: true,
+                        credits: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: limit
+        });
+
+        const formattedRedemptions = redemptions.map(redemption => ({
+            id: redemption.id,
+            credits: redemption.credits,
+            code: redemption.promoCode.code,
+            createdAt: redemption.createdAt
+        }));
+
+        return res.json({
+            success: true,
+            redemptions: formattedRedemptions,
+            count: formattedRedemptions.length
+        });
+
+    } catch (error) {
+        console.error('💳 CREDITS-API: Error getting promo redemptions:', error);
+
+        return res.status(500).json({
+            error: 'Failed to get promo redemptions',
+            message: error.message
+        });
+    }
+});
 
 /**
  * Create Stripe checkout session for credit purchase

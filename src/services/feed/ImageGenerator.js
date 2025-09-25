@@ -655,13 +655,45 @@ const generateImagenImage = async(prompt, guidance, userId = null) => {
         const { JWT } = await import('google-auth-library');
 
         // Initialize JWT client with service account credentials
-        const client = new JWT({
-            keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-            scopes: ['https://www.googleapis.com/auth/cloud-platform']
-        });
+        // Handle both file path and JSON string credentials
+        let client;
+        if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+            // Check if it's a file path or JSON string
+            if (process.env.GOOGLE_APPLICATION_CREDENTIALS.startsWith('{')) {
+                // It's a JSON string, parse it and use credentials directly
+                let credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+                // Handle escaped newlines in private keys (common in cloud deployments)
+                credentialsJson = credentialsJson.replace(/\\n/g, '\n');
+
+                try {
+                    const credentials = JSON.parse(credentialsJson);
+                    client = new JWT({
+                        credentials,
+                        scopes: ['https://www.googleapis.com/auth/cloud-platform']
+                    });
+                } catch (parseError) {
+                    console.error('❌ IMAGEN: Failed to parse Google credentials JSON:', parseError.message);
+                    throw new Error(`Invalid Google credentials JSON format: ${parseError.message}`);
+                }
+            } else {
+                // It's a file path
+                client = new JWT({
+                    keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+                    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+                });
+            }
+        } else if (process.env.GOOGLE_CLOUD_API_KEY) {
+            // Use API key authentication instead
+            throw new Error('API key authentication not yet implemented for Imagen');
+        } else {
+            throw new Error('No Google Cloud credentials configured');
+        }
 
         // Obtain access token
+        console.log('🎨 IMAGEN: Obtaining access token...');
         const { token } = await client.getAccessToken();
+        console.log('🎨 IMAGEN: Access token obtained successfully');
 
         const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
 
