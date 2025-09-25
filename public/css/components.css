@@ -719,6 +719,7 @@
   border-color: var(--color-border-primary) !important;
   color: var(--color-text-primary) !important;
   transition: all 0.2s ease-in-out !important;
+  transform: translateX(-100%) !important;
 }
 
 #desktop-drawer-close-btn {

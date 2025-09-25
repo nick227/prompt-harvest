@@ -50,6 +50,7 @@ class UnifiedDrawerComponent {
     }
 
     createDesktopDrawer() {
+
         const existingDrawer = document.getElementById('controls-drawer');
 
         if (existingDrawer) {
