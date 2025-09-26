@@ -129,9 +129,6 @@ class ImageFactory {
 }
 
 // Export for global access
-window.ImageFactory = ImageFactory;
-
-// Export for modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ImageFactory;
+if (typeof window !== 'undefined') {
+    window.ImageFactory = ImageFactory;
 }

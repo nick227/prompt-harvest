@@ -1,5 +1,5 @@
 // UI Configuration and Utilities
-export class UIConfig {
+class UIConfig {
     constructor() {
         this.config = this.getConfig();
     }

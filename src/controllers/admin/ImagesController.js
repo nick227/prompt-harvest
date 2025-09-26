@@ -315,8 +315,10 @@ class ImagesController {
                 try {
                     // Extract key from URL
                     const key = cloudflareR2Service.extractKeyFromUrl(imageRecord.imageUrl);
+
                     if (key) {
                         const deleted = await cloudflareR2Service.deleteImage(key);
+
                         console.log(`🗑️ R2: Image ${key} deleted: ${deleted ? 'success' : 'failed'}`);
                     }
                 } catch (r2Error) {

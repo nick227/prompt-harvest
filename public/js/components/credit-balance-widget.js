@@ -62,7 +62,7 @@ class CreditBalanceWidget {
         if (window.userSystem) {
             window.userSystem.addAuthStateListener((authState) => {
                 console.log('🔐 CREDIT-WIDGET: Auth state changed:', authState);
-                if (authState.isAuthenticated) {
+                if (authState && authState.isAuthenticated) {
                     this.loadBalance();
                 } else {
                     this.hideWidget();

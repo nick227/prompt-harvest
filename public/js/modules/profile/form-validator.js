@@ -3,7 +3,7 @@
  * Handles validation logic for profile forms
  */
 
-export class ProfileFormValidator {
+class ProfileFormValidator {
     /**
      * Validate username
      */

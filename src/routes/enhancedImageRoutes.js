@@ -130,6 +130,18 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
         enhancedImageController.getFeed.bind(enhancedImageController)
     );
 
+    // Site feed endpoint (alias for /api/feed - public images only)
+    app.get('/api/feed/site',
+        authenticateToken, // Add authentication middleware
+        enhancedRateLimit({
+            windowMs: 1 * 60 * 1000, // 1 minute
+            maxRequests: 300, // 300 requests per minute
+            message: 'Site feed rate limit exceeded'
+        }),
+        sanitizeInput,
+        enhancedImageController.getFeed.bind(enhancedImageController)
+    );
+
     // User's own images endpoint - get only user's own images
     app.get('/api/feed/user',
         authenticateToken, // Add authentication middleware
@@ -145,7 +157,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
     // Circuit breaker status endpoint (admin only)
     app.get('/api/circuit-breakers/status',
         validateAuthentication,
-        (req, res) => {
+        async (req, res) => {
             // Check if user is admin
             if (!req.userInfo?.isAdmin) {
                 return res.status(403).json({
@@ -155,7 +167,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
                 });
             }
 
-            const { circuitBreakerManager } = require('../utils/CircuitBreaker.js');
+            const { circuitBreakerManager } = await import('../utils/CircuitBreaker.js');
             const health = circuitBreakerManager.getHealth();
 
             res.json({
@@ -169,7 +181,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
     // Circuit breaker reset endpoint (admin only)
     app.post('/api/circuit-breakers/reset',
         validateAuthentication,
-        (req, res) => {
+        async (req, res) => {
             // Check if user is admin
             if (!req.userInfo?.isAdmin) {
                 return res.status(403).json({
@@ -179,7 +191,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
                 });
             }
 
-            const { circuitBreakerManager } = require('../utils/CircuitBreaker.js');
+            const { circuitBreakerManager } = await import('../utils/CircuitBreaker.js');
             const { service } = req.body;
 
             if (service) {

@@ -5,12 +5,12 @@
  * It uses OpenAI's function calling to generate high-quality tags from image prompts.
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../database/PrismaClient.js';
 import OpenAI from 'openai';
 
 export class TaggingService {
     constructor() {
-        this.prisma = new PrismaClient();
+        this.prisma = databaseClient.getClient();
         this.maxRetries = 2;
         this.isProcessing = new Set(); // Track ongoing operations to prevent duplicates
 

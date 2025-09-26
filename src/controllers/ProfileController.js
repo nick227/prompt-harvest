@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../database/PrismaClient.js';
 import { EnhancedImageService } from '../services/EnhancedImageService.js';
 import { ImageRepository } from '../repositories/ImageRepository.js';
 import { AIPromptService } from '../services/ai/features/AIPromptService.js';
@@ -11,7 +11,8 @@ import { fileURLToPath } from 'url';
 
 export class ProfileController {
     constructor() {
-        this.prisma = new PrismaClient();
+        // Removed: databaseClient.getClient() = new PrismaClient();
+        // Use databaseClient.getClient() when database access is needed
         this.imageRepository = new ImageRepository();
         this.aiService = new AIPromptService();
         this.enhancedImageService = new EnhancedImageService(this.imageRepository, this.aiService);
@@ -39,12 +40,12 @@ export class ProfileController {
             }
 
             // Check if username contains only valid characters (alphanumeric, underscore, hyphen)
-            if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+            if (!(/^[a-zA-Z0-9_-]+$/).test(username)) {
                 return res.status(400).json(formatErrorResponse('Username can only contain letters, numbers, underscores, and hyphens', requestId, Date.now() - startTime));
             }
 
             // Check if username is already taken by another user
-            const existingUser = await this.prisma.user.findFirst({
+            const existingUser = await databaseClient.getClient().user.findFirst({
                 where: {
                     username: username.trim(),
                     id: { not: userId } // Exclude current user
@@ -103,12 +104,12 @@ export class ProfileController {
                     return res.status(400).json(formatErrorResponse('Username must be between 3 and 50 characters', requestId, Date.now() - startTime));
                 }
 
-                if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+                if (!(/^[a-zA-Z0-9_-]+$/).test(username)) {
                     return res.status(400).json(formatErrorResponse('Username can only contain letters, numbers, underscores, and hyphens', requestId, Date.now() - startTime));
                 }
 
                 // Check if username is already taken by another user
-                const existingUser = await this.prisma.user.findFirst({
+                const existingUser = await databaseClient.getClient().user.findFirst({
                     where: {
                         username: username.trim(),
                         id: { not: userId }
@@ -132,7 +133,7 @@ export class ProfileController {
             }
 
             // Update user profile
-            const updatedUser = await this.prisma.user.update({
+            const updatedUser = await databaseClient.getClient().user.update({
                 where: { id: userId },
                 data: updateData,
                 select: {
@@ -192,8 +193,8 @@ export class ProfileController {
 
             // Map provider names to the format expected by the image generation service
             const providerMap = {
-                'dalle3': ['dalle3'],
-                'dalle2': ['dalle2']
+                dalle3: ['dalle3'],
+                dalle2: ['dalle2']
             };
 
             const providers = providerMap[provider] || ['dalle3'];
@@ -224,7 +225,7 @@ export class ProfileController {
             if (result.results && result.results.length > 0 && result.results[0].success) {
                 const avatarUrl = result.results[0].imageUrl;
 
-                await this.prisma.user.update({
+                await databaseClient.getClient().user.update({
                     where: { id: userId },
                     data: { picture: avatarUrl }
                 });
@@ -353,7 +354,7 @@ export class ProfileController {
             }
 
             // Update user's profile picture
-            await this.prisma.user.update({
+            await databaseClient.getClient().user.update({
                 where: { id: userId },
                 data: { picture: image.imageUrl }
             });
@@ -424,18 +425,18 @@ export class ProfileController {
             const imageUrl = await this.imageStorageService.saveImage(imageBuffer, uniqueFilename, {
                 contentType: mimeType,
                 metadata: {
-                    userId: userId,
+                    userId,
                     type: 'profile-picture',
                     uploadedAt: new Date().toISOString()
                 }
             });
 
             // Start database transaction
-            const result = await this.prisma.$transaction(async (tx) => {
+            const result = await databaseClient.getClient().$transaction(async tx => {
                 // Deactivate previous profile pictures
                 await tx.userMedia.updateMany({
                     where: {
-                        userId: userId,
+                        userId,
                         purpose: 'profile-picture',
                         isActive: true
                     },
@@ -445,11 +446,11 @@ export class ProfileController {
                 // Create new user media record
                 const userMedia = await tx.userMedia.create({
                     data: {
-                        userId: userId,
+                        userId,
                         filename: uniqueFilename,
                         originalName: filename,
                         url: imageUrl,
-                        mimeType: mimeType,
+                        mimeType,
                         size: imageBuffer.length,
                         mediaType: 'image',
                         purpose: 'profile-picture',
@@ -495,6 +496,7 @@ export class ProfileController {
         } catch (error) {
             const duration = Date.now() - startTime;
             const errorResponse = formatErrorResponse('Failed to upload profile picture', requestId, duration, error.message);
+
             logRequestError(requestId, 'Upload Avatar', duration, error);
 
             return res.status(500).json(errorResponse);
@@ -517,7 +519,7 @@ export class ProfileController {
             }
 
             // Get user by username
-            const user = await this.prisma.user.findFirst({
+            const user = await databaseClient.getClient().user.findFirst({
                 where: {
                     username: username.trim()
                 },
@@ -558,6 +560,7 @@ export class ProfileController {
             const __filename = fileURLToPath(import.meta.url);
             const __dirname = path.dirname(__filename);
             const profilePath = path.join(__dirname, '../../public/profile.html');
+
             res.sendFile(profilePath);
 
         } catch (error) {
@@ -590,7 +593,7 @@ export class ProfileController {
             const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 20));
 
             // Get user by username
-            const user = await this.prisma.user.findFirst({
+            const user = await databaseClient.getClient().user.findFirst({
                 where: {
                     username: username.trim()
                 },
@@ -619,7 +622,7 @@ export class ProfileController {
             }
 
             const response = formatSuccessResponse({
-                user: user,
+                user,
                 images: result.images || [],
                 pagination: result.pagination || {}
             }, requestId, Date.now() - startTime);

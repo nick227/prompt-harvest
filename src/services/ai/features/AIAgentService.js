@@ -26,10 +26,10 @@ export class AIAgentService extends BaseAIService {
     async processChatRequest(message, context, userId, conversationId = null) {
         try {
             console.log('🧠 AI Agent Processing:', {
-                message: message?.substring(0, 50) + '...',
+                message: `${message?.substring(0, 50)}...`,
                 hasContext: !!context,
-                userId: userId,
-                conversationId: conversationId
+                userId,
+                conversationId
             });
 
             // Get conversation history
@@ -40,7 +40,7 @@ export class AIAgentService extends BaseAIService {
 
             console.log('📝 OpenAI Messages:', {
                 messageCount: messages.length,
-                lastMessage: messages[messages.length - 1]?.content?.substring(0, 50) + '...'
+                lastMessage: `${messages[messages.length - 1]?.content?.substring(0, 50)}...`
             });
 
             // Call OpenAI with tool calling
@@ -71,6 +71,7 @@ export class AIAgentService extends BaseAIService {
 
             // Get or create conversation and save messages
             const conversation = await this.conversationService.getOrCreateConversation(userId, conversationId);
+
             if (conversation) {
                 // Add conversation ID to response
                 result.conversationId = conversation.id;
@@ -202,6 +203,7 @@ Always provide helpful, specific advice tailored to their current prompt and goa
      */
     getAvailableModels(context) {
         const models = context.models || [];
+
         return models.filter(m => m.checked).map(m => m.name);
     }
 

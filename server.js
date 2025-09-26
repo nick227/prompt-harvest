@@ -31,8 +31,7 @@ const initializeDatabase = async () => {
         // Get the connected Prisma client
         const prismaClient = databaseClient.getClient();
 
-        // Test the connection before creating session store
-        await prismaClient.$connect();
+        // Connection already established by databaseClient.connect()
         console.log('✅ Prisma client connected and ready');
 
         sessionStore = new PrismaSessionStore({
@@ -126,8 +125,7 @@ app.get('/uploads/:filename', authenticateToken, async (req, res) => {
         const { filename } = req.params;
 
         // Check if image exists in database and user has permission to view it
-        const { PrismaClient } = await import('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = databaseClient.getClient();
 
         // Find image by filename
         const image = await prisma.image.findFirst({
@@ -153,15 +151,15 @@ app.get('/uploads/:filename', authenticateToken, async (req, res) => {
         }
 
         // Serve the image file
-        const path = require('path');
-        const fs = require('fs');
-        const imagePath = path.join('public', 'uploads', filename);
+        const path = await import('path');
+        const fs = await import('fs');
+        const imagePath = path.default.join('public', 'uploads', filename);
 
-        if (!fs.existsSync(imagePath)) {
+        if (!fs.default.existsSync(imagePath)) {
             return res.status(404).json({ error: 'Image file not found' });
         }
 
-        res.sendFile(path.resolve(imagePath));
+        res.sendFile(path.default.resolve(imagePath));
 
     } catch (error) {
         console.error('Error serving image:', error);
@@ -193,6 +191,7 @@ const startServer = async () => {
         console.log('📚 Initializing WordTypeManager...');
         try {
             const { default: wordTypeManager } = await import('./lib/word-type-manager.js');
+
             await wordTypeManager.initializeDatabase();
             console.log('✅ WordTypeManager initialized');
         } catch (error) {

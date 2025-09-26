@@ -535,5 +535,4 @@ class PromptHistoryService {
 // Export for global access
 if (typeof window !== 'undefined') {
     window.PromptHistoryService = PromptHistoryService;
-    // PROMPT HISTORY: Script loaded and exported to window.PromptHistoryService
 }

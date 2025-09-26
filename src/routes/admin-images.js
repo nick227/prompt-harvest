@@ -4,10 +4,10 @@
  */
 
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../database/PrismaClient.js';
 
 const router = new express.Router();
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 /**
  * Toggle user-level visibility (isPublic)

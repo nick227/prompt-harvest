@@ -373,16 +373,8 @@ class AuthService {
         return this.currentUser;
     }
 
-    /**
-     * Get auth token (compatibility method)
-     */
-    getAuthToken() {
-        return this.getAuthToken();
-    }
+    // getAuthToken method already exists above - removed duplicate
 }
-
-// Export for ES6 modules
-export { AuthService };
 
 // Global access for backward compatibility
 if (typeof window !== 'undefined') {

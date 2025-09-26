@@ -285,9 +285,6 @@ class UserService {
     }
 }
 
-// Export for ES6 modules
-export { UserService };
-
 // Global access for backward compatibility
 if (typeof window !== 'undefined') {
     window.UserService = UserService;

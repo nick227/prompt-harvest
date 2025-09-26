@@ -3,9 +3,9 @@
  * Handles all API calls related to profile operations
  */
 
-import { ProfileAuthUtils } from './auth-utils.js';
 
-export class ProfileAPIService {
+
+class ProfileAPIService {
     /**
      * Check username availability
      */

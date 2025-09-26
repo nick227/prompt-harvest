@@ -3,10 +3,10 @@
  * Handles avatar-related operations and state management
  */
 
-import { ProfileAPIService } from './api-service.js';
-import { ProfileAuthUtils } from './auth-utils.js';
 
-export class AvatarManager {
+
+
+class AvatarManager {
     constructor() {
         this.selectedImageId = null;
         this.uploadedFile = null;

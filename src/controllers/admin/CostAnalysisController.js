@@ -17,11 +17,11 @@ class CostAnalysisController {
      */
     static async getCostAnalysis(req, res) {
         try {
-            const { markup_percentage } = req.query;
+            const { markup_percentage: markupPercentage } = req.query;
             const costCalculator = new CostCalculatorService();
 
             const analysis = await costCalculator.getCostAnalysis(
-                markup_percentage ? parseFloat(markup_percentage) : 20
+                markupPercentage ? parseFloat(markupPercentage) : 20
             );
 
             console.log('✅ ADMIN-COST-ANALYSIS: Retrieved cost analysis');
@@ -76,7 +76,7 @@ class CostAnalysisController {
      */
     static async getPackageProfitability(req, res) {
         try {
-            const { markup_percentage } = req.query;
+            const { markup_percentage: markupPercentage } = req.query;
             const costCalculator = new CostCalculatorService();
 
             // Load current packages
@@ -84,7 +84,7 @@ class CostAnalysisController {
 
             const analysis = costCalculator.getPackageProfitabilityAnalysis(
                 packages,
-                markup_percentage ? parseFloat(markup_percentage) : 20
+                markupPercentage ? parseFloat(markupPercentage) : 20
             );
 
             console.log('✅ ADMIN-COST-ANALYSIS: Retrieved package profitability analysis');

@@ -1,9 +1,9 @@
 // Navigation Controls and Buttons
-import { UIConfig } from './ui-config.js';
 
-export class NavigationControls {
+
+class NavigationControls {
     constructor(uiConfig = null) {
-        this.uiConfig = uiConfig || new UIConfig();
+        this.uiConfig = uiConfig || new window.UIConfig();
     }
 
     createNavigationControls() {

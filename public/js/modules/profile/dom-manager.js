@@ -3,7 +3,7 @@
  * Handles all DOM operations and element caching
  */
 
-export class ProfileDOMManager {
+class ProfileDOMManager {
     constructor() {
         this.elements = this.cacheElements();
         this.usernameCheckTimer = null;

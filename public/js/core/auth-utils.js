@@ -263,7 +263,4 @@ class AuthUtils {
 // Create global instance
 window.AuthUtils = new AuthUtils();
 
-// Export for module use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = AuthUtils;
-}
+// ES6 exports removed - loaded as regular script

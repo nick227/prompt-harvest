@@ -3,12 +3,12 @@
  * Handles cleanup of orphaned user media files
  */
 
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../database/PrismaClient.js';
 import { ImageStorageService } from './ImageStorageService.js';
 
 export class UserMediaCleanupService {
     constructor() {
-        this.prisma = new PrismaClient();
+        this.prisma = databaseClient.getClient();
         this.imageStorageService = new ImageStorageService('cdn');
     }
 
@@ -85,8 +85,8 @@ export class UserMediaCleanupService {
 
             const orphanedMedia = await this.prisma.userMedia.findMany({
                 where: {
-                    mediaType: mediaType,
-                    purpose: purpose,
+                    mediaType,
+                    purpose,
                     isActive: false,
                     createdAt: {
                         lt: cutoffDate
@@ -177,6 +177,7 @@ export class UserMediaCleanupService {
         };
 
         console.log('🧹 USER-MEDIA-CLEANUP: Full cleanup completed');
+
         return results;
     }
 }

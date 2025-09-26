@@ -133,12 +133,85 @@
         </div>
     </main>
 
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/config/tailwind-config.js"></script>
+    <script src="js/utils/input-helpers.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
-
-    <!-- Header Component -->
+    
+    <!-- Core Components (Required for functionality) -->
     <script src="js/components/header-component.js"></script>
-
-    <!-- Theme Service (simplified palette system) -->
+    <script src="js/components/unified-drawer-component.js"></script>
+    <script src="js/components/theme-manager.js"></script>
+    <script src="js/components/controls-drawer.js"></script>
+    <script src="js/components/mobile-controls-manager.js"></script>
+    <script src="js/components/transaction-stats-component.js"></script>
+    <script src="js/components/credit-balance-widget.js"></script>
+    <script src="js/components/global-credits-modal.js"></script>
+    <script src="js/components/ai-chat-widget.js"></script>
+    <script src="js/components/ai-image-generator-widget.js"></script>
+    <script src="js/components/rating-buttons.js"></script>
+    <script src="js/components/multiselect-dropdown.js"></script>
+    <script src="js/components/profile-component.js"></script>
+    
+    <!-- Core Services -->
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/auth-utils.js"></script>
+    <script src="js/core/unified-auth-utils.js"></script>
+    <script src="js/core/api-service.js"></script>
+    <script src="js/core/notification-service.js"></script>
+    <script src="js/core/user-system.js"></script>
+    <script src="js/core/prompt-history-service.js"></script>
+    <script src="js/core/error-handler.js"></script>
+    <script src="js/core/image-factory.js"></script>
+    
+    <!-- Services -->
+    <script src="js/services/stats-service.js"></script>
+    <script src="js/services/public-status-service.js"></script>
+    <script src="js/services/speech-to-text-service.js"></script>
+    <script src="js/services/prompt-organizer-service.js"></script>
+    <script src="js/services/UnifiedCreditService.js"></script>
+    <script src="js/services/messaging-service.js"></script>
+    <script src="js/services/ai-image-generator-service.js"></script>
+    <script src="js/services/CreditsModalService.js"></script>
+    
+    <!-- Image System -->
+    <script src="js/components/image/image-manager.js"></script>
+    <script src="js/components/image/unified-info-box.js"></script>
+    <script src="js/components/image/unified-navigation.js"></script>
+    <script src="js/components/image/image-component.js"></script>
+    <script src="js/components/image/image-data.js"></script>
+    <script src="js/components/image/image-elements.js"></script>
+    <script src="js/components/image/image-events.js"></script>
+    <script src="js/components/image/image-placeholder-handler.js"></script>
+    <script src="js/components/image/image-ui-manager.js"></script>
+    <script src="js/components/image/fullscreen-components.js"></script>
+    <script src="js/components/image/ui-config.js"></script>
+    <script src="js/components/image/navigation-controls.js"></script>
+    <script src="js/components/mobile-table.js"></script>
+    
+    <!-- Generation System -->
+    <script src="js/components/generation/generation-data.js"></script>
+    <script src="js/components/generation/generation-events.js"></script>
+    <script src="js/components/generation/generation-ui.js"></script>
+    <script src="js/components/generation/generation-manager.js"></script>
+    <script src="js/components/generation/generation-component.js"></script>
+    
+    <!-- Feed System -->
+    <script src="js/modules/feed/feed-manager-refactored.js"></script>
+    <script src="js/modules/feed/feed-api-manager.js"></script>
+    <script src="js/modules/feed/feed-ui-manager.js"></script>
+    <script src="js/modules/feed/feed-filter-manager.js"></script>
+    <script src="js/modules/feed/feed-view-manager.js"></script>
+    <script src="js/modules/feed/feed-cache-manager.js"></script>
+    <script src="js/modules/feed/feed-dom-manager.js"></script>
+    <script src="js/modules/feed/feed-constants.js"></script>
+    <script src="js/modules/feed/fill-to-bottom-manager.js"></script>
+    <script src="js/modules/feed/hybrid-tab-service.js"></script>
+    <script src="js/modules/feed/image-count-manager.js"></script>
+    
+    <!-- Themes -->
     <script src="js/themes/managers/ColorPaletteManager.js"></script>
     <script src="js/themes/composers/ThemeComposer.js"></script>
     <script src="js/themes/ThemeCSSGenerator.js"></script>
@@ -147,133 +220,29 @@
     <script src="js/themes/ThemeValidator.js"></script>
     <script src="js/themes/ThemePreview.js"></script>
     <script src="js/themes/ThemeReadabilityTester.js"></script>
-
-    <!-- Unified Drawer Component -->
-    <script src="js/components/unified-drawer-component.js"></script>
-
-    <!-- Theme Manager (must load after unified drawer) -->
-    <script src="js/components/theme-manager.js"></script>
-
-    <!-- Controls Drawer Component -->
-    <script src="js/components/controls-drawer.js"></script>
-
-    <!-- Mobile Controls Manager -->
-    <script src="js/components/mobile-controls-manager.js"></script>
-
-    <!-- Services (must load before components that use them) -->
-    <script src="js/services/stats-service.js"></script>
-    <script src="js/services/public-status-service.js"></script>
-
-    <!-- Transaction Stats Component -->
-    <script src="js/components/transaction-stats-component.js"></script>
-
-    <!-- Core modules -->
-    <script src="js/core/constants.js"></script>
-    <script src="js/core/utils.js"></script>
-
-    <!-- Authentication utilities (must load early) -->
-    <script src="js/core/auth-utils.js"></script>
-
-    <!-- Unified Authentication Utilities (centralized auth interface) -->
-    <script src="js/core/unified-auth-utils.js"></script>
-
-    <!-- Load api-service first -->
-    <script src="js/core/api-service.js"></script>
-
-    <!-- Notification Service -->
-    <script src="js/core/notification-service.js"></script>
-
-
-
-
-    <!-- Unified User System (replaces all user management) -->
-    <script src="js/core/user-system.js"></script>
-
-    <!-- Core Services -->
-    <script src="js/core/prompt-history-service.js"></script>
-
-    <!-- Services -->
-    <script src="js/services/speech-to-text-service.js"></script>
-    <script src="js/services/prompt-organizer-service.js"></script>
-
-    <!-- Unified Navigation System (replaces all image navigation) -->
-    <script src="js/components/image/unified-info-box.js"></script>
-    <script src="js/components/image/unified-navigation.js"></script>
-
-    <!-- Core Image Components (minimal) -->
-    <script src="js/components/image/ui-config.js"></script>
-    <script src="js/components/image/image-elements.js"></script>
-    <script src="js/components/image/image-component.js"></script>
-
-    <!-- Navigation Test (development only) - removed for production -->
-
-    <!-- Component modules -->
-    <script src="js/components/multiselect-dropdown.js"></script>
-    <script src="js/components/ai-chat-widget.js"></script>
-
-    <!-- Feature modules -->
-    <!-- TextArea Module (Refactored) -->
-    <script src="js/modules/textarea/text-utils.js"></script>
+    
+    <!-- Missing Managers -->
     <script src="js/modules/textarea/match-processor.js"></script>
     <script src="js/modules/textarea/search-replace.js"></script>
+    <script src="js/modules/textarea/text-utils.js"></script>
     <script src="js/modules/textarea/textarea-manager.js"></script>
-    <script src="js/modules/textarea.js"></script>
-    <script src="js/modules/search.js"></script>
-
-    <!-- Refactored Feed System -->
-    <script src="js/utils/tag-router.js"></script>
-    <script src="js/utils/overlay-manager.js"></script>
-    <script src="js/modules/feed/feed-constants.js"></script>
-    <script src="js/modules/feed/feed-cache-manager.js"></script>
-    <script src="js/modules/feed/hybrid-tab-service.js"></script>
-    <script src="js/modules/feed/image-count-manager.js"></script>
-    <script src="js/modules/feed/feed-filter-manager.js"></script>
-    <script src="js/modules/feed/feed-dom-manager.js"></script>
-    <script src="js/modules/feed/feed-api-manager.js"></script>
-    <script src="js/modules/feed/feed-ui-manager.js"></script>
-    <script src="js/modules/feed/feed-view-manager.js"></script>
-    <script src="js/modules/feed/fill-to-bottom-manager.js"></script>
-    <script src="js/modules/feed/feed-manager-refactored.js"></script>
     <script src="js/modules/guidance/guidance-manager.js"></script>
-
-    <!-- Rating Buttons Component (must load before rating-manager) -->
-    <script src="js/components/rating-buttons.js"></script>
-
     <script src="js/modules/rating/rating-manager.js"></script>
     <script src="js/modules/stats/stats-manager.js"></script>
-    <script src="js/modules/providers/provider-manager.js"></script>
-
-    <!-- Core modules -->
-    <script src="js/tools.js"></script>
-
-    <!-- Shared Utilities (must be loaded first) -->
-    <script src="js/modules/shared/image-dom-utils.js"></script>
-    <script src="js/modules/shared/image-view-utils.js"></script>
-
-    <!-- Image DOM Components (must load before image-dom-manager) -->
-    <script src="js/modules/image/ImageDOMContracts.js"></script>
+    <script src="js/modules/image-generation-api.js"></script>
     <script src="js/modules/image/ImageElementFactory.js"></script>
     <script src="js/modules/image/LoadingPlaceholderFactory.js"></script>
     <script src="js/modules/image/ImageViewManager.js"></script>
     <script src="js/modules/image/ImageDataManager.js"></script>
-
-    <!-- Modular Images System -->
-    <script src="js/modules/image-generation-api.js"></script>
-    <script src="js/services/UnifiedCreditService.js"></script>
-    <script src="js/services/CreditsModalService.js"></script>
+    <script src="js/modules/shared/image-view-utils.js"></script>
     <script src="js/modules/image-dom-manager.js"></script>
     <script src="js/modules/image-ui-state.js"></script>
     <script src="js/modules/images-manager.js"></script>
-
-    <!-- Generation Component (Separated Architecture) -->
-    <script src="js/components/generation/generation-ui.js"></script>
-    <script src="js/components/generation/generation-events.js"></script>
-    <script src="js/components/generation/generation-data.js"></script>
-    <script src="js/components/generation/generation-manager.js"></script>
-    <script src="js/components/generation/generation-component.js"></script>
-
-
-    <!-- Main application loader -->
+    <script src="js/modules/search.js"></script>
+    <script src="js/modules/providers/provider-manager.js"></script>
+    <script src="js/utils/tag-router.js"></script>
+    
+    <!-- Main App -->
     <script src="js/app.js"></script>
 
 

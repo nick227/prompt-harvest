@@ -7,6 +7,7 @@ import feed from '../src/feed.js';
 import DatabaseService from '../src/services/feed/DatabaseService.js';
 import getWordType from '../lib/getWordType.js';
 import wordTypeManager from '../lib/word-type-manager.js';
+import databaseClient from '../src/database/PrismaClient.js';
 
 const maxTokens = 15555;
 const openAiModel = 'gpt-3.5-turbo-16k';
@@ -272,8 +273,7 @@ const setupWordRoutes = app => {
     });
 
     app.get('/words', async(req, res) => {
-        const { PrismaClient } = await import('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = databaseClient.getClient();
 
         try {
             const wordRecords = await prisma.word_types.findMany({
@@ -327,23 +327,24 @@ const getWordExamplesList = async(word, limit = 8) => {
 const getWordTypesList = async(word, limit = 8) => {
     try {
         // Use Prisma to query the new MySQL word_types table
-        const { PrismaClient } = await import('@prisma/client');
-        const prisma = new PrismaClient();
+        const prisma = databaseClient.getClient();
 
         const wordRecord = await prisma.word_types.findUnique({
             where: { word: word.toLowerCase() }
         });
 
-        await prisma.$disconnect();
+        // No need to disconnect - using singleton
 
         if (!wordRecord || !wordRecord.types) {
             return [];
         }
 
         const types = Array.isArray(wordRecord.types) ? wordRecord.types : [];
+
         return types.slice(0, limit).sort();
     } catch (error) {
         console.error('Error fetching word types:', error);
+
         return [];
     }
 };
@@ -359,22 +360,22 @@ const addAiWordType = async word => {
             const { types } = resObj;
 
             // Use Prisma to insert into the new MySQL word_types table
-            const { PrismaClient } = await import('@prisma/client');
-            const prisma = new PrismaClient();
+            const prisma = databaseClient.getClient();
 
             await prisma.word_types.create({
                 data: {
                     word: word.toLowerCase(),
-                    types: types
+                    types
                 }
             });
 
-            await prisma.$disconnect();
+            // No need to disconnect - using singleton
         }
 
         return res;
     } catch (error) {
         console.error(error);
+
         return { error: error.message };
     }
 };

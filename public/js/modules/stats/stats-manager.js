@@ -168,10 +168,11 @@ class StatsManager {
 }
 
 // Export for global access
-window.StatsManager = StatsManager;
-window.statsManager = new StatsManager();
+if (typeof window !== 'undefined') {
+    window.StatsManager = StatsManager;
+    window.statsManager = new StatsManager();
+}
 
-// Export for module testing
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = StatsManager;
 }

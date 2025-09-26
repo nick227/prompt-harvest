@@ -27,10 +27,10 @@ export const setupWordRoutes = app => {
                 try {
                     return {
                         word: record.word,
-                        types: JSON.parse(record.types)
+                        types: Array.isArray(record.types) ? record.types : []
                     };
                 } catch (parseError) {
-                    console.warn(`⚠️ Failed to parse types for word "${record.word}":`, parseError.message);
+                    console.warn(`⚠️ Failed to process types for word "${record.word}":`, parseError.message);
                     return {
                         word: record.word,
                         types: []
@@ -84,8 +84,8 @@ export const setupWordRoutes = app => {
 
                 // Check if word is in the types array
                 try {
-                    const typesArray = JSON.parse(record.types);
-                    if (typesArray && Array.isArray(typesArray)) {
+                    const typesArray = Array.isArray(record.types) ? record.types : [];
+                    if (typesArray && typesArray.length > 0) {
                         const hasMatch = typesArray.some(type => type && type.toLowerCase().includes(word.toLowerCase())
                         );
 
@@ -94,7 +94,7 @@ export const setupWordRoutes = app => {
                         }
                     }
                 } catch (parseError) {
-                    console.warn(`Failed to parse types for word "${record.word}":`, parseError.message);
+                    console.warn(`Failed to process types for word "${record.word}":`, parseError.message);
                 }
             });
 

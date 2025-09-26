@@ -1,8 +1,5 @@
-import {
-    validateWord,
-    apiRateLimit,
-    sanitizeInput
-} from '../middleware/index.js';
+import { validateWord, sanitizeInput } from '../middleware/index.js';
+import { unifiedRateLimit } from '../middleware/unifiedRateLimit.js';
 
 export const setupAIRoutes = (app, aiController) => {
     // Word Type Operations with validation
@@ -20,21 +17,21 @@ export const setupAIRoutes = (app, aiController) => {
 
     app.get('/ai/word/add/:word',
         validateWord,
-        apiRateLimit,
+        unifiedRateLimit.api,
         aiController.addWordType.bind(aiController)
     );
 
     // POST endpoint for adding words (frontend compatibility)
     app.post('/ai/word/add',
         validateWord,
-        apiRateLimit,
+        unifiedRateLimit.api,
         aiController.addWordTypePost.bind(aiController)
     );
 
     // DELETE endpoint for removing words
     app.delete('/ai/word/delete/:word',
         validateWord,
-        apiRateLimit,
+        unifiedRateLimit.api,
         aiController.deleteWordType.bind(aiController)
     );
 

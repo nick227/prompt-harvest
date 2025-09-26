@@ -54,7 +54,7 @@ export class GoogleOAuthService {
      */
     async createUserFromProfile(profileData) {
         const { email, googleId, name, picture } = profileData;
-        const username = email.split('@')[0];
+        const [username] = email.split('@');
 
         return await this.prisma.user.create({
             data: {

@@ -55,6 +55,7 @@ class PackageController {
             }
 
             const createdPackage = await this.createPackageInDatabase(newPackage);
+
             this.logPackageCreationSuccess(newPackage.name, adminUser.email);
 
             res.status(201).json({
@@ -110,12 +111,24 @@ class PackageController {
             // Prepare update data
             const updateFields = {};
 
-            if (updateData.name !== undefined) { updateFields.name = updateData.name; }
-            if (updateData.displayName !== undefined) { updateFields.displayName = updateData.displayName; }
-            if (updateData.description !== undefined) { updateFields.description = updateData.description; }
-            if (updateData.credits !== undefined) { updateFields.credits = updateData.credits; }
-            if (updateData.price !== undefined) { updateFields.price = Math.round(updateData.price * 100); } // Convert to cents
-            if (updateData.popular !== undefined) { updateFields.isPopular = updateData.popular; }
+            if (updateData.name !== undefined) {
+                updateFields.name = updateData.name;
+            }
+            if (updateData.displayName !== undefined) {
+                updateFields.displayName = updateData.displayName;
+            }
+            if (updateData.description !== undefined) {
+                updateFields.description = updateData.description;
+            }
+            if (updateData.credits !== undefined) {
+                updateFields.credits = updateData.credits;
+            }
+            if (updateData.price !== undefined) {
+                updateFields.price = Math.round(updateData.price * 100); // Convert to cents
+            }
+            if (updateData.popular !== undefined) {
+                updateFields.isPopular = updateData.popular;
+            }
 
             // Update package in database
             const updatedPackage = await prisma.package.update({
@@ -308,8 +321,10 @@ class PackageController {
                 error: 'Invalid package data',
                 message: validation.errors.join(', ')
             });
+
             return false;
         }
+
         return true;
     }
 
@@ -327,8 +342,10 @@ class PackageController {
                 error: 'Package name already exists',
                 message: `Package with name '${name}' already exists`
             });
+
             return false;
         }
+
         return true;
     }
 

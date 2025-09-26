@@ -485,6 +485,7 @@ const initFeedManager = async() => {
     try {
         // console.log('🏷️ FEED MANAGER: Creating FeedManager instance...');
         feedManager = new FeedManager();
+        window.feedManager = feedManager;
 
         // Initialize the feed manager (this sets up tag router subscription)
         await feedManager.init();
@@ -532,6 +533,10 @@ const initWithDelay = () => {
 
 // Start initialization with delay
 initWithDelay();
+
+// Export for global access
+window.FeedManager = FeedManager;
+window.feedManager = feedManager;
 
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {

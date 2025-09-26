@@ -684,3 +684,4 @@ class TextAreaManager {
 
 // Make class available globally
 window.TextAreaManager = TextAreaManager;
+window.textAreaManager = new TextAreaManager();

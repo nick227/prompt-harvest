@@ -3,7 +3,7 @@
  * Provides a clean, focused interface for image generation across the website
  */
 
-export class AIImageGeneratorWidget {
+class AIImageGeneratorWidget {
     constructor(containerId, options = {}) {
         this.containerId = containerId;
         this.options = {
@@ -574,5 +574,7 @@ export class AIImageGeneratorWidget {
     }
 }
 
-// Export for use in other modules
-export default AIImageGeneratorWidget;
+// Export for global access
+if (typeof window !== 'undefined') {
+    window.AIImageGeneratorWidget = AIImageGeneratorWidget;
+}

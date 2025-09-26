@@ -3,7 +3,7 @@
  * Handles API calls for AI image generation
  */
 
-export class AIImageGeneratorService {
+class AIImageGeneratorService {
     constructor() {
         this.baseUrl = '/api';
     }
@@ -182,7 +182,10 @@ export class AIImageGeneratorService {
 }
 
 // Create singleton instance
-export const aiImageGeneratorService = new AIImageGeneratorService();
+const aiImageGeneratorService = new AIImageGeneratorService();
 
-// Export default
-export default aiImageGeneratorService;
+// Export for global access
+if (typeof window !== 'undefined') {
+    window.AIImageGeneratorService = AIImageGeneratorService;
+    window.aiImageGeneratorService = aiImageGeneratorService;
+}

@@ -1,9 +1,9 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../database/PrismaClient.js';
 import { authenticateTokenRequired } from '../middleware/authMiddleware.js';
 
 const router = new express.Router();
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 // Rate limiting store (in production, use Redis)
 const rateLimitStore = new Map();

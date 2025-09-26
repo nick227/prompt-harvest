@@ -26,7 +26,7 @@ import QueueManager from './services/feed/QueueManager.js';
 import DatabaseService from './services/feed/DatabaseService.js';
 import FeedUtils from './utils/FeedUtils.js';
 import { GenerationResultProcessor } from './services/GenerationResultProcessor.js';
-import { PrismaClient } from '@prisma/client';
+import databaseClient from './database/PrismaClient.js';
 
 // Configuration
 dotenv.config();
@@ -35,7 +35,7 @@ dotenv.config();
 const DEFAULT_GUIDANCE_VALUE = 10;
 
 // Initialize Prisma client for tag fetching
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 
 // ============================================================================
 // MAIN FEED ORCHESTRATION FUNCTIONS

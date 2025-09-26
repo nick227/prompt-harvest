@@ -28,6 +28,7 @@ export class PromptController {
             // Only allow authenticated users
             if (!req.user?.id) {
                 console.log('🔍 PROMPT CONTROLLER: User not authenticated, returning empty prompts');
+
                 return res.json({
                     success: true,
                     data: {
@@ -143,9 +144,12 @@ export class PromptController {
         } catch (error) {
             logRequestError(requestId, 'Get Prompt By ID', startTime, error);
 
-            const statusCode = error.message.includes('not found')
-                ? 404 :
-                error.message.includes('Unauthorized') ? 403 : 500;
+            let statusCode = 500;
+            if (error.message.includes('not found')) {
+                statusCode = 404;
+            } else if (error.message.includes('Unauthorized')) {
+                statusCode = 403;
+            }
 
             res.status(statusCode).json({
                 success: false,
@@ -306,9 +310,12 @@ export class PromptController {
         } catch (error) {
             logRequestError(requestId, 'Update Prompt', startTime, error);
 
-            const statusCode = error.message.includes('not found')
-                ? 404 :
-                error.message.includes('Unauthorized') ? 403 : 500;
+            let statusCode = 500;
+            if (error.message.includes('not found')) {
+                statusCode = 404;
+            } else if (error.message.includes('Unauthorized')) {
+                statusCode = 403;
+            }
 
             res.status(statusCode).json({
                 success: false,
@@ -378,9 +385,12 @@ export class PromptController {
         } catch (error) {
             logRequestError(requestId, 'Delete Prompt', startTime, error);
 
-            const statusCode = error.message.includes('not found')
-                ? 404 :
-                error.message.includes('Unauthorized') ? 403 : 500;
+            let statusCode = 500;
+            if (error.message.includes('not found')) {
+                statusCode = 404;
+            } else if (error.message.includes('Unauthorized')) {
+                statusCode = 403;
+            }
 
             res.status(statusCode).json({
                 success: false,

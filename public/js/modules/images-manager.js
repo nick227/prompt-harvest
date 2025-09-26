@@ -300,5 +300,11 @@ const initImagesManager = () => {
     }
 };
 
+// Export for global access
+if (typeof window !== 'undefined') {
+    window.ImagesManager = ImagesManager;
+    window.imagesManager = new ImagesManager();
+}
+
 // Start initialization
 initImagesManager();

@@ -4,7 +4,7 @@ import { setupConfigRoutes } from './configRoutes.js';
 import { setupLikeRoutes } from './likeRoutes.js';
 import { setupTagRoutes } from './tagRoutes.js';
 import { setupPageRoutes } from './pageRoutes.js';
-import { setupFeedRoutes } from './feedRoutes.js';
+// Removed feedRoutes.js - functionality covered by enhancedImageRoutes.js
 import { setupMonitoringRoutes } from './monitoringRoutes.js';
 import { setupAuthRoutes } from './authRoutes.js';
 // import { setupImageRatingRoutes } from './imageRatingRoutes.js'; // Removed - redundant with enhancedImageRoutes.js
@@ -114,7 +114,7 @@ export const setupRoutes = async app => {
     console.log('✅ MAIN ROUTES: Enhanced image routes setup completed');
     setupProfileRoutes(app, profileController); // Profile management routes
     console.log('✅ MAIN ROUTES: Profile routes setup completed');
-    setupFeedRoutes(app, enhancedImageController);
+    // Removed setupFeedRoutes - functionality covered by enhancedImageRoutes.js
     setupAIRoutes(app, aiController);
     setupConfigRoutes(app, configController);
     setupLikeRoutes(app, likeController);

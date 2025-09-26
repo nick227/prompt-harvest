@@ -3,12 +3,12 @@
  * Coordinates profile management functionality using modular architecture
  */
 
-import { ProfileAuthUtils } from './auth-utils.js';
-import { ProfileDOMManager } from './dom-manager.js';
-import { ProfileAPIService } from './api-service.js';
-import { ProfileFormValidator } from './form-validator.js';
-import { AvatarManager } from './avatar-manager.js';
-import { AIImageGenerator } from '../../components/ai-image-generator.js';
+
+
+
+
+
+
 
 class ProfileManager {
     constructor() {
@@ -573,4 +573,4 @@ document.addEventListener('DOMContentLoaded', () => {
     new ProfileManager();
 });
 
-export default ProfileManager;
+// export default ProfileManager;

@@ -25,7 +25,7 @@ export class BaseAIService {
         }
 
         this.openai = new OpenAI({
-            apiKey: apiKey
+            apiKey
         });
 
         console.log('🔧 BaseAIService: OpenAI client initialized');
@@ -77,23 +77,23 @@ export class BaseAIService {
     async makeRequest(messages, options = {}) {
         const {
             model = this.model,
-            max_tokens = this.maxTokens,
+            maxTokens = this.maxTokens,
             temperature = this.temperature,
             tools = null,
-            tool_choice = 'auto'
+            toolChoice = 'auto'
         } = options;
 
         try {
             const requestConfig = {
                 model,
                 messages,
-                max_tokens,
+                max_tokens: maxTokens,
                 temperature
             };
 
             if (tools) {
                 requestConfig.tools = tools;
-                requestConfig.tool_choice = tool_choice;
+                requestConfig.tool_choice = toolChoice;
             }
 
             const response = await this.openai.chat.completions.create(requestConfig);

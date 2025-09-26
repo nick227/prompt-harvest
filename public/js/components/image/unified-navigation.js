@@ -537,12 +537,16 @@ class UnifiedNavigation {
      * @returns {Object} Navigation state information
      */
     getState() {
+        const visible =
+            this.fullscreenContainer &&
+            this.fullscreenContainer.style.display !== 'none';
+
         return {
             isInitialized: this.isInitialized(),
             hasCurrentImage: !!this.currentImageElement,
             isNavigating: this.isNavigating,
             eventListenersSetup: this.eventListenersSetup,
-            fullscreenVisible: this.fullscreenContainer?.style.display !== 'none'
+            fullscreenVisible: !!visible
         };
     }
 

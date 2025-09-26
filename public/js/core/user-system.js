@@ -648,7 +648,4 @@ if (typeof window !== 'undefined') {
     window.authStateManager = userSystem; // Compatibility with existing code
 }
 
-// Export for module environments
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { UserSystem, userSystem };
-}
+// ES6 exports removed - loaded as regular script

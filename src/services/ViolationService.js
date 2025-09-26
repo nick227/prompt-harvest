@@ -147,7 +147,7 @@ class ViolationService {
             const trends = {};
 
             violations.forEach(violation => {
-                const date = violation.createdAt.toISOString().split('T')[0];
+                const [date] = violation.createdAt.toISOString().split('T');
 
                 if (!trends[date]) {
                     trends[date] = {

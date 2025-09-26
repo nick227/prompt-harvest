@@ -265,7 +265,9 @@ const PROMPT_HISTORY_CONFIG = {
     }
 };
 
-// export all constants to global scope for backward compatibility
+// ES6 exports removed - loaded as regular script
+
+// Export for global scope for backward compatibility
 if (typeof window !== 'undefined') {
     window.API_ENDPOINTS = API_ENDPOINTS;
     window.CSS_CLASSES = CSS_CLASSES;

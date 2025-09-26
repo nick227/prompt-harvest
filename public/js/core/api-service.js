@@ -206,8 +206,9 @@ class ApiService {
         // Only log headers when debugging (and never log auth tokens)
         if (window.location.search.includes('debug') && !endpoint.includes('/api/auth/')) {
             const safeHeaders = { ...headers };
+
             if (safeHeaders.Authorization) {
-                safeHeaders.Authorization = safeHeaders.Authorization.substring(0, 20) + '...';
+                safeHeaders.Authorization = `${safeHeaders.Authorization.substring(0, 20)}...`;
             }
             console.log('🔑 API: Request headers for', endpoint, ':', safeHeaders);
         }
@@ -558,6 +559,7 @@ class ImageApiService extends ApiService {
 
         console.log('🔍 API-SERVICE: Getting image by ID:', id);
         const result = await this.get(`/api/images/${id}`);
+
         console.log('🔍 API-SERVICE: Image API response:', {
             success: result.success,
             hasData: !!result.data,
@@ -565,6 +567,7 @@ class ImageApiService extends ApiService {
             userId: result.data?.userId,
             fullResponse: result
         });
+
         return result;
     }
 
@@ -643,12 +646,10 @@ const imageApi = new ImageApiService();
 
 // Export to global scope
 if (typeof window !== 'undefined') {
+    window.ApiService = ApiService;
+    window.UserApiService = UserApiService;
+    window.ImageApiService = ImageApiService;
     window.apiService = apiService;
     window.userApi = userApi;
     window.imageApi = imageApi;
-}
-
-// Export for module environments only
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { ApiService, UserApiService, ImageApiService, apiService, userApi, imageApi };
 }

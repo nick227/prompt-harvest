@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../database/PrismaClient.js';
 import { authenticateTokenRequired } from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/AdminAuthMiddleware.js';
 import { validatePagination } from '../middleware/validation.js';
@@ -8,7 +8,7 @@ import {
     strictApiSecurity
 } from '../middleware/security/SimplifiedSecurityMiddleware.js';
 
-const prisma = new PrismaClient();
+const prisma = databaseClient.getClient();
 const router = new express.Router();
 
 // Apply basic security to all routes

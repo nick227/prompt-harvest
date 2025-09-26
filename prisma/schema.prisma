@@ -240,6 +240,9 @@ model PromoCode {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
+  // Relations
+  redemptions        PromoRedemption[]
+
   @@index([code])
   @@index([isActive])
   @@index([expiresAt])
@@ -252,6 +255,9 @@ model PromoRedemption {
   promoCodeId String   @db.VarChar(25)
   credits     Int
   createdAt   DateTime @default(now())
+
+  // Relations
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id])
 
   @@unique([userId, promoCodeId], map: "userId_promoCodeId")
   @@index([userId])

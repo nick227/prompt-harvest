@@ -3,10 +3,7 @@
  * Provides a ready-to-use AI image generator component
  */
 
-import { AIImageGeneratorWidget } from './ai-image-generator-widget.js';
-import { aiImageGeneratorService } from '../services/ai-image-generator-service.js';
-
-export class AIImageGenerator {
+class AIImageGenerator {
     constructor(containerId, options = {}) {
         this.containerId = containerId;
         this.options = {
@@ -38,14 +35,14 @@ export class AIImageGenerator {
      */
     init() {
         // Check authentication
-        if (!aiImageGeneratorService.isAuthenticated()) {
+        if (!window.aiImageGeneratorService || !window.aiImageGeneratorService.isAuthenticated()) {
             this.showAuthError();
 
             return;
         }
 
         // Create widget
-        this.widget = new AIImageGeneratorWidget(this.containerId, this.options);
+        this.widget = new window.AIImageGeneratorWidget(this.containerId, this.options);
 
         // Attach event listeners
         this.attachEventListeners();
@@ -256,5 +253,7 @@ export class AIImageGenerator {
     }
 }
 
-// Export for use in other modules
-export default AIImageGenerator;
+// Export for global access
+if (typeof window !== 'undefined') {
+    window.AIImageGenerator = AIImageGenerator;
+}

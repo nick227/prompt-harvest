@@ -214,8 +214,3 @@ if (typeof window !== 'undefined') {
     window.NotificationService = NotificationService;
     window.notificationService = notificationService;
 }
-
-// Export for module environments
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { NotificationService, notificationService };
-}

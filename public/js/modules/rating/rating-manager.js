@@ -409,8 +409,10 @@ class RatingManager {
 }
 
 // Export for global access
-window.RatingManager = RatingManager;
-window.ratingManager = new RatingManager();
+if (typeof window !== 'undefined') {
+    window.RatingManager = RatingManager;
+    window.ratingManager = new RatingManager();
+}
 
 // Export for module testing
 if (typeof module !== 'undefined' && module.exports) {

@@ -580,10 +580,12 @@ const generateDezgoImage = async(prompt, guidance, url, model = 'flux_1_schnell'
 
             if (!response.data) {
                 console.error('❌ DEZGO: Invalid response - no data:', response);
+
                 return { error: 'Invalid response', details: response };
             }
 
             console.log(`✅ DEZGO: Success on attempt ${attempt} for model ${model}`);
+
             return Buffer.from(response.data).toString('base64');
 
         } catch (error) {
@@ -603,6 +605,7 @@ const generateDezgoImage = async(prompt, guidance, url, model = 'flux_1_schnell'
             // If this is a retryable error and we have attempts left, wait before retrying
             if (attempt < maxRetries && isRetryableError(error)) {
                 const waitTime = attempt * 5000; // 5s, 10s
+
                 console.log(`⏳ DEZGO: Waiting ${waitTime}ms before retry...`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
                 continue;
@@ -657,6 +660,7 @@ const generateImagenImage = async(prompt, guidance, userId = null) => {
         // Initialize JWT client with service account credentials
         // Handle both file path and JSON string credentials
         let client;
+
         if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
             // Check if it's a file path or JSON string
             if (process.env.GOOGLE_APPLICATION_CREDENTIALS.startsWith('{')) {
@@ -668,6 +672,7 @@ const generateImagenImage = async(prompt, guidance, userId = null) => {
 
                 try {
                     const credentials = JSON.parse(credentialsJson);
+
                     client = new JWT({
                         credentials,
                         scopes: ['https://www.googleapis.com/auth/cloud-platform']
@@ -693,6 +698,7 @@ const generateImagenImage = async(prompt, guidance, userId = null) => {
         // Obtain access token
         console.log('🎨 IMAGEN: Obtaining access token...');
         const { token } = await client.getAccessToken();
+
         console.log('🎨 IMAGEN: Access token obtained successfully');
 
         const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
@@ -732,7 +738,7 @@ const generateImagenImage = async(prompt, guidance, userId = null) => {
             return { error: 'Invalid response from Imagen API', details: response.data };
         }
 
-        const prediction = response.data.predictions[0];
+        const [prediction] = response.data.predictions;
 
         // Extract image data from Imagen response
         if (!prediction.bytesBase64Encoded) {
@@ -938,9 +944,7 @@ const generateRandomProviderImage = async(providers, prompt, guidance, userId = 
  * Get available providers
  * @returns {Promise<Array>} Array of available provider names
  */
-const getAvailableProviders = async () => {
-    return await modelInterface.getValidModelNames();
-};
+const getAvailableProviders = async () => await modelInterface.getValidModelNames();
 
 /**
  * Get provider configuration

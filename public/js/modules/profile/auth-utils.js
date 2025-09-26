@@ -3,7 +3,7 @@
  * Handles token management and user authentication checks
  */
 
-export class ProfileAuthUtils {
+class ProfileAuthUtils {
     /**
      * Get authentication token from storage
      */

@@ -486,7 +486,4 @@ class UnifiedAuthUtils {
 // Create global instance
 window.UnifiedAuthUtils = new UnifiedAuthUtils();
 
-// Export for module use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = UnifiedAuthUtils;
-}
+// ES6 exports removed - loaded as regular script

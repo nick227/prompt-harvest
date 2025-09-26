@@ -19,12 +19,13 @@ import { validateImageGenerationParams, validateImageId, validateRating, validat
 import { ValidationError } from '../errors/CustomErrors.js';
 import { taggingService } from '../services/TaggingService.js';
 import { sampleImageService } from '../services/SampleImageService.js';
-import { PrismaClient } from '@prisma/client';
+import databaseClient from '../database/PrismaClient.js';
 
 export class EnhancedImageController {
     constructor(enhancedImageService) {
         this.imageService = enhancedImageService;
-        this.prisma = new PrismaClient();
+        // Removed: this.prisma = new PrismaClient();
+        // Use databaseClient.getClient() when database access is needed
     }
 
     // ============================================================================
@@ -404,13 +405,16 @@ export class EnhancedImageController {
             }
 
             const pagination = validatePaginationParams(req.query, 50);
+
             this.logGetUserImagesRequest(userId, pagination);
 
             const result = await this.imageService.getUserImages(userId, pagination.limit, pagination.page);
+
             this.logGetUserImagesResult(result);
 
             const duration = Date.now() - startTime;
             const responseData = { images: result.images || [] };
+
             this.logGetUserImagesResponse(responseData);
 
             const response = formatSuccessResponse(
@@ -720,8 +724,10 @@ export class EnhancedImageController {
                 error: 'Authentication required',
                 statusCode: 401
             });
+
             return false;
         }
+
         return true;
     }
 
@@ -787,7 +793,7 @@ export class EnhancedImageController {
      */
     async _fetchImageWithTags(imageId) {
         try {
-            const image = await this.prisma.image.findUnique({
+            const image = await databaseClient.getClient().image.findUnique({
                 where: { id: imageId },
                 select: {
                     id: true,

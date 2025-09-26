@@ -493,13 +493,10 @@ class ProviderManager {
     }
 }
 
-// global exports for backward compatibility
-window.ProviderManager = ProviderManager;
+// ES6 module export
 
-// Let app.js handle initialization to avoid conflicts
-// Auto-initialization removed to prevent double initialization
 
-// ES module export (only if this file is loaded as a module)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ProviderManager;
+// Global export for browser compatibility
+if (typeof window !== 'undefined') {
+    window.ProviderManager = ProviderManager;
 }

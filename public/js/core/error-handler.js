@@ -215,9 +215,6 @@ class ErrorHandler {
 }
 
 // Export for global access
-window.ErrorHandler = ErrorHandler;
-
-// Export for modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ErrorHandler;
+if (typeof window !== 'undefined') {
+    window.ErrorHandler = ErrorHandler;
 }
