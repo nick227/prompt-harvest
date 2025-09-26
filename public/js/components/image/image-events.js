@@ -244,7 +244,7 @@ class ImageEvents {
         });
     }
 
-    async handlePublicStatusChange(checkbox, label, publicStatusToggle) {
+    async handlePublicStatusChange(checkbox, _label, _publicStatusToggle) {
         if (!this.imageManager.currentFullscreenImage) {
             console.error('No current fullscreen image available');
 
@@ -254,7 +254,7 @@ class ImageEvents {
         const currentImage = this.imageManager.currentFullscreenImage;
         const newPublicStatus = checkbox.checked;
 
-        // Use unified public status service
+        // Use unified public status service (primary method)
         if (window.PublicStatusService) {
             const success = await window.PublicStatusService.updatePublicStatus(currentImage.id, newPublicStatus, {
                 updateDOM: true,
@@ -268,22 +268,9 @@ class ImageEvents {
                 this.handlePublicStatusFailure(checkbox, newPublicStatus);
             }
         } else {
-            // Fallback to original implementation
-            try {
-                this.setLoadingState(checkbox, label, publicStatusToggle, true);
-
-                const success = await this.imageManager.updateImagePublicStatus(currentImage.id, newPublicStatus);
-
-                if (success) {
-                    this.handlePublicStatusSuccess(currentImage.id, newPublicStatus);
-                } else {
-                    this.handlePublicStatusFailure(checkbox, newPublicStatus);
-                }
-            } catch (error) {
-                this.handlePublicStatusError(checkbox, newPublicStatus, error);
-            } finally {
-                this.setLoadingState(checkbox, label, publicStatusToggle, false);
-            }
+            // Legacy fallback - should not be needed in production
+            console.warn('⚠️ PUBLIC-STATUS: PublicStatusService not available, using legacy fallback');
+            this.handlePublicStatusError(checkbox, newPublicStatus, new Error('PublicStatusService not available'));
         }
     }
 
@@ -364,7 +351,14 @@ class ImageEvents {
         this.setupTouchEvents();
     }
 
+    /**
+     * @deprecated Use PublicStatusService.updatePublicStatus() instead
+     * Update list view checkbox if it exists
+     * @param {string} imageId - Image ID
+     * @param {boolean} isPublic - New public status
+     */
     updateListViewCheckboxIfExists(imageId, isPublic) {
+        console.warn('⚠️ DEPRECATED: updateListViewCheckboxIfExists() is deprecated. Use PublicStatusService instead.');
         // Find the list view checkbox for this image
         const listCheckbox = document.querySelector(`#public-toggle-list-${imageId}`);
 

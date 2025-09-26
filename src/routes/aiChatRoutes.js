@@ -57,23 +57,49 @@ export const setupAIChatRoutes = app => {
             const { page = 0, limit = 5 } = req.query;
             const userId = req.user?.id;
 
-            console.log('📚 AI Chat History Request:', {
+            console.log('📚 [API] AI Chat History Request:', {
                 conversationId,
                 page: parseInt(page),
                 limit: parseInt(limit),
-                userId
+                userId,
+                hasUser: !!req.user,
+                userAgent: req.get('User-Agent'),
+                referer: req.get('Referer')
             });
 
             const history = await aiAgentService.getConversationHistory(conversationId, parseInt(limit), parseInt(page));
 
-            res.json({
-                history,
+            console.log('📊 [API] History retrieved:', {
+                conversationId,
+                historyLength: history.length,
                 page: parseInt(page),
                 limit: parseInt(limit),
                 hasMore: history.length === parseInt(limit)
             });
+
+            const response = {
+                history,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                hasMore: history.length === parseInt(limit)
+            };
+
+            console.log('📤 [API] Sending response:', {
+                historyCount: response.history.length,
+                page: response.page,
+                limit: response.limit,
+                hasMore: response.hasMore
+            });
+
+            res.json(response);
         } catch (error) {
-            console.error('❌ AI Chat History Error:', error);
+            console.error('❌ [API] AI Chat History Error:', error);
+            console.error('❌ [API] Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                conversationId: req.params.conversationId
+            });
             res.status(500).json({ error: 'Failed to get conversation history' });
         }
     });

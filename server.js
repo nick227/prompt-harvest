@@ -193,7 +193,7 @@ const startServer = async () => {
         console.log('📚 Initializing WordTypeManager...');
         try {
             const { default: wordTypeManager } = await import('./lib/word-type-manager.js');
-            await wordTypeManager.initializeCache();
+            await wordTypeManager.initializeDatabase();
             console.log('✅ WordTypeManager initialized');
         } catch (error) {
             console.error('⚠️ WordTypeManager initialization failed:', error.message);

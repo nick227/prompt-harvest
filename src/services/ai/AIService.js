@@ -73,15 +73,9 @@ export class AIService {
         return result;
     }
 
-    // Cache Management
-    getCacheStats() {
-        return wordTypeManager.getCacheStats();
-    }
-
-    clearCache() {
-        wordTypeManager.clearCache();
-
-        return { message: 'Cache cleared successfully' };
+    // Word Statistics
+    getWordStats() {
+        return wordTypeManager.getStats();
     }
 
     // Prompt Processing

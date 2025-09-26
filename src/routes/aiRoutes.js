@@ -38,9 +38,8 @@ export const setupAIRoutes = (app, aiController) => {
         aiController.deleteWordType.bind(aiController)
     );
 
-    // Cache Management
-    app.get('/api/cache/stats', aiController.getCacheStats.bind(aiController));
-    app.post('/api/cache/clear', aiController.clearCache.bind(aiController));
+    // Simple stats endpoint (no cache)
+    app.get('/api/word/stats', aiController.getWordStats.bind(aiController));
 
     // Prompt Processing with validation
     app.get('/prompt/build',

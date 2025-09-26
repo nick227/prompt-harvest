@@ -461,76 +461,20 @@ class ImageViewUtils {
                     this.removeImageFromFeedIfAvailable(imageId);
                 }
             } else {
-                console.error('❌ PublicStatusService not available, using fallback');
-                // Fallback to original implementation
-                this._handlePublicStatusChangeFallback(imageId, newStatus, checkbox, label, checkboxContainer, viewType);
+                console.error('❌ PublicStatusService not available');
+                // Show error notification
+                if (window.notificationManager) {
+                    window.notificationManager.error('Public status service not available');
+                }
+                // Revert checkbox state
+                checkbox.checked = !newStatus;
             }
         });
 
         return checkboxContainer;
     }
 
-    /**
-     * Fallback method for handling public status changes
-     * @private
-     */
-    _handlePublicStatusChangeFallback(imageId, newStatus, checkbox, label, checkboxContainer, viewType) {
-        // Update DOM immediately
-        this.updateImageInDOM(imageId, { isPublic: newStatus });
-
-        // Show loading state
-        checkbox.disabled = true;
-        label.textContent = 'Updating...';
-        checkboxContainer.style.opacity = '0.6';
-
-        // Call API to update server
-        fetch(`/api/images/${imageId}/public-status`, {
-            method: 'PUT',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify({ isPublic: newStatus })
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log(`✅ Public status updated from ${viewType} view (fallback)`);
-                return response.json();
-            } else {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-        })
-        .then(() => {
-            // Update cache if image manager is available
-            // Note: Cache updates are now handled by the unified navigation system
-            // No need for separate cache management
-
-            // Update fullscreen checkbox if it's currently open for this image
-            this.updateFullscreenCheckboxIfCurrent(imageId, newStatus);
-
-            // Update the corresponding view checkbox
-            const otherViewType = viewType === 'list' ? 'compact' : 'list';
-            if (otherViewType === 'list') {
-                this.updateListViewCheckboxIfExists(imageId, newStatus);
-            } else {
-                this.updateCompactViewCheckboxIfExists(imageId, newStatus);
-            }
-
-            // Remove image from feed if it became private and we're in site view
-            if (!newStatus && this.isCurrentlyInSiteView()) {
-                this.removeImageFromFeedIfAvailable(imageId);
-            }
-        })
-        .catch(error => {
-            console.error(`❌ Error updating public status from ${viewType} view (fallback):`, error);
-            // Revert on error
-            checkbox.checked = !newStatus;
-            this.updateImageInDOM(imageId, { isPublic: !newStatus });
-        })
-        .finally(() => {
-            // Restore UI
-            checkbox.disabled = false;
-            label.textContent = 'Public';
-            checkboxContainer.style.opacity = '1';
-        });
-    }
+    // REMOVED: _handlePublicStatusChangeFallback() - redundant with PublicStatusService
 
     /**
      * Create public checkbox for list view (convenience method)
@@ -551,11 +495,13 @@ class ImageViewUtils {
     }
 
     /**
+     * @deprecated Use PublicStatusService.updatePublicStatus() instead
      * Update list view checkbox if it exists
      * @param {string} imageId - Image ID
      * @param {boolean} isPublic - New public status
      */
     static updateListViewCheckboxIfExists(imageId, isPublic) {
+        console.warn('⚠️ DEPRECATED: updateListViewCheckboxIfExists() is deprecated. Use PublicStatusService instead.');
         const listCheckbox = document.querySelector(`#public-toggle-list-${imageId}`);
 
         if (listCheckbox) {
@@ -565,11 +511,13 @@ class ImageViewUtils {
     }
 
     /**
+     * @deprecated Use PublicStatusService.updatePublicStatus() instead
      * Update compact view checkbox if it exists
      * @param {string} imageId - Image ID
      * @param {boolean} isPublic - New public status
      */
     static updateCompactViewCheckboxIfExists(imageId, isPublic) {
+        console.warn('⚠️ DEPRECATED: updateCompactViewCheckboxIfExists() is deprecated. Use PublicStatusService instead.');
         const compactCheckbox = document.querySelector(`#public-toggle-compact-${imageId}`);
 
         if (compactCheckbox) {
@@ -579,11 +527,13 @@ class ImageViewUtils {
     }
 
     /**
+     * @deprecated Use PublicStatusService.updatePublicStatus() instead
      * Update image data in DOM element
      * @param {string} imageId - Image ID
      * @param {Object} updates - Data updates
      */
     static updateImageInDOM(imageId, updates) {
+        console.warn('⚠️ DEPRECATED: updateImageInDOM() is deprecated. Use PublicStatusService instead.');
         const imageElement = document.querySelector(`img[data-id="${imageId}"], img[data-image-id="${imageId}"]`);
 
         if (imageElement) {

@@ -108,26 +108,27 @@ export class ConversationService {
      * Get conversation history with pagination
      */
     async getConversationHistory(conversationId, limit = 5, page = 0) {
-        console.log('🔍 ConversationService.getConversationHistory called:', {
+        console.log('🔍 [CONVERSATION SERVICE] getConversationHistory called:', {
             conversationId,
             limit,
             page,
-            hasPrisma: !!this.prisma
+            hasPrisma: !!this.prisma,
+            prismaType: typeof this.prisma
         });
 
         if (!conversationId) {
-            console.log('❌ No conversation ID provided');
+            console.log('❌ [CONVERSATION SERVICE] No conversation ID provided');
             return [];
         }
 
         if (!this.prisma) {
-            console.error('❌ Prisma client not available');
+            console.error('❌ [CONVERSATION SERVICE] Prisma client not available');
             return [];
         }
 
         try {
             const skip = page * limit;
-            console.log('📊 Database query parameters:', { skip, limit, conversationId });
+            console.log('📊 [CONVERSATION SERVICE] Database query parameters:', { skip, limit, conversationId });
 
             const messages = await this.prisma.chatMessage.findMany({
                 where: { conversationId },
@@ -142,7 +143,7 @@ export class ConversationService {
                 }
             });
 
-            console.log('📋 Raw database results:', {
+            console.log('📋 [CONVERSATION SERVICE] Raw database results:', {
                 count: messages.length,
                 records: messages.map(m => ({
                     role: m.role,
@@ -160,7 +161,7 @@ export class ConversationService {
                 createdAt: message.createdAt
             }));
 
-            console.log('📚 Conversation history retrieved:', {
+            console.log('📚 [CONVERSATION SERVICE] Conversation history retrieved:', {
                 conversationId,
                 page,
                 limit,
@@ -169,7 +170,15 @@ export class ConversationService {
 
             return chatMessages;
         } catch (error) {
-            console.error('❌ Error getting conversation history:', error);
+            console.error('❌ [CONVERSATION SERVICE] Error getting conversation history:', error);
+            console.error('❌ [CONVERSATION SERVICE] Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                conversationId,
+                page,
+                limit
+            });
             return [];
         }
     }

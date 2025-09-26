@@ -23,6 +23,12 @@ class PublicStatusService {
             updateCache = true
         } = options;
 
+        // Input validation
+        if (!imageId || typeof isPublic !== 'boolean') {
+            console.error('❌ PUBLIC-STATUS: Invalid parameters', { imageId, isPublic });
+            return false;
+        }
+
         // Prevent duplicate updates
         const updateKey = `${imageId}-${isPublic}`;
         if (this.updateQueue.has(updateKey)) {
@@ -116,32 +122,34 @@ class PublicStatusService {
      * @private
      */
     _updateDOMCheckboxes(imageId, isPublic) {
-        const selectors = [
-            `#public-toggle-${imageId}`,
-            `#public-toggle-list-${imageId}`,
-            `#public-toggle-compact-${imageId}`
-        ];
+        // CRITICAL: Update the main image wrapper's dataset.isPublic attribute
+        // This is what the filtering system relies on for proper visibility
+        const imageWrapper = document.querySelector(`[data-image-id="${imageId}"]`);
+        if (imageWrapper) {
+            imageWrapper.dataset.isPublic = isPublic.toString();
+            console.log(`🔄 PUBLIC-STATUS: Updated wrapper dataset.isPublic for ${imageId}: ${isPublic}`);
+        } else {
+            console.warn(`⚠️ PUBLIC-STATUS: Image wrapper not found for ${imageId}`);
+        }
 
-        selectors.forEach(selector => {
-            const checkbox = document.querySelector(selector);
-            if (checkbox) {
-                checkbox.checked = isPublic;
-            }
-        });
+        // Batch DOM updates for better performance
+        this._batchUpdateCheckboxes(imageId, isPublic);
+        this._batchUpdateDisplays(imageId, isPublic);
 
-        // Update read-only displays
-        const displaySelectors = [
-            `.list-public-display[data-image-id="${imageId}"]`,
-            `.compact-public-display[data-image-id="${imageId}"]`,
-            `.info-box-public-display[data-image-id="${imageId}"]`
-        ];
+        // Legacy individual updates (kept for compatibility)
+        this._updateIndividualCheckboxes(imageId, isPublic);
+        this._updateIndividualDisplays(imageId, isPublic);
 
-        displaySelectors.forEach(selector => {
-            const display = document.querySelector(selector);
-            if (display) {
-                display.textContent = isPublic ? 'Public' : 'Private';
-            }
-        });
+        // Notify the tab service to re-evaluate visibility if available
+        if (window.feedManager && window.feedManager.tabService) {
+            window.feedManager.tabService.updateImage(imageId, { isPublic });
+        }
+
+        // Update fullscreen image if it's currently displayed
+        this._updateFullscreenImageIfCurrent(imageId, isPublic);
+
+        // Update view manager if available
+        this._updateViewManager(imageId, isPublic);
     }
 
     /**
@@ -202,6 +210,12 @@ class PublicStatusService {
         if (window.feedManager && window.feedManager.cacheManager) {
             // Trigger cache refresh for affected filters
             window.feedManager.cacheManager.invalidateCache();
+        }
+
+        // Update the DOM wrapper's dataset to ensure consistency
+        const imageWrapper = document.querySelector(`[data-image-id="${imageId}"]`);
+        if (imageWrapper) {
+            imageWrapper.dataset.isPublic = isPublic.toString();
         }
     }
 
@@ -267,6 +281,12 @@ class PublicStatusService {
         images.forEach(image => {
             if (image.id && typeof image.isPublic === 'boolean') {
                 this.cache.set(image.id, image.isPublic);
+
+                // Also ensure DOM wrapper has correct dataset attribute
+                const imageWrapper = document.querySelector(`[data-image-id="${image.id}"]`);
+                if (imageWrapper) {
+                    imageWrapper.dataset.isPublic = image.isPublic.toString();
+                }
             }
         });
     }
@@ -285,6 +305,120 @@ class PublicStatusService {
      */
     clearCache() {
         this.cache.clear();
+    }
+
+    /**
+     * Update fullscreen image if it's currently displayed
+     * @private
+     */
+    _updateFullscreenImageIfCurrent(imageId, isPublic) {
+        if (window.imageManager && window.imageManager.currentFullscreenImage &&
+            window.imageManager.currentFullscreenImage.id === imageId) {
+            window.imageManager.currentFullscreenImage.isPublic = isPublic;
+
+            // Update the public status checkbox in fullscreen
+            const publicToggle = window.imageManager.fullscreenContainer?.querySelector('.info-box-public-toggle');
+            if (publicToggle) {
+                const checkbox = publicToggle.querySelector('.public-status-checkbox');
+                if (checkbox) {
+                    checkbox.checked = isPublic;
+                }
+
+                // Update label text
+                const label = publicToggle.querySelector('.public-status-label');
+                if (label) {
+                    const currentStatus = isPublic ? 'Public' : 'Private';
+                    label.textContent = currentStatus;
+                }
+            }
+        }
+    }
+
+    /**
+     * Update view manager if available
+     * @private
+     */
+    _updateViewManager(imageId, isPublic) {
+        if (window.feedManager && window.feedManager.viewManager) {
+            window.feedManager.viewManager.updateImageInView(imageId, { isPublic });
+        }
+    }
+
+    /**
+     * Batch update checkboxes for better performance
+     * @private
+     */
+    _batchUpdateCheckboxes(imageId, isPublic) {
+        const selectors = [
+            `#public-toggle-${imageId}`,
+            `#public-toggle-list-${imageId}`,
+            `#public-toggle-compact-${imageId}`
+        ];
+
+        // Use document fragment for batch updates
+        const fragment = document.createDocumentFragment();
+        const elements = selectors.map(selector => document.querySelector(selector)).filter(Boolean);
+
+        elements.forEach(checkbox => {
+            checkbox.checked = isPublic;
+        });
+    }
+
+    /**
+     * Batch update displays for better performance
+     * @private
+     */
+    _batchUpdateDisplays(imageId, isPublic) {
+        const displaySelectors = [
+            `.list-public-display[data-image-id="${imageId}"]`,
+            `.compact-public-display[data-image-id="${imageId}"]`,
+            `.info-box-public-display[data-image-id="${imageId}"]`
+        ];
+
+        const elements = displaySelectors.map(selector => document.querySelector(selector)).filter(Boolean);
+        const text = isPublic ? 'Public' : 'Private';
+
+        elements.forEach(display => {
+            display.textContent = text;
+        });
+    }
+
+    /**
+     * Individual checkbox updates (legacy method)
+     * @private
+     */
+    _updateIndividualCheckboxes(imageId, isPublic) {
+        const selectors = [
+            `#public-toggle-${imageId}`,
+            `#public-toggle-list-${imageId}`,
+            `#public-toggle-compact-${imageId}`
+        ];
+
+        selectors.forEach(selector => {
+            const checkbox = document.querySelector(selector);
+            if (checkbox) {
+                checkbox.checked = isPublic;
+            }
+        });
+    }
+
+    /**
+     * Individual display updates (legacy method)
+     * @private
+     */
+    _updateIndividualDisplays(imageId, isPublic) {
+        const displaySelectors = [
+            `.list-public-display[data-image-id="${imageId}"]`,
+            `.compact-public-display[data-image-id="${imageId}"]`,
+            `.info-box-public-display[data-image-id="${imageId}"]`
+        ];
+
+        displaySelectors.forEach(selector => {
+            const display = document.querySelector(selector);
+            if (display) {
+                display.textContent = isPublic ? 'Public' : 'Private';
+            }
+        });
     }
 }
 

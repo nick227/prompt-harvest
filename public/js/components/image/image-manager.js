@@ -252,7 +252,7 @@ class ImageManager {
         this.setupComponentEvents(navControls, infoBox);
 
         // Store components for display
-        this.fullscreenComponents = { imageContainer, infoBox, navControls };
+        this.fullscreenComponents = { imageCon tainer, infoBox, navControls };
 
         // Ensure UI reflects current data state
         this.refreshFullscreenUI();
@@ -415,7 +415,10 @@ class ImageManager {
         return false;
     }
 
+    // DEPRECATED: Use PublicStatusService.updatePublicStatus() instead
+    // This method is kept for backward compatibility only
     async updateImagePublicStatus(imageId, isPublic) {
+        console.warn('⚠️ DEPRECATED: ImageManager.updateImagePublicStatus() is deprecated. Use PublicStatusService.updatePublicStatus() instead.');
         if (!this.validatePublicStatusParams(imageId, isPublic)) {
             return false;
         }
@@ -465,11 +468,13 @@ class ImageManager {
     }
 
     /**
+     * @deprecated Use PublicStatusService.updatePublicStatus() instead
      * Update cached image data with new public status
      * @param {string} imageId - Image ID to update
      * @param {boolean} isPublic - New public status
      */
     updateCachedImageData(imageId, isPublic) {
+        console.warn('⚠️ DEPRECATED: updateCachedImageData() is deprecated. Use PublicStatusService instead.');
         const cached = this.data.getCachedImage(imageId);
 
         if (cached) {
@@ -479,11 +484,13 @@ class ImageManager {
     }
 
     /**
+     * @deprecated Use PublicStatusService.updatePublicStatus() instead
      * Update fullscreen image if it's the current one
      * @param {string} imageId - Image ID to check
      * @param {boolean} isPublic - New public status
      */
     updateFullscreenImageIfCurrent(imageId, isPublic) {
+        console.warn('⚠️ DEPRECATED: updateFullscreenImageIfCurrent() is deprecated. Use PublicStatusService instead.');
         if (this.currentFullscreenImage && this.currentFullscreenImage.id === imageId) {
             this.currentFullscreenImage.isPublic = isPublic;
             this.refreshFullscreenUI();

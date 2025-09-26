@@ -38,6 +38,32 @@ class AIChatWidget {
         this.loadChatHistory();
     }
 
+    /**
+     * Clear invalid conversation ID from localStorage
+     */
+    clearInvalidConversation() {
+        console.log('🧹 [CHAT WIDGET] Clearing invalid conversation ID...');
+        localStorage.removeItem('ai-chat-conversation-id');
+        this.conversationId = null;
+        this.historyLoaded = false;
+        this.historyPage = 0;
+        this.hasMoreHistory = false;
+
+        // Clear any existing history messages from DOM
+        const historyMessages = this.messagesContainer.querySelectorAll('.ai-history-messages');
+
+        historyMessages.forEach(msg => msg.remove());
+
+        // Show welcome message
+        const welcomeMessage = this.messagesContainer.querySelector('.ai-welcome-message');
+
+        if (welcomeMessage) {
+            welcomeMessage.style.display = 'block';
+        }
+
+        console.log('✅ [CHAT WIDGET] Invalid conversation ID cleared');
+    }
+
     createWidget() {
         // Create the main widget container
         this.widget = document.createElement('div');
@@ -644,39 +670,54 @@ class AIChatWidget {
      * Load chat history on widget initialization
      */
     async loadChatHistory() {
-        console.log('🔄 Loading chat history...', {
+        console.log('🔄 [CHAT WIDGET] Loading chat history...', {
             historyLoaded: this.historyLoaded,
-            isLoadingHistory: this.isLoadingHistory
+            isLoadingHistory: this.isLoadingHistory,
+            hasMessagesContainer: !!this.messagesContainer,
+            messagesContainerId: this.messagesContainer?.id
         });
 
         if (this.historyLoaded || this.isLoadingHistory) {
-            console.log('⏭️ Skipping history load - already loaded or loading');
+            console.log('⏭️ [CHAT WIDGET] Skipping history load - already loaded or loading');
 
             return;
         }
-
-        this.isLoadingHistory = true;
 
         try {
             // Get conversation ID from localStorage or generate new one
             const savedConversationId = localStorage.getItem('ai-chat-conversation-id');
 
-            console.log('💾 Saved conversation ID:', savedConversationId);
+            console.log('💾 [CHAT WIDGET] Saved conversation ID:', savedConversationId);
+            console.log('🔍 [CHAT WIDGET] localStorage contents:', {
+                conversationId: localStorage.getItem('ai-chat-conversation-id'),
+                allKeys: Object.keys(localStorage)
+            });
 
             if (savedConversationId) {
                 this.conversationId = savedConversationId;
-                console.log('📚 Loading history for conversation:', this.conversationId);
+                console.log('📚 [CHAT WIDGET] Loading history for conversation:', this.conversationId);
 
-                await this.loadHistoryPage();
+                try {
+                    await this.loadHistoryPage();
+                } catch (error) {
+                    console.error('❌ [CHAT WIDGET] Failed to load history for conversation:', this.conversationId);
+                    console.error('❌ [CHAT WIDGET] This conversation ID may be invalid or expired');
+
+                    // Clear the invalid conversation ID from localStorage
+                    localStorage.removeItem('ai-chat-conversation-id');
+                    this.conversationId = null;
+                    console.log('🧹 [CHAT WIDGET] Cleared invalid conversation ID from localStorage');
+                }
             } else {
-                console.log('ℹ️ No saved conversation ID found');
+                console.log('ℹ️ [CHAT WIDGET] No saved conversation ID found');
             }
         } catch (error) {
-            console.error('❌ Error loading chat history:', error);
+            console.error('❌ [CHAT WIDGET] Error loading chat history:', error);
+            console.error('❌ [CHAT WIDGET] Error stack:', error.stack);
         } finally {
             this.isLoadingHistory = false;
             this.historyLoaded = true;
-            console.log('✅ Chat history loading completed');
+            console.log('✅ [CHAT WIDGET] Chat history loading completed');
         }
     }
 
@@ -684,15 +725,16 @@ class AIChatWidget {
      * Load a page of chat history
      */
     async loadHistoryPage() {
-        console.log('📄 Loading history page:', {
+        console.log('📄 [CHAT WIDGET] Loading history page:', {
             conversationId: this.conversationId,
             page: this.historyPage,
             limit: this.historyLimit,
-            isLoadingHistory: this.isLoadingHistory
+            isLoadingHistory: this.isLoadingHistory,
+            hasMessagesContainer: !!this.messagesContainer
         });
 
         if (!this.conversationId || this.isLoadingHistory) {
-            console.log('⏭️ Skipping history page load - no conversation ID or already loading');
+            console.log('⏭️ [CHAT WIDGET] Skipping history page load - no conversation ID or already loading');
 
             return;
         }
@@ -703,7 +745,12 @@ class AIChatWidget {
         try {
             const url = `/api/ai-chat/history/${this.conversationId}?page=${this.historyPage}&limit=${this.historyLimit}`;
 
-            console.log('🌐 Fetching history from:', url);
+            console.log('🌐 [CHAT WIDGET] Fetching history from:', url);
+            console.log('🔍 [CHAT WIDGET] Request details:', {
+                url,
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -712,46 +759,78 @@ class AIChatWidget {
                 }
             });
 
-            console.log('📡 History response status:', response.status);
+            console.log('📡 [CHAT WIDGET] History response status:', response.status);
+            console.log('📡 [CHAT WIDGET] Response headers:', Object.fromEntries(response.headers.entries()));
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+
+                console.error('❌ [CHAT WIDGET] HTTP error response:', errorText);
+
+                // If it's a 404, the conversation doesn't exist
+                if (response.status === 404) {
+                    console.error('❌ [CHAT WIDGET] Conversation not found (404) - clearing from localStorage');
+                    localStorage.removeItem('ai-chat-conversation-id');
+                    this.conversationId = null;
+                }
+
+                throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
             }
 
             const data = await response.json();
 
-            console.log('📊 History response data:', data);
+            console.log('📊 [CHAT WIDGET] History response data:', data);
+            console.log('📊 [CHAT WIDGET] Response structure:', {
+                hasHistory: !!data.history,
+                historyLength: data.history?.length || 0,
+                page: data.page,
+                limit: data.limit,
+                hasMore: data.hasMore
+            });
 
             const history = data.history || [];
 
-            console.log('📚 History messages count:', history.length);
+            console.log('📚 [CHAT WIDGET] History messages count:', history.length);
 
             if (history.length === 0) {
-                console.log('ℹ️ No history messages found');
+                console.log('ℹ️ [CHAT WIDGET] No history messages found');
                 this.hasMoreHistory = false;
+
+                // Show welcome message if no history
+                const welcomeMessage = this.messagesContainer.querySelector('.ai-welcome-message');
+
+                if (welcomeMessage) {
+                    console.log('👋 [CHAT WIDGET] Showing welcome message - no history');
+                    welcomeMessage.style.display = 'block';
+                }
 
                 return;
             }
 
             // Add history messages to the beginning of the container
-            console.log('➕ Adding history messages to chat');
+            console.log('➕ [CHAT WIDGET] Adding history messages to chat');
             this.addHistoryMessages(history);
 
             // Check if we have more history
             this.hasMoreHistory = history.length === this.historyLimit;
             this.historyPage++;
-            console.log('📈 Updated pagination:', {
+            console.log('📈 [CHAT WIDGET] Updated pagination:', {
                 hasMoreHistory: this.hasMoreHistory,
                 nextPage: this.historyPage
             });
 
         } catch (error) {
-            console.error('❌ Error loading history page:', error);
+            console.error('❌ [CHAT WIDGET] Error loading history page:', error);
+            console.error('❌ [CHAT WIDGET] Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
             this.hasMoreHistory = false;
         } finally {
             this.isLoadingHistory = false;
             this.hideHistoryLoadingIndicator();
-            console.log('✅ History page loading completed');
+            console.log('✅ [CHAT WIDGET] History page loading completed');
         }
     }
 
@@ -759,15 +838,35 @@ class AIChatWidget {
      * Add history messages to the chat
      */
     addHistoryMessages(history) {
-        console.log('🎨 Adding history messages to DOM:', {
+        console.log('🎨 [CHAT WIDGET] Adding history messages to DOM:', {
             messageCount: history.length,
-            messagesContainer: !!this.messagesContainer
+            messagesContainer: !!this.messagesContainer,
+            messagesContainerId: this.messagesContainer?.id,
+            messagesContainerChildren: this.messagesContainer?.children?.length || 0
         });
 
         if (!this.messagesContainer) {
-            console.error('❌ Messages container not found!');
+            console.error('❌ [CHAT WIDGET] Messages container not found!');
+            console.error('❌ [CHAT WIDGET] Available elements:', {
+                hasWidget: !!document.getElementById('ai-chat-widget'),
+                hasPanel: !!document.getElementById('ai-chat-panel'),
+                hasMessages: !!document.getElementById('ai-chat-messages')
+            });
 
             return;
+        }
+
+        // Hide welcome message when history is loaded
+        const welcomeMessage = this.messagesContainer.querySelector('.ai-welcome-message');
+
+        if (welcomeMessage) {
+            console.log('🙈 [CHAT WIDGET] Hiding welcome message');
+            console.log('🙈 [CHAT WIDGET] Welcome message element:', {
+                found: !!welcomeMessage,
+                currentDisplay: welcomeMessage.style.display,
+                className: welcomeMessage.className
+            });
+            welcomeMessage.style.display = 'none';
         }
 
         // Create a temporary container to hold history messages

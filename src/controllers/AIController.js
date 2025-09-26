@@ -95,25 +95,14 @@ export class AIController {
         }
     }
 
-    // Cache Management
-    async getCacheStats(req, res) {
+    // Word Statistics
+    async getWordStats(req, res) {
         try {
-            const stats = this.aiService.getCacheStats();
+            const stats = this.aiService.getWordStats();
 
             res.json(stats);
         } catch (error) {
-            console.error('❌ Get cache stats error:', error);
-            res.status(500).json({ error: error.message });
-        }
-    }
-
-    async clearCache(req, res) {
-        try {
-            const result = this.aiService.clearCache();
-
-            res.json(result);
-        } catch (error) {
-            console.error('❌ Clear cache error:', error);
+            console.error('❌ Get word stats error:', error);
             res.status(500).json({ error: error.message });
         }
     }
