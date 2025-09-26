@@ -86,8 +86,13 @@ export const setupWordRoutes = app => {
                 try {
                     const typesArray = Array.isArray(record.types) ? record.types : [];
                     if (typesArray && typesArray.length > 0) {
-                        const hasMatch = typesArray.some(type => type && type.toLowerCase().includes(word.toLowerCase())
-                        );
+                        const hasMatch = typesArray.some(type => {
+                            if (!type || typeof type !== 'string') return false;
+                            const typeLower = type.toLowerCase();
+                            const wordLower = word.toLowerCase();
+                            // Check if type starts with the word or word starts with the type
+                            return typeLower.startsWith(wordLower) || wordLower.startsWith(typeLower);
+                        });
 
                         if (hasMatch && record.word && !results.includes(record.word)) {
                             results.push(record.word);
