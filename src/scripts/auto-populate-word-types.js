@@ -31,32 +31,32 @@ export async function autoPopulateWordTypes() {
     try {
         // Check if we're on Railway
         const isRailway = process.env.RAILWAY_ENVIRONMENT || process.env.DATABASE_URL?.includes('railway.internal');
-        
+
         if (!isRailway) {
             console.log('ℹ️ Not on Railway, skipping word_types auto-population');
             return;
         }
-        
+
         console.log('🔍 Checking Railway word_types table...');
-        
+
         // Check current count
         const currentCount = await prisma.word_types.count();
         console.log(`📊 Current word_types count: ${currentCount}`);
-        
+
         if (currentCount === 0) {
             console.log('📥 Railway word_types table is empty, populating...');
-            
+
             await prisma.word_types.createMany({
                 data: essentialWordTypes,
                 skipDuplicates: true
             });
-            
+
             const newCount = await prisma.word_types.count();
             console.log(`✅ Populated Railway word_types with ${newCount} records`);
         } else {
             console.log(`✅ Railway word_types already has ${currentCount} records`);
         }
-        
+
     } catch (error) {
         console.error('❌ Auto-populate word_types failed:', error.message);
         // Don't throw - this shouldn't prevent server startup
