@@ -22,7 +22,6 @@ import { QueueInitializationManager } from './QueueInitializationManager.js';
 import { QueueValidationHelper } from './QueueValidationHelper.js';
 import { ENQUEUE_CANCEL } from './QueueSymbols.js';
 import { QueuePriorityHandler } from './QueuePriorityHandler.js';
-import { QueueDeprecatedMethods } from './QueueDeprecatedMethods.js';
 
 // Import type definitions
 import '../queue/types/QueueTypes.js';
@@ -151,8 +150,6 @@ export class QueueManager {
         // Initialize priority handler
         this._priorityHandler = new QueuePriorityHandler(this._analytics, this._epochNow);
 
-        // Initialize deprecated methods handler
-        this._deprecatedMethods = new QueueDeprecatedMethods(this._analytics, this._epochNow);
         this._operations = managers.operations;
         this._shutdown = managers.shutdown;
         this._validation = managers.validation;
@@ -203,13 +200,11 @@ export class QueueManager {
             enqueuedAt: this._getEnqueuedTimestamp()
         });
 
-        // Calculate normalized priority for consistent metrics
-        const normalizedPriority = this._priorityHandler.calculateNormalizedPriority(opts.priority);
-
-        this._priorityHandler.recordQueueAddMetrics(opts, priorityOriginal, normalizedPriority);
-
         try {
             const promise = this._enqueueTask(wrappedFunction, { ...opts, abortSignal });
+
+            // Record queue add metrics only after successful enqueue (gates behind abort check)
+            this._priorityHandler.recordQueueAddMetrics(opts, priorityOriginal, opts.priority);
 
             this._taskManager.setupTaskTracking(promise, {
                 options: opts,
@@ -241,6 +236,9 @@ export class QueueManager {
 
         this._signalHandler.normalizeSignalOptions(opts);
         this._duplicateRequestHandler.handleDuplicateRequestIds(opts);
+
+        // Normalize priority once and store it on opts.priority for consistent use everywhere
+        opts.priority = this._priorityHandler.calculateNormalizedPriority(opts.priority);
 
         return opts;
     }
@@ -326,38 +324,6 @@ export class QueueManager {
         };
     }
 
-    /**
-     * Get queue data for monitoring (lightweight view)
-     * @deprecated Use getOverview() for most use cases
-     * @returns {Object} Queue data with deprecated shape
-     */
-    getQueueData() {
-        const data = this._getQueueData();
-
-        return this._deprecatedMethods.getQueueData(data);
-    }
-
-    /**
-     * Get queue status (lightweight view)
-     * @deprecated Use getOverview() for most use cases
-     * @returns {Object} Queue status with deprecated shape
-     */
-    getQueueStatus() {
-        const data = this._getQueueData();
-
-        return this._deprecatedMethods.getQueueStatus(data);
-    }
-
-    /**
-     * Get queue metrics (lightweight view)
-     * @deprecated Use getOverview() for most use cases
-     * @returns {Object} Queue metrics with deprecated shape
-     */
-    getQueueMetrics() {
-        const data = this._getQueueData();
-
-        return this._deprecatedMethods.getQueueMetrics(data);
-    }
 
     /**
      * Get enhanced queue metrics with historical data
@@ -430,7 +396,7 @@ export class QueueManager {
             // Performance indicators (fractions: 0.0 to 1.0)
             successRate: health.indicators?.successRate ?? 0,
             errorRate: health.indicators?.errorRate ?? 0,
-            avgProcessingTime: enhancedMetrics.performance?.avgProcessingTime ?? 0,
+            avgProcessingTime: enhancedMetrics?.performance?.avgProcessingTime ?? 0,
 
             // Health indicators
             warnings: data.health.warnings,
@@ -529,8 +495,12 @@ export class QueueManager {
      */
     async updateConcurrency(concurrency) {
         // Input guard: Validate concurrency value (must be positive integer)
-        if (typeof concurrency !== 'number' || !Number.isFinite(concurrency) || concurrency < 1 || !Number.isInteger(concurrency)) {
-            throw new ValidationError(`Invalid concurrency value: ${concurrency}. Must be a positive integer >= 1.`);
+        if (typeof concurrency !== 'number' || !Number.isFinite(concurrency) ||
+            concurrency < 1 || !Number.isInteger(concurrency)) {
+            throw new ValidationError(
+                `Invalid concurrency value: ${concurrency}. ` +
+                `Must be a positive integer >= 1 (received ${typeof concurrency}).`
+            );
         }
 
         const result = await this._initialization.updateConcurrency(concurrency);
@@ -743,28 +713,25 @@ export class QueueManager {
      */
     _enqueueTask(wrappedFunction, options) {
         // Add the wrapped function to p-queue with priority and signal
-        // Priority is already normalized in QueueValidation, so use it directly
-        const { priority } = options; // Already normalized to p-queue format
+        // Priority is already normalized in _prepareTaskOptions, so use it directly
+        const { priority } = options; // Already normalized
 
         // Belt-and-suspenders: Final NaN check before enqueue
         if (typeof priority === 'number' && !Number.isFinite(priority)) {
             console.warn(`QueueManager: Priority ${priority} is NaN/Infinity, defaulting to 0`);
         }
 
-        // Use consistent priority normalization
-        const clampedPriority = this._priorityHandler.calculateNormalizedPriority(priority);
-
         // Fast-fail for already-aborted signals (improves observability)
         if (options.abortSignal?.aborted) {
             const queueSnapshot = this.queueService.getMetrics()?.current ?? {};
-            const error = this._priorityHandler.handlePreAbortedSignal(options, clampedPriority, queueSnapshot);
+            const error = this._priorityHandler.handlePreAbortedSignal(options, priority, queueSnapshot);
 
             throw error;
         }
 
         // Create new options object with p-queue understood fields
         const queueOptions = {
-            priority: clampedPriority, // Explicit number type for p-queue with range clamping
+            priority, // Already normalized in _prepareTaskOptions
             signal: options.abortSignal // Re-enable p-queue's native pre-start cancellation
         };
 
