@@ -212,7 +212,7 @@ class ImageDOMUtils {
             rating: parseInt(rawData.rating) || 0,
             isPublic: rawData.isPublic || false,
             userId: rawData.userId || (currentUser ? currentUser.id : null),
-            username: rawData.username || null,
+            username: rawData.username || (currentUser ? currentUser.username : null),
             createdAt: rawData.createdAt || new Date().toISOString(),
             filter: currentUser ? 'user' : 'site'
         };

@@ -8,11 +8,11 @@
  * Provider type mapping - maps database providers to ImageGenerator types
  */
 export const PROVIDER_TYPE_MAP = {
-    'openai': 'openai',
-    'dezgo': 'dezgo',
-    'google': 'google',
-    'stability': 'dezgo', // Map stability to dezgo since we don't have stability handler
-    'stabilityAi': 'dezgo' // Alternative stability mapping
+    openai: 'openai',
+    dezgo: 'dezgo',
+    google: 'google',
+    stability: 'dezgo', // Map stability to dezgo since we don't have stability handler
+    stabilityAi: 'dezgo' // Alternative stability mapping
 };
 
 /**
@@ -29,6 +29,7 @@ export function deduplicateProviders(providers) {
     if (!Array.isArray(providers)) {
         return [];
     }
+
     return Array.from(new Set(providers));
 }
 
@@ -54,6 +55,7 @@ export function validateProviders(providers) {
  */
 export function createProviderLogCopy(providers) {
     const safeCopy = deduplicateProviders(providers);
+
     return {
         count: safeCopy.length,
         providers: safeCopy,

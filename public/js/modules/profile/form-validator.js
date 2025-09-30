@@ -66,8 +66,21 @@ class ProfileFormValidator {
             return { valid: false, message: 'File must be an image' };
         }
 
-        if (file.size > 5 * 1024 * 1024) {
-            return { valid: false, message: 'File must be smaller than 5MB' };
+        // Check file size with detailed error message
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+            const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(0);
+            return {
+                valid: false,
+                message: `Image is too large (${fileSizeMB}MB). Maximum size is ${maxSizeMB}MB. Please choose a smaller image or compress it.`
+            };
+        }
+
+        // Check minimum file size (avoid empty/corrupted files)
+        const minSize = 1024; // 1KB
+        if (file.size < minSize) {
+            return { valid: false, message: 'File appears to be empty or corrupted. Please choose a valid image.' };
         }
 
         return { valid: true, message: 'File is valid' };
@@ -115,3 +128,6 @@ class ProfileFormValidator {
         return { enabled: false, reason: 'No longer used' };
     }
 }
+
+// Export for global access
+window.ProfileFormValidator = ProfileFormValidator;

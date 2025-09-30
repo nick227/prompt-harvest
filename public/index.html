@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="css/optimized.css" />
     <link rel="stylesheet" href="css/mobile.css" />
     <link rel="stylesheet" href="css/credits-modal.css" />
-    <link rel="stylesheet" href="css/ai-chat-widget.css" />
+    <!-- AI Chat Widget CSS will be loaded lazily -->
     <link rel="icon" href="/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -58,27 +58,16 @@
                         </label>
                         <input type="number" name="maxNum" id="maxNum"
                             class="w-24 bg-white text-gray-800 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="max" min="1" max="10" value="3"
-                            oninput="validateMaxNum(this)"
-                            onkeypress="preventInvalidChars(event)"
-                            onpaste="handleMaxNumPaste(event)" />
+                            placeholder="max" min="1" max="10" value="3" oninput="validateMaxNum(this)"
+                            onkeypress="preventInvalidChars(event)" onpaste="handleMaxNumPaste(event)" />
                     </div>
                 </div>
 
-                <!-- Search / Replace -->
                 <div class="flex items-end search-replace">
-                    <input type="text" placeholder="search" name="search_term" id="search_term"
-                        class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2" />
-                    <input type="text" placeholder="replace" name="replace_term" id="replace_term"
-                        class="w-20 bg-white text-gray-800 px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2" />
+                    <!-- Magic Prompt -->
                     <button
-                        class="btn-replace bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap mr-2">Replace</button>
-                        <button
-                            class="btn-record mr-2 bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap"><i
-                                class="fas fa-microphone"></i></button>
-                                <button
-                                    class="btn-magic bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap"><i
-                                        class="fas fa-wand-magic-sparkles"></i></button>
+                        class="btn-magic bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors whitespace-nowrap"><i
+                            class="fas fa-wand-magic-sparkles"></i></button>
                 </div>
 
             </div>
@@ -90,7 +79,7 @@
         <!-- Prompt Textarea -->
         <textarea id="prompt-textarea"
             class="w-full bg-white text-gray-800 px-3 py-2 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows="6" placeholder="Enter your prompt here..."></textarea>
+            rows="3" placeholder="Enter your prompt here..."></textarea>
 
         <!-- Generate Button -->
         <div class="w-full mt-4">
@@ -120,7 +109,8 @@
                             data-owner="1">
                             <input type="radio" name="view" value="compact" checked> Compact</label>
                         <!-- Owner Filter Dropdown -->
-                        <select name="owner" class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <select name="owner"
+                            class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="site">Public</option>
                             <option value="user" selected>Private</option>
                         </select>
@@ -128,7 +118,8 @@
                 </div>
 
                 <!-- Image Grid -->
-                <div id="image-container-main" class="prompt-output flex flex-wrap gap-2 pb-16 h-full overflow-y-auto"></div>
+                <div id="image-container-main" class="prompt-output flex flex-wrap gap-2 pb-16 h-full overflow-y-auto">
+                </div>
             </div>
         </div>
     </main>
@@ -138,22 +129,20 @@
     <script src="js/config/tailwind-config.js"></script>
     <script src="js/utils/input-helpers.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
-    
+
     <!-- Core Components (Required for functionality) -->
-    <script src="js/components/header-component.js"></script>
-    <script src="js/components/unified-drawer-component.js"></script>
-    <script src="js/components/theme-manager.js"></script>
-    <script src="js/components/controls-drawer.js"></script>
-    <script src="js/components/mobile-controls-manager.js"></script>
     <script src="js/components/transaction-stats-component.js"></script>
     <script src="js/components/credit-balance-widget.js"></script>
+    <script src="js/components/header-component.js"></script>
+    <script src="js/components/simple-drawer.js"></script>
+    <script src="js/components/theme-manager.js"></script>
     <script src="js/components/global-credits-modal.js"></script>
-    <script src="js/components/ai-chat-widget.js"></script>
+    <!-- AI Chat Widget temporarily removed -->
     <script src="js/components/ai-image-generator-widget.js"></script>
     <script src="js/components/rating-buttons.js"></script>
     <script src="js/components/multiselect-dropdown.js"></script>
     <script src="js/components/profile-component.js"></script>
-    
+
     <!-- Core Services -->
     <script src="js/core/constants.js"></script>
     <script src="js/core/utils.js"></script>
@@ -162,20 +151,20 @@
     <script src="js/core/api-service.js"></script>
     <script src="js/core/notification-service.js"></script>
     <script src="js/core/user-system.js"></script>
-    <script src="js/core/prompt-history-service.js"></script>
     <script src="js/core/error-handler.js"></script>
     <script src="js/core/image-factory.js"></script>
-    
+
     <!-- Services -->
     <script src="js/services/stats-service.js"></script>
     <script src="js/services/public-status-service.js"></script>
-    <script src="js/services/speech-to-text-service.js"></script>
     <script src="js/services/prompt-organizer-service.js"></script>
     <script src="js/services/UnifiedCreditService.js"></script>
+    <script src="js/services/unified-stats-service.js"></script>
+    <script src="js/services/unified-event-service.js"></script>
     <script src="js/services/messaging-service.js"></script>
     <script src="js/services/ai-image-generator-service.js"></script>
     <script src="js/services/CreditsModalService.js"></script>
-    
+
     <!-- Image System -->
     <script src="js/components/image/image-manager.js"></script>
     <script src="js/components/image/unified-info-box.js"></script>
@@ -190,42 +179,48 @@
     <script src="js/components/image/ui-config.js"></script>
     <script src="js/components/image/navigation-controls.js"></script>
     <script src="js/components/mobile-table.js"></script>
-    
+
+    <!-- Prompt Helpers System -->
+    <script src="js/config/prompt-helpers.js"></script>
+    <script src="js/components/prompt-helpers-form.js"></script>
+
     <!-- Generation System -->
     <script src="js/components/generation/generation-data.js"></script>
     <script src="js/components/generation/generation-events.js"></script>
     <script src="js/components/generation/generation-ui.js"></script>
     <script src="js/components/generation/generation-manager.js"></script>
     <script src="js/components/generation/generation-component.js"></script>
-    
+
     <!-- Feed System -->
-    <script src="js/modules/feed/feed-manager-refactored.js"></script>
+    <script src="js/modules/feed/feed-constants.js"></script>
+    <script src="js/modules/feed/feed-dom-operations.js"></script>
+    <script src="js/modules/feed/feed-image-handler.js"></script>
+    <script src="js/modules/feed/feed-download-manager.js"></script>
+    <script src="js/modules/feed/feed-cache-manager.js"></script>
     <script src="js/modules/feed/feed-api-manager.js"></script>
     <script src="js/modules/feed/feed-ui-manager.js"></script>
     <script src="js/modules/feed/feed-filter-manager.js"></script>
     <script src="js/modules/feed/feed-view-manager.js"></script>
-    <script src="js/modules/feed/feed-cache-manager.js"></script>
-    <script src="js/modules/feed/feed-dom-manager.js"></script>
-    <script src="js/modules/feed/feed-constants.js"></script>
+    <script src="js/modules/feed/feed-manager-core.js"></script>
     <script src="js/modules/feed/fill-to-bottom-manager.js"></script>
     <script src="js/modules/feed/hybrid-tab-service.js"></script>
     <script src="js/modules/feed/image-count-manager.js"></script>
-    
+
     <!-- Themes -->
     <script src="js/themes/managers/ColorPaletteManager.js"></script>
     <script src="js/themes/composers/ThemeComposer.js"></script>
     <script src="js/themes/ThemeCSSGenerator.js"></script>
-    <script src="js/themes/ThemeServiceTester.js"></script>
     <script src="js/themes/SimpleThemeService.js"></script>
     <script src="js/themes/ThemeValidator.js"></script>
     <script src="js/themes/ThemePreview.js"></script>
     <script src="js/themes/ThemeReadabilityTester.js"></script>
-    
+
     <!-- Missing Managers -->
     <script src="js/modules/textarea/match-processor.js"></script>
     <script src="js/modules/textarea/search-replace.js"></script>
     <script src="js/modules/textarea/text-utils.js"></script>
     <script src="js/modules/textarea/textarea-manager.js"></script>
+    <script src="js/modules/textarea.js"></script>
     <script src="js/modules/guidance/guidance-manager.js"></script>
     <script src="js/modules/rating/rating-manager.js"></script>
     <script src="js/modules/stats/stats-manager.js"></script>
@@ -241,7 +236,7 @@
     <script src="js/modules/search.js"></script>
     <script src="js/modules/providers/provider-manager.js"></script>
     <script src="js/utils/tag-router.js"></script>
-    
+
     <!-- Main App -->
     <script src="js/app.js"></script>
 

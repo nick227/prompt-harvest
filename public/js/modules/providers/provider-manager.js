@@ -24,6 +24,7 @@ class ProviderManager {
 
         if (this.providerList) {
             this.populateProviders();
+            this.bindEvents();
         } else {
             console.warn('Provider list container not found, will retry when DOM is ready');
 
@@ -48,11 +49,13 @@ class ProviderManager {
             // console.log('🔄 Loading providers from API...');
 
             const response = await fetch('/api/providers/models/all');
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
             const data = await response.json();
+
             if (!data.success || !data.data.models) {
                 throw new Error('Invalid API response format');
             }
@@ -98,7 +101,6 @@ class ProviderManager {
                 { value: 'nanoBanana', label: 'Google Imagen 3' }
             ];
 
-            console.log('⚠️ Using fallback static providers (unified interface fallback)');
         }
     }
 
@@ -171,16 +173,7 @@ class ProviderManager {
             // Sort providers after loading saved selections
             this.sortProviderList();
 
-            // Update mobile provider list if mobile controls manager exists (with delay)
-            // Only update if we're not already updating to prevent infinite loops
-            if (window.mobileControlsManager && typeof window.mobileControlsManager.updateProviderList === 'function' && !this.isUpdatingMobile) {
-                this.isUpdatingMobile = true;
-                setTimeout(() => {
-                    console.log('🔄 PROVIDER MANAGER: Updating mobile provider list after populateProviders');
-                    window.mobileControlsManager.updateProviderList(this.providerList.innerHTML);
-                    this.isUpdatingMobile = false;
-                }, 50);
-            }
+            // No need to sync with mobile since we have a single responsive drawer
         }, 0);
     }
 
@@ -196,7 +189,8 @@ class ProviderManager {
             // Use setTimeout to ensure the checkbox state is properly set before sorting
             setTimeout(() => {
                 if (e.target.id === 'all') {
-                    this.handleAllCheckbox(e.target.checked);
+                    this.handleAllCheckbox(wasChecked);
+                    // Don't call handleProviderCheckbox() for "all" checkbox to prevent state override
                 } else if (e.target.name === 'providers') {
                     this.handleProviderCheckbox();
                 }
@@ -233,6 +227,7 @@ class ProviderManager {
         // Filter out the "all" label
         const providerLabelsOnly = providerLabels.filter(label => {
             const checkbox = label.querySelector('input[name="providers"]');
+
             return checkbox !== null;
         });
 
@@ -271,6 +266,7 @@ class ProviderManager {
         // Find the "all" label to maintain its position at the end
         const allCheckbox = this.providerList.querySelector('#all');
         const allLabel = allCheckbox ? allCheckbox.closest('label') : null;
+
         if (allLabel) {
             fragment.appendChild(allLabel);
         }
@@ -279,15 +275,7 @@ class ProviderManager {
         this.providerList.innerHTML = '';
         this.providerList.appendChild(fragment);
 
-        // Update mobile provider list after sorting (with delay to ensure desktop is stable)
-        // Only update if we're not already updating to prevent infinite loops
-        if (window.mobileControlsManager && typeof window.mobileControlsManager.updateProviderList === 'function' && !this.isUpdatingMobile) {
-            this.isUpdatingMobile = true;
-            setTimeout(() => {
-                window.mobileControlsManager.updateProviderList(this.providerList.innerHTML);
-                this.isUpdatingMobile = false;
-            }, 50);
-        }
+        // No need to sync with mobile since we have a single responsive drawer
     }
 
     scrollProviderList() {
@@ -315,6 +303,13 @@ class ProviderManager {
         providerCheckboxes.forEach(checkbox => {
             checkbox.checked = checked;
         });
+
+        // Update the "all" checkbox state to match
+        const allCheckbox = this.providerList.querySelector('#all');
+        if (allCheckbox) {
+            allCheckbox.checked = checked;
+            allCheckbox.indeterminate = false;
+        }
 
         // Sort and scroll after handling all checkbox
         this.sortProviderList();
@@ -347,23 +342,12 @@ class ProviderManager {
         const selected = [];
 
         if (!this.providerList) {
-            console.warn('Provider list not ready, returning empty selection');
 
             return selected;
         }
 
-        // Check if we're on mobile and use mobile provider list if available
-        const isMobile = window.innerWidth <= 768;
-        let providerList = this.providerList;
-
-        if (isMobile && window.mobileControlsManager && window.mobileControlsManager.mobileDrawer) {
-            const mobileProviderList = window.mobileControlsManager.mobileDrawer.querySelector('#mobile-provider-list');
-            if (mobileProviderList) {
-                providerList = mobileProviderList;
-            }
-        }
-
-        const providerCheckboxes = providerList.querySelectorAll('input[name="providers"]:checked');
+        // Always use desktop provider list as source of truth
+        const providerCheckboxes = this.providerList.querySelectorAll('input[name="providers"]:checked');
 
         providerCheckboxes.forEach(checkbox => {
             selected.push(checkbox.value);
@@ -416,7 +400,6 @@ class ProviderManager {
         const selectedProviders = this.getSelectedProviders();
 
         localStorage.setItem('selectedProviders', JSON.stringify(selectedProviders));
-        console.log('💾 Saved provider selections:', selectedProviders);
     }
 
     loadProviderSelections() {
@@ -424,14 +407,10 @@ class ProviderManager {
             const saved = localStorage.getItem('selectedProviders');
 
             if (saved) {
-                const selections = JSON.parse(saved);
-
-                // console.log('📂 Loaded provider selections:', selections);
-
-                return selections;
+                return JSON.parse(saved);
             }
         } catch (error) {
-            console.warn('⚠️ Failed to load provider selections from localStorage:', error);
+            console.warn('⚠️ PROVIDER MANAGER: Failed to load provider selections from localStorage:', error);
         }
 
         // Default selection: Flux as the primary default model
@@ -440,7 +419,6 @@ class ProviderManager {
 
     clearProviderSelections() {
         localStorage.removeItem('selectedProviders');
-        console.log('🗑️ Cleared provider selections from localStorage');
     }
 
     /**
@@ -450,25 +428,17 @@ class ProviderManager {
         const selectedProviders = this.getSelectedProviders();
 
         if (selectedProviders.length === 0) {
-            console.log('🔧 No providers selected, defaulting to Flux');
 
             // Set Flux as default on desktop
             const fluxCheckbox = this.providerList.querySelector('input[value="flux"]');
+
             if (fluxCheckbox) {
                 fluxCheckbox.checked = true;
                 // Trigger change event to ensure proper state updates
                 fluxCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
             }
 
-            // Set Flux as default on mobile
-            if (window.mobileControlsManager && window.mobileControlsManager.mobileDrawer) {
-                const mobileFluxCheckbox = window.mobileControlsManager.mobileDrawer.querySelector('input[value="flux"]');
-                if (mobileFluxCheckbox) {
-                    mobileFluxCheckbox.checked = true;
-                    // Trigger change event on mobile as well
-                    mobileFluxCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            }
+            // Mobile will be handled by the updateProviderList call that happens after this
 
             // Save the selection
             this.saveProviderSelections();

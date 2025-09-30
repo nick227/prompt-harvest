@@ -281,7 +281,7 @@ input[type="radio"]:checked + span {
 }
 
 /* Provider and history lists */
-#provider-list, #prompt-history, #mobile-provider-list, #mobile-prompt-history {
+#provider-list, #mobile-provider-list {
     color: var(--color-text-primary) !important;
 }
 
@@ -349,107 +349,6 @@ ${theme.name === 'Monokai' ? `
 .prompt-textarea .string { color: var(--color-accent-tertiary) !important; }
 .prompt-textarea .comment { color: var(--color-prompt-placeholder) !important; }
 ` : ''}
-
-/* Auto and Enhance Labels - Important accent styling */
-.auto-label {
-    background: var(--color-label-auto-bg) !important;
-    color: var(--color-text-inverse) !important;
-    border: 2px solid var(--color-label-auto-border) !important;
-    border-radius: 12px !important;
-    padding: 8px 16px !important;
-    font-weight: 600 !important;
-    font-size: 14px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-    transition: all 0.3s ease !important;
-    position: relative !important;
-    overflow: hidden !important;
-}
-
-.auto-label:hover {
-    background: var(--color-label-auto-hover) !important;
-    border-color: var(--color-label-auto-bg) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-}
-
-.auto-label input[type="checkbox"]:checked + span {
-    color: var(--color-text-inverse) !important;
-    font-weight: 700 !important;
-}
-
-.auto-label input[type="checkbox"]:checked {
-    accent-color: var(--color-text-inverse) !important;
-}
-
-.enhance-label {
-    background: var(--color-label-enhance-bg) !important;
-    color: var(--color-text-inverse) !important;
-    border: 2px solid var(--color-label-enhance-border) !important;
-    border-radius: 12px !important;
-    padding: 8px 16px !important;
-    font-weight: 600 !important;
-    font-size: 14px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-    transition: all 0.3s ease !important;
-    position: relative !important;
-    overflow: hidden !important;
-}
-
-.enhance-label:hover {
-    background: var(--color-label-enhance-hover) !important;
-    border-color: var(--color-label-enhance-bg) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-}
-
-.enhance-label input[type="checkbox"]:checked + span {
-    color: var(--color-text-inverse) !important;
-    font-weight: 700 !important;
-}
-
-.enhance-label input[type="checkbox"]:checked {
-    accent-color: var(--color-text-inverse) !important;
-}
-
-/* Auto label special glow effect */
-.auto-label::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: -100% !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
-    transition: left 0.5s ease !important;
-}
-
-.auto-label:hover::before {
-    left: 100% !important;
-}
-
-/* Enhance label special pulse effect */
-.enhance-label::after {
-    content: '' !important;
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    width: 0 !important;
-    height: 0 !important;
-    background: rgba(255, 255, 255, 0.3) !important;
-    border-radius: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    transition: all 0.3s ease !important;
-}
-
-.enhance-label:hover::after {
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 12px !important;
-}
 `;
     }
 }

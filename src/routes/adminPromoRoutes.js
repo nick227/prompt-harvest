@@ -182,5 +182,4 @@ export const setupAdminPromoRoutes = app => {
         });
     }));
 
-    console.log('✅ Admin promo code routes configured successfully');
 };

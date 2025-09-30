@@ -442,7 +442,6 @@ router.post('/verify-payment', async (req, res) => {
         }
 
         // eslint-disable-next-line no-console
-        console.log('🔍 CREDITS: Verifying payment session:', sessionId);
 
         // Get payment details from Stripe service
         const payment = await StripeService.getPaymentBySessionId(sessionId);
@@ -458,7 +457,6 @@ router.post('/verify-payment', async (req, res) => {
 
         // If payment is still pending, try to process it
         if (payment.status === 'pending') {
-            console.log('🔄 CREDITS: Payment is pending, attempting to process...');
 
             try {
                 // Check with Stripe to see if payment was actually completed
@@ -467,7 +465,6 @@ router.post('/verify-payment', async (req, res) => {
                 const session = await stripe.checkout.sessions.retrieve(sessionId);
 
                 if (session.payment_status === 'paid') {
-                    console.log('✅ CREDITS: Payment confirmed as paid by Stripe, processing...');
                     await StripeService.handlePaymentSuccess(sessionId);
 
                     // Get updated payment details
@@ -486,7 +483,6 @@ router.post('/verify-payment', async (req, res) => {
                         processed: true
                     });
                 } else {
-                    console.log(`⏳ CREDITS: Payment not yet completed, status: ${session.payment_status}`);
                 }
             } catch (error) {
                 console.error('❌ CREDITS: Error processing pending payment:', error);

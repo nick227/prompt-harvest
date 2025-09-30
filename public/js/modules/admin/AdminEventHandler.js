@@ -75,13 +75,27 @@ class AdminEventHandler {
     }
 
     setupPromoCardsEventListeners() {
+        console.log('🎭 ADMIN-EVENT: Setting up promo cards event listeners...');
+
         // Add promo card button
         const addPromoCardBtn = document.getElementById('add-promo-card-btn');
+        console.log('🎭 ADMIN-EVENT: Add promo card button found:', !!addPromoCardBtn);
 
         if (addPromoCardBtn) {
             addPromoCardBtn.addEventListener('click', () => {
-                this.uiRenderer.showPromoCardModal();
+                console.log('🎭 ADMIN-EVENT: Add promo card button clicked');
+                console.log('🎭 ADMIN-EVENT: uiRenderer available:', !!this.uiRenderer);
+                console.log('🎭 ADMIN-EVENT: showPromoCardModal method available:', !!(this.uiRenderer && this.uiRenderer.showPromoCardModal));
+
+                if (this.uiRenderer && this.uiRenderer.showPromoCardModal) {
+                    this.uiRenderer.showPromoCardModal();
+                } else {
+                    console.error('🎭 ADMIN-EVENT: uiRenderer or showPromoCardModal method not available');
+                }
             });
+            console.log('🎭 ADMIN-EVENT: Event listener added to add promo card button');
+        } else {
+            console.warn('🎭 ADMIN-EVENT: Add promo card button not found in DOM');
         }
 
         // Listen for table action events from shared table

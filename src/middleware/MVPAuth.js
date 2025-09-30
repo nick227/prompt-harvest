@@ -73,6 +73,7 @@ export const mvpOptionalAuth = (req, res, next) => {
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             req.user = null;
+
             return next();
         }
 

@@ -3,8 +3,8 @@ import nlp from 'compromise';
 import datamuse from 'datamuse';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
-import feed from '../src/feed.js';
-import DatabaseService from '../src/services/feed/DatabaseService.js';
+import generate from '../src/generate.js';
+import DatabaseService from '../src/services/generate/DatabaseService.js';
 import getWordType from '../lib/getWordType.js';
 import wordTypeManager from '../lib/word-type-manager.js';
 import databaseClient from '../src/database/PrismaClient.js';
@@ -98,7 +98,7 @@ const setupPromptRoutes = app => {
         const mixup = req.query.mixup ? decodeURIComponent(req.query.mixup) : false;
         const mashup = req.query.mashup ? decodeURIComponent(req.query.mashup) : false;
         const customVariables = decodeURIComponent(req.query.customVariables);
-        const response = await feed.buildPrompt(prompt, multiplier, mixup, mashup, customVariables, req);
+        const response = await generate.buildPrompt(prompt, multiplier, mixup, mashup, customVariables, req);
 
         res.send(response);
     });

@@ -316,10 +316,9 @@ class CreditsModalService {
      * @returns {string|null} Auth token
      */
     getAuthToken() {
-        const localToken = localStorage.getItem('authToken');
-        const sessionToken = sessionStorage.getItem('authToken');
-
-        return localToken || sessionToken;
+        return window.AdminAuthUtils?.getAuthToken() ||
+               localStorage.getItem('authToken') ||
+               sessionStorage.getItem('authToken');
     }
 }
 

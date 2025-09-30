@@ -35,7 +35,7 @@ export class AIEnhancementService extends BaseAIService {
 
         console.log('🤖 AI ENHANCEMENT: Starting enhancement for prompt:', {
             originalLength: prompt.length,
-            preview: prompt.substring(0, 100) + '...',
+            preview: `${prompt.substring(0, 100)}...`,
             model: this.model,
             maxTokens: this.maxTokens,
             temperature: this.temperature

@@ -5,6 +5,7 @@
 
 import { AIAgentService } from '../services/ai/features/AIAgentService.js';
 import { AIPromptService } from '../services/ai/features/AIPromptService.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const aiAgentService = new AIAgentService();
 const aiPromptService = new AIPromptService();
@@ -16,7 +17,7 @@ export const setupAIChatRoutes = app => {
             const userId = req.user?.id;
 
             console.log('🤖 AI Chat Request:', {
-                message: message?.substring(0, 100) + '...',
+                message: `${message?.substring(0, 100)}...`,
                 user: context?.user,
                 formData: context?.formData,
                 models: context?.models,
@@ -33,7 +34,7 @@ export const setupAIChatRoutes = app => {
             );
 
             console.log('🤖 AI Chat Response:', {
-                response: response?.response?.substring(0, 100) + '...',
+                response: `${response?.response?.substring(0, 100)}...`,
                 buttons: response?.buttons?.length || 0,
                 newPrompt: response?.newPrompt ? 'Yes' : 'No',
                 hasResponse: !!response?.response
@@ -111,6 +112,7 @@ export const setupAIChatRoutes = app => {
             const { type = 'user', limit = 10 } = req.query;
 
             let prompts;
+
             if (type === 'user') {
                 prompts = await aiAgentService.getUserPrompts(userId, parseInt(limit));
             } else {
@@ -125,7 +127,7 @@ export const setupAIChatRoutes = app => {
     });
 
     // Organize prompt endpoint
-    app.post('/api/organize-prompt', async(req, res) => {
+    app.post('/api/organize-prompt', authenticateToken, async(req, res) => {
         try {
             const { prompt, context } = req.body;
             const userId = req.user?.id;
@@ -144,7 +146,7 @@ export const setupAIChatRoutes = app => {
             }
 
             console.log('🔮 Prompt Organization Request:', {
-                prompt: prompt?.substring(0, 100) + '...',
+                prompt: `${prompt?.substring(0, 100)}...`,
                 userId,
                 timestamp: context?.timestamp
             });
@@ -163,10 +165,14 @@ export const setupAIChatRoutes = app => {
             console.error('❌ Prompt Organization Error:', error);
 
             // Provide specific error responses
-            if (error.message.includes('OpenAI')) {
+            if (error.message.includes('OpenAI') || error.message.includes('API key')) {
                 res.status(503).json({ error: 'AI service temporarily unavailable. Please try again later.' });
+            } else if (error.message.includes('rate limit')) {
+                res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
             } else if (error.message.includes('database') || error.message.includes('Prisma')) {
                 res.status(500).json({ error: 'Database error. Please try again.' });
+            } else if (error.message.includes('Invalid prompt')) {
+                res.status(400).json({ error: 'Invalid prompt provided.' });
             } else {
                 res.status(500).json({ error: 'Failed to organize prompt. Please try again.' });
             }

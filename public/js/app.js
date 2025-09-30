@@ -1,6 +1,8 @@
 // Debug mode configuration - set to true for verbose logging
 window.DEBUG_MODE = false; // Set to true to enable debug logging
 
+// PromptHelpersForm is available globally
+
 // Central Application Loader
 class AppLoader {
     constructor() {
@@ -45,7 +47,7 @@ class AppLoader {
             ['stats', () => window.statsManager, ['Utils']],
             ['images', () => window.imagesManager, ['Utils']],
             ['imageComponent', () => new window.ImageComponent(), ['UnifiedNavigation']],
-            ['controlsDrawer', () => new window.ControlsDrawer(), []]
+            ['simpleDrawer', () => new window.SimpleDrawer(), []]
         ];
 
         moduleConfigs.forEach(([name, module, dependencies]) => {
@@ -109,46 +111,6 @@ class AppLoader {
         this.setupAutoGeneration();
         this.initializeComponents();
         this.setupFeed();
-        this.initializePromptHistory();
-    }
-
-    initializePromptHistory() {
-        try {
-            // Check if PromptHistoryService is available, if not wait a bit and try again
-            if (typeof window.PromptHistoryService === 'undefined') {
-                // Only log warning on first few attempts to avoid spam
-                if (!this.promptHistoryRetryCount) {
-                    this.promptHistoryRetryCount = 0;
-                }
-
-                this.promptHistoryRetryCount++;
-
-                // Only show warning for first 3 attempts
-                if (this.promptHistoryRetryCount <= 3) {
-                    console.warn('⚠️ APP: PromptHistoryService not available, retrying in 100ms...');
-                }
-
-                // Stop retrying after 50 attempts (5 seconds)
-                if (this.promptHistoryRetryCount > 50) {
-                    console.error('❌ APP: PromptHistoryService failed to load after 50 attempts');
-
-                    return;
-                }
-
-                setTimeout(() => this.initializePromptHistory(), 100);
-
-                return;
-            }
-
-            // Create and initialize the prompt history service
-            window.promptHistoryService = new window.PromptHistoryService();
-            window.promptHistoryService.init('prompt-history');
-            window.promptHistoryService.initMobile();
-
-            // Prompt history service initialized
-        } catch (error) {
-            console.error('❌ APP: Failed to initialize prompt history service:', error);
-        }
     }
 
     async initializeManagers() {
@@ -233,6 +195,7 @@ class AppLoader {
             }
         }
     }
+
 
 
     async setupFeed() {
@@ -394,11 +357,12 @@ class AppLoader {
         const promptObj = {
             prompt: validation.prompt,
             promptId: Date.now().toString(),
-            original: validation.prompt
+            original: validation.prompt,
+            ...validation // Include all validation options
         };
 
         if (typeof window.generateImage === 'function') {
-            window.generateImage(promptObj.prompt, validation.providers)
+            window.generateImage(promptObj.prompt, validation.providers, promptObj)
                 .then(_result => {
 
                     this.checkAutoGenerationContinue();
@@ -482,11 +446,24 @@ const validateImageGeneration = () => {
     const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
     const mixupCheckbox = document.querySelector('input[name="mixup"]');
     const mashupCheckbox = document.querySelector('input[name="mashup"]');
-    const photogenicCheckbox = document.querySelector('input[name="photogenic"]');
-    const artisticCheckbox = document.querySelector('input[name="artistic"]');
+    const autoPublicCheckbox = document.querySelector('input[name="autoPublic"]');
     const multiplierInput = document.querySelector('#multiplier');
     const guidanceTop = document.querySelector('select[name="guidance-top"]');
     const guidanceBottom = document.querySelector('select[name="guidance-bottom"]');
+
+    // Get prompt helpers using centralized system
+    const promptHelpers = PromptHelpersForm.getFormValues();
+
+    // Debug autoPublic specifically
+    console.log('🔍 APP DEBUG: autoPublic checkbox found:', !!autoPublicCheckbox);
+    if (autoPublicCheckbox) {
+        console.log('🔍 APP DEBUG: autoPublic checkbox checked:', autoPublicCheckbox.checked);
+    } else {
+        console.log('🔍 APP DEBUG: autoPublic checkbox not found, checking localStorage...');
+        const storedAutoPublic = localStorage.getItem('autoPublic');
+        console.log('🔍 APP DEBUG: localStorage autoPublic value:', storedAutoPublic);
+        console.log('🔍 APP DEBUG: localStorage autoPublic type:', typeof storedAutoPublic);
+    }
 
     // Calculate guidance
     const guidanceData = calculateGuidance(guidanceTop?.value, guidanceBottom?.value);
@@ -498,8 +475,8 @@ const validateImageGeneration = () => {
         autoEnhance: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : false,
         mixup: mixupCheckbox ? mixupCheckbox.checked : false,
         mashup: mashupCheckbox ? mashupCheckbox.checked : false,
-        photogenic: photogenicCheckbox ? photogenicCheckbox.checked : false,
-        artistic: artisticCheckbox ? artisticCheckbox.checked : false,
+        promptHelpers,
+        autoPublic: autoPublicCheckbox ? autoPublicCheckbox.checked : (localStorage.getItem('autoPublic') === 'true'),
         multiplier: multiplierInput ? multiplierInput.value.trim() : '',
         guidance: guidanceData.guidance,
         original: textArea.value.trim(),
@@ -512,8 +489,11 @@ const validateImageGeneration = () => {
         checkboxChecked: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : 'checkbox not found',
         mixup: result.mixup,
         mashup: result.mashup,
-        photogenic: result.photogenic,
-        artistic: result.artistic
+        promptHelpers: result.promptHelpers,
+        autoPublic: result.autoPublic,
+        autoPublicCheckbox: autoPublicCheckbox,
+        autoPublicChecked: autoPublicCheckbox ? autoPublicCheckbox.checked : 'checkbox not found',
+        autoPublicFromStorage: localStorage.getItem('autoPublic')
     });
 
     return result;

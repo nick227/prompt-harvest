@@ -234,7 +234,7 @@ const setupStripe = (app, express) => {
     });
 
 
-    console.log('✅ Stripe routes configured successfully');
+    // Stripe routes configured
 };
 
 export default {

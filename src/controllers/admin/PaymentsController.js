@@ -110,7 +110,6 @@ class PaymentsController {
             const totalPages = Math.ceil(totalCount / parseInt(limit));
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PAYMENTS: Retrieved ${payments.length} payments (page ${page}/${totalPages})`);
 
             res.json({
                 success: true,
@@ -226,7 +225,6 @@ class PaymentsController {
             };
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PAYMENTS: Analytics retrieved for ${dateFrom} to ${dateTo}`);
 
             res.json({
                 success: true,
@@ -277,18 +275,25 @@ class PaymentsController {
             // Get all matching payments
             const payments = await prisma.stripePayment.findMany({
                 where,
-                include: {
-                    user: {
-                        select: {
-                            email: true,
-                            username: true
-                        }
-                    }
-                },
                 orderBy: {
                     createdAt: 'desc'
                 }
             });
+
+            // Get user data separately
+            const userIds = [...new Set(payments.map(p => p.userId))];
+            const users = await prisma.user.findMany({
+                where: { id: { in: userIds } },
+                select: { id: true, email: true, username: true }
+            });
+
+            const userMap = new Map(users.map(user => [user.id, user]));
+
+            // Attach user data to payments
+            const paymentsWithUsers = payments.map(payment => ({
+                ...payment,
+                user: userMap.get(payment.userId) || null
+            }));
 
             if (format === 'csv') {
                 // Generate CSV
@@ -302,10 +307,10 @@ class PaymentsController {
                     'Date Created'
                 ];
 
-                const csvRows = payments.map(payment => [
+                const csvRows = paymentsWithUsers.map(payment => [
                     payment.stripeSessionId,
-                    payment.user.email,
-                    payment.user.username || '',
+                    payment.user?.email || 'Unknown',
+                    payment.user?.username || '',
                     (payment.amount / 100).toFixed(2),
                     payment.credits,
                     payment.status,
@@ -326,10 +331,10 @@ class PaymentsController {
 
             } else if (format === 'json') {
                 // Generate JSON
-                const jsonData = payments.map(payment => ({
+                const jsonData = paymentsWithUsers.map(payment => ({
                     paymentId: payment.stripeSessionId,
-                    userEmail: payment.user.email,
-                    username: payment.user.username,
+                    userEmail: payment.user?.email || 'Unknown',
+                    username: payment.user?.username || '',
                     amount: payment.amount / 100,
                     credits: payment.credits,
                     status: payment.status,
@@ -346,7 +351,6 @@ class PaymentsController {
             }
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PAYMENTS: Exported ${payments.length} payments as ${format}`);
 
         } catch (error) {
             console.error('❌ ADMIN-PAYMENTS: Export failed:', error);
@@ -367,41 +371,50 @@ class PaymentsController {
             const { paymentId } = req.params;
 
             const payment = await prisma.stripePayment.findUnique({
-                where: { stripeSessionId: paymentId },
-                include: {
-                    user: {
-                        select: {
-                            id: true,
-                            email: true,
-                            username: true,
-                            createdAt: true
-                        }
-                    },
-                    creditLedger: {
-                        where: {
-                            type: 'purchase'
-                        },
-                        orderBy: {
-                            createdAt: 'desc'
-                        }
-                    }
-                }
+                where: { stripeSessionId: paymentId }
             });
 
             if (!payment) {
                 return res.status(404).json({
                     success: false,
-                    error: 'Payment not found',
-                    message: `Payment with ID ${paymentId} not found`
+                    error: 'Payment not found'
                 });
             }
 
+            // Get related data separately
+            const [user, creditLedgerEntries] = await Promise.all([
+                prisma.user.findUnique({
+                    where: { id: payment.userId },
+                    select: {
+                        id: true,
+                        email: true,
+                        username: true,
+                        createdAt: true
+                    }
+                }),
+                prisma.creditLedger.findMany({
+                    where: {
+                        stripePaymentId: payment.id,
+                        type: 'purchase'
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
+                })
+            ]);
+
+            // Attach related data to payment
+            const paymentWithDetails = {
+                ...payment,
+                user: user || null,
+                creditLedger: creditLedgerEntries
+            };
+
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PAYMENTS: Retrieved payment details for ${paymentId}`);
 
             return res.json({
                 success: true,
-                data: payment
+                data: paymentWithDetails
             });
 
         } catch (error) {
@@ -427,21 +440,28 @@ class PaymentsController {
 
             // Get payment details
             const payment = await prisma.stripePayment.findUnique({
-                where: { stripeSessionId: paymentId },
-                include: {
-                    user: true
-                }
+                where: { stripeSessionId: paymentId }
             });
 
             if (!payment) {
                 return res.status(404).json({
                     success: false,
-                    error: 'Payment not found',
-                    message: `Payment with ID ${paymentId} not found`
+                    error: 'Payment not found'
                 });
             }
 
-            if (payment.status !== 'completed') {
+            // Get user data separately
+            const user = await prisma.user.findUnique({
+                where: { id: payment.userId }
+            });
+
+            const paymentWithUser = {
+                ...payment,
+                user: user || null
+            };
+
+
+            if (paymentWithUser.status !== 'completed') {
                 return res.status(400).json({
                     success: false,
                     error: 'Cannot refund payment',
@@ -464,8 +484,8 @@ class PaymentsController {
             // Remove credits from user account
             await prisma.creditLedger.create({
                 data: {
-                    userId: payment.userId,
-                    amount: -payment.credits, // Negative amount to remove credits
+                    userId: paymentWithUser.userId,
+                    amount: -paymentWithUser.credits, // Negative amount to remove credits
                     type: 'refund',
                     description: `Refund for payment ${paymentId}: ${reason}`,
                     metadata: {
@@ -477,15 +497,14 @@ class PaymentsController {
             });
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PAYMENTS: Refunded payment ${paymentId} for ${payment.user.email}`);
 
             return res.json({
                 success: true,
                 message: 'Payment refunded successfully',
                 data: {
                     paymentId,
-                    refundAmount: payment.amount,
-                    creditsRemoved: payment.credits,
+                    refundAmount: paymentWithUser.amount,
+                    creditsRemoved: paymentWithUser.credits,
                     reason
                 }
             });

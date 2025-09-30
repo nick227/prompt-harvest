@@ -181,24 +181,8 @@ export const validateRating = rating => {
 export const validatePaginationParams = (params, maxLimit = 100) => {
     const { limit, page } = params;
 
-    console.log('🔍 VALIDATION: validatePaginationParams called with:', {
-        params,
-        limit,
-        page,
-        limitType: typeof limit,
-        pageType: typeof page,
-        maxLimit
-    });
-
     const validatedLimit = limit ? Math.min(parseInt(limit) || 10, maxLimit) : 10;
     const validatedPage = page ? Math.max(parseInt(page) || 0, 0) : 0;
-
-    console.log('🔍 VALIDATION: validatePaginationParams result:', {
-        validatedLimit,
-        validatedPage,
-        originalLimit: limit,
-        originalPage: page
-    });
 
     return {
         limit: validatedLimit,

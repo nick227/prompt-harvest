@@ -12,7 +12,13 @@
 // Initialize when dependencies are available
 const initTextAreaManager = () => {
     if (typeof TEXTAREA_CONFIG !== 'undefined' && typeof Utils !== 'undefined' && typeof window.TextAreaManager !== 'undefined') {
-        window.textAreaManager = new window.TextAreaManager();
+        try {
+            window.textAreaManager = new window.TextAreaManager();
+        } catch (error) {
+            console.error('Failed to initialize TextAreaManager:', error);
+            // Retry after a longer delay
+            setTimeout(initTextAreaManager, 200);
+        }
     } else {
         setTimeout(initTextAreaManager, 50);
     }

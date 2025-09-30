@@ -16,11 +16,10 @@ import {
     shufflePrompt,
     mashupPrompt,
     processCustomVariables
-} from './feed/PromptProcessor.js';
+} from './generate/PromptProcessor.js';
 
 export class EnhancedImageService {
     constructor(imageRepository, aiService) {
-        console.log('🔧 EnhancedImageService constructor called');
         this.imageRepository = imageRepository;
         this.aiService = aiService;
         this.prisma = databaseClient.getClient();
@@ -35,44 +34,38 @@ export class EnhancedImageService {
             database: { failureThreshold: 2, timeout: 10000 }, // Reduced from 3 to 2
             fileSystem: { failureThreshold: 1, timeout: 15000 } // Reduced from 2 to 1
         };
-        console.log('✅ EnhancedImageService constructor completed');
     }
 
     async generateImage(prompt, providers, guidance, userId, options = {}) {
-        console.log('🔧 EnhancedImageService.generateImage called');
         const startTime = Date.now();
         const requestId = this.generateRequestId();
-
-        console.log(`🚀 Starting image generation [${requestId}]:`, {
-            prompt: prompt ? `${prompt.substring(0, 50)}...` : 'undefined',
-            providers,
-            guidance,
-            userId: userId || null
-        });
 
         try {
             // Check and deduct credits BEFORE generation starts
             const creditResult = await this.validateAndDeductCredits(userId, providers, prompt, requestId);
+
             if (!creditResult.success) {
-                throw new Error(creditResult.error);
+                // Create proper HTTP error with 402 status for insufficient credits
+                const error = new Error(creditResult.error);
+
+                error.status = 402;
+                error.statusCode = 402;
+                error.data = {
+                    required: creditResult.cost,
+                    current: await SimplifiedCreditService.getBalance(userId),
+                    shortfall: creditResult.cost - (await SimplifiedCreditService.getBalance(userId))
+                };
+                throw error;
             }
 
             const result = await this.executeImageGeneration(prompt, providers, guidance, userId, options, requestId);
             const duration = Date.now() - startTime;
-
-            console.log(`✅ Image generation completed [${requestId}] in ${duration}ms:`, {
-                imageId: result.id,
-                provider: result.provider,
-                imageUrl: result.imageUrl,
-                prompt: prompt ? `${prompt.substring(0, 30)}...` : 'undefined'
-            });
 
             // Log transaction for successful generation
             if (result.success && result.id && result.imageUrl) {
                 await this.logTransactionIfNeeded(userId, providers[0]);
             } else {
                 // Refund credits if generation failed
-                console.warn(`⚠️ CREDITS: Refunding credits due to generation failure [${requestId}]`);
                 await this.refundCreditsForGeneration(userId, creditResult.cost, requestId);
             }
 
@@ -103,15 +96,34 @@ export class EnhancedImageService {
         // Step 2: Process prompt with circuit breaker
         const processedData = await this.processPromptWithBreaker(prompt, options);
 
-        // Step 3: Fire-and-forget prompt saving (non-blocking side effect)
-        const savedPromptId = processedData.promptId;
+        // Step 3: Ensure prompt is saved and get promptId
+        let savedPromptId = processedData.promptId;
 
         if (!savedPromptId) {
-            // Fire-and-forget prompt saving - intentionally non-blocking
-            // This is a side effect that should not impact image generation performance
-            this.savePromptAsync(processedData.prompt, userId).catch(error => {
-                console.error('❌ Background prompt save failed (non-critical):', error);
-            });
+            // Save prompt synchronously to get promptId for image generation
+            try {
+                const generate = await import('../generate.js');
+                const req = { user: { id: userId } };
+
+                const savedPrompt = await generate.default.buildPrompt(
+                    processedData.prompt,
+                    {
+                        multiplier: '',
+                        mixup: false,
+                        mashup: false,
+                        customVariables: '',
+                        promptHelpers: { photogenic: false, artistic: false, avatar: false }
+                    },
+                    req
+                );
+
+                savedPromptId = savedPrompt?.promptId || null;
+
+                // Prompt saved synchronously
+            } catch (error) {
+                console.error('❌ Synchronous prompt save failed:', error);
+                // Continue with null promptId - this is non-critical
+            }
         }
 
         // Step 4: Generate image with circuit breaker
@@ -125,7 +137,6 @@ export class EnhancedImageService {
             options
         );
 
-        console.log(`💾 Skipping database save - image already saved by feed.js [${requestId}]`);
 
         return this.extractImageResult(imageData, processedData.prompt, processedData.original, guidance, userId);
     }
@@ -161,7 +172,6 @@ export class EnhancedImageService {
             }
         }
 
-        console.log(`✅ Input validation passed for providers: ${providers.join(', ')}`);
 
         return true;
     }
@@ -190,14 +200,13 @@ export class EnhancedImageService {
                 mashup = false,
                 customVariables = '',
                 autoEnhance = false,
-                photogenic = false,
-                artistic = false,
-                avatar = false
+                promptHelpers = {}
             } = options;
 
             // Check if prompt needs processing
             const hasVariables = (/\$\{[^}]+\}/).test(prompt);
-            const needsProcessing = hasVariables || multiplier || mixup || mashup || customVariables || photogenic || artistic || avatar;
+            const hasPromptHelpers = Object.values(promptHelpers).some(Boolean);
+            const needsProcessing = hasVariables || multiplier || mixup || mashup || customVariables || hasPromptHelpers;
 
             let processedPrompt = prompt;
             let promptId = null;
@@ -212,14 +221,12 @@ export class EnhancedImageService {
                         false, // mixup - now handled after AI enhancement
                         false, // mashup - now handled after AI enhancement
                         customVariables,
-                        photogenic,
-                        artistic,
-                        avatar
+                        promptHelpers
                     );
 
                     ({ prompt: processedPrompt, promptId } = result);
                 } catch (error) {
-                    console.warn('⚠️ Prompt processing failed, using original:', error.message);
+                    // Prompt processing failed, using original
                     processedPrompt = prompt;
                 }
             }
@@ -227,21 +234,12 @@ export class EnhancedImageService {
             // Step 2: Apply AI enhancement if requested
             if (autoEnhance && processedPrompt) {
                 try {
-                    console.log('🤖 AI ENHANCEMENT: Applying AI enhancement to processed prompt:', {
-                        originalLength: processedPrompt.length,
-                        preview: processedPrompt.substring(0, 100) + '...'
-                    });
                     const enhancedPrompt = await aiEnhancementService.enhancePrompt(processedPrompt);
 
-                    console.log('🤖 AI ENHANCEMENT: Enhancement completed:', {
-                        originalLength: processedPrompt.length,
-                        enhancedLength: enhancedPrompt.length,
-                        changed: processedPrompt !== enhancedPrompt
-                    });
 
                     processedPrompt = enhancedPrompt;
                 } catch (error) {
-                    console.warn('⚠️ AI enhancement failed, using processed prompt:', error.message);
+                    // AI enhancement failed, using processed prompt
                     // Keep the processed prompt if enhancement fails
                 }
             }
@@ -250,7 +248,6 @@ export class EnhancedImageService {
             // Multiplier → Mixup → Mashup (in that order)
             if (multiplier || mixup || mashup) {
                 try {
-                    console.log('🔧 PROMPT MODIFICATIONS: Applying multiplier, mixup, mashup after AI enhancement');
 
                     // Process custom variables for multiplier
                     const customDict = processCustomVariables(customVariables, {});
@@ -262,17 +259,9 @@ export class EnhancedImageService {
 
                     // Apply mixup (shuffle comma-separated parts)
                     if (mixup) {
-                        console.log('🔀 MIXUP: Applying mixup to prompt:', {
-                            originalLength: processedPrompt.length,
-                            preview: processedPrompt.substring(0, 100) + '...'
-                        });
                         const beforeMixup = processedPrompt;
+
                         processedPrompt = shufflePrompt(processedPrompt);
-                        console.log('🔀 MIXUP: Mixup completed:', {
-                            originalLength: beforeMixup.length,
-                            mixedLength: processedPrompt.length,
-                            changed: beforeMixup !== processedPrompt
-                        });
                     }
 
                     // Apply mashup (shuffle space-separated words)
@@ -280,9 +269,8 @@ export class EnhancedImageService {
                         processedPrompt = mashupPrompt(processedPrompt);
                     }
 
-                    console.log('✅ PROMPT MODIFICATIONS: Successfully applied all modifications');
                 } catch (error) {
-                    console.warn('⚠️ Prompt modifications failed, using unmodified prompt:', error.message);
+                    // Prompt modifications failed, using unmodified prompt
                     // Keep the prompt without modifications if they fail
                 }
             }
@@ -301,8 +289,8 @@ export class EnhancedImageService {
             // Validate userId before proceeding
             const validUserId = userId && userId !== 'undefined' ? userId : null;
 
-            // Import feed module dynamically
-            const feed = await import('../feed.js');
+            // Import generate module dynamically
+            const generate = await import('../generate.js');
 
             // Set timeout for image generation
             const timeout = 120000; // 2 minutes
@@ -317,15 +305,8 @@ export class EnhancedImageService {
                 user: { id: validUserId }
             };
 
-            // Log autoPublic value before passing to feed
-            console.log('🔍 SERVICE DEBUG: autoPublic value before feed.generate:', {
-                autoPublic: options?.autoPublic,
-                autoPublicType: typeof options?.autoPublic,
-                optionsKeys: Object.keys(options || {}),
-                fullOptions: options
-            });
 
-            const generationPromise = feed.default.generate({
+            const generationPromise = generate.default.generate({
                 prompt,
                 original,
                 promptId,
@@ -374,7 +355,6 @@ export class EnhancedImageService {
 
     async cleanupOnFailure(error, requestId) {
         try {
-            console.log(`🧹 Cleaning up after failure [${requestId}]:`, error.message);
 
             // Add cleanup logic here (e.g., remove partial files)
             // This will be implemented based on the specific failure type
@@ -413,7 +393,6 @@ export class EnhancedImageService {
         if (userId && userId !== null) {
             try {
                 await this.transactionService.logTransaction(userId, provider, 1);
-                console.log(`💰 Transaction logged for user ${userId}: ${provider}`);
             } catch (transactionError) {
                 console.error('❌ Failed to log transaction:', transactionError);
                 // Don't fail the image generation for transaction logging errors
@@ -436,28 +415,23 @@ export class EnhancedImageService {
      */
     async savePromptAsync(prompt, userId) {
         try {
-            console.log('💾 Background prompt save started for user:', userId || 'anonymous');
 
-            const feed = await import('../feed.js');
+            const generate = await import('../generate.js');
             const req = { user: { id: userId } };
 
-            const savedPrompt = await feed.default.buildPrompt(
+            const savedPrompt = await generate.default.buildPrompt(
                 prompt,
-                false, // multiplier
-                false, // mixup
-                false, // mashup
-                '', // customVariables
-                false, // photogenic
-                false, // artistic
-                false, // avatar
+                {
+                    multiplier: '',
+                    mixup: false,
+                    mashup: false,
+                    customVariables: '',
+                    promptHelpers: { photogenic: false, artistic: false, avatar: false }
+                },
                 req
             );
 
-            if (savedPrompt && savedPrompt.promptId) {
-                console.log('✅ Background prompt saved with ID:', savedPrompt.promptId);
-            } else {
-                console.warn('⚠️ Background prompt save returned no ID:', savedPrompt);
-            }
+            // Background prompt save completed
         } catch (error) {
             // Log error but don't throw - this is fire-and-forget
             console.error('❌ Background prompt save failed:', error);
@@ -539,17 +513,15 @@ export class EnhancedImageService {
 
         // Get username for this image
         let username = null;
+
         if (image.userId) {
-            console.log('🔍 GET-IMAGE-BY-ID: Looking up user for userId:', image.userId);
             const user = await this.prisma.user.findUnique({
                 where: { id: image.userId },
                 select: { id: true, username: true, email: true }
             });
-            console.log('🔍 GET-IMAGE-BY-ID: User lookup result:', user);
+
             username = user ? (user.username || (user.email ? user.email : 'Unknown User')) : (image.userId ? 'Unknown User' : 'Anonymous');
-            console.log('🔍 GET-IMAGE-BY-ID: Final username:', username);
         } else {
-            console.log('🔍 GET-IMAGE-BY-ID: No userId found, setting Anonymous');
             username = 'Anonymous';
         }
 
@@ -557,7 +529,7 @@ export class EnhancedImageService {
         return {
             id: image.id,
             userId: image.userId,
-            username: username,
+            username,
             prompt: image.prompt,
             original: image.original,
             imageUrl: image.imageUrl,
@@ -593,7 +565,7 @@ export class EnhancedImageService {
 
         // Skip database update if status is already the same
         if (image.isPublic === isPublic) {
-            console.log(`🔄 PUBLIC-STATUS: Image ${imageId} already has isPublic=${isPublic}, skipping update`);
+
             return { result: image, id: imageId, isPublic, skipped: true };
         }
 
@@ -646,14 +618,6 @@ export class EnhancedImageService {
         const userMap = new Map(users.map(user => [user.id, user.username || (user.email ? user.email : 'Unknown User')]));
 
         // Debug user lookup
-        console.log('🔍 GET-IMAGES: User lookup debug:', {
-            userIds,
-            usersFound: users.length,
-            userMapEntries: Array.from(userMap.entries()),
-            sampleImageUserId: result.images[0]?.userId,
-            sampleImageUsername: userMap.get(result.images[0]?.userId),
-            users: users
-        });
 
         // Normalize image data
         const normalizedImages = result.images.map(image => ({
@@ -703,20 +667,6 @@ export class EnhancedImageService {
      * Log user images fetch results
      */
     logUserImagesResults(result) {
-        console.log('✅ ENHANCED-IMAGE-SERVICE: findUserImages result:', {
-            imagesCount: result.images?.length || 0,
-            totalCount: result.totalCount,
-            hasMore: result.hasMore,
-            firstImage: result.images?.[0]
-                ? {
-                    id: result.images[0].id,
-                    userId: result.images[0].userId,
-                    provider: result.images[0].provider,
-                    model: result.images[0].model,
-                    createdAt: result.images[0].createdAt
-                }
-                : null
-        });
     }
 
     /**
@@ -779,11 +729,9 @@ export class EnhancedImageService {
     }
 
     async getUserImages(userId, limit = 50, page = 0, tags = []) {
-        console.log('🔄 ENHANCED-IMAGE-SERVICE: getUserImages called with:', { userId, limit, page, tags });
 
         this.validateUserInput(userId);
 
-        console.log('🔄 ENHANCED-IMAGE-SERVICE: Calling findUserImages...');
         const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
 
         this.logUserImagesResults(result);
@@ -800,7 +748,6 @@ export class EnhancedImageService {
     }
 
     async getUserPublicImages(userId, limit = 20, page = 1) {
-        console.log('🔄 ENHANCED-IMAGE-SERVICE: getUserPublicImages called with:', { userId, limit, page });
 
         this.validateUserInput(userId);
 
@@ -810,7 +757,7 @@ export class EnhancedImageService {
             // SECURITY: Get user's public images ONLY - never private images
             const images = await this.prisma.image.findMany({
                 where: {
-                    userId: userId,
+                    userId,
                     isPublic: true  // CRITICAL: Only public images for profile pages
                 },
                 select: {
@@ -835,29 +782,29 @@ export class EnhancedImageService {
             // Get total count for pagination
             const totalCount = await this.prisma.image.count({
                 where: {
-                    userId: userId,
+                    userId,
                     isPublic: true
                 }
             });
 
             const hasMore = (offset + limit) < totalCount;
 
-            console.log(`✅ ENHANCED-IMAGE-SERVICE: Found ${images.length} public images for user ${userId}`);
 
             return {
                 success: true,
-                images: images,
+                images,
                 pagination: {
-                    page: page,
-                    limit: limit,
-                    totalCount: totalCount,
-                    hasMore: hasMore,
+                    page,
+                    limit,
+                    totalCount,
+                    hasMore,
                     totalPages: Math.ceil(totalCount / limit)
                 }
             };
 
         } catch (error) {
             console.error('❌ ENHANCED-IMAGE-SERVICE: Error getting user public images:', error);
+
             return {
                 success: false,
                 error: 'Failed to get user public images',
@@ -870,7 +817,6 @@ export class EnhancedImageService {
     async getFeed(userId, limit = 8, page = 0, tags = []) {
         // Site feed should always show only public images from all users
         // regardless of authentication status
-        console.log('🔍 FEED SERVICE: getFeed called - ensuring only public images', tags.length > 0 ? `with tag filters: ${tags.join(', ')}` : '');
         const result = await this.imageRepository.findPublicImages(limit, page, tags);
 
         // Double-check that all returned images are public
@@ -883,7 +829,6 @@ export class EnhancedImageService {
             result.totalCount = result.images.length;
         }
 
-        console.log(`✅ FEED SERVICE: Site feed returning ${result.images.length} public images`);
 
         // Get unique user IDs and fetch usernames
         const userIds = [...new Set(result.images.map(img => img.userId))];
@@ -925,7 +870,6 @@ export class EnhancedImageService {
             throw new ValidationError('User ID is required for getting user own images');
         }
 
-        console.log('🔍 USER IMAGES SERVICE: getUserOwnImages called for userId:', userId, tags.length > 0 ? `with tag filters: ${tags.join(', ')}` : '');
 
         // Get all images belonging to the user (both public and private for "mine" filter)
         const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
@@ -940,18 +884,17 @@ export class EnhancedImageService {
             result.totalCount = result.images.length;
         }
 
-        console.log(`✅ USER IMAGES SERVICE: User feed returning ${result.images.length} images for user ${userId}`);
 
         // Get unique user IDs and fetch usernames
         const userIds = [...new Set(result.images.map(img => img.userId))];
-        console.log('🔍 GET-USER-OWN-IMAGES: User IDs found:', userIds);
+
         const users = await this.prisma.user.findMany({
             where: { id: { in: userIds } },
             select: { id: true, username: true, email: true }
         });
-        console.log('🔍 GET-USER-OWN-IMAGES: Users found:', users);
+
         const userMap = new Map(users.map(user => [user.id, user.username || (user.email ? user.email : 'Unknown User')]));
-        console.log('🔍 GET-USER-OWN-IMAGES: User map:', Array.from(userMap.entries()));
+
 
         // Normalize image data
         const normalizedImages = result.images.map(image => ({

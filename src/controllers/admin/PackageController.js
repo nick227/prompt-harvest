@@ -18,7 +18,6 @@ class PackageController {
                 orderBy: { sortOrder: 'asc' }
             });
 
-            console.log('✅ ADMIN-PACKAGES: Retrieved all packages from database');
 
             res.json({
                 success: true,
@@ -44,19 +43,19 @@ class PackageController {
             const newPackage = req.body;
             const { adminUser } = req;
 
-            this.logPackageCreationRequest(newPackage);
+            PackageController.logPackageCreationRequest(newPackage);
 
-            if (!this.validatePackageCreation(newPackage, res)) {
+            if (!PackageController.validatePackageCreation(newPackage, res)) {
                 return;
             }
 
-            if (!(await this.checkPackageNameExists(newPackage.name, res))) {
+            if (!(await PackageController.checkPackageNameExists(newPackage.name, res))) {
                 return;
             }
 
-            const createdPackage = await this.createPackageInDatabase(newPackage);
+            const createdPackage = await PackageController.createPackageInDatabase(newPackage);
 
-            this.logPackageCreationSuccess(newPackage.name, adminUser.email);
+            PackageController.logPackageCreationSuccess(newPackage.name, adminUser.email);
 
             res.status(201).json({
                 success: true,
@@ -136,7 +135,6 @@ class PackageController {
                 data: updateFields
             });
 
-            console.log(`✅ ADMIN-PACKAGES: Package '${packageId}' updated by ${adminUser.email}`);
 
             res.json({
                 success: true,
@@ -181,7 +179,6 @@ class PackageController {
                 where: { id: packageId }
             });
 
-            console.log(`✅ ADMIN-PACKAGES: Package '${packageId}' deleted by ${adminUser.email}`);
 
             res.json({
                 success: true,
@@ -297,7 +294,6 @@ class PackageController {
      * Log package creation request details
      */
     static logPackageCreationRequest(newPackage) {
-        console.log('📦 ADMIN-PACKAGES-BACKEND: Received package data:', newPackage);
         console.log('📦 ADMIN-PACKAGES-BACKEND: Data types:', {
             name: typeof newPackage.name,
             credits: typeof newPackage.credits,
@@ -314,7 +310,6 @@ class PackageController {
         const validation = PackageController.validatePackageData(newPackage);
 
         if (!validation.isValid) {
-            console.log('❌ ADMIN-PACKAGES-BACKEND: Validation failed:', validation.errors);
 
             res.status(400).json({
                 success: false,
@@ -371,7 +366,6 @@ class PackageController {
      * Log successful package creation
      */
     static logPackageCreationSuccess(name, adminEmail) {
-        console.log(`✅ ADMIN-PACKAGES: Package '${name}' created by ${adminEmail}`);
     }
 }
 

@@ -41,7 +41,6 @@ export class AIService {
 
         // Use wordTypeManager for examples - return empty array for now
         // This functionality can be enhanced later if needed
-        console.log(`getWordExamples called for: ${decodedWord} (limit: ${limit})`);
 
         return [];
     }
@@ -64,11 +63,9 @@ export class AIService {
     async addWordType(word) {
         const decodedWord = decodeURIComponent(word).toLowerCase();
 
-        console.log('🔍 AI SERVICE: addWordType called with:', decodedWord);
 
         const result = await this._addAiWordType(decodedWord);
 
-        console.log('✅ AI SERVICE: _addAiWordType result:', result);
 
         return result;
     }
@@ -79,22 +76,20 @@ export class AIService {
     }
 
     // Prompt Processing
-    // eslint-disable-next-line max-params
-    async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', photogenic = false, artistic = false, avatar = false, req = null) {
+    async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', promptHelpers = {}, req = null) {
         // This will be implemented when we extract the prompt service
-        // For now, we'll import the feed module directly
-        const feed = await import('../../feed.js');
+        // For now, we'll import the generate module directly
+        const generate = await import('../../generate.js');
 
-        return await feed.default.buildPrompt(
+        return await generate.default.buildPrompt(
             prompt,
-            multiplier,
-            mixup,
-            mashup,
-            customVariables,
-            photogenic,
-            artistic,
-            avatar,
-            req
+            {
+                multiplier,
+                mixup,
+                mashup,
+                customVariables,
+                promptHelpers
+            }
         );
     }
 

@@ -337,6 +337,16 @@ class AdminSharedTable {
             });
         }
 
+        // Add button event listeners
+        const addButtons = this.container.querySelectorAll('.admin-add-button');
+        addButtons.forEach(button => {
+            button.addEventListener('click', e => {
+                e.stopPropagation();
+                const { action } = button.dataset;
+                this.handleAddButtonClick(action);
+            });
+        });
+
         // Pagination buttons (will be set up when pagination is generated)
         this.setupPaginationEventListeners();
     }
@@ -694,6 +704,19 @@ class AdminSharedTable {
                 this.handleAction(action, id);
             });
         });
+    }
+
+    handleAddButtonClick(action) {
+        console.log(`🔧 ADMIN-SHARED-TABLE: Add button clicked with action: ${action}`);
+
+        // Dispatch the admin-table-action event for add button clicks
+        window.dispatchEvent(new CustomEvent('admin-table-action', {
+            detail: {
+                dataType: this.dataType,
+                action,
+                id: null
+            }
+        }));
     }
 
     handleAction(action, id) {

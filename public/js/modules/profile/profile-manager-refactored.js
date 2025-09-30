@@ -64,7 +64,6 @@ class ProfileManager {
         // Avatar events
         document.addEventListener('profile:avatarOptionChange', e => this.handleAvatarOptionChange(e.detail));
         document.addEventListener('profile:fileUpload', e => this.handleFileUpload(e.detail));
-        document.addEventListener('profile:removeUpload', () => this.removeUploadedFile());
         document.addEventListener('profile:selectExistingImage', e => this.selectExistingImage(e.detail));
         document.addEventListener('profile:providerChange', () => this.updateGenerationCost());
         // AI generation is now handled by the widget
@@ -340,6 +339,9 @@ class ProfileManager {
             return;
         }
 
+        // Set the file on the avatar manager
+        this.avatarManager.uploadedFile = file;
+
         const validation = ProfileFormValidator.validateUploadedFile(file);
 
         if (!validation.valid) {
@@ -358,7 +360,6 @@ class ProfileManager {
             // Update user profile immediately
             await this.updateUserProfile({ avatarUrl });
 
-            this.domManager.showUploadPreview(file);
             this.domManager.showStatus('success', 'Avatar updated successfully!');
 
             // Reset form state after successful update
@@ -369,21 +370,6 @@ class ProfileManager {
         }
     }
 
-    /**
-     * Remove uploaded file
-     */
-    removeUploadedFile() {
-        this.avatarManager.removeUploadedFile();
-        this.domManager.hideElement('uploadPreview');
-        this.domManager.elements.avatarFileInput.value = '';
-
-        // Uncheck upload radio
-        const uploadRadio = document.getElementById('avatar-upload');
-
-        if (uploadRadio) {
-            uploadRadio.checked = false;
-        }
-    }
 
     /**
      * Select existing image

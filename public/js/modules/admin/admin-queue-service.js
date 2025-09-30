@@ -19,6 +19,13 @@ class AdminQueueService {
      */
     async getQueueStatus() {
         try {
+            // Check authentication first
+            const token = this.getAuthToken();
+            if (!token) {
+                console.warn('🔐 ADMIN-QUEUE-SERVICE: No auth token available, skipping queue status request');
+                throw new Error('Authentication required');
+            }
+
             // Check cache first
             const now = Date.now();
             if (this.cache.data && (now - this.cache.timestamp) < this.cacheTimeout) {
@@ -29,7 +36,7 @@ class AdminQueueService {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getAuthToken()}`
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
@@ -90,14 +97,47 @@ class AdminQueueService {
     }
 
     /**
+     * Update queue concurrency
+     * @param {number} concurrency - New concurrency value
+     * @returns {Promise<Object>} Update result
+     */
+    async updateConcurrency(concurrency) {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/queue/concurrency`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.getAuthToken()}`
+                },
+                body: JSON.stringify({ concurrency })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to update queue concurrency');
+            }
+
+            // Clear cache after successful update
+            this.clearCache();
+
+            return result.data;
+        } catch (error) {
+            console.error('❌ ADMIN-QUEUE: Error updating concurrency:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get authentication token
      * @returns {string} Auth token
      */
     getAuthToken() {
-        // Try to get token from localStorage or sessionStorage
-        return localStorage.getItem('authToken') ||
-               sessionStorage.getItem('authToken') ||
-               '';
+        return window.AdminAuthUtils?.getAuthToken() || '';
     }
 
     /**

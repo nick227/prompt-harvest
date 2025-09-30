@@ -252,7 +252,7 @@ class ImageManager {
         this.setupComponentEvents(navControls, infoBox);
 
         // Store components for display
-        this.fullscreenComponents = { imageCon tainer, infoBox, navControls };
+        this.fullscreenComponents = { imageContainer, infoBox, navControls };
 
         // Ensure UI reflects current data state
         this.refreshFullscreenUI();

@@ -11,6 +11,7 @@ class AdminModalManager {
         this.modalClose = document.getElementById('modal-close');
         this.isOpen = false;
         this.currentModal = null;
+        this.modalOpenedTime = null; // Track when modal was opened
 
         console.log('🎭 ADMIN-MODAL: Constructor - Modal elements found:', {
             modalContainer: !!this.modalContainer,
@@ -39,13 +40,27 @@ class AdminModalManager {
                 console.log('🎭 ADMIN-MODAL: Backdrop clicked', {
                     target: e.target,
                     modalContainer: this.modalContainer,
-                    isTarget: e.target === this.modalContainer
+                    isTarget: e.target === this.modalContainer,
+                    targetTagName: e.target.tagName,
+                    targetClassName: e.target.className,
+                    targetId: e.target.id
                 });
+
+                // Only close if clicking directly on the backdrop, not on modal content
                 if (e.target === this.modalContainer) {
+                    // Prevent accidental closes by requiring modal to be open for at least 300ms
+                    const timeSinceOpened = Date.now() - this.modalOpenedTime;
+                    if (timeSinceOpened < 300) {
+                        console.log('🎭 ADMIN-MODAL: Modal opened too recently, preventing close');
+                        return;
+                    }
+
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('🎭 ADMIN-MODAL: Backdrop close triggered');
                     this.close();
+                } else {
+                    console.log('🎭 ADMIN-MODAL: Clicked on modal content, not closing');
                 }
             });
         }
@@ -102,6 +117,7 @@ class AdminModalManager {
         // Show modal
         this.modalContainer.style.display = 'flex';
         this.isOpen = true;
+        this.modalOpenedTime = Date.now(); // Track when modal was opened
         this.currentModal = { title, content, options };
 
         // Use requestAnimationFrame to ensure the display change takes effect
@@ -180,46 +196,55 @@ class AdminModalManager {
             return;
         }
 
-        const focusableElements = this.modalContainer.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
+        // Wait a bit for the modal to be fully rendered before focusing
+        setTimeout(() => {
+            const focusableElements = this.modalContainer.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
 
-        if (focusableElements.length === 0) {
-            return;
-        }
-
-        const firstElement = focusableElements[0];
-        const lastElement = focusableElements[focusableElements.length - 1];
-
-        // Focus first element
-        firstElement.focus();
-
-        // Handle tab cycling
-        const handleTabKey = (e) => {
-            if (e.key !== 'Tab') {
+            if (focusableElements.length === 0) {
                 return;
             }
 
-            if (e.shiftKey) {
-                if (document.activeElement === firstElement) {
-                    e.preventDefault();
-                    lastElement.focus();
-                }
-            } else {
-                if (document.activeElement === lastElement) {
-                    e.preventDefault();
-                    firstElement.focus();
-                }
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            console.log('🎭 ADMIN-MODAL: Focusable elements found:', focusableElements.length);
+            console.log('🎭 ADMIN-MODAL: First element:', firstElement.tagName, firstElement.id || firstElement.className);
+
+            // Focus first element only if modal is still open
+            if (this.isOpen && firstElement) {
+                console.log('🎭 ADMIN-MODAL: Focusing first element');
+                firstElement.focus();
             }
-        };
 
-        // Add event listener
-        this.modalContainer.addEventListener('keydown', handleTabKey);
+            // Handle tab cycling
+            const handleTabKey = (e) => {
+                if (e.key !== 'Tab') {
+                    return;
+                }
 
-        // Store cleanup function
-        this._focusCleanup = () => {
-            this.modalContainer.removeEventListener('keydown', handleTabKey);
-        };
+                if (e.shiftKey) {
+                    if (document.activeElement === firstElement) {
+                        e.preventDefault();
+                        lastElement.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        e.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            };
+
+            // Add event listener
+            this.modalContainer.addEventListener('keydown', handleTabKey);
+
+            // Store cleanup function
+            this._focusCleanup = () => {
+                this.modalContainer.removeEventListener('keydown', handleTabKey);
+            };
+        }, 100); // Small delay to ensure modal is fully rendered
     }
 
     isModalOpen() {

@@ -3,6 +3,8 @@
  * Extracted from images.js - handles API communication for image generation
  */
 
+// PromptHelpersForm is available globally
+
 class ImageGenerationAPI {
     constructor() {
         this.isGenerating = false;
@@ -29,8 +31,7 @@ class ImageGenerationAPI {
             autoEnhance: options.autoEnhance,
             mixup: options.mixup,
             mashup: options.mashup,
-            photogenic: options.photogenic,
-            artistic: options.artistic,
+            promptHelpers: options.promptHelpers,
             multiplier: options.multiplier,
             guidance: options.guidance
         });
@@ -134,8 +135,8 @@ class ImageGenerationAPI {
         const autoEnhance = promptObj.autoEnhance || false;
         const mixup = promptObj.mixup || false;
         const mashup = promptObj.mashup || false;
-        const photogenic = promptObj.photogenic || false;
-        const artistic = promptObj.artistic || false;
+        const promptHelpers = promptObj.promptHelpers || PromptHelpersForm.getFormValues();
+        const autoPublic = promptObj.autoPublic || false;
         const multiplier = promptObj.multiplier || '';
         const guidance = promptObj.guidance || 10;
 
@@ -143,8 +144,8 @@ class ImageGenerationAPI {
             autoEnhance,
             mixup,
             mashup,
-            photogenic,
-            artistic,
+            promptHelpers,
+            autoPublic,
             multiplier,
             guidance
         });
@@ -176,16 +177,10 @@ class ImageGenerationAPI {
             console.log('📋 ENHANCEMENT: autoEnhance is false, not adding to form data');
         }
 
-        // Add photogenic if enabled
-        if (photogenic) {
-            console.log('📋 ENHANCEMENT: Adding photogenic: true');
-            formData.append('photogenic', 'true');
-        }
-
-        // Add artistic if enabled
-        if (artistic) {
-            console.log('📋 ENHANCEMENT: Adding artistic: true');
-            formData.append('artistic', 'true');
+        // Add prompt helpers as JSON object
+        if (Object.keys(promptHelpers).length > 0) {
+            console.log('📋 ENHANCEMENT: Adding promptHelpers:', promptHelpers);
+            formData.append('promptHelpers', JSON.stringify(promptHelpers));
         }
 
         // Add guidance if provided
@@ -194,10 +189,12 @@ class ImageGenerationAPI {
             formData.append('guidance', guidance.toString());
         }
 
-        // Add autoPublic if provided
-        if (promptObj.autoPublic) {
+        // Add autoPublic if enabled
+        if (autoPublic) {
             console.log('📋 ENHANCEMENT: Adding autoPublic: true');
             formData.append('autoPublic', 'true');
+        } else {
+            console.log('📋 ENHANCEMENT: autoPublic is false, not adding to form data');
         }
 
         // Enhancement parameters processed
@@ -249,10 +246,17 @@ class ImageGenerationAPI {
                 case 'mixup':
                 case 'mashup':
                 case 'auto-enhance':
-                case 'photogenic':
-                case 'artistic':
                 case 'autoPublic':
                     jsonData[key] = value === 'true' || value === true;
+                    break;
+                case 'promptHelpers':
+                    // Parse promptHelpers JSON object
+                    try {
+                        jsonData[key] = JSON.parse(value);
+                    } catch (error) {
+                        console.warn('Failed to parse promptHelpers:', error);
+                        jsonData[key] = {};
+                    }
                     break;
                 case 'providers':
                     // Ensure providers is always an array

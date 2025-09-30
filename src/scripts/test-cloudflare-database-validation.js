@@ -19,7 +19,7 @@ dotenv.config();
 import { imageStorageService } from '../src/services/ImageStorageService.js';
 import { cloudflareR2Service } from '../src/services/CloudflareR2Service.js';
 import { cloudflareR2Config } from '../src/services/CloudflareR2Config.js';
-import DatabaseService from '../src/services/feed/DatabaseService.js';
+import DatabaseService from '../src/services/generate/DatabaseService.js';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -32,8 +32,6 @@ const TEST_CONFIG = {
     userId: `test-cloudflare-${Date.now()}`
 };
 
-console.log('🚀 Starting Cloudflare R2 + Database Validation Test');
-console.log('='.repeat(60));
 
 async function runTest() {
     let imageUrl = null;
@@ -41,7 +39,6 @@ async function runTest() {
 
     try {
         // Step 1: Validate environment
-        console.log('\n1️⃣ Validating environment...');
         const requiredVars = ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET', 'R2_PUBLIC_BASE_URL', 'R2_S3_ENDPOINT', 'DATABASE_URL'];
         const missing = requiredVars.filter(v => !process.env[v]);
 
@@ -49,12 +46,8 @@ async function runTest() {
             throw new Error(`Missing environment variables: ${missing.join(', ')}`);
         }
 
-        console.log('✅ Environment validation passed');
-        console.log(`   R2 Bucket: ${process.env.R2_BUCKET}`);
-        console.log(`   R2 Public URL: ${process.env.R2_PUBLIC_BASE_URL}`);
 
         // Step 2: Test Cloudflare R2 configuration
-        console.log('\n2️⃣ Testing Cloudflare R2 configuration...');
 
         if (!cloudflareR2Config.isConfigured()) {
             throw new Error('Cloudflare R2 configuration is invalid');
@@ -70,33 +63,21 @@ async function runTest() {
             throw new Error(`R2 health check failed: ${health.error}`);
         }
 
-        console.log('✅ Cloudflare R2 configuration validated');
-        console.log(`   Status: ${health.status}`);
-        console.log(`   Bucket: ${health.bucket}`);
 
         // Step 3: Test database connectivity
-        console.log('\n3️⃣ Testing database connectivity...');
 
         await prisma.$connect();
         const imageCount = await prisma.image.count();
 
-        console.log('✅ Database connectivity validated');
-        console.log('   Connected: true');
-        console.log(`   Current images: ${imageCount}`);
 
         // Step 4: Create test image buffer
-        console.log('\n4️⃣ Creating test image buffer...');
 
         // Create a simple test image (1x1 pixel PNG)
         const testImageBuffer = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
         const filename = imageStorageService.generateFilename(TEST_CONFIG.provider, 'png');
 
-        console.log('✅ Test image buffer created');
-        console.log(`   Filename: ${filename}`);
-        console.log(`   Buffer size: ${testImageBuffer.length} bytes`);
 
         // Step 5: Upload to Cloudflare R2
-        console.log('\n5️⃣ Uploading to Cloudflare R2...');
 
         const originalStorageType = imageStorageService.getStorageType();
 
@@ -124,13 +105,8 @@ async function runTest() {
 
         imageStorageService.setStorageType(originalStorageType);
 
-        console.log('✅ Image uploaded to Cloudflare R2');
-        console.log(`   URL: ${imageUrl}`);
-        console.log(`   Size: ${imageInfo.size} bytes`);
-        console.log(`   Content Type: ${imageInfo.contentType}`);
 
         // Step 6: Save to database
-        console.log('\n6️⃣ Saving to database...');
 
         const imageData = {
             prompt: TEST_CONFIG.prompt,
@@ -150,12 +126,8 @@ async function runTest() {
 
         imageId = savedImage._id;
 
-        console.log('✅ Image metadata saved to database');
-        console.log(`   Image ID: ${imageId}`);
-        console.log(`   Image URL: ${imageData.imageUrl}`);
 
         // Step 7: Verify database row
-        console.log('\n7️⃣ Verifying database row...');
 
         const dbImage = await prisma.image.findUnique({
             where: { id: imageId }
@@ -185,34 +157,16 @@ async function runTest() {
             throw new Error(`Database validation failed: ${failedValidations.join(', ')}`);
         }
 
-        console.log('✅ Database row verification passed');
-        console.log(`   All validations: ${Object.values(validations).every(v => v)}`);
-        console.log(`   URL valid: ${validations.urlValid}`);
 
         // Test completed successfully
-        console.log('\n🎉 CLOUDFLARE R2 + DATABASE VALIDATION: SUCCESS!');
-        console.log('='.repeat(60));
-        console.log('✅ Cloudflare R2: Working');
-        console.log('✅ Database: Working');
-        console.log('✅ Image Upload: Success');
-        console.log('✅ Database Save: Success');
-        console.log('✅ URL Validation: Passed');
-        console.log(`📊 Image ID: ${imageId}`);
-        console.log(`🔗 Image URL: ${imageUrl}`);
-        console.log('='.repeat(60));
 
         return { success: true, imageId, imageUrl };
 
     } catch (error) {
-        console.log('\n❌ CLOUDFLARE R2 + DATABASE VALIDATION: FAILED!');
-        console.log('='.repeat(60));
-        console.log(`Error: ${error.message}`);
-        console.log('='.repeat(60));
 
         return { success: false, error: error.message };
     } finally {
         // Cleanup
-        console.log('\n🧹 Cleaning up test data...');
 
         try {
             if (imageUrl) {
@@ -221,18 +175,14 @@ async function runTest() {
                 imageStorageService.setStorageType('cdn');
                 const deleted = await imageStorageService.deleteImage(imageUrl);
 
-                console.log(`   Image deleted from R2: ${deleted ? '✅' : '❌'}`);
                 imageStorageService.setStorageType(originalStorageType);
             }
 
             if (imageId) {
                 await prisma.image.delete({ where: { id: imageId } });
-                console.log('   Database row deleted: ✅');
             }
 
-            console.log('✅ Cleanup completed');
         } catch (cleanupError) {
-            console.log(`❌ Cleanup failed: ${cleanupError.message}`);
         }
 
         // Close database connection
@@ -244,15 +194,11 @@ async function runTest() {
 runTest()
     .then(result => {
         if (result.success) {
-            console.log('\n✅ Test Result: SUCCESS');
             process.exit(0);
         } else {
-            console.log('\n❌ Test Result: FAILED');
             process.exit(1);
         }
     })
     .catch(error => {
-        console.error('\n💥 Test Result: CRASHED');
-        console.error('Error:', error.message);
         process.exit(1);
     });

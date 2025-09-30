@@ -6,7 +6,7 @@ import {
 import { sanitizeInput } from '../middleware/validation.js';
 import { authenticateToken, authenticateTokenRequired } from '../middleware/authMiddleware.js';
 import { requireImageGenerationCredits } from '../middleware/creditValidation.js';
-import { imageGenerationRateLimit } from '../middleware/rateLimiting.js';
+import { userImageGenerationRateLimit, noRateLimit } from '../middleware/userRateLimit.js';
 
 // eslint-disable-next-line max-lines-per-function
 export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
@@ -19,7 +19,8 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
     app.post('/api/image/generate',
         authenticateTokenRequired, // Require authentication - no anonymous access
         sanitizeInput,
-        imageGenerationRateLimit, // Use proper rate limiting middleware
+        // userImageGenerationRateLimit, // Per-user rate limiting (120 requests/minute)
+        noRateLimit, // No rate limiting - users can request sequentially
         validateImageGenerationEnhanced,
         requireImageGenerationCredits, // Validate user has sufficient credits
         enhancedImageController.generateImage.bind(enhancedImageController)
@@ -197,11 +198,9 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
             if (service) {
                 circuitBreakerManager.reset(service);
                 // eslint-disable-next-line no-console
-                console.log(`🔄 Circuit breaker reset for service: ${service}`);
             } else {
                 circuitBreakerManager.resetAll();
                 // eslint-disable-next-line no-console
-                console.log('🔄 All circuit breakers reset');
             }
 
             res.json({
@@ -213,5 +212,5 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
     );
 
     // eslint-disable-next-line no-console
-    console.log('✅ Enhanced image routes configured with circuit breakers and validation');
+    // Enhanced image routes configured
 };

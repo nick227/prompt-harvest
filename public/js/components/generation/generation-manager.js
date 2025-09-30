@@ -91,7 +91,7 @@ class GenerationManager {
         try {
             // Use the existing generateImage function from modules/images.js
             if (typeof window.generateImage === 'function') {
-                const _result = await window.generateImage(promptObj.prompt, promptObj.providers);
+                const _result = await window.generateImage(promptObj.prompt, promptObj.providers, promptObj);
 
                 // Note: imageGenerated event is already dispatched by images.js
 

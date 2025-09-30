@@ -136,6 +136,13 @@ class SpeechToTextService {
             return;
         }
 
+        // Use TextAreaManager if available for proper auto-resize handling
+        if (window.textAreaManager) {
+            window.textAreaManager.insertAtCursor(text);
+            return;
+        }
+
+        // Fallback: direct manipulation (should trigger auto-resize via input event)
         const currentValue = this.promptTextarea.value;
         const cursorPosition = this.promptTextarea.selectionStart;
 
@@ -147,7 +154,7 @@ class SpeechToTextService {
         const newCursorPosition = cursorPosition + text.length;
         this.promptTextarea.setSelectionRange(newCursorPosition, newCursorPosition);
 
-        // Trigger input event to notify other components
+        // Trigger input event to notify other components and trigger auto-resize
         this.promptTextarea.dispatchEvent(new Event('input', { bubbles: true }));
 
         // Focus the textarea

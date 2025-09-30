@@ -172,6 +172,27 @@ class FeedCacheManager {
             this.cache[key].hasMore = hasMore;
         }
     }
+
+    // Invalidate cache (alias for clearAllCaches for backward compatibility)
+    invalidateCache() {
+        this.clearAllCaches();
+        console.log('🔄 CACHE: All caches invalidated');
+    }
+
+    // Update a specific image in all caches
+    updateImageInCache(imageId, updates) {
+        Object.keys(this.cache).forEach(filter => {
+            const cache = this.cache[filter];
+            if (cache && cache.images) {
+                const imageIndex = cache.images.findIndex(img => img.id === imageId);
+                if (imageIndex !== -1) {
+                    // Update the image with new data
+                    cache.images[imageIndex] = { ...cache.images[imageIndex], ...updates };
+                    console.log(`🔄 CACHE: Updated image ${imageId} in ${filter} cache:`, updates);
+                }
+            }
+        });
+    }
 }
 
 // Export for global access

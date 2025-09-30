@@ -102,6 +102,29 @@ class UserSystem {
                 return false;
             }
 
+            // Check if we have a valid token before making API call
+            const token = window.userApi.getAuthToken();
+            if (!token) {
+                console.log('🔐 USER-SYSTEM: No auth token available, skipping API call');
+                this.setUser(null);
+                return false;
+            }
+
+            // Check if token is expired
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const now = Math.floor(Date.now() / 1000);
+                if (payload.exp && payload.exp < now) {
+                    console.log('🔐 USER-SYSTEM: Token expired, skipping API call');
+                    this.setUser(null);
+                    return false;
+                }
+            } catch (tokenError) {
+                console.log('🔐 USER-SYSTEM: Invalid token format, skipping API call');
+                this.setUser(null);
+                return false;
+            }
+
             // Get user profile
             const userData = await window.userApi.getProfile();
 
@@ -449,7 +472,7 @@ class UserSystem {
             this.userDisplay.style.display = 'flex';
             this.userDisplay.innerHTML = `
                 <a href="/billing.html"><span class="text-sm text-gray-300">${user.email}</span></a>
-                <button class="logout-btn btn btn-sm btn-outline">Logout</button>
+                <a class="logout-btn link">Logout</a>
             `;
         } else {
             // User is not logged in
@@ -628,7 +651,7 @@ class UserSystem {
     }
 
     getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || null;
+        return window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || null;
     }
 }
 

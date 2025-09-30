@@ -188,7 +188,6 @@ export class ImageRepository extends PrismaBaseRepository {
             }));
         }
 
-        console.log('🔍 REPOSITORY: findPublicImages called with whereClause:', whereClause);
 
         const [images, total] = await Promise.all([
             this.prisma.image.findMany({
@@ -210,7 +209,6 @@ export class ImageRepository extends PrismaBaseRepository {
             // Filter out non-public images as safety measure
             const safeImages = images.filter(img => img.isPublic);
 
-            console.log(`🔧 REPOSITORY: Filtered out ${nonPublicImages.length} non-public images, returning ${safeImages.length} safe images`);
 
             return {
                 images: safeImages,
@@ -219,7 +217,6 @@ export class ImageRepository extends PrismaBaseRepository {
             };
         }
 
-        console.log(`✅ REPOSITORY: findPublicImages returning ${images.length} public images${tags.length > 0 ? ` filtered by tags: ${tags.join(', ')}` : ''}`);
 
         return {
             images,
@@ -270,7 +267,7 @@ export class ImageRepository extends PrismaBaseRepository {
         if (otherUserImages.length > 0) {
             console.error('🚨 REPOSITORY PRIVACY VIOLATION: Other users images returned from findUserImages!', otherUserImages);
             const safeImages = images.filter(img => img.userId === userId);
-            console.log(`🔧 REPOSITORY: Filtered out ${otherUserImages.length} other users images, returning ${safeImages.length} safe images`);
+
 
             return {
                 images: safeImages,
@@ -304,15 +301,14 @@ export class ImageRepository extends PrismaBaseRepository {
     async findUserImages(userId, limit = 8, page = 0, tags = []) {
         const skip = page * limit;
 
-        console.log('🔄 IMAGE-REPOSITORY: findUserImages called with:', { userId, limit, page, skip, tags });
 
         // Check total images for user
         const totalImagesForUser = await this.prisma.image.count({ where: { userId } });
-        console.log('🔍 IMAGE-REPOSITORY: Total images in database for user:', totalImagesForUser);
+
 
         // Build where clause and fetch data
         const whereClause = this.buildUserImagesWhereClause(userId, tags);
-        console.log('🔄 IMAGE-REPOSITORY: Using whereClause:', whereClause);
+
 
         const [images, totalCount] = await this.fetchUserImagesWithPagination(whereClause, limit, skip);
 
@@ -320,6 +316,7 @@ export class ImageRepository extends PrismaBaseRepository {
         const { images: safeImages, totalCount: safeTotalCount } = this.validateAndFilterUserImages(images, userId, totalCount);
 
         const hasMore = skip + limit < safeTotalCount;
+
         this.logUserImagesResults(safeImages, safeTotalCount, hasMore, tags, skip, limit);
 
         return {

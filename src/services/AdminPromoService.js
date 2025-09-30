@@ -48,7 +48,6 @@ export class AdminPromoService {
                 }
             });
 
-            console.log(`🎁 ADMIN: Created promo code ${promoCode.code} with ${promoCode.credits} credits`);
 
             return promoCode;
 
@@ -89,7 +88,6 @@ export class AdminPromoService {
                 data: filteredUpdates
             });
 
-            console.log(`🎁 ADMIN: Updated promo code ${promoCode.code}`);
 
             return promoCode;
 
@@ -111,7 +109,6 @@ export class AdminPromoService {
                 where: { id: promoCodeId }
             });
 
-            console.log(`🎁 ADMIN: Deleted promo code ${promoCode.code}`);
 
             return { success: true, deletedCode: promoCode.code };
 

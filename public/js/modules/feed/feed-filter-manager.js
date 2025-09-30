@@ -46,13 +46,9 @@ class FeedFilterManager {
         if (savedFilter && this.isValidFilter(savedFilter)) {
             // Check if user can access the saved filter
             if (savedFilter === FEED_CONSTANTS.FILTERS.USER && !this.canAccessUserFilter()) {
-                console.log('💾 FILTER: Saved "user" filter but user not authenticated, defaulting to "site"');
                 this.setFilterSelection(FEED_CONSTANTS.FILTERS.SITE);
                 this.currentFilter = FEED_CONSTANTS.FILTERS.SITE;
             } else {
-                if (window.DEBUG_MODE) {
-                    console.log('💾 FILTER: Using saved filter:', savedFilter);
-                }
                 this.setFilterSelection(savedFilter);
                 this.currentFilter = savedFilter;
             }
@@ -61,20 +57,12 @@ class FeedFilterManager {
             const defaultFilter = FEED_CONSTANTS.DEFAULTS.CURRENT_FILTER;
 
             if (defaultFilter === FEED_CONSTANTS.FILTERS.USER && !this.canAccessUserFilter()) {
-                console.log('💾 FILTER: Default is "user" but user not authenticated, defaulting to "site"');
                 this.setFilterSelection(FEED_CONSTANTS.FILTERS.SITE);
                 this.currentFilter = FEED_CONSTANTS.FILTERS.SITE;
             } else {
-                if (window.DEBUG_MODE) {
-                    console.log('💾 FILTER: Using default filter:', defaultFilter);
-                }
                 this.setFilterSelection(defaultFilter);
                 this.currentFilter = defaultFilter;
             }
-        }
-
-        if (window.DEBUG_MODE) {
-            console.log('💾 FILTER: Filter set to:', this.currentFilter);
         }
 
         // Notify that filter is ready
@@ -115,7 +103,6 @@ class FeedFilterManager {
     saveFilter(filter) {
         try {
             localStorage.setItem(FEED_CONSTANTS.LOCALSTORAGE.SELECTED_FILTER, filter);
-            console.log(`💾 FILTER: Saved filter '${filter}' to localStorage`);
         } catch (error) {
             console.warn('Failed to save filter to localStorage:', error);
         }
@@ -130,7 +117,6 @@ class FeedFilterManager {
     clearSavedFilter() {
         try {
             localStorage.removeItem(FEED_CONSTANTS.LOCALSTORAGE.SELECTED_FILTER);
-            console.log('💾 FILTER: Cleared saved filter from localStorage');
         } catch (error) {
             console.warn('Failed to clear saved filter from localStorage:', error);
         }
@@ -183,12 +169,9 @@ class FeedFilterManager {
             // User logged in and we're still on default filter, switch to user filter
             // Only switch if we're not already on the user filter
             if (this.currentFilter !== FEED_CONSTANTS.FILTERS.USER) {
-                console.log('💾 FILTER: User logged in, switching to user filter');
                 this.setFilterSelection(FEED_CONSTANTS.FILTERS.USER);
                 this.currentFilter = FEED_CONSTANTS.FILTERS.USER;
                 this.switchFilter(FEED_CONSTANTS.FILTERS.USER);
-            } else if (window.DEBUG_MODE) {
-                console.log('⏭️ FILTER: Already on user filter, skipping switch');
             }
         }
     }
@@ -213,15 +196,9 @@ class FeedFilterManager {
     async switchFilter(newFilter) {
         // Prevent unnecessary switches to the same filter
         if (this.currentFilter === newFilter) {
-            if (window.DEBUG_MODE) {
-                console.log(`⏭️ FILTER: Already on '${newFilter}' filter, skipping switch`);
-            }
 
             return;
         }
-
-        console.log(`🔄 FILTER: Switching from '${this.currentFilter}' to '${newFilter}'`);
-        console.log('📊 FILTER: Cache state before switch:', this.cacheManager.getCacheStats());
 
         this.showLoadingOverlay();
         this.cacheManager.saveScrollPosition(this.currentFilter);
@@ -261,7 +238,6 @@ class FeedFilterManager {
 
             if (tabServiceAvailable) { return true; }
 
-            console.log(`⏳ FILTER: Waiting for tab service... attempt ${attempts + 1}/${maxAttempts}`);
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
         }
@@ -272,12 +248,8 @@ class FeedFilterManager {
     // Perform the actual filter switch
     async performFilterSwitch(newFilter, tabServiceAvailable) {
         if (tabServiceAvailable) {
-            console.log('🚀 FILTER: Using intelligent tab service for filtering');
             const result = window.feedManager.tabService.switchToFilter(newFilter);
-
-            console.log('✅ FILTER: Tab service switch completed:', result);
         } else {
-            console.log('⚠️ FILTER: Tab service not available, using fallback method');
             this.hideFilterImages(this.currentFilter);
             this.showFilterImages(newFilter);
         }
@@ -286,10 +258,8 @@ class FeedFilterManager {
     // Handle loading or restoring filter images
     async handleFilterImages(newFilter) {
         if (!this.cacheManager.isFilterLoaded(newFilter)) {
-            console.log(`📥 FILTER: Loading '${newFilter}' images for first time`);
             await this.loadFilterImages(newFilter);
         } else {
-            console.log(`✅ FILTER: Using cached '${newFilter}' images`);
             this.cacheManager.restoreScrollPosition(newFilter);
         }
     }
@@ -407,7 +377,6 @@ class FeedFilterManager {
      */
     async updateImageCountDisplay(filter) {
         try {
-            console.log(`📊 FILTER: Updating image count display for ${filter}`);
             await this.imageCountManager.updateDisplayForFilter(filter);
         } catch (error) {
             console.error(`📊 FILTER: Failed to update image count display for ${filter}:`, error);

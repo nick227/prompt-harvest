@@ -208,8 +208,8 @@ class PublicStatusService {
 
         // Update feed cache if available
         if (window.feedManager && window.feedManager.cacheManager) {
-            // Trigger cache refresh for affected filters
-            window.feedManager.cacheManager.invalidateCache();
+            // Update the specific image in cache instead of invalidating all caches
+            window.feedManager.cacheManager.updateImageInCache(imageId, { isPublic });
         }
 
         // Update the DOM wrapper's dataset to ensure consistency
@@ -229,7 +229,7 @@ class PublicStatusService {
         }
 
         const headers = { 'Content-Type': 'application/json' };
-        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const token = window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
 
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;

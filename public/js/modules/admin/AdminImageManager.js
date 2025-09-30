@@ -312,7 +312,13 @@ class AdminImageManager {
 
     async performModerationAction(imageId, action, reason = '') {
         try {
-            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            // Check authentication before making request
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                console.warn('🔐 ADMIN-IMAGE: No valid token for moderation action, skipping');
+                return;
+            }
+
+            const authToken = window.AdminAuthUtils.getAuthToken();
             const response = await fetch(`/api/admin/images/${imageId}/moderate`, {
                 method: 'POST',
                 headers: {
@@ -417,7 +423,13 @@ class AdminImageManager {
             const tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 
             try {
-                const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+                // Check authentication before making request
+                if (!window.AdminAuthUtils?.hasValidToken()) {
+                    console.warn('🔐 ADMIN-IMAGE: No valid token for tag update, skipping');
+                    return;
+                }
+
+                const authToken = window.AdminAuthUtils.getAuthToken();
                 const response = await fetch(`/api/admin/images/${imageId}/update-tags`, {
                     method: 'POST',
                     headers: {

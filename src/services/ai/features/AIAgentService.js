@@ -226,7 +226,6 @@ Always provide helpful, specific advice tailored to their current prompt and goa
 
         // Handle tool calls
         if (message.tool_calls && message.tool_calls.length > 0) {
-            console.log('🔧 Handling tool calls...');
             const toolResult = await this.handleToolCalls(message.tool_calls, context, userId, conversationId);
 
             console.log('🔧 Tool result:', {
@@ -238,7 +237,6 @@ Always provide helpful, specific advice tailored to their current prompt and goa
 
             // Ensure we always have a response text
             if (!toolResult.response || toolResult.response.trim() === '') {
-                console.log('⚠️ Empty tool response, using fallback');
                 toolResult.response = 'I can help you with your image generation! What would you like to create?';
             }
 
@@ -246,7 +244,6 @@ Always provide helpful, specific advice tailored to their current prompt and goa
         }
 
         // Handle regular text response
-        console.log('💬 Handling regular text response...');
         const responseText = message.content || 'Hello! I\'m here to help you create amazing images. What would you like to generate?';
 
         const result = {

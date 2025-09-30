@@ -20,9 +20,11 @@ export class AIWordTypeService {
 
         try {
             const replacement = await wordTypeManager.getWordReplacement(`$${decodedWord}`);
+
             return [replacement]; // Return as array for compatibility
         } catch (error) {
             console.error('❌ Error getting word type:', error);
+
             return [decodedWord]; // Return original word on error
         }
     }
@@ -36,6 +38,7 @@ export class AIWordTypeService {
         // Use wordTypeManager for examples - return empty array for now
         // This functionality can be enhanced later if needed
         console.log(`📝 getWordExamples called for: ${decodedWord} (limit: ${limit})`);
+
         return [];
     }
 
@@ -47,9 +50,11 @@ export class AIWordTypeService {
 
         try {
             const replacement = await wordTypeManager.getWordReplacement(`$${decodedWord}`);
+
             return [replacement];
         } catch (error) {
             console.error('❌ Error getting word types:', error);
+
             return [decodedWord];
         }
     }
@@ -66,7 +71,7 @@ export class AIWordTypeService {
 
             console.log('✅ Word type added:', {
                 word: decodedWord,
-                result: result
+                result
             });
 
             return result;
@@ -88,7 +93,7 @@ export class AIWordTypeService {
 
             console.log('✅ Word type deleted:', {
                 word: decodedWord,
-                result: result
+                result
             });
 
             return result;
@@ -110,6 +115,7 @@ export class AIWordTypeService {
             };
         } catch (error) {
             console.error('❌ Error getting word type stats:', error);
+
             return null;
         }
     }

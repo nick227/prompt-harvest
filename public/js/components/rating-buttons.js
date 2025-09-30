@@ -15,11 +15,13 @@ class RatingButtons {
             window.UnifiedAuthUtils.addAuthListener((isAuthenticated) => {
                 this.onAuthStateChanged(isAuthenticated);
             });
-        } else if (window.AuthUtils) {
-            // Fallback to existing AuthUtils
-            window.AuthUtils.addAuthListener((isAuthenticated) => {
+        } else if (window.AdminAuthUtils) {
+            // Use AdminAuthUtils for authentication checks
+            // Note: AdminAuthUtils doesn't have addAuthListener, so we'll use polling
+            setInterval(() => {
+                const isAuthenticated = window.AdminAuthUtils.hasValidToken();
                 this.onAuthStateChanged(isAuthenticated);
-            });
+            }, 30000); // Check every 30 seconds
         }
     }
 
@@ -83,7 +85,7 @@ class RatingButtons {
         // Check if user is authenticated before showing buttons
         const isAuthenticated = window.UnifiedAuthUtils
             ? window.UnifiedAuthUtils.isAuthenticated()
-            : (window.AuthUtils && window.AuthUtils.isAuthenticated());
+            : (window.AdminAuthUtils && window.AdminAuthUtils.hasValidToken());
 
         if (!isAuthenticated) {
             // Return empty container for non-authenticated users

@@ -1,3 +1,13 @@
+// Suppress punycode deprecation warning (coming from dependencies)
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+    if (warning.name === 'DeprecationWarning' && warning.message.includes('punycode')) {
+        // Suppress punycode deprecation warnings from dependencies
+        return;
+    }
+    console.warn(warning);
+});
+
 import express from 'express';
 import { setupRoutes } from './src/routes/index.js';
 import dotenv from 'dotenv';
@@ -26,13 +36,8 @@ let sessionStore;
 const initializeDatabase = async () => {
     try {
         await databaseClient.connect();
-        console.log('✅ Database connected successfully');
-
         // Get the connected Prisma client
         const prismaClient = databaseClient.getClient();
-
-        // Connection already established by databaseClient.connect()
-        console.log('✅ Prisma client connected and ready');
 
         sessionStore = new PrismaSessionStore({
             prisma: prismaClient,
@@ -68,7 +73,6 @@ const scheduleSessionCleanup = () => {
         return;
     }
 
-    console.log('🕐 Scheduling session cleanup with best practices');
 
     // Clean up after a short delay to ensure everything is initialized
     setTimeout(performSessionCleanup, 2000);
@@ -84,9 +88,7 @@ const performSessionCleanup = async () => {
     try {
         const result = await sessionStore.cleanup();
 
-        if (result.success && result.deletedCount > 0) {
-            console.log(`🧹 Session cleanup: removed ${result.deletedCount} expired sessions`);
-        }
+        // Session cleanup completed silently
     } catch (error) {
         console.error('Session cleanup failed:', error);
     }
@@ -96,9 +98,7 @@ const logSessionStats = async () => {
     try {
         const stats = await sessionStore.getStats();
 
-        if (stats) {
-            console.log(`📊 Session stats: ${stats.active} active, ${stats.expired} expired, ${stats.total} total`);
-        }
+        // Session stats logged silently
     } catch (error) {
         console.error('Session stats logging failed:', error);
     }
@@ -110,8 +110,8 @@ import webhooksRouter from './src/routes/webhooks.js';
 app.use('/webhooks', webhooksRouter);
 
 // Body parsing middleware (after webhooks)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Bad word filter - apply early to catch violations before processing
 app.use('/api', moderateBadWordFilter);
@@ -174,36 +174,34 @@ const port = process.env.PORT || 3200;
 // Initialize database and start server
 const startServer = async () => {
     try {
-        // Step 1: Initialize database connection (non-blocking)
-        console.log('🔗 Initializing database connection...');
+        // Initialize database connection
         const dbConnected = await initializeDatabase();
 
         if (!dbConnected) {
             console.error('⚠️ Database connection failed, but continuing...');
         }
 
-        // Step 2: Initialize Passport after database is ready
-        console.log('🔐 Initializing Passport...');
+        // Initialize Passport
         app.use(passport.initialize());
         app.use(passport.session());
 
-        // Step 3: Initialize WordTypeManager cache (non-blocking)
-        console.log('📚 Initializing WordTypeManager...');
+        // Initialize WordTypeManager cache
         try {
             const { default: wordTypeManager } = await import('./lib/word-type-manager.js');
 
             await wordTypeManager.initializeDatabase();
-            console.log('✅ WordTypeManager initialized');
         } catch (error) {
             console.error('⚠️ WordTypeManager initialization failed:', error.message);
         }
 
-        // Step 4: Schedule session cleanup
+        // Schedule session cleanup
         scheduleSessionCleanup();
 
-        // Step 5: Setup routes and start server
-        console.log('🛣️ Setting up routes...');
+        // Setup routes
         await setupRoutes(app);
+
+        // Initialize queue processing for image generation
+        await initializeQueueProcessing();
 
         app.listen(port, '0.0.0.0', () => {
             console.log(`✅ Prompt app listening on port ${port}!`);
@@ -215,9 +213,9 @@ const startServer = async () => {
         console.error('❌ Server startup failed:', error);
 
         // Try to start server anyway with minimal setup
-        console.log('🔄 Attempting minimal server startup...');
         try {
             await setupRoutes(app);
+
             app.listen(port, '0.0.0.0', () => {
                 console.log(`⚠️ Server started with minimal setup on port ${port}!`);
             });
@@ -225,6 +223,28 @@ const startServer = async () => {
             console.error('❌ Fallback server startup failed:', fallbackError);
             process.exit(1);
         }
+    }
+};
+
+// ============================================================================
+// QUEUE PROCESSING INITIALIZATION
+// ============================================================================
+
+/**
+ * Initialize queue system for image generation
+ */
+const initializeQueueProcessing = async () => {
+    try {
+        // Import QueueManager to initialize it
+        const QueueManager = await import('./src/services/generate/QueueManager.js');
+
+        console.log('✅ Queue system initialized with p-queue');
+        console.log('📊 Queue config:', QueueManager.default().getConfig());
+
+        // p-queue handles processing automatically - no manual processing needed
+    } catch (error) {
+        console.error('❌ Failed to initialize queue system:', error);
+        // Don't exit - queue processing is not critical for server startup
     }
 };
 

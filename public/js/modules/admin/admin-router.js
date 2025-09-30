@@ -4,7 +4,7 @@
  */
 class AdminRouter {
     constructor() {
-        this.validTabs = ['summary', 'billing', 'users', 'images', 'packages', 'models', 'promo-cards', 'terms', 'messages'];
+        this.validTabs = ['summary', 'billing', 'users', 'images', 'packages', 'models', 'promo-cards', 'terms', 'messages', 'queue-monitor'];
         this.defaultTab = 'summary';
         this.currentTab = null;
 
@@ -48,23 +48,15 @@ class AdminRouter {
                 this.switchToTab(tabFromURL);
             });
         } else {
-            // Check session storage for last visited tab
-            const lastTab = sessionStorage.getItem('admin-last-tab');
-            if (lastTab && this.validTabs.includes(lastTab)) {
-                this.currentTab = lastTab;
-                this.updateURL(lastTab);
-                this.waitForAdminDashboard(() => {
-                    this.switchToTab(lastTab);
-                });
-            } else {
-                // No valid tab in URL or session, use default
-                this.currentTab = this.defaultTab;
-                this.updateURL(this.defaultTab);
-                // Wait for admin dashboard to be ready, then switch to default tab
-                this.waitForAdminDashboard(() => {
-                    this.switchToTab(this.defaultTab);
-                });
-            }
+            // Always use default tab (summary) instead of restoring last visited tab
+            // Clear any existing last tab from session storage
+            sessionStorage.removeItem('admin-last-tab');
+            this.currentTab = this.defaultTab;
+            this.updateURL(this.defaultTab);
+            // Wait for admin dashboard to be ready, then switch to default tab
+            this.waitForAdminDashboard(() => {
+                this.switchToTab(this.defaultTab);
+            });
         }
     }
 

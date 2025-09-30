@@ -86,7 +86,6 @@ class SystemSettingsService {
             this.cache.set(key, value);
             this.cacheExpiry.set(key, Date.now() + this.CACHE_TTL);
 
-            console.log(`✅ SYSTEM-SETTINGS: Updated setting "${key}" = ${value}`);
 
             return setting;
         } catch (error) {
@@ -132,7 +131,6 @@ class SystemSettingsService {
             this.cache.delete(key);
             this.cacheExpiry.delete(key);
 
-            console.log(`✅ SYSTEM-SETTINGS: Deleted setting "${key}"`);
 
             return true;
         } catch (error) {
@@ -170,6 +168,12 @@ class SystemSettingsService {
                 value: 'flux',
                 description: 'Default image generation provider for new users',
                 dataType: 'string'
+            },
+            {
+                key: 'queue_max_concurrent_requests',
+                value: '2',
+                description: 'Maximum number of concurrent image generation requests processed by the queue',
+                dataType: 'number'
             }
         ];
 
@@ -186,7 +190,6 @@ class SystemSettingsService {
             }
         }
 
-        console.log('✅ SYSTEM-SETTINGS: Default settings initialized');
     }
 
     /**
@@ -233,7 +236,6 @@ class SystemSettingsService {
     clearCache() {
         this.cache.clear();
         this.cacheExpiry.clear();
-        console.log('✅ SYSTEM-SETTINGS: Cache cleared');
     }
 
     /**

@@ -3,6 +3,8 @@
  * Extracted from images.js - handles UI states, button management, and user interactions
  */
 
+// PromptHelpersForm is available globally
+
 class ImageUIState {
     constructor() {
         this.isGenerating = false;
@@ -136,11 +138,13 @@ class ImageUIState {
         const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
         const mixupCheckbox = document.querySelector('input[name="mixup"]');
         const mashupCheckbox = document.querySelector('input[name="mashup"]');
-        const photogenicCheckbox = document.querySelector('input[name="photogenic"]');
-        const artisticCheckbox = document.querySelector('input[name="artistic"]');
+        const autoPublicCheckbox = document.querySelector('input[name="autoPublic"]');
         const multiplierInput = document.querySelector('#multiplier');
         const guidanceTop = document.querySelector('select[name="guidance-top"]');
         const guidanceBottom = document.querySelector('select[name="guidance-bottom"]');
+
+        // Get prompt helpers using centralized system
+        const promptHelpers = PromptHelpersForm.getFormValues();
 
         // Calculate guidance
         const guidanceData = this.calculateGuidance(guidanceTop?.value, guidanceBottom?.value);
@@ -153,22 +157,12 @@ class ImageUIState {
             autoEnhance: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : false,
             mixup: mixupCheckbox ? mixupCheckbox.checked : false,
             mashup: mashupCheckbox ? mashupCheckbox.checked : false,
-            photogenic: photogenicCheckbox ? photogenicCheckbox.checked : false,
-            artistic: artisticCheckbox ? artisticCheckbox.checked : false,
+            promptHelpers,
+            autoPublic: autoPublicCheckbox ? autoPublicCheckbox.checked : (localStorage.getItem('autoPublic') === 'true'),
             multiplier: multiplierInput ? multiplierInput.value.trim() : '',
             guidance: guidanceData.guidance,
             original: prompt
         };
-
-        console.log('🔍 UI VALIDATION DEBUG: validateGenerationInputs result:', {
-            autoEnhance: result.autoEnhance,
-            autoEnhanceCheckbox: autoEnhanceCheckbox,
-            checkboxChecked: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : 'checkbox not found',
-            mixup: result.mixup,
-            mashup: result.mashup,
-            photogenic: result.photogenic,
-            artistic: result.artistic
-        });
 
         return result;
     }

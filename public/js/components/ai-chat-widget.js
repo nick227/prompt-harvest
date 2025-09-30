@@ -966,12 +966,18 @@ class AIChatWidget {
 
 }
 
-// Initialize the AI Chat Widget when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.aiChatWidget = new AIChatWidget();
-});
+// Note: Auto-initialization removed for lazy loading
+// The widget will be initialized by AIChatLazyLoader when needed
+// document.addEventListener('DOMContentLoaded', () => {
+//     window.aiChatWidget = new AIChatWidget();
+// });
 
-// Export for module systems
+// Export for module systems and global access
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AIChatWidget;
+}
+
+// Make AIChatWidget available globally for lazy loading
+if (typeof window !== 'undefined') {
+    window.AIChatWidget = AIChatWidget;
 }

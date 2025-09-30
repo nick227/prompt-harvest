@@ -20,7 +20,7 @@ class AdminAPIService {
      * Get authentication token from storage
      */
     getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        return window.AdminAuthUtils?.getAuthToken();
     }
 
     /**
@@ -45,6 +45,26 @@ class AdminAPIService {
     }
 
     async request(method, endpoint, data = null, options = {}) {
+        // Check authentication before making request
+        const token = this.getAuthToken();
+        if (!token) {
+            console.warn('🔐 ADMIN-API: No auth token available, skipping request to', endpoint);
+            throw new Error('Authentication required');
+        }
+
+        // Check if token is expired
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const now = Math.floor(Date.now() / 1000);
+            if (payload.exp && payload.exp < now) {
+                console.warn('🔐 ADMIN-API: Token expired, skipping request to', endpoint);
+                throw new Error('Authentication token expired');
+            }
+        } catch (tokenError) {
+            console.warn('🔐 ADMIN-API: Invalid token format, skipping request to', endpoint);
+            throw new Error('Invalid authentication token');
+        }
+
         const url = `${this.baseUrl}${endpoint}`;
 
         const config = {

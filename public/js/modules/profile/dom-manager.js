@@ -36,8 +36,6 @@ class ProfileDOMManager {
             // Forms
             aiGenerationForm: document.getElementById('ai-generation-form'),
             existingImagesGrid: document.getElementById('existing-images-grid'),
-            uploadPreview: document.getElementById('upload-preview'),
-            uploadPreviewImg: document.getElementById('upload-preview-img'),
 
             // AI generation
             avatarPrompt: document.getElementById('avatar-prompt'),
@@ -55,7 +53,6 @@ class ProfileDOMManager {
             regenerateAvatar: document.getElementById('regenerate-avatar'),
 
             // Actions removed - no longer needed
-            removeUpload: document.getElementById('remove-upload'),
 
             // Status
             profileUpdateStatus: document.getElementById('profile-update-status')
@@ -86,9 +83,6 @@ class ProfileDOMManager {
             elements.avatarFileInput.addEventListener('change', e => this.emit('fileUpload', e));
         }
 
-        if (elements.removeUpload) {
-            elements.removeUpload.addEventListener('click', () => this.emit('removeUpload'));
-        }
 
         // Action buttons removed - no longer needed
 
@@ -236,7 +230,7 @@ class ProfileDOMManager {
      * Hide all avatar forms
      */
     hideAllAvatarForms() {
-        const forms = ['aiGenerationForm', 'existingImagesGrid', 'uploadPreview', 'avatarFileInput', 'aiGenerationPreview'];
+        const forms = ['aiGenerationForm', 'existingImagesGrid', 'avatarFileInput', 'aiGenerationPreview'];
 
         forms.forEach(formId => this.hideElement(formId));
     }
@@ -337,24 +331,6 @@ class ProfileDOMManager {
         // No longer needed - each avatar type handles its own save operation
     }
 
-    /**
-     * Show upload preview
-     */
-    showUploadPreview(file) {
-        const { uploadPreview, uploadPreviewImg } = this.elements;
-
-        if (!uploadPreview || !uploadPreviewImg) {
-            return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = e => {
-            uploadPreviewImg.src = e.target.result;
-            this.showElement('uploadPreview');
-        };
-        reader.readAsDataURL(file);
-    }
 
     /**
      * Display existing images
@@ -536,3 +512,6 @@ class ProfileDOMManager {
         }
     }
 }
+
+// Export for global access
+window.ProfileDOMManager = ProfileDOMManager;

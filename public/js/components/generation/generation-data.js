@@ -1,5 +1,7 @@
 
 // Generation Data Layer - Data validation, transformation, and management for image generation
+
+// PromptHelpersForm is available globally
 class GenerationData {
     constructor() {
         this.validationRules = {
@@ -105,8 +107,7 @@ class GenerationData {
             mixup: !!rawData.mixup,
             mashup: !!rawData.mashup,
             autoEnhance: !!rawData.autoEnhance,
-            photogenic: !!rawData.photogenic,
-            artistic: !!rawData.artistic,
+            promptHelpers: rawData.promptHelpers || {},
             autoPublic: !!rawData.autoPublic,
             promptId: rawData.promptId || this.generatePromptId(),
             original: rawData.original?.trim() || rawData.prompt?.trim() || ''
@@ -143,9 +144,28 @@ class GenerationData {
         const mixupCheckbox = document.querySelector('input[name="mixup"]');
         const mashupCheckbox = document.querySelector('input[name="mashup"]');
         const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
-        const photogenicCheckbox = document.querySelector('input[name="photogenic"]');
-        const artisticCheckbox = document.querySelector('input[name="artistic"]');
         const autoPublicCheckbox = document.querySelector('input[name="autoPublic"]');
+
+        // Get prompt helpers using centralized system
+        const promptHelpers = PromptHelpersForm.getFormValues();
+
+        // Debug autoPublic checkbox
+        console.log('🔍 FORM DEBUG: autoPublic checkbox found:', !!autoPublicCheckbox);
+        if (autoPublicCheckbox) {
+            console.log('🔍 FORM DEBUG: autoPublic checkbox checked:', autoPublicCheckbox.checked);
+            console.log('🔍 FORM DEBUG: autoPublic checkbox value:', autoPublicCheckbox.value);
+        } else {
+            console.log('🔍 FORM DEBUG: autoPublic checkbox not found in DOM');
+            // Try to find all checkboxes to debug
+            const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+
+            console.log('🔍 FORM DEBUG: All checkboxes found:', Array.from(allCheckboxes).map(cb => ({ name: cb.name, checked: cb.checked })));
+
+            // Try to access from localStorage as fallback
+            const persistedAutoPublic = localStorage.getItem('autoPublic');
+
+            console.log('🔍 FORM DEBUG: Persisted autoPublic value:', persistedAutoPublic);
+        }
 
         // Calculate guidance
         const guidanceData = this.calculateGuidance(guidanceElmTop?.value, guidanceElmBottom?.value);
@@ -157,13 +177,18 @@ class GenerationData {
             mixup: mixupCheckbox ? mixupCheckbox.checked : false,
             mashup: mashupCheckbox ? mashupCheckbox.checked : false,
             autoEnhance: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : false,
-            photogenic: photogenicCheckbox ? photogenicCheckbox.checked : false,
-            artistic: artisticCheckbox ? artisticCheckbox.checked : false,
-            autoPublic: autoPublicCheckbox ? autoPublicCheckbox.checked : false,
+            promptHelpers,
+            autoPublic: autoPublicCheckbox ? autoPublicCheckbox.checked : (localStorage.getItem('autoPublic') === 'true'),
             original: promptInput ? promptInput.value.trim() : ''
         };
 
-        return this.normalizePromptData(rawData);
+        const normalizedData = this.normalizePromptData(rawData);
+
+        // Debug final autoPublic value
+        console.log('🔍 FORM DEBUG: Final autoPublic value:', normalizedData.autoPublic);
+        console.log('🔍 FORM DEBUG: Full normalized data:', normalizedData);
+
+        return normalizedData;
     }
 
     extractAutoGenerationSettings() {

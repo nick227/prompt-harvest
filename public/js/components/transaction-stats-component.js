@@ -19,8 +19,6 @@ class TransactionStatsComponent {
         try {
             this.container = document.getElementById(this.containerId);
             if (!this.container) {
-                console.warn(`⚠️ Transaction stats container #${this.containerId} not found`);
-
                 return;
             }
 
@@ -39,9 +37,31 @@ class TransactionStatsComponent {
 
 
     setupEventListeners() {
-        // Subscribe to stats service updates with retry mechanism
-        this.subscribeToStatsService();
+        // Subscribe to unified services
+        this.subscribeToUnifiedServices();
 
+        // Listen for authentication state changes
+        if (window.UnifiedEventService) {
+            window.UnifiedEventService.onAuthChange(isAuthenticated => {
+                this.handleAuthStateChange(isAuthenticated);
+            });
+
+            // Listen for image generation completion to update credits in real-time
+            window.UnifiedEventService.onImageGenerated(event => {
+                this.handleImageGenerated(event);
+            });
+
+            // Listen for credit updates from other components
+            window.UnifiedEventService.onCreditUpdate(event => {
+                this.updateCredits(event.balance);
+            });
+        } else {
+            // Fallback to legacy event system
+            this.setupLegacyEventListeners();
+        }
+    }
+
+    setupLegacyEventListeners() {
         // Listen for authentication state changes
         window.addEventListener('authStateChanged', event => {
             this.handleAuthStateChange(event.detail);
@@ -58,22 +78,37 @@ class TransactionStatsComponent {
         });
     }
 
-    subscribeToStatsService() {
-        if (window.statsService) {
-            this.unsubscribe = window.statsService.subscribe(stats => {
+    subscribeToUnifiedServices() {
+        // Subscribe to unified stats service
+        if (window.UnifiedStatsService) {
+            this.unsubscribeStats = window.UnifiedStatsService.subscribe(stats => {
                 this.handleStatsUpdate(stats);
             });
         } else {
-            // Retry after a short delay
-            setTimeout(() => this.subscribeToStatsService(), 100);
+            // Fallback to legacy stats service
+            this.subscribeToStatsService();
         }
+
+        // Subscribe to unified credit service
+        if (window.UnifiedCreditService) {
+            this.unsubscribeCredits = window.UnifiedCreditService.subscribe(data => {
+                if (data.type === 'balance') {
+                    this.updateCredits(data.balance);
+                }
+            });
+        }
+    }
+
+    subscribeToStatsService() {
+        // Legacy stats service is no longer needed with unified services
+        console.warn('⚠️ STATS-COMPONENT: Legacy stats service fallback is deprecated');
     }
 
     async checkAuthenticationAndLoadStats() {
         try {
-            // Use stats service instead of direct API calls
-            if (window.statsService) {
-                const stats = await window.statsService.getStats();
+            // Use unified stats service if available
+            if (window.UnifiedStatsService) {
+                const stats = await window.UnifiedStatsService.getStats();
 
                 this.handleStatsUpdate(stats);
             } else {
@@ -86,29 +121,9 @@ class TransactionStatsComponent {
         }
     }
 
-    async waitForStatsService(maxRetries = 5, retryDelay = 200) {
-        let retries = 0;
-
-        while (retries < maxRetries) {
-            if (window.statsService) {
-                try {
-                    const stats = await window.statsService.getStats();
-                    this.handleStatsUpdate(stats);
-                    return;
-                } catch (error) {
-                    console.error('❌ Error getting stats from service:', error);
-                    break;
-                }
-            }
-
-            retries++;
-            if (retries < maxRetries) {
-                // Waiting for stats service
-                await new Promise(resolve => setTimeout(resolve, retryDelay));
-            }
-        }
-
-        console.warn('⚠️ STATS: Stats service not available after waiting, falling back to direct API');
+    async waitForStatsService() {
+        // Legacy method - now just fall back to direct API
+        console.warn('⚠️ STATS: Legacy stats service not available, using direct API');
         await this.loadStatsDirectly();
     }
 
@@ -122,11 +137,11 @@ class TransactionStatsComponent {
         }
     }
 
-    async handleAuthStateChange(_user) {
-        if (_user) {
+    async handleAuthStateChange(isAuthenticated) {
+        if (isAuthenticated) {
             // User logged in, get stats from service
-            if (window.statsService) {
-                const stats = await window.statsService.getStats();
+            if (window.UnifiedStatsService) {
+                const stats = await window.UnifiedStatsService.getStats();
 
                 this.handleStatsUpdate(stats);
             }
@@ -146,21 +161,24 @@ class TransactionStatsComponent {
 
         try {
             // Check if user is authenticated before making API call
-            if (!window.userApi || !window.userApi.isAuthenticated()) {
-                console.log('📊 STATS-COMPONENT: User not authenticated, showing not authenticated state');
+            if (!window.UnifiedAuthUtils || !window.UnifiedAuthUtils.isAuthenticated()) {
                 this.showNotAuthenticatedState();
 
                 return;
             }
 
             // Fetch user stats
-            const response = await window.apiService.get('/api/transactions/user/stats');
+            const response = await fetch('/api/transactions/user/stats', {
+                headers: window.UnifiedAuthUtils.getAuthHeaders()
+            });
 
-            if (response.success) {
-                this.stats = response.data;
+            const data = await response.json();
+
+            if (data.success) {
+                this.stats = data.data;
                 this.handleStatsUpdate(this.stats);
             } else {
-                console.error('❌ Failed to load stats:', response.error);
+                console.error('❌ Failed to load stats:', data.error);
                 this.showErrorState();
             }
         } catch (error) {
@@ -173,8 +191,8 @@ class TransactionStatsComponent {
 
 
     async refreshStats() {
-        if (window.statsService) {
-            const stats = await window.statsService.getStats(true); // Force refresh
+        if (window.UnifiedStatsService) {
+            const stats = await window.UnifiedStatsService.getStats(true); // Force refresh
 
             this.handleStatsUpdate(stats);
         }
@@ -188,20 +206,13 @@ class TransactionStatsComponent {
         // Ensure the container is visible when showing stats
         this.container.style.display = 'block';
 
-        const { generationCount, creditBalance = 0 } = this.stats;
+        const { generationCount } = this.stats;
 
         this.container.innerHTML = `
             <div class="flex items-center space-x-3 text-sm">
                 <div class="flex items-center space-x-1">
                     <i class="fas fa-images text-blue-400"></i>
                     <span class="text-gray-300">${generationCount}</span>
-                </div>
-                <div class="flex items-center space-x-1">
-                    <i class="fas fa-coins text-yellow-400"></i>
-                    <a href="/billing.html">
-                        <span class="text-gray-300" id="credit-balance">${creditBalance}</span>
-                        <span class="text-gray-400">credits</span>
-                    </a>
                 </div>
                 <button
                 id="add-credits-btn"
@@ -267,10 +278,9 @@ class TransactionStatsComponent {
 
     // Public method to reload stats after image generation
     async reload() {
-        console.log('🔄 Reloading transaction stats after image generation');
         try {
-            if (window.statsService) {
-                const stats = await window.statsService.getStats(true); // Force refresh
+            if (window.UnifiedStatsService) {
+                const stats = await window.UnifiedStatsService.getStats(true); // Force refresh
 
                 this.handleStatsUpdate(stats);
             } else {
@@ -283,27 +293,14 @@ class TransactionStatsComponent {
 
     // Handle image generation completion
     async handleImageGenerated(_imageData) {
-        console.log('🖼️ Image generated, updating credits in real-time');
         // Reload stats to get updated credit balance
         await this.reload();
     }
 
-    // Update only the credit balance in real-time
-    updateCredits(newCreditBalance) {
-        if (!this.container) {
-            return;
-        }
-
-        const creditElement = this.container.querySelector('#credit-balance');
-
-        if (creditElement) {
-            creditElement.textContent = newCreditBalance;
-        }
-
-        // Update the stats object
-        if (this.stats) {
-            this.stats.creditBalance = newCreditBalance;
-        }
+    // Update only the credit balance in real-time (no longer needed - credit balance handled by CreditBalanceWidget)
+    updateCredits(_newCreditBalance) {
+        // Credit balance is now handled by the dedicated CreditBalanceWidget
+        // This method is kept for backward compatibility but does nothing
     }
 
     // Setup payment button event listener
@@ -321,8 +318,6 @@ class TransactionStatsComponent {
     handleAddCreditsClick(event) {
         event.preventDefault();
         event.stopPropagation();
-
-        console.log('💳 STATS-COMPONENT: Add credits button clicked');
         this.openCreditPurchaseModal();
     }
 
@@ -510,10 +505,9 @@ class TransactionStatsComponent {
     // Initiate purchase process
     async initiatePurchase(packageId) {
         try {
-            console.log(`💳 STATS-COMPONENT: Initiating purchase for package: ${packageId}`);
 
             // Check if user is authenticated
-            if (!window.userApi || !window.userApi.isAuthenticated()) {
+            if (!window.UnifiedAuthUtils || !window.UnifiedAuthUtils.isAuthenticated()) {
                 window.location.href = '/login.html';
 
                 return;
@@ -523,18 +517,23 @@ class TransactionStatsComponent {
             this.showPurchaseLoading();
 
             // Create Stripe checkout session
-            const response = await window.apiService.post('/api/credits/purchase', {
-                packageId,
-                successUrl: `${window.location.origin}/purchase-success.html`,
-                cancelUrl: window.location.href
+            const response = await fetch('/api/credits/purchase', {
+                method: 'POST',
+                headers: window.UnifiedAuthUtils.getAuthHeaders(),
+                body: JSON.stringify({
+                    packageId,
+                    successUrl: `${window.location.origin}/purchase-success.html`,
+                    cancelUrl: window.location.href
+                })
             });
 
-            if (response.success && response.url) {
-                console.log('💳 STATS-COMPONENT: Redirecting to Stripe checkout');
+            const data = await response.json();
+
+            if (data.success && data.url) {
                 // Redirect to Stripe checkout
-                window.location.href = response.url;
+                window.location.href = data.url;
             } else {
-                throw new Error(response.error || 'Failed to create checkout session');
+                throw new Error(data.error || 'Failed to create checkout session');
             }
 
         } catch (error) {
@@ -574,9 +573,5 @@ class TransactionStatsComponent {
     }
 }
 
-// Initialize transaction stats component
-
-const transactionStatsComponent = new TransactionStatsComponent();
-
-// Make it globally available
-window.transactionStatsComponent = transactionStatsComponent;
+// Export the class for use by other components
+window.TransactionStatsComponent = TransactionStatsComponent;

@@ -68,11 +68,13 @@
 
 .admin-tabs {
   display: flex;
-  background: linear-gradient(135deg, var(--color-gray-700) 0%, var(--color-gray-800) 100%);
   border-bottom: 1px solid var(--color-gray-600);
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  justify-content: space-around;
+  gap: 20px;
+  width: 100%;
 }
 
 .admin-tabs::-webkit-scrollbar {

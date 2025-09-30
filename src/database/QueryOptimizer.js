@@ -32,6 +32,7 @@ export class QueryOptimizer {
 
         // Check cache first
         const cached = this.getFromCache(cacheKey);
+
         if (cached) {
             return cached;
         }
@@ -39,6 +40,7 @@ export class QueryOptimizer {
         try {
             // Build optimized where clause
             const whereClause = { isPublic };
+
             if (userId) {
                 whereClause.userId = userId;
             }
@@ -99,6 +101,7 @@ export class QueryOptimizer {
 
             // Cache the result
             this.setCache(cacheKey, result);
+
             return result;
 
         } catch (error) {
@@ -126,12 +129,14 @@ export class QueryOptimizer {
 
         // Check cache first
         const cached = this.getFromCache(cacheKey);
+
         if (cached) {
             return cached;
         }
 
         try {
             const whereClause = { userId };
+
             if (isPublic !== null) {
                 whereClause.isPublic = isPublic;
             }
@@ -183,6 +188,7 @@ export class QueryOptimizer {
 
             // Cache the result
             this.setCache(cacheKey, result);
+
             return result;
 
         } catch (error) {
@@ -200,6 +206,7 @@ export class QueryOptimizer {
 
         // Check cache first
         const cached = this.getFromCache(cacheKey);
+
         if (cached) {
             return cached;
         }
@@ -219,6 +226,7 @@ export class QueryOptimizer {
 
             // Cache for longer since models don't change often
             this.setCache(cacheKey, models, 30 * 60 * 1000); // 30 minutes
+
             return models;
 
         } catch (error) {
@@ -242,6 +250,7 @@ export class QueryOptimizer {
 
         // Check cache first
         const cached = this.getFromCache(cacheKey);
+
         if (cached) {
             return cached;
         }
@@ -258,6 +267,7 @@ export class QueryOptimizer {
 
             // Cache the result
             this.setCache(cacheKey, users);
+
             return users;
 
         } catch (error) {
@@ -277,12 +287,14 @@ export class QueryOptimizer {
 
         // Check cache first
         const cached = this.getFromCache(cacheKey);
+
         if (cached !== null) {
             return cached;
         }
 
         try {
             const whereClause = {};
+
             if (userId) {
                 whereClause.userId = userId;
             }
@@ -296,6 +308,7 @@ export class QueryOptimizer {
 
             // Cache for shorter time since counts change more frequently
             this.setCache(cacheKey, count, 2 * 60 * 1000); // 2 minutes
+
             return count;
 
         } catch (error) {
@@ -309,12 +322,14 @@ export class QueryOptimizer {
      */
     getFromCache(key) {
         const cached = this.queryCache.get(key);
+
         if (cached && Date.now() - cached.timestamp < cached.timeout) {
             return cached.data;
         }
         if (cached) {
             this.queryCache.delete(key);
         }
+
         return null;
     }
 

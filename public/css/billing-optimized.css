@@ -1657,24 +1657,6 @@ font-size: 0.875rem;
     object-fit: cover;
 }
 
-.upload-preview {
-    margin-top: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--color-gray-50);
-    border-radius: 8px;
-    border: 1px solid var(--color-gray-200);
-}
-
-.upload-preview-image {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid var(--color-gray-300);
-}
 
 .profile-status {
     margin-top: 1rem;

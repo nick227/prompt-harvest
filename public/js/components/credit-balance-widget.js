@@ -1,13 +1,14 @@
 /**
  * Credit Balance Widget
  * Simple component to display user's credit balance in the header
+ * Refactored to use unified services
  */
 class CreditBalanceWidget {
     constructor(containerId = 'creditBalance') {
         this.containerId = containerId;
         this.balance = 0;
         this.isLoading = false;
-        this.updateInterval = null;
+        this.unsubscribe = null;
         this.init();
     }
 
@@ -16,63 +17,75 @@ class CreditBalanceWidget {
 
         // Only proceed if widget container was created successfully
         if (!document.getElementById(this.containerId)) {
-            console.log('🔐 CREDIT-WIDGET: No container found, skipping initialization');
             return;
         }
 
-        // Delay initialization to ensure server is ready
-        setTimeout(() => {
-            this.waitForAuthentication();
-            this.setupAuthListener();
-        }, 1000);
-        // Refresh balance every 30 seconds (only when authenticated)
-        this.updateInterval = setInterval(() => {
-            if (window.userSystem && window.userSystem.isInitialized && window.userSystem.isAuthenticated()) {
-                this.loadBalance();
-            }
-        }, 30000);
+        // Wait for unified services to be available
+        this.waitForServices();
     }
 
-    waitForAuthentication() {
-        // Wait for user system to be available, initialized, and authenticated
-        const checkAuth = () => {
-            if (window.userSystem && window.userSystem.isInitialized) {
-                if (window.userSystem.isAuthenticated()) {
-                    console.log('🔐 CREDIT-WIDGET: User authenticated, loading balance');
-                    this.loadBalance();
-                } else {
-                    console.log('🔐 CREDIT-WIDGET: User not authenticated, hiding widget');
-                    this.hideWidget();
-                }
-            } else if (window.userSystem) {
-                console.log('🔐 CREDIT-WIDGET: User system not initialized yet, waiting...');
-                // Check again in 500ms
-                setTimeout(checkAuth, 500);
-            } else {
-                // User system not available yet, wait
-                setTimeout(checkAuth, 100);
-            }
-        };
+    async waitForServices() {
+        const maxRetries = 10;
+        let retries = 0;
 
-        checkAuth();
+        while (retries < maxRetries) {
+            if (window.UnifiedCreditService && window.UnifiedAuthUtils) {
+                this.setupServices();
+
+                return;
+            }
+            retries++;
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        console.warn('🔐 CREDIT-WIDGET: Unified services not available, falling back to direct API');
+        this.setupFallback();
     }
 
-    setupAuthListener() {
+    setupServices() {
+        // Subscribe to credit updates
+        this.unsubscribe = window.UnifiedCreditService.subscribe(data => {
+            if (data.type === 'balance') {
+                this.balance = data.balance;
+                this.updateDisplay();
+            }
+        });
+
         // Listen for authentication state changes
-        if (window.userSystem) {
-            window.userSystem.addAuthStateListener((authState) => {
-                console.log('🔐 CREDIT-WIDGET: Auth state changed:', authState);
-                if (authState && authState.isAuthenticated) {
+        window.UnifiedAuthUtils.addAuthListener(isAuthenticated => {
+            if (isAuthenticated) {
+                this.loadBalance();
+            } else {
+                this.hideWidget();
+            }
+        });
+
+        // Listen for promo code redemption events
+        if (window.UnifiedEventService) {
+            window.UnifiedEventService.onPromoRedeemed(() => {
+                this.loadBalance();
+            });
+        } else {
+            // Fallback to legacy event system
+            window.addEventListener('promoCodeRedeemed', event => {
+                console.log('🎫 CREDIT-WIDGET: Promo code redeemed event received:', event.detail);
+                // Small delay to ensure backend has processed the redemption
+                setTimeout(() => {
                     this.loadBalance();
-                } else {
-                    this.hideWidget();
-                }
+                }, 500);
             });
         }
 
+        // Initial load
+        this.loadBalance();
+    }
+
+    setupFallback() {
+        // Simplified fallback - just load balance directly
+        this.loadBalance();
+
         // Listen for promo code redemption events
-        window.addEventListener('promoCodeRedeemed', (event) => {
-            console.log('🎫 CREDIT-WIDGET: Promo code redeemed event received:', event.detail);
+        window.addEventListener('promoCodeRedeemed', () => {
             // Small delay to ensure backend has processed the redemption
             setTimeout(() => {
                 this.loadBalance();
@@ -84,8 +97,6 @@ class CreditBalanceWidget {
         const container = document.getElementById(this.containerId);
 
         if (!container) {
-            console.warn(`Credit widget container #${this.containerId} not found`);
-
             return;
         }
 
@@ -118,15 +129,15 @@ class CreditBalanceWidget {
         }
     }
 
-    async loadBalance(retryCount = 0) {
+    async loadBalance(forceRefresh = false) {
         if (this.isLoading) {
             return;
         }
 
-        // Check if user system is initialized and user is authenticated before making API call
-        if (!window.userSystem || !window.userSystem.isInitialized || !window.userSystem.isAuthenticated()) {
-            console.log('🔐 CREDIT-WIDGET: User system not ready or user not authenticated, skipping balance load');
+        // Check if user is authenticated
+        if (!window.UnifiedAuthUtils || !window.UnifiedAuthUtils.isAuthenticated()) {
             this.hideWidget();
+
             return;
         }
 
@@ -136,62 +147,16 @@ class CreditBalanceWidget {
         try {
             // Use UnifiedCreditService for consistency
             if (window.UnifiedCreditService) {
-                this.balance = await window.UnifiedCreditService.getBalance();
+                this.balance = await window.UnifiedCreditService.getBalance(forceRefresh);
                 this.updateDisplay();
                 this.showWidget(); // Ensure widget is visible on successful load
-
-                // Trigger custom event for other components
-                window.dispatchEvent(new CustomEvent('creditBalanceUpdated', {
-                    detail: { balance: this.balance }
-                }));
             } else {
                 // Fallback to direct API call
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-
-                // Get authentication headers
-                const authHeaders = this.getAuthHeaders();
-
-                const response = await fetch('/api/credits/balance', {
-                    headers: authHeaders,
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        // User not authenticated, hide widget
-                        this.hideWidget();
-
-                        return;
-                    }
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    this.balance = data.balance;
-                    this.updateDisplay();
-                    this.showWidget(); // Ensure widget is visible on successful load
-
-                    // Trigger custom event for other components
-                    window.dispatchEvent(new CustomEvent('creditBalanceUpdated', {
-                        detail: { balance: this.balance }
-                    }));
-                }
+                await this.loadBalanceFallback();
             }
 
         } catch (error) {
-            console.warn('Credit balance fetch failed:', error);
-
-            // Retry logic for network errors
-            if (retryCount < 2 && (error.name === 'AbortError' || error.message.includes('fetch'))) {
-                setTimeout(() => this.loadBalance(retryCount + 1), 2000 * (retryCount + 1));
-
-                return;
-            }
+            console.error('Credit balance fetch failed:', error);
 
             if (textElement) {
                 const isOffline = !navigator.onLine;
@@ -203,6 +168,12 @@ class CreditBalanceWidget {
         } finally {
             this.isLoading = false;
         }
+    }
+
+    async loadBalanceFallback() {
+        // Simplified fallback - just show error state
+        console.warn('⚠️ CREDIT-WIDGET: Unified services not available, showing error state');
+        this.showErrorState();
     }
 
     updateDisplay() {
@@ -282,6 +253,7 @@ class CreditBalanceWidget {
 
             // Remove loading modal and create full modal
             const loadingModal = document.getElementById('creditPurchaseModal');
+
             if (loadingModal) {
                 loadingModal.remove();
             }
@@ -294,6 +266,7 @@ class CreditBalanceWidget {
 
             // Remove loading modal
             const loadingModal = document.getElementById('creditPurchaseModal');
+
             if (loadingModal) {
                 loadingModal.remove();
             }
@@ -462,12 +435,13 @@ class CreditBalanceWidget {
         });
 
         // Add keyboard close handler (Escape key)
-        const handleEscape = (e) => {
+        const handleEscape = e => {
             if (e.key === 'Escape') {
                 modal.remove();
                 document.removeEventListener('keydown', handleEscape);
             }
         };
+
         document.addEventListener('keydown', handleEscape);
 
         // Add promo code redemption handlers
@@ -489,7 +463,7 @@ class CreditBalanceWidget {
         });
 
         // Enter key handler
-        promoCodeInput.addEventListener('keypress', async (e) => {
+        promoCodeInput.addEventListener('keypress', async e => {
             if (e.key === 'Enter') {
                 await this.handleHeaderPromoRedeem(promoCodeInput, redeemPromoBtn, promoMessage);
             }
@@ -506,11 +480,13 @@ class CreditBalanceWidget {
 
         if (!promoCode) {
             this.showPromoMessage(messageEl, 'Please enter a promo code', 'error');
+
             return;
         }
 
         if (!window.UnifiedCreditService) {
             this.showPromoMessage(messageEl, 'Service unavailable. Please try again later.', 'error');
+
             return;
         }
 
@@ -530,20 +506,12 @@ class CreditBalanceWidget {
                 input.value = '';
 
                 // Update balance display
-                await this.loadBalance();
-
-                // Dispatch event to notify billing page of promo code redemption
-                window.dispatchEvent(new CustomEvent('promoCodeRedeemed', {
-                    detail: {
-                        timestamp: Date.now(),
-                        source: 'header-widget',
-                        credits: result.credits
-                    }
-                }));
+                await this.loadBalance(true);
 
                 // Close modal after a short delay
                 setTimeout(() => {
                     const modal = document.getElementById('creditPurchaseModal');
+
                     if (modal) {
                         modal.remove();
                     }
@@ -593,7 +561,11 @@ class CreditBalanceWidget {
     async purchasePackage(packageId) {
         try {
             if (window.UnifiedCreditService) {
-                await window.UnifiedCreditService.purchasePackage(packageId);
+                const result = await window.UnifiedCreditService.purchasePackage(packageId);
+
+                if (result.url) {
+                    window.location.href = result.url;
+                }
             } else {
                 // Fallback to direct API call
                 const response = await fetch('/api/credits/purchase', {
@@ -630,34 +602,28 @@ class CreditBalanceWidget {
     }
 
     destroy() {
-        if (this.updateInterval) {
-            clearInterval(this.updateInterval);
+        if (this.unsubscribe) {
+            this.unsubscribe();
         }
     }
 
     /**
-     * Get authentication headers for API requests
+     * Get authentication headers for API requests (delegated to UnifiedAuthUtils)
      */
     getAuthHeaders() {
-        const headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        };
-
-        // Add authentication token if available
-        const token = this.getAuthToken();
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+        if (window.UnifiedAuthUtils) {
+            return window.UnifiedAuthUtils.getAuthHeaders();
         }
 
-        return headers;
+        return { 'Content-Type': 'application/json', Accept: 'application/json' };
     }
 
-    /**
-     * Get authentication token from storage
-     */
-    getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    showErrorState() {
+        const textElement = document.getElementById('creditBalanceText');
+
+        if (textElement) {
+            textElement.innerHTML = '<span class="text-red-400">Error</span>';
+        }
     }
 
     showError(message) {
@@ -678,11 +644,5 @@ class CreditBalanceWidget {
     }
 }
 
-// Initialize widget when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        window.creditWidget = new CreditBalanceWidget();
-    });
-} else {
-    window.creditWidget = new CreditBalanceWidget();
-}
+// Export the class for use by other components
+window.CreditBalanceWidget = CreditBalanceWidget;

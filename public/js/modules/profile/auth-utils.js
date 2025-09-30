@@ -8,7 +8,7 @@ class ProfileAuthUtils {
      * Get authentication token from storage
      */
     static getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        return window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     }
 
     /**
@@ -107,3 +107,6 @@ class ProfileAuthUtils {
         }
     }
 }
+
+// Export for global access
+window.ProfileAuthUtils = ProfileAuthUtils;

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Avatar Functionality Tests</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .test-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+        
+        .test-button:hover {
+            background: #45a049;
+        }
+        
+        .test-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .test-results {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-ready { background-color: #4CAF50; }
+        .status-loading { background-color: #FF9800; }
+        .status-error { background-color: #f44336; }
+        
+        .functionality-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .functionality-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #ddd;
+        }
+        
+        .functionality-card.upload { border-left-color: #2196F3; }
+        .functionality-card.ai-generation { border-left-color: #9C27B0; }
+        .functionality-card.existing { border-left-color: #FF9800; }
+        
+        .functionality-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .functionality-card .status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .functionality-card .description {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Profile Avatar Functionality Tests</h1>
+        <p>Unit tests for upload, AI generation, and existing image selection</p>
+    </div>
+
+    <div class="test-controls">
+        <h2>Test Controls</h2>
+        <button id="runTests" class="test-button">
+            <span class="status-indicator status-ready"></span>
+            Run All Tests
+        </button>
+        <button id="clearResults" class="test-button">
+            Clear Results
+        </button>
+        <button id="runUploadTests" class="test-button">
+            Test Upload Only
+        </button>
+        <button id="runAITests" class="test-button">
+            Test AI Generation Only
+        </button>
+        <button id="runExistingTests" class="test-button">
+            Test Existing Images Only
+        </button>
+    </div>
+
+    <div class="test-results">
+        <h2>Test Results</h2>
+        <div id="testStatus">Ready to run tests</div>
+        <div id="consoleOutput" class="console-output">Console output will appear here...</div>
+    </div>
+
+    <div class="functionality-grid">
+        <div class="functionality-card upload">
+            <h3>📁 File Upload</h3>
+            <div class="status" id="uploadStatus">Not tested</div>
+            <div class="description">
+                Tests file selection, validation, upload process, and avatar setting functionality.
+            </div>
+        </div>
+        
+        <div class="functionality-card ai-generation">
+            <h3>🤖 AI Generation</h3>
+            <div class="status" id="aiStatus">Not tested</div>
+            <div class="description">
+                Tests AI image generator service, widget creation, and avatar generation workflow.
+            </div>
+        </div>
+        
+        <div class="functionality-card existing">
+            <h3>🖼️ Existing Images</h3>
+            <div class="status" id="existingStatus">Not tested</div>
+            <div class="description">
+                Tests existing image browsing, selection, and avatar setting functionality.
+            </div>
+        </div>
+    </div>
+
+    <!-- Load all required scripts for testing -->
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/api-service.js"></script>
+    <script src="js/core/user-system.js"></script>
+    <script src="js/services/UnifiedCreditService.js"></script>
+    <script src="js/services/ai-image-generator-service.js"></script>
+    <script src="js/components/ai-image-generator-widget.js"></script>
+    <script src="js/components/ai-image-generator.js"></script>
+    <script src="js/modules/profile/dom-manager.js"></script>
+    <script src="js/modules/profile/avatar-manager.js"></script>
+    <script src="js/modules/profile/form-validator.js"></script>
+    <script src="js/modules/profile/api-service.js"></script>
+    <script src="js/modules/profile/auth-utils.js"></script>
+    <script src="js/modules/profile/profile-manager-refactored.js"></script>
+    
+    <!-- Load the test suite -->
+    <script src="js/tests/profile-avatar-tests.js"></script>
+
+    <script>
+        // Test runner functionality
+        let testSuite = null;
+        let originalConsoleLog = console.log;
+        let consoleOutput = '';
+
+        // Capture console output
+        console.log = function(...args) {
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleOutput += message + '\n';
+            originalConsoleLog.apply(console, args);
+            updateConsoleOutput();
+        };
+
+        function updateConsoleOutput() {
+            const outputElement = document.getElementById('consoleOutput');
+            outputElement.textContent = consoleOutput;
+            outputElement.scrollTop = outputElement.scrollHeight;
+        }
+
+        function updateTestStatus(status, className = 'status-ready') {
+            const statusElement = document.getElementById('testStatus');
+            const indicator = statusElement.querySelector('.status-indicator') || 
+                            statusElement.insertAdjacentHTML('afterbegin', '<span class="status-indicator"></span>') || 
+                            statusElement.querySelector('.status-indicator');
+            
+            indicator.className = `status-indicator ${className}`;
+            statusElement.innerHTML = status;
+        }
+
+        function updateFunctionalityStatus(type, status) {
+            const statusElement = document.getElementById(`${type}Status`);
+            statusElement.textContent = status;
+        }
+
+        function clearResults() {
+            consoleOutput = '';
+            updateConsoleOutput();
+            updateTestStatus('Ready to run tests');
+            updateFunctionalityStatus('upload', 'Not tested');
+            updateFunctionalityStatus('ai', 'Not tested');
+            updateFunctionalityStatus('existing', 'Not tested');
+        }
+
+        async function runAllTests() {
+            try {
+                updateTestStatus('Running all tests...', 'status-loading');
+                clearResults();
+                
+                testSuite = new ProfileAvatarTestSuite();
+                await testSuite.runAllTests();
+                
+                updateTestStatus('All tests completed', 'status-ready');
+                updateFunctionalityStatus('upload', testSuite.getUploadStatus());
+                updateFunctionalityStatus('ai', testSuite.getAIGenerationStatus());
+                updateFunctionalityStatus('existing', testSuite.getExistingImageStatus());
+                
+            } catch (error) {
+                updateTestStatus('Tests failed: ' + error.message, 'status-error');
+                console.error('Test execution error:', error);
+            }
+        }
+
+        async function runSpecificTests(testType) {
+            try {
+                updateTestStatus(`Running ${testType} tests...`, 'status-loading');
+                clearResults();
+                
+                testSuite = new ProfileAvatarTestSuite();
+                
+                switch (testType) {
+                    case 'upload':
+                        await testSuite.testUploadFunctionality();
+                        updateFunctionalityStatus('upload', testSuite.getUploadStatus());
+                        break;
+                    case 'ai':
+                        await testSuite.testAIGenerationFunctionality();
+                        updateFunctionalityStatus('ai', testSuite.getAIGenerationStatus());
+                        break;
+                    case 'existing':
+                        await testSuite.testExistingImageSelection();
+                        updateFunctionalityStatus('existing', testSuite.getExistingImageStatus());
+                        break;
+                }
+                
+                updateTestStatus(`${testType} tests completed`, 'status-ready');
+                
+            } catch (error) {
+                updateTestStatus(`${testType} tests failed: ` + error.message, 'status-error');
+                console.error('Test execution error:', error);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('runTests').addEventListener('click', runAllTests);
+        document.getElementById('clearResults').addEventListener('click', clearResults);
+        document.getElementById('runUploadTests').addEventListener('click', () => runSpecificTests('upload'));
+        document.getElementById('runAITests').addEventListener('click', () => runSpecificTests('ai'));
+        document.getElementById('runExistingTests').addEventListener('click', () => runSpecificTests('existing'));
+
+        // Auto-run tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Profile Avatar Test Page loaded');
+            console.log('📋 Available classes:');
+            console.log('  - ProfileManager:', typeof window.ProfileManager);
+            console.log('  - AvatarManager:', typeof window.AvatarManager);
+            console.log('  - AIImageGenerator:', typeof window.AIImageGenerator);
+            console.log('  - ProfileAvatarTestSuite:', typeof window.ProfileAvatarTestSuite);
+            console.log('');
+            console.log('💡 Click "Run All Tests" to start testing!');
+        });
+    </script>
+</body>
+</html>

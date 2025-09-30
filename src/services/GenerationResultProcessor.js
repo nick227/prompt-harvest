@@ -1,5 +1,5 @@
 import { imageStorageService } from './ImageStorageService.js';
-import DatabaseService from './feed/DatabaseService.js';
+import DatabaseService from './generate/DatabaseService.js';
 import { taggingService } from './TaggingService.js';
 
 export class GenerationResultProcessor {
@@ -54,7 +54,6 @@ export class GenerationResultProcessor {
 
             // Critical check for userId
             if (!userId) {
-                console.log('🚨 CRITICAL: userId is null - this image will show "Unknown" in the UI');
                 console.log('🚨 CRITICAL: req object:', {
                     hasReq: !!req,
                     hasUser: !!req?.user,
@@ -165,7 +164,6 @@ export class GenerationResultProcessor {
         console.error('❌ Database save failed, cleaning up stored image:', dbError.message);
         try {
             await imageStorageService.deleteImage(imageUrl);
-            console.log('✅ Cleaned up orphaned image file');
         } catch (cleanupError) {
             console.error('❌ Failed to cleanup orphaned image file:', cleanupError.message);
         }
@@ -175,13 +173,35 @@ export class GenerationResultProcessor {
      * Fetch image with tags
      */
     async fetchImageWithTags(imageId) {
-        // This would call the actual _fetchImageWithTags function
-        // For now, returning a placeholder structure
-        return {
-            tags: [],
-            taggedAt: null,
-            taggingMetadata: null
-        };
+        try {
+            // Fetch the actual image data from database to ensure userId is included
+            const image = await DatabaseService.getImageById(imageId);
+
+            if (!image) {
+                console.warn('⚠️ Image not found in database:', imageId);
+                return {
+                    tags: [],
+                    taggedAt: null,
+                    taggingMetadata: null
+                };
+            }
+
+            return {
+                id: image.id,
+                userId: image.userId,
+                isPublic: image.isPublic,
+                tags: image.tags || [],
+                taggedAt: image.taggedAt,
+                taggingMetadata: image.taggingMetadata
+            };
+        } catch (error) {
+            console.error('❌ Error fetching image with tags:', error);
+            return {
+                tags: [],
+                taggedAt: null,
+                taggingMetadata: null
+            };
+        }
     }
 
     /**
@@ -190,7 +210,10 @@ export class GenerationResultProcessor {
     triggerAsyncTagging(imageId, prompt, metadata) {
         // Fire-and-forget tagging service call
         // This does NOT block the HTTP response
-        taggingService.tagImageAsync(imageId, prompt, metadata);
+        // Only run auto-tagging in production
+        if (process.env.NODE_ENV === 'production') {
+            taggingService.tagImageAsync(imageId, prompt, metadata);
+        }
     }
 
     /**

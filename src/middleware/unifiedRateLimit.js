@@ -11,16 +11,16 @@ export const unifiedRateLimit = {
     auth: authRateLimit,
 
     // Expensive image generation endpoints
-    image: imageGenerationRateLimit,
+    image: imageGenerationRateLimit
 };
 
 // Factory for custom, per-route limits using the same underlying implementation
 export const createUnifiedRateLimit = ({ windowMs, maxRequests } = {}) => {
     const w = windowMs ?? configManager.rateLimit.windowMs;
     const m = maxRequests ?? configManager.rateLimit.maxRequests;
+
     return rateLimit(w, m);
 };
 
 export default unifiedRateLimit;
-
 

@@ -59,6 +59,7 @@ export class ImageGenerationService {
         // Validate provider names
         const validProviders = ['flux', 'dalle3', 'nano-banana', 'imagen'];
         const invalidProviders = providers.filter(p => !validProviders.includes(p));
+
         if (invalidProviders.length > 0) {
             throw new ValidationError(`Invalid providers: ${invalidProviders.join(', ')}`);
         }
@@ -74,9 +75,11 @@ export class ImageGenerationService {
                 const enhancedPrompt = prompt.trim();
 
                 console.log('✅ Prompt processed successfully');
+
                 return enhancedPrompt;
             } catch (error) {
                 console.error('❌ AI enhancement failed:', error.message);
+
                 // Fallback to original prompt if enhancement fails
                 return prompt;
             }

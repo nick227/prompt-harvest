@@ -183,7 +183,6 @@ const logViolation = async violationData => {
 
         await prisma.violations.create({
             data: {
-                id: violationData.id,
                 userId: violationData.userId || null,
                 userEmail: violationData.userEmail || null,
                 username: violationData.username || null,
@@ -312,11 +311,52 @@ export const badWordFilter = (options = {}) => {
             const { hasBlockingViolations, allViolations, maxSeverity } = processViolations(contentToCheck, options);
 
             if (allViolations.length > 0) {
+                // Try to get user info from various sources
+                const getUserInfo = async () => {
+                    // First try req.user (if auth middleware has run)
+                    if (req.user?.id) {
+                        return {
+                            userId: req.user.id,
+                            userEmail: req.user.email,
+                            username: req.user.username
+                        };
+                    }
+
+                    // Try to extract from JWT token if present but not processed yet
+                    const authHeader = req.headers['authorization'];
+
+                    if (authHeader && authHeader.startsWith('Bearer ')) {
+                        const token = authHeader.split(' ')[1];
+
+                        try {
+                            const jwt = await import('jsonwebtoken');
+                            const decoded = jwt.default.decode(token); // Decode without verification
+
+                            if (decoded?.userId) {
+                                return {
+                                    userId: decoded.userId,
+                                    userEmail: null, // Not available without DB lookup
+                                    username: null
+                                };
+                            }
+                        } catch (error) {
+                            // Token decode failed, continue with anonymous
+                        }
+                    }
+
+                    return {
+                        userId: null,
+                        userEmail: null,
+                        username: null
+                    };
+                };
+
+                const userInfo = await getUserInfo();
                 const violationData = {
                     id: `viol_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                    userId: req.user?.id || null,
-                    userEmail: req.user?.email || null,
-                    username: req.user?.username || null,
+                    userId: userInfo.userId,
+                    userEmail: userInfo.userEmail,
+                    username: userInfo.username,
                     detectedWords: allViolations.map(v => v.word),
                     originalContent: contentToCheck.join(' | '),
                     severity: maxSeverity,

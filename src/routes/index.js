@@ -45,7 +45,6 @@ export const setupRoutes = async app => {
     try {
         configManager.validate();
         // eslint-disable-next-line no-console
-        console.log('✅ Configuration validated successfully');
     } catch (error) {
         console.error('❌ Configuration validation failed:', error.message);
         process.exit(1);
@@ -101,19 +100,10 @@ export const setupRoutes = async app => {
     }
 
     // Setup routes
-    console.log('🔧 MAIN ROUTES: Starting route setup...');
-
     setupPageRoutes(app); // Must be first to handle frontend pages
-    console.log('✅ MAIN ROUTES: Page routes setup completed');
-
-    console.log('🔧 MAIN ROUTES: Setting up auth routes...');
     setupAuthRoutes(app); // Authentication routes (no middleware needed)
-    console.log('✅ MAIN ROUTES: Auth routes setup completed');
-
     setupEnhancedImageRoutes(app, enhancedImageController); // Enhanced routes with circuit breakers
-    console.log('✅ MAIN ROUTES: Enhanced image routes setup completed');
     setupProfileRoutes(app, profileController); // Profile management routes
-    console.log('✅ MAIN ROUTES: Profile routes setup completed');
     // Removed setupFeedRoutes - functionality covered by enhancedImageRoutes.js
     setupAIRoutes(app, aiController);
     setupConfigRoutes(app, configController);
@@ -161,12 +151,9 @@ export const setupRoutes = async app => {
 
             systemMonitor.start();
             // eslint-disable-next-line no-console
-            console.log('✅ System monitoring started');
         } catch (error) {
             console.error('❌ Failed to start system monitoring:', error.message);
         }
-    } else {
-        console.log('🔍 System monitoring disabled in development mode');
     }
 
     // Error handling middleware (must be last)

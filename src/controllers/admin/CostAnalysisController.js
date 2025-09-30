@@ -24,7 +24,6 @@ class CostAnalysisController {
                 markupPercentage ? parseFloat(markupPercentage) : 20
             );
 
-            console.log('✅ ADMIN-COST-ANALYSIS: Retrieved cost analysis');
 
             res.json({
                 success: true,
@@ -53,7 +52,6 @@ class CostAnalysisController {
 
             const recommendations = costCalculator.getCostRecommendations(currentPricing);
 
-            console.log('✅ ADMIN-COST-ANALYSIS: Retrieved cost recommendations');
 
             res.json({
                 success: true,
@@ -87,7 +85,6 @@ class CostAnalysisController {
                 markupPercentage ? parseFloat(markupPercentage) : 20
             );
 
-            console.log('✅ ADMIN-COST-ANALYSIS: Retrieved package profitability analysis');
 
             res.json({
                 success: true,
@@ -123,7 +120,6 @@ class CostAnalysisController {
             const costCalculator = new CostCalculatorService();
             const cost = costCalculator.calculateGenerationCost(provider, multiplier, mixup, mashup);
 
-            console.log(`✅ ADMIN-COST-ANALYSIS: Calculated cost for ${provider}`);
 
             res.json({
                 success: true,
@@ -149,7 +145,6 @@ class CostAnalysisController {
             const costCalculator = new CostCalculatorService();
             const breakdown = await costCalculator.getProviderCostBreakdown();
 
-            console.log('✅ ADMIN-COST-ANALYSIS: Retrieved provider cost breakdown');
 
             res.json({
                 success: true,

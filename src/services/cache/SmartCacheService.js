@@ -24,13 +24,16 @@ export class SmartCacheService {
      */
     get(key, type = 'default') {
         const cached = this.cache.get(key);
+
         if (!cached) {
             return null;
         }
 
         const ttl = this.defaultTTL[type] || this.defaultTTL.default;
+
         if (Date.now() - cached.timestamp > ttl) {
             this.cache.delete(key);
+
             return null;
         }
 
@@ -68,6 +71,7 @@ export class SmartCacheService {
         // Store invalidation relationships
         for (const invalidationKey of invalidationKeys) {
             const existing = this.cache.get(`_invalidation_${invalidationKey}`) || [];
+
             existing.push(key);
             this.cache.set(`_invalidation_${invalidationKey}`, existing);
         }
@@ -166,9 +170,10 @@ export class SmartCacheService {
         let newestTime = 0;
 
         for (const [key, value] of this.cache.entries()) {
-            if (key.startsWith('_invalidation_')) continue;
+            if (key.startsWith('_invalidation_')) { continue; }
 
             const type = value.type || 'default';
+
             stats.entriesByType[type] = (stats.entriesByType[type] || 0) + 1;
 
             if (value.timestamp < oldestTime) {
@@ -216,15 +221,17 @@ export class SmartCacheService {
         const keysToDelete = [];
 
         for (const [key, value] of this.cache.entries()) {
-            if (key.startsWith('_invalidation_')) continue;
+            if (key.startsWith('_invalidation_')) { continue; }
 
             const ttl = this.defaultTTL[value.type] || this.defaultTTL.default;
+
             if (now - value.timestamp > ttl) {
                 keysToDelete.push(key);
             }
         }
 
         keysToDelete.forEach(key => this.cache.delete(key));
+
         return keysToDelete.length;
     }
 }

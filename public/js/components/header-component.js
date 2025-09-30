@@ -32,6 +32,7 @@ class HeaderComponent {
 
         // Create new header
         const header = document.createElement('header');
+        const headerClass = window.location.pathname.includes('admin.html') ? 'px-12' : 'max-w-[1080px] mx-auto';
 
         // Check if this is the billing page and apply fixed positioning
         const isBillingPage = window.location.pathname.includes('billing.html');
@@ -44,7 +45,7 @@ class HeaderComponent {
             header.style.height = 'var(--top-bar-height)';
         }
         header.innerHTML = `
-            <div class="max-w-[1020px] mx-auto">
+            <div class="${headerClass}">
                 <div class="flex justify-between items-center py-4 header-container">
                     <!-- Left Section: Logo and Title -->
                     <div class="flex items-center space-x-3 group logo-container">
@@ -69,12 +70,14 @@ class HeaderComponent {
 
                     <!-- Right Section: Auth Links, Stats, and Additional Links -->
                     <div class="flex items-center space-x-6 sub-header-container">
-                        <div id="creditBalance" class="text-sm">
+                    <div class="flex flex-row gap-2">
+                        <span id="creditBalance" class="text-sm">
                             <!-- Credit balance widget will be loaded here -->
-                        </div>
-                        <div id="transaction-stats" class="text-sm">
+                        </span>
+                        <span id="transaction-stats" class="text-sm">
                             <!-- Transaction stats will be loaded here -->
-                        </div>
+                        </span>
+                    </div>
                         <div id="buy-credits-header" class="hidden">
                             <!-- Buy Credits button will be loaded here for authenticated users -->
                         </div>
@@ -90,10 +93,9 @@ class HeaderComponent {
                         </div>
                         <div id="user-info" class="hidden flex items-center space-x-4">
                             <a href="/billing.html"><span class="text-sm text-gray-300"></span></a>
-                            <button class="logout-btn text-gray-300 hover:text-red-400
-                                          transition-colors duration-200">
+                            <a class="logout-btn link">
                                 Logout
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -102,6 +104,50 @@ class HeaderComponent {
 
         // Insert header at the beginning of the body
         document.body.insertBefore(header, document.body.firstChild);
+
+        // Initialize components after header is created with a small delay
+        // to ensure all component classes are loaded
+        setTimeout(() => {
+            this.initializeComponents();
+        }, 50);
+    }
+
+    initializeComponents() {
+        // Initialize credit balance widget
+        if (window.CreditBalanceWidget) {
+            try {
+                const creditContainer = document.getElementById('creditBalance');
+
+                if (creditContainer) {
+                    window.creditWidget = new window.CreditBalanceWidget('creditBalance');
+                    console.log('✅ HEADER: Credit balance widget initialized');
+                } else {
+                    console.warn('⚠️ HEADER: Credit balance container not found');
+                }
+            } catch (error) {
+                console.warn('⚠️ HEADER: Failed to initialize credit balance widget:', error);
+            }
+        } else {
+            console.warn('⚠️ HEADER: CreditBalanceWidget class not available');
+        }
+
+        // Initialize transaction stats component
+        if (window.TransactionStatsComponent) {
+            try {
+                const statsContainer = document.getElementById('transaction-stats');
+
+                if (statsContainer) {
+                    window.transactionStatsComponent = new window.TransactionStatsComponent('transaction-stats');
+                    console.log('✅ HEADER: Transaction stats component initialized');
+                } else {
+                    console.warn('⚠️ HEADER: Transaction stats container not found');
+                }
+            } catch (error) {
+                console.warn('⚠️ HEADER: Failed to initialize transaction stats component:', error);
+            }
+        } else {
+            console.warn('⚠️ HEADER: TransactionStatsComponent class not available');
+        }
     }
 
     setupUserSystemIntegration() {
@@ -131,10 +177,7 @@ class HeaderComponent {
             }
         });
 
-        // Override the user system's UI creation methods to prevent conflicts
-        if (window.userSystem && window.userSystem.setupUI) {
-            const _originalSetupUI = window.userSystem.setupUI.bind(window.userSystem);
-        }
+        // Legacy user system UI override is no longer needed
     }
 
     updateHeaderForUser() {
@@ -280,7 +323,7 @@ class HeaderComponent {
                     this.updateHeaderForUser();
                 }
             }
-        }, 5000); // Check every 5 seconds as fallback
+        }, 30000); // Check every 30 seconds as fallback (reduced frequency)
     }
 
     async handleLogout() {

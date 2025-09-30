@@ -36,7 +36,6 @@ class PricingController {
             const pricing = await PricingController.loadPricingConfig();
 
             // eslint-disable-next-line no-console
-            console.log('✅ ADMIN-PRICING: Retrieved current pricing configuration');
 
             res.json({
                 success: true,
@@ -97,7 +96,6 @@ class PricingController {
             }
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PRICING: Pricing updated by ${adminUser.email}`);
 
             return res.json({
                 success: true,
@@ -134,7 +132,6 @@ class PricingController {
             const totalPages = Math.ceil(history.length / parseInt(limit));
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PRICING: Retrieved pricing history (page ${page}/${totalPages})`);
 
             res.json({
                 success: true,
@@ -208,7 +205,6 @@ class PricingController {
             }
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PRICING: Rolled back to version ${versionId} by ${adminUser.email}`);
 
             res.json({
                 success: true,
@@ -363,7 +359,6 @@ class PricingController {
         // This would update any cached credit package data
         // For now, we'll just log that packages need updating
         // eslint-disable-next-line no-console
-        console.log('📦 ADMIN-PRICING: Credit packages updated in configuration');
 
         // In a production system, you might:
         // - Update a credit packages cache

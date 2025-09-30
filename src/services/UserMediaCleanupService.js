@@ -17,7 +17,6 @@ export class UserMediaCleanupService {
      * Removes inactive profile pictures that are no longer referenced
      */
     async cleanupOrphanedProfilePictures() {
-        console.log('🧹 USER-MEDIA-CLEANUP: Starting orphaned profile pictures cleanup...');
 
         try {
             // Find inactive profile pictures older than 30 days
@@ -37,7 +36,6 @@ export class UserMediaCleanupService {
                 }
             });
 
-            console.log(`🧹 USER-MEDIA-CLEANUP: Found ${orphanedMedia.length} orphaned profile pictures`);
 
             let deletedCount = 0;
             let errorCount = 0;
@@ -53,14 +51,12 @@ export class UserMediaCleanupService {
                     });
 
                     deletedCount++;
-                    console.log(`✅ USER-MEDIA-CLEANUP: Deleted orphaned media ${media.id} for user ${media.userId}`);
                 } catch (error) {
                     errorCount++;
                     console.error(`❌ USER-MEDIA-CLEANUP: Failed to delete media ${media.id}:`, error.message);
                 }
             }
 
-            console.log(`🧹 USER-MEDIA-CLEANUP: Cleanup completed. Deleted: ${deletedCount}, Errors: ${errorCount}`);
 
             return {
                 total: orphanedMedia.length,
@@ -78,7 +74,6 @@ export class UserMediaCleanupService {
      * Clean up orphaned user media by type
      */
     async cleanupOrphanedMedia(mediaType, purpose, daysOld = 30) {
-        console.log(`🧹 USER-MEDIA-CLEANUP: Starting cleanup for ${mediaType}/${purpose} older than ${daysOld} days...`);
 
         try {
             const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
@@ -100,7 +95,6 @@ export class UserMediaCleanupService {
                 }
             });
 
-            console.log(`🧹 USER-MEDIA-CLEANUP: Found ${orphanedMedia.length} orphaned ${mediaType}/${purpose} files`);
 
             let deletedCount = 0;
             let errorCount = 0;
@@ -122,7 +116,6 @@ export class UserMediaCleanupService {
                 }
             }
 
-            console.log(`🧹 USER-MEDIA-CLEANUP: ${mediaType}/${purpose} cleanup completed. Deleted: ${deletedCount}, Errors: ${errorCount}`);
 
             return {
                 total: orphanedMedia.length,
@@ -169,14 +162,12 @@ export class UserMediaCleanupService {
      * Run full cleanup
      */
     async runFullCleanup() {
-        console.log('🧹 USER-MEDIA-CLEANUP: Starting full cleanup...');
 
         const results = {
             profilePictures: await this.cleanupOrphanedProfilePictures(),
             stats: await this.getCleanupStats()
         };
 
-        console.log('🧹 USER-MEDIA-CLEANUP: Full cleanup completed');
 
         return results;
     }

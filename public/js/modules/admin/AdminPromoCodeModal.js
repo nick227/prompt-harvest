@@ -21,15 +21,26 @@ class AdminPromoCodeModal {
      * @param {string|null} promoCardId - ID for editing, null for creating
      */
     show(promoCardId = null) {
+        console.log('🎭 ADMIN-PROMO-MODAL: show() called with promoCardId:', promoCardId);
+
         const isEdit = promoCardId !== null;
         const title = isEdit ? 'Edit Promo Code' : 'Add New Promo Code';
 
         const modalContent = this.generateForm(isEdit, promoCardId);
 
+        console.log('🎭 ADMIN-PROMO-MODAL: Generated modal content, checking modal availability...');
+        console.log('🎭 ADMIN-PROMO-MODAL: window.showModal available:', !!window.showModal);
+        console.log('🎭 ADMIN-PROMO-MODAL: window.adminModal available:', !!window.adminModal);
+
         // Create modal using the admin modal system
         if (window.showModal) {
-            window.showModal(title, modalContent);
+            console.log('🎭 ADMIN-PROMO-MODAL: Using window.showModal');
+            window.showModal(title, modalContent, { size: 'lg' });
+        } else if (window.adminModal) {
+            console.log('🎭 ADMIN-PROMO-MODAL: Using window.adminModal directly');
+            window.adminModal.show(title, modalContent, { size: 'lg' });
         } else {
+            console.log('🎭 ADMIN-PROMO-MODAL: Using fallback modal creation');
             // Fallback: create modal manually
             this.createModal(title, modalContent);
         }
@@ -230,6 +241,16 @@ class AdminPromoCodeModal {
             codeInput.addEventListener('input', e => {
                 e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             });
+
+            // Add debugging for focus events
+            codeInput.addEventListener('focus', e => {
+                console.log('🎭 ADMIN-PROMO-MODAL: Input focused:', e.target.id);
+                console.log('🎭 ADMIN-PROMO-MODAL: Modal still open:', window.adminModal?.isModalOpen());
+            });
+
+            codeInput.addEventListener('blur', e => {
+                console.log('🎭 ADMIN-PROMO-MODAL: Input blurred:', e.target.id);
+            });
         }
 
         // Load existing data if editing
@@ -244,7 +265,13 @@ class AdminPromoCodeModal {
      */
     async loadForEdit(promoCardId) {
         try {
-            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            // Check authentication before making request
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                console.warn('🔐 ADMIN-PROMO: No valid token for promo code request, skipping');
+                return;
+            }
+
+            const authToken = window.AdminAuthUtils.getAuthToken();
             const response = await fetch(`/api/admin/promo-codes/${promoCardId}`, {
                 headers: {
                     Authorization: `Bearer ${authToken}`,
@@ -309,7 +336,7 @@ class AdminPromoCodeModal {
                 isActive: formData.get('isActive') === 'on'
             };
 
-            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const authToken = window.AdminAuthUtils.getAuthToken();
             const url = promoCardId ? `/api/admin/promo-codes/${promoCardId}` : '/api/admin/promo-codes';
             const method = promoCardId ? 'PUT' : 'POST';
 
@@ -425,7 +452,13 @@ class AdminPromoCodeModal {
      */
     async activate(promoCardId) {
         try {
-            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            // Check authentication before making request
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                console.warn('🔐 ADMIN-PROMO: No valid token for promo code request, skipping');
+                return;
+            }
+
+            const authToken = window.AdminAuthUtils.getAuthToken();
             const response = await fetch(`/api/admin/promo-codes/${promoCardId}`, {
                 method: 'PUT',
                 headers: {
@@ -457,7 +490,13 @@ class AdminPromoCodeModal {
      */
     async deactivate(promoCardId) {
         try {
-            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            // Check authentication before making request
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                console.warn('🔐 ADMIN-PROMO: No valid token for promo code request, skipping');
+                return;
+            }
+
+            const authToken = window.AdminAuthUtils.getAuthToken();
             const response = await fetch(`/api/admin/promo-codes/${promoCardId}`, {
                 method: 'PUT',
                 headers: {
@@ -493,7 +532,13 @@ class AdminPromoCodeModal {
         }
 
         try {
-            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            // Check authentication before making request
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                console.warn('🔐 ADMIN-PROMO: No valid token for promo code request, skipping');
+                return;
+            }
+
+            const authToken = window.AdminAuthUtils.getAuthToken();
             const response = await fetch(`/api/admin/promo-codes/${promoCardId}`, {
                 method: 'DELETE',
                 headers: {

@@ -3,7 +3,7 @@ import nlp from 'compromise';
 import datamuse from 'datamuse';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
-import _feed from './feed.js';
+import _generate from './generate.js';
 
 const _maxTokens = 15555;
 const _openAiModel = 'gpt-3.5-turbo-16k';

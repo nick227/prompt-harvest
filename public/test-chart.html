@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chart.js Test</title>
+</head>
+<body>
+    <h1>Chart.js Loading Test</h1>
+    <div id="status">Loading...</div>
+
+    <script>
+        console.log('🔄 Testing Chart.js loading...');
+
+        function testChartJS() {
+            const localScript = document.createElement('script');
+            localScript.src = 'js/lib/chart.min.js';
+            localScript.onload = function() {
+                console.log('✅ Chart.js loaded from local file');
+                document.getElementById('status').innerHTML = '✅ Chart.js loaded successfully! Chart object: ' + (typeof Chart !== 'undefined' ? 'Available' : 'Not Available');
+            };
+            localScript.onerror = function() {
+                console.error('❌ Local Chart.js failed to load');
+                document.getElementById('status').innerHTML = '❌ Local Chart.js failed to load';
+            };
+            document.head.appendChild(localScript);
+        }
+
+        testChartJS();
+    </script>
+</body>
+</html>

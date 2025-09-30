@@ -156,17 +156,24 @@ class FeedUIManager {
         return this.domManager.removeImageFromFeed(imageId);
     }
 
-    // Add image to feed
+    // Add image to feed (delegates to image handler)
     addImageToFeed(imageData, filter) {
-        const wasAdded = this.domManager.addImageToFeed(imageData, filter);
+        // This method should be called through the main feed manager
+        // which will use the image handler
+        console.warn('⚠️ UI MANAGER: addImageToFeed should be called through FeedManager');
 
-        // Only update intersection observer if a new image was actually added
-        if (wasAdded) {
-            this.updateIntersectionObserver();
+        // For backward compatibility, try to use the feed manager's image handler
+        if (window.feedManager && window.feedManager.imageHandler) {
+            const wasAdded = window.feedManager.imageHandler.addImageToFeed(imageData, filter);
 
-            // Add to tab service for intelligent filtering
-            if (window.feedManager && window.feedManager.tabService) {
-                window.feedManager.tabService.addImage(imageData);
+            // Only update intersection observer if a new image was actually added
+            if (wasAdded) {
+                this.updateIntersectionObserver();
+
+                // Add to tab service for intelligent filtering
+                if (window.feedManager && window.feedManager.tabService) {
+                    window.feedManager.tabService.addImage(imageData);
+                }
             }
         }
     }

@@ -71,6 +71,7 @@ export class RequestContext {
         if (!this.req) {
             throw new Error('RequestContext: req is missing');
         }
+
         return true;
     }
 
@@ -79,8 +80,10 @@ export class RequestContext {
      */
     clone() {
         const context = new RequestContext(this.req, this.userId, this.userEmail);
+
         context.promptId = this.promptId;
         context.requestId = this.requestId;
+
         return context;
     }
 }
@@ -96,5 +99,6 @@ export function validateRequestContext(context, operation) {
         throw new Error(`${operation}: userId is required in context`);
     }
     context.validate();
+
     return true;
 }

@@ -58,7 +58,9 @@ class AdminModelsRenderer {
      */
     async loadData() {
         try {
-            const response = await fetch('/api/providers/models/all');
+            const response = await fetch('/api/providers/models/all', {
+                headers: window.AdminAuthUtils.getAuthHeaders()
+            });
             const data = await response.json();
 
             if (data.success) {
@@ -149,6 +151,23 @@ class AdminModelsRenderer {
     }
 
     /**
+     * Show model modal (alias for showModal for compatibility)
+     * @param {string|null} modelId - Model ID for editing
+     */
+    async showModelModal(modelId = null) {
+        return this.showModal(modelId);
+    }
+
+    /**
+     * Show provider modal (placeholder - providers are managed separately)
+     * @param {string|null} providerId - Provider ID for editing
+     */
+    async showProviderModal(providerId = null) {
+        console.warn('⚠️ ADMIN-MODELS: Provider management is not implemented in this renderer');
+        AdminUtils.showNotification('Provider management is not available in the models tab', 'warning');
+    }
+
+    /**
      * Show model modal
      * @param {string|null} modelId - Model ID for editing
      */
@@ -159,7 +178,9 @@ class AdminModelsRenderer {
 
             if (isEdit) {
                 // Fetch model data for editing
-                const response = await fetch(`/api/providers/models/${modelId}`);
+                const response = await fetch(`/api/providers/models/${modelId}`, {
+                    headers: window.AdminAuthUtils.getAuthHeaders()
+                });
                 const result = await response.json();
 
                 if (result.success) {
@@ -342,7 +363,8 @@ class AdminModelsRenderer {
 
         try {
             const response = await fetch(`/api/providers/models/${modelId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: window.AdminAuthUtils.getAuthHeaders()
             });
 
             if (response.ok) {

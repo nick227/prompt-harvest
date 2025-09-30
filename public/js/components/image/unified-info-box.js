@@ -123,6 +123,12 @@ class UnifiedInfoBox {
                     const isCollapsed = content.classList.contains('collapsed');
 
                     toggle.textContent = isCollapsed ? '+' : '−';
+
+                    // Dispatch custom event for state persistence
+                    const toggleEvent = new CustomEvent('infoBoxToggle', {
+                        detail: { isExpanded: !isCollapsed }
+                    });
+                    window.dispatchEvent(toggleEvent);
                 }
             }
         });
@@ -196,7 +202,7 @@ class UnifiedInfoBox {
 
         // Create metadata items
         const metadataItems = [
-            { label: 'Model', value: imageData.provider || 'Unknown' },
+            { label: 'Model', value: imageData.model || imageData.provider || 'Unknown' },
             { label: '', value: this.createPublicToggle(imageData, config) },
             { label: 'Rating', value: this.formatRating(imageData.rating) },
             { label: 'Created', value: this.formatCreatedBy(imageData) }
@@ -374,6 +380,33 @@ class UnifiedInfoBox {
         label.htmlFor = `public-toggle-${imageData.id}`;
         label.textContent = 'Public';
 
+        // Add event listener for checkbox changes
+        checkbox.addEventListener('change', async () => {
+            const imageId = checkbox.getAttribute('data-image-id');
+            const newStatus = checkbox.checked;
+
+            // Use unified public status service
+            if (window.PublicStatusService) {
+                const success = await window.PublicStatusService.updatePublicStatus(imageId, newStatus, {
+                    updateDOM: true,
+                    showNotifications: true,
+                    updateCache: true
+                });
+
+                if (success && !newStatus && this.isCurrentlyInSiteView()) {
+                    this.removeImageFromFeedIfAvailable(imageId);
+                }
+            } else {
+                console.error('❌ PublicStatusService not available');
+                // Show error notification
+                if (window.notificationManager) {
+                    window.notificationManager.error('Public status service not available');
+                }
+                // Revert checkbox state
+                checkbox.checked = !newStatus;
+            }
+        });
+
         toggle.appendChild(checkbox);
         toggle.appendChild(label);
 
@@ -392,8 +425,10 @@ class UnifiedInfoBox {
         }
 
         // Fallback to existing AuthUtils if available
-        if (window.AuthUtils && window.AuthUtils.userOwnsImage) {
-            return window.AuthUtils.userOwnsImage(imageData);
+        if (window.AdminAuthUtils && window.AdminAuthUtils.hasValidToken) {
+            // Use centralized auth system for ownership check
+            const currentUserId = window.userSystem?.getCurrentUser()?.id;
+            return currentUserId && imageData.userId === currentUserId;
         }
 
         // Final fallback to local implementation
@@ -402,12 +437,13 @@ class UnifiedInfoBox {
         }
 
         // Check if user is authenticated
-        if (!window.AuthUtils || !window.AuthUtils.isAuthenticated()) {
+        if (!window.AdminAuthUtils?.hasValidToken()) {
             return false;
         }
 
         // Check if user owns the image
-        return window.AuthUtils.userOwnsImage(imageData);
+        const currentUserId = window.userSystem?.getCurrentUser()?.id;
+        return currentUserId && imageData.userId === currentUserId;
     }
 
     /**
@@ -520,7 +556,7 @@ class UnifiedInfoBox {
         let { username } = imageData;
 
         if (!username && imageData.userId) {
-            username = 'Unknown User';
+            username = 'Anonymous';
         } else if (!username) {
             username = 'Anonymous';
         }
@@ -652,6 +688,38 @@ class UnifiedInfoBox {
         const ratingButtons = new window.RatingButtons(imageData.id, imageData.rating);
 
         return ratingButtons.createRatingButtons();
+    }
+
+    /**
+     * Check if currently in site view
+     * @returns {boolean} Whether in site view
+     */
+    isCurrentlyInSiteView() {
+        // Check if we're in site view by looking at the current filter
+        if (window.feedManager && window.feedManager.tabService) {
+            return window.feedManager.tabService.getCurrentFilter() === 'site';
+        }
+
+        // Fallback: check URL or other indicators
+        return window.location.search.includes('filter=site') ||
+               document.querySelector('.site-filter.active') !== null;
+    }
+
+    /**
+     * Remove image from feed if available
+     * @param {string} imageId - Image ID
+     */
+    removeImageFromFeedIfAvailable(imageId) {
+        // Use ImageViewUtils method if available
+        if (window.ImageViewUtils && window.ImageViewUtils.removeImageFromFeedIfAvailable) {
+            window.ImageViewUtils.removeImageFromFeedIfAvailable(imageId);
+        } else {
+            // Fallback: remove from DOM directly
+            const imageWrapper = document.querySelector(`[data-image-id="${imageId}"]`);
+            if (imageWrapper) {
+                imageWrapper.remove();
+            }
+        }
     }
 }
 

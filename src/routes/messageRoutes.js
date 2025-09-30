@@ -130,30 +130,36 @@ router.get('/admin', verifyAdmin, async (req, res) => {
                     { adminId: req.adminId } // Admin's own messages
                 ]
             },
-            include: {
-                user: {
-                    select: { username: true, email: true, id: true }
-                },
-                admin: {
-                    select: { username: true, email: true }
-                },
-                replies: {
-                    include: {
-                        user: {
-                            select: { username: true, email: true }
-                        },
-                        admin: {
-                            select: { username: true, email: true }
-                        }
-                    },
-                    orderBy: { createdAt: 'asc' }
-                }
-            },
             orderBy: { createdAt: 'desc' }
         });
 
+        // Get user and admin details separately
+        const userIds = [...new Set(messages.map(m => m.userId).filter(Boolean))];
+        const adminIds = [...new Set(messages.map(m => m.adminId).filter(Boolean))];
+
+        const users = await prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, username: true, email: true }
+        });
+
+        const admins = await prisma.user.findMany({
+            where: { id: { in: adminIds } },
+            select: { id: true, username: true, email: true }
+        });
+
+        const userMap = new Map(users.map(u => [u.id, u]));
+        const adminMap = new Map(admins.map(a => [a.id, a]));
+
+        // Attach user and admin data to messages
+        const messagesWithUsers = messages.map(message => ({
+            ...message,
+            user: userMap.get(message.userId) || null,
+            admin: adminMap.get(message.adminId) || null,
+            replies: [] // No replies relation exists in schema
+        }));
+
         // Group messages by user for admin view
-        const groupedMessages = messages.reduce((acc, message) => {
+        const groupedMessages = messagesWithUsers.reduce((acc, message) => {
             const { userId } = message;
 
             if (!acc[userId]) {
@@ -218,18 +224,29 @@ router.post('/admin-reply', verifyAdmin, rateLimit(5, 60000), async (req, res) =
                 isFromUser: false, // This is an admin message
                 adminId, // Set the admin ID
                 isRead: true // Admin messages are read by default for the user
-            },
-            include: {
-                user: {
-                    select: { username: true, email: true }
-                },
-                admin: {
-                    select: { username: true, email: true }
-                }
             }
         });
 
-        res.status(201).json({ success: true, message: newMessage });
+        // Get user and admin details separately
+        const [userData, adminData] = await Promise.all([
+            prisma.user.findUnique({
+                where: { id: userId },
+                select: { username: true, email: true }
+            }),
+            prisma.user.findUnique({
+                where: { id: adminId },
+                select: { username: true, email: true }
+            })
+        ]);
+
+        // Attach user and admin data to message
+        const messageWithUsers = {
+            ...newMessage,
+            user: userData,
+            admin: adminData
+        };
+
+        res.status(201).json({ success: true, message: messageWithUsers });
     } catch (error) {
         console.error('Error creating admin reply:', error);
         res.status(500).json({ error: 'Failed to send admin reply' });
@@ -257,18 +274,31 @@ router.post('/', verifyUser, rateLimit(5, 60000), async (req, res) => {
                 isFromUser,
                 parentId: parentId || null,
                 adminId: isFromUser ? null : req.adminId
-            },
-            include: {
-                user: {
-                    select: { username: true, email: true }
-                },
-                admin: {
-                    select: { username: true, email: true }
-                }
             }
         });
 
-        res.status(201).json({ success: true, message: newMessage });
+        // Get user and admin details separately
+        const [userData, adminData] = await Promise.all([
+            prisma.user.findUnique({
+                where: { id: userId },
+                select: { username: true, email: true }
+            }),
+            newMessage.adminId
+                ? prisma.user.findUnique({
+                    where: { id: newMessage.adminId },
+                    select: { username: true, email: true }
+                })
+                : Promise.resolve(null)
+        ]);
+
+        // Attach user and admin data to message
+        const messageWithUsers = {
+            ...newMessage,
+            user: userData,
+            admin: adminData
+        };
+
+        res.status(201).json({ success: true, message: messageWithUsers });
     } catch (error) {
         console.error('Error creating message:', error);
         res.status(500).json({ error: 'Failed to create message' });
@@ -283,18 +313,31 @@ router.put('/:id/read', verifyAdmin, async (req, res) => {
 
         const message = await prisma.message.update({
             where: { id },
-            data: { isRead },
-            include: {
-                user: {
-                    select: { username: true, email: true }
-                },
-                admin: {
-                    select: { username: true, email: true }
-                }
-            }
+            data: { isRead }
         });
 
-        res.json({ success: true, message });
+        // Get user and admin details separately
+        const [userData, adminData] = await Promise.all([
+            prisma.user.findUnique({
+                where: { id: message.userId },
+                select: { username: true, email: true }
+            }),
+            message.adminId
+                ? prisma.user.findUnique({
+                    where: { id: message.adminId },
+                    select: { username: true, email: true }
+                })
+                : Promise.resolve(null)
+        ]);
+
+        // Attach user and admin data to message
+        const messageWithUsers = {
+            ...message,
+            user: userData,
+            admin: adminData
+        };
+
+        res.json({ success: true, message: messageWithUsers });
     } catch (error) {
         console.error('Error updating message read status:', error);
         res.status(500).json({ error: 'Failed to update message' });
@@ -338,18 +381,31 @@ router.put('/:id', verifyUser, async (req, res) => {
             data: {
                 message: message.trim(),
                 updatedAt: new Date()
-            },
-            include: {
-                user: {
-                    select: { username: true, email: true }
-                },
-                admin: {
-                    select: { username: true, email: true }
-                }
             }
         });
 
-        res.json({ success: true, message: updatedMessage });
+        // Get user and admin details separately
+        const [userData, adminData] = await Promise.all([
+            prisma.user.findUnique({
+                where: { id: updatedMessage.userId },
+                select: { username: true, email: true }
+            }),
+            updatedMessage.adminId
+                ? prisma.user.findUnique({
+                    where: { id: updatedMessage.adminId },
+                    select: { username: true, email: true }
+                })
+                : Promise.resolve(null)
+        ]);
+
+        // Attach user and admin data to message
+        const messageWithUsers = {
+            ...updatedMessage,
+            user: userData,
+            admin: adminData
+        };
+
+        res.json({ success: true, message: messageWithUsers });
     } catch (error) {
         console.error('Error updating message:', error);
         res.status(500).json({ error: 'Failed to update message' });

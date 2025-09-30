@@ -8,8 +8,7 @@
 }
 
 .ai-chat-panel {
-    max-height: 500px;
-    min-height: 400px;
+    min-height: 55vh;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 

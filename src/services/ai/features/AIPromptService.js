@@ -13,28 +13,26 @@ export class AIPromptService extends BaseAIService {
         super();
         this.wordTypeService = new AIWordTypeService();
 
-        console.log('🔧 AIPromptService constructor initialized');
     }
 
     /**
      * Process prompt with AI enhancements
      */
-    async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', photogenic = false, artistic = false, avatar = false, req = null) {
+    async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', promptHelpers = {}, req = null) {
         try {
             // This will be implemented when we extract the prompt service
-            // For now, we'll import the feed module directly
-            const feed = await import('../../../feed.js');
+            // For now, we'll import the generate module directly
+            const generate = await import('../../../generate.js');
 
-            return await feed.default.buildPrompt(
+            return await generate.default.buildPrompt(
                 prompt,
-                multiplier,
-                mixup,
-                mashup,
-                customVariables,
-                photogenic,
-                artistic,
-                avatar,
-                req
+                {
+                    multiplier,
+                    mixup,
+                    mashup,
+                    customVariables,
+                    promptHelpers
+                }
             );
         } catch (error) {
             console.error('❌ Error processing prompt:', error);
@@ -54,37 +52,19 @@ export class AIPromptService extends BaseAIService {
 
             console.log('🤖 Organizing prompt with OpenAI:', {
                 promptLength: prompt.length,
-                userId: userId
+                userId
             });
 
-            const systemPrompt = `You are a prompt organization expert. Your task is to take a user's prompt and organize it into a clear, structured format with the following sections:
-
-**Organization Structure:**
-1. **Subject**: The main subject or object
-2. **Style**: Artistic style, mood, or visual approach
-3. **Details**: Specific details, colors, lighting, composition
-4. **Keywords**: Important keywords and descriptors
-
-**Guidelines:**
-- Preserve all important information from the original prompt
-- Make it more organized and structured
-- Use clear section headers
-- Keep the original intent intact
-- Make it more readable and professional
-
-**Output Format:**
-Return the organized prompt with clear section headers and structured information.
-
-Make sure to preserve all the important information from the original prompt while making it more organized and structured.`;
+            const systemPrompt = 'Organize this prompt into clear sections: Subject, Style, Details, Keywords. Preserve all information while making it structured and readable.';
 
             const messages = [
                 { role: 'system', content: systemPrompt },
-                { role: 'user', content: `Please organize this prompt: "${prompt}"` }
+                { role: 'user', content: prompt }
             ];
 
             const result = await this.makeRequest(messages, {
-                model: this.model4,
-                max_tokens: 500
+                model: this.model, // Use GPT-3.5-turbo instead of GPT-4 for simple organization
+                maxTokens: 200
             });
 
             if (!result.success) {
@@ -170,6 +150,7 @@ Make sure to preserve all the important information from the original prompt whi
         if (this.wordTypeService.clearCache) {
             this.wordTypeService.clearCache();
         }
+
         return { success: true, message: 'Cache cleared' };
     }
 

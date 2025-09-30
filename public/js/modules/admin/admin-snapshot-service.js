@@ -15,6 +15,13 @@ class AdminSnapshotService {
 
     async init() {
         console.log('📊 ADMIN-SNAPSHOT: Initializing snapshot service...');
+
+        // Check authentication before initializing
+        if (!window.AdminAuthUtils?.hasValidToken()) {
+            console.warn('🔐 ADMIN-SNAPSHOT: No valid token, skipping snapshot service initialization');
+            return;
+        }
+
         // Service is ready to use immediately
     }
 

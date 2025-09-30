@@ -13,6 +13,7 @@ export function sanitizeBoolean(value, defaultValue = false) {
     }
     if (typeof value === 'string') {
         const lower = value.toLowerCase();
+
         if (lower === 'true' || lower === '1' || lower === 'yes') {
             return true;
         }
@@ -23,6 +24,7 @@ export function sanitizeBoolean(value, defaultValue = false) {
     if (typeof value === 'number') {
         return value !== 0;
     }
+
     return defaultValue;
 }
 
@@ -46,10 +48,20 @@ export function sanitizeBooleanFields(obj, booleanFields = []) {
  */
 export function sanitizePromptOptions(options) {
     const booleanFields = [
-        'mixup', 'mashup', 'photogenic', 'artistic', 'autoPublic', 'autoEnhance'
+        'mixup', 'mashup', 'autoPublic', 'autoEnhance'
     ];
 
-    return sanitizeBooleanFields(options, booleanFields);
+    const sanitized = sanitizeBooleanFields(options, booleanFields);
+
+    // Handle promptHelpers object separately
+    if (options.promptHelpers && typeof options.promptHelpers === 'object') {
+        sanitized.promptHelpers = {};
+        Object.entries(options.promptHelpers).forEach(([key, value]) => {
+            sanitized.promptHelpers[key] = sanitizeBoolean(value);
+        });
+    }
+
+    return sanitized;
 }
 
 /**

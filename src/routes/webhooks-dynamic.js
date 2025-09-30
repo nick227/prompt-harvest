@@ -22,12 +22,9 @@ router.post('/stripe', express.raw({ type: 'application/json', limit: '1mb' }), 
 
         if (!isFromStripe) {
             console.warn(`💳 WEBHOOK: Request from non-Stripe IP: ${clientIP}`);
-            console.log(`🔍 WEBHOOK: Checking if this is a new Stripe IP that needs to be added...`);
 
             // Log the IP for manual review if needed
-            console.log(`📝 WEBHOOK: Unknown IP ${clientIP} - consider adding to Stripe IP list`);
         } else {
-            console.log(`✅ WEBHOOK: Request from verified Stripe IP: ${clientIP}`);
         }
 
         if (!signature) {
@@ -40,7 +37,6 @@ router.post('/stripe', express.raw({ type: 'application/json', limit: '1mb' }), 
         const event = StripeService.verifyWebhookSignature(req.body, signature);
 
         // eslint-disable-next-line no-console
-        console.log(`💳 WEBHOOK: Received event ${event.id}: ${event.type} from IP: ${clientIP}`);
 
         // Handle the event
         await StripeService.handleWebhookEvent(event);
@@ -50,7 +46,7 @@ router.post('/stripe', express.raw({ type: 'application/json', limit: '1mb' }), 
             received: true,
             eventId: event.id,
             eventType: event.type,
-            clientIP: clientIP,
+            clientIP,
             isStripeIP: isFromStripe
         });
 
@@ -90,7 +86,6 @@ router.get('/health', async (req, res) => {
  */
 router.post('/refresh-ips', async (req, res) => {
     try {
-        console.log('🔄 WEBHOOK: Force refreshing Stripe IP addresses...');
         const ipData = await stripeIPManager.refreshIPs();
 
         res.json({

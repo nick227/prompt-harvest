@@ -14,7 +14,6 @@ import crypto from 'crypto';
 export class ImageStorageService {
     constructor(storageType = 'local') {
         this.storageType = storageType;
-        console.log(`🔧 ImageStorageService initialized with storage type: ${storageType}`);
     }
 
     /**
@@ -100,12 +99,10 @@ export class ImageStorageService {
 
     async _saveToLocal(imageBuffer, filename, options) {
         try {
-            console.log(`💾 Saving image to local storage: ${filename}`);
 
             const savedFilename = await fileSystemManager.saveImageAtomic(imageBuffer, filename, options);
             const imageUrl = `uploads/${savedFilename}`;
 
-            console.log(`✅ Image saved to local storage: ${imageUrl}`);
 
             return imageUrl;
         } catch (error) {
@@ -120,7 +117,6 @@ export class ImageStorageService {
             const filename = imagePath.replace('uploads/', '');
             const success = await fileSystemManager.deleteImage(filename);
 
-            console.log(`✅ Image deleted from local storage: ${imagePath}`);
 
             return success;
         } catch (error) {
@@ -165,13 +161,11 @@ export class ImageStorageService {
 
     async _saveToCDN(imageBuffer, filename, options) {
         try {
-            console.log(`💾 Saving image to Cloudflare R2: ${filename}`);
 
             // Use the filename as the key (no 'uploads/' prefix for CDN)
             const key = filename;
             const publicUrl = await cloudflareR2Service.saveImage(imageBuffer, key, options);
 
-            console.log(`✅ Image saved to Cloudflare R2: ${publicUrl}`);
 
             return publicUrl;
         } catch (error) {
@@ -182,13 +176,11 @@ export class ImageStorageService {
 
     async _deleteFromCDN(imagePath) {
         try {
-            console.log(`🗑️ Deleting image from Cloudflare R2: ${imagePath}`);
 
             // Extract key from URL
             const key = cloudflareR2Service.extractKeyFromUrl(imagePath);
             const success = await cloudflareR2Service.deleteImage(key);
 
-            console.log(`✅ Image deleted from Cloudflare R2: ${imagePath}`);
 
             return success;
         } catch (error) {
@@ -200,7 +192,6 @@ export class ImageStorageService {
 
     async _getCDNImageInfo(imagePath) {
         try {
-            console.log(`📋 Getting image info from Cloudflare R2: ${imagePath}`);
 
             // Extract key from URL
             const key = cloudflareR2Service.extractKeyFromUrl(imagePath);
@@ -265,7 +256,6 @@ export class ImageStorageService {
             throw new Error('CDN storage is not properly configured. Please check your environment variables.');
         }
 
-        console.log(`🔄 Switching storage type from ${this.storageType} to ${newStorageType}`);
         this.storageType = newStorageType;
     }
 

@@ -11,7 +11,6 @@ import { FeedController } from './FeedController.js';
 
 export class ComposedImageController {
     constructor(imageService) {
-        console.log('🔧 ComposedImageController constructor called');
 
         // Initialize focused controllers
         this.imageGenerationController = new ImageGenerationController(imageService);
@@ -21,7 +20,6 @@ export class ComposedImageController {
         // Keep reference to service for compatibility
         this.imageService = imageService;
 
-        console.log('✅ ComposedImageController constructor completed');
     }
 
     // ============================================================================

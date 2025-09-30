@@ -448,6 +448,12 @@ class AdminSimpleRenderer {
             const mashup = document.getElementById('mashup').checked;
 
             try {
+                // Check authentication before making request
+                if (!window.AdminAuthUtils?.hasValidToken()) {
+                    console.warn('🔐 ADMIN-SIMPLE: No valid token for cost analysis, skipping');
+                    return;
+                }
+
                 const response = await fetch('/api/admin/cost-analysis/calculate', {
                     method: 'POST',
                     credentials: 'include',

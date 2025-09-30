@@ -177,32 +177,6 @@ class AvatarManager {
         };
     }
 
-    /**
-     * Upload avatar file and return URL
-     */
-    async uploadAvatarFile() {
-        if (!this.uploadedFile) {
-            throw new Error('No file to upload');
-        }
-
-        const formData = new FormData();
-        formData.append('avatar', this.uploadedFile);
-
-        const response = await fetch('/api/profile/upload-avatar', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to upload avatar');
-        }
-
-        const data = await response.json();
-        return data.data.avatarUrl;
-    }
 
     /**
      * Set avatar from existing image and return URL
@@ -216,7 +190,7 @@ class AvatarManager {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${window.AdminAuthUtils?.getAuthToken() || window.ProfileAuthUtils?.getAuthToken() || localStorage.getItem('authToken')}`
             },
             body: JSON.stringify({ imageId })
         });
@@ -229,3 +203,6 @@ class AvatarManager {
         return data.data.avatarUrl;
     }
 }
+
+// Export for global access
+window.AvatarManager = AvatarManager;

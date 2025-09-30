@@ -165,7 +165,7 @@ class FeedAPIManager {
 
     // Get authentication token
     getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        return window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     }
 
     // Check if user is authenticated

@@ -92,15 +92,27 @@ class ImageComponent {
         img.className = 'generated-image';
         img.style.cursor = 'pointer';
 
-        // Set data attributes
+        // Set data attributes - include all fields needed by info-box
         if (imageData.id) {
             img.dataset.id = imageData.id;
         }
         if (imageData.prompt) {
             img.dataset.prompt = imageData.prompt;
         }
+        if (imageData.original) {
+            img.dataset.original = imageData.original;
+        }
+        if (imageData.final) {
+            img.dataset.final = imageData.final;
+        }
         if (imageData.provider) {
             img.dataset.provider = imageData.provider;
+        }
+        if (imageData.model) {
+            img.dataset.model = imageData.model;
+        }
+        if (imageData.guidance) {
+            img.dataset.guidance = imageData.guidance;
         }
         if (imageData.rating) {
             img.dataset.rating = imageData.rating;
@@ -116,6 +128,9 @@ class ImageComponent {
         }
         if (imageData.createdAt) {
             img.dataset.createdAt = imageData.createdAt;
+        }
+        if (imageData.tags) {
+            img.dataset.tags = JSON.stringify(imageData.tags);
         }
 
         return img;

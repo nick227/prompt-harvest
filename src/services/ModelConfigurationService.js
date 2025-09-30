@@ -9,7 +9,6 @@ import modelInterface from './ModelInterface.js';
 class ModelConfigurationService {
     constructor() {
         // No need for database client or cache - ModelInterface handles everything
-        console.log('🔧 MODEL-CONFIG-SERVICE: Initialized with unified ModelInterface');
     }
 
     /**

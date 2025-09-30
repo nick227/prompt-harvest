@@ -70,7 +70,6 @@ class PromoCodesController {
             const totalPages = Math.ceil(totalCount / parseInt(limit));
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PROMO: Retrieved ${promoCodes.length} promo codes (page ${page}/${totalPages})`);
 
             res.json({
                 success: true,
@@ -127,7 +126,6 @@ class PromoCodesController {
             );
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PROMO: Created promo code '${promoCode.code}' by ${adminUser.email}`);
 
             return res.status(201).json({
                 success: true,
@@ -229,7 +227,6 @@ class PromoCodesController {
             });
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PROMO: Updated promo code '${updatedPromo.code}' by ${adminUser.email}`);
 
             return res.json({
                 success: true,
@@ -290,7 +287,6 @@ class PromoCodesController {
             });
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PROMO: Deleted promo code '${existingPromo.code}' by ${adminUser.email}`);
 
             res.json({
                 success: true,
@@ -323,58 +319,83 @@ class PromoCodesController {
 
             // Get promo code with detailed stats
             const promoCode = await prisma.promoCode.findUnique({
-                where: { id: promoId },
-                include: {
-                    redemptions: {
-                        include: {
-                            user: {
-                                select: {
-                                    id: true,
-                                    email: true,
-                                    username: true
-                                }
-                            }
-                        },
-                        orderBy: {
-                            createdAt: 'desc'
-                        }
-                    },
-                    creditLedger: {
-                        include: {
-                            user: {
-                                select: {
-                                    id: true,
-                                    email: true,
-                                    username: true
-                                }
-                            }
-                        },
-                        orderBy: {
-                            createdAt: 'desc'
-                        }
-                    }
-                }
+                where: { id: promoId }
             });
 
             if (!promoCode) {
                 return res.status(404).json({
                     success: false,
-                    error: 'Promo code not found',
-                    message: `Promo code with ID ${promoId} not found`
+                    error: 'Promo code not found'
                 });
             }
 
-            // Calculate statistics
-            const totalRedemptions = promoCode.redemptions.length;
-            const totalCreditsIssued = promoCode.redemptions.length * promoCode.credits;
+            // Get related data separately
+            const [redemptions, creditLedgerEntries] = await Promise.all([
+                prisma.promoRedemption.findMany({
+                    where: { promoCodeId: promoId },
+                    orderBy: { createdAt: 'desc' },
+                    select: {
+                        id: true,
+                        userId: true,
+                        credits: true,
+                        createdAt: true
+                    }
+                }),
+                prisma.creditLedger.findMany({
+                    where: { promoCodeId: promoId },
+                    orderBy: { createdAt: 'desc' },
+                    select: {
+                        id: true,
+                        userId: true,
+                        amount: true,
+                        type: true,
+                        description: true,
+                        createdAt: true
+                    }
+                })
+            ]);
 
-            const uniqueUsers = new Set(promoCode.redemptions.map(r => r.userId)).size;
+            // Get user data for redemptions and credit ledger
+            const userIds = [...new Set([
+                ...redemptions.map(r => r.userId),
+                ...creditLedgerEntries.map(c => c.userId)
+            ])];
+
+            const users = await prisma.user.findMany({
+                where: { id: { in: userIds } },
+                select: {
+                    id: true,
+                    email: true,
+                    username: true
+                }
+            });
+
+            const userMap = new Map(users.map(user => [user.id, user]));
+
+            // Combine data
+            const promoCodeWithDetails = {
+                ...promoCode,
+                redemptions: redemptions.map(redemption => ({
+                    ...redemption,
+                    user: userMap.get(redemption.userId) || null
+                })),
+                creditLedger: creditLedgerEntries.map(entry => ({
+                    ...entry,
+                    user: userMap.get(entry.userId) || null
+                }))
+            };
+
+            // Calculate statistics
+            const totalRedemptions = redemptions.length;
+            const totalCreditsIssued = redemptions.length * promoCode.credits;
+
+            const uniqueUsers = new Set(redemptions.map(r => r.userId)).size;
 
             // Daily redemption stats
-            const dailyStats = PromoCodesController.calculateDailyStats(promoCode.redemptions);
+            const dailyStats = PromoCodesController.calculateDailyStats(redemptions);
 
             // User breakdown
-            const userStats = PromoCodesController.calculateUserStats(promoCode.redemptions);
+            const userStats = PromoCodesController.calculateUserStats(redemptions);
 
             const stats = {
                 promoCode: {
@@ -400,11 +421,10 @@ class PromoCodesController {
                 },
                 dailyStats,
                 userStats,
-                recentRedemptions: promoCode.redemptions.slice(0, 10) // Last 10 redemptions
+                recentRedemptions: promoCodeWithDetails.redemptions.slice(0, 10) // Last 10 redemptions
             };
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-PROMO: Retrieved stats for promo code '${promoCode.code}'`);
 
             res.json({
                 success: true,
@@ -662,7 +682,6 @@ class PromoCodesController {
                 totalCreditsIssued: totalCreditsIssued._sum.credits || 0
             };
 
-            console.log('✅ ADMIN-PROMO: Retrieved promo codes overview');
 
             res.json({
                 success: true,
@@ -714,7 +733,6 @@ class PromoCodesController {
                 credits: day._sum.credits || 0
             }));
 
-            console.log('✅ ADMIN-PROMO: Retrieved usage analytics');
 
             res.json({
                 success: true,
@@ -773,7 +791,6 @@ class PromoCodesController {
                 createdAt: redemption.createdAt
             }));
 
-            console.log('✅ ADMIN-PROMO: Retrieved recent redemptions');
 
             res.json({
                 success: true,

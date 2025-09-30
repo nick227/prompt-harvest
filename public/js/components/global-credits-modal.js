@@ -443,7 +443,7 @@ class GlobalCreditsModal {
      * Get authentication token
      */
     getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        return window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     }
 }
 

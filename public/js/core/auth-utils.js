@@ -79,7 +79,7 @@ class AuthUtils {
      * @returns {string|null} Auth token or null
      */
     getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        return window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     }
 
     /**
@@ -260,7 +260,6 @@ class AuthUtils {
     }
 }
 
-// Create global instance
-window.AuthUtils = new AuthUtils();
+// Note: AuthUtils is no longer used - use AdminAuthUtils or UnifiedAuthUtils instead
 
 // ES6 exports removed - loaded as regular script

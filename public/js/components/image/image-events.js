@@ -14,7 +14,7 @@ class ImageEvents {
         //     TouchEventHandler: typeof window.TouchEventHandler,
         //     NotificationManager: typeof window.NotificationManager,
         //     ImageDetection: typeof window.ImageDetection,
-        //     AuthUtils: typeof window.AuthUtils
+        //     AdminAuthUtils: typeof window.AdminAuthUtils
         // });
 
         // Initialize with fallbacks
@@ -428,8 +428,9 @@ class ImageEvents {
         }
 
         // Fallback to existing AuthUtils if available
-        if (window.AuthUtils) {
-            return window.AuthUtils.canUserModifyImage(imageData);
+        if (window.AdminAuthUtils?.hasValidToken()) {
+            const currentUserId = window.userSystem?.getCurrentUser()?.id;
+            return currentUserId && imageData.userId === currentUserId;
         }
 
         // Final fallback logic
@@ -457,8 +458,8 @@ class ImageEvents {
         }
 
         // Fallback to existing AuthUtils if available
-        if (window.AuthUtils) {
-            return window.AuthUtils.getCurrentUserId();
+        if (window.AdminAuthUtils?.hasValidToken()) {
+            return window.userSystem?.getCurrentUser()?.id;
         }
 
         // Final fallback logic

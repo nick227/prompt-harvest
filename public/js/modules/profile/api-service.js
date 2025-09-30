@@ -104,3 +104,6 @@ class ProfileAPIService {
         });
     }
 }
+
+// Export for global access
+window.ProfileAPIService = ProfileAPIService;

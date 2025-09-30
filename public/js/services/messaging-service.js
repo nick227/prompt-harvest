@@ -370,8 +370,10 @@ class MessagingService {
      * Get authentication token (same as API service)
      */
     getAuthToken() {
-        // Try localStorage first, then sessionStorage
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        // Try AdminAuthUtils first, then localStorage, then sessionStorage
+        return window.AdminAuthUtils?.getAuthToken() ||
+               localStorage.getItem('authToken') ||
+               sessionStorage.getItem('authToken');
     }
 
     /**

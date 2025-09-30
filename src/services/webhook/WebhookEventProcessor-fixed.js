@@ -18,12 +18,10 @@ export class WebhookEventProcessor {
         const session = event.data.object;
         const sessionId = session.id;
 
-        console.log(`💳 WEBHOOK: Processing checkout completion for session ${sessionId}, payment_status: ${session.payment_status}`);
 
         try {
             // CRITICAL: Only process if payment is actually paid
             if (session.payment_status !== 'paid') {
-                console.log(`💳 WEBHOOK: Payment ${sessionId} not paid (status: ${session.payment_status}), skipping processing`);
 
                 return { success: true, skipped: true, reason: `Payment status: ${session.payment_status}` };
             }
@@ -38,7 +36,6 @@ export class WebhookEventProcessor {
             }
 
             if (payment.status === 'completed') {
-                console.log(`💳 WEBHOOK: Payment ${sessionId} already completed`);
 
                 // Check if credits were actually added by looking at the credit ledger
                 const existingCreditEntry = await prisma.creditLedger.findFirst({
@@ -55,10 +52,9 @@ export class WebhookEventProcessor {
                 });
 
                 if (existingCreditEntry) {
-                    console.log(`💳 WEBHOOK: Credits already added for payment ${sessionId}`);
+
                     return { success: true, alreadyProcessed: true, creditsAlreadyAdded: true };
                 } else {
-                    console.log(`💳 WEBHOOK: Payment ${sessionId} completed but credits not added, adding credits now...`);
                     // Add credits even though payment is marked as completed
                     await SimplifiedCreditService.addCredits(
                         payment.userId,
@@ -67,7 +63,7 @@ export class WebhookEventProcessor {
                         `Credit purchase - ${payment.credits} credits`,
                         { stripePaymentId: sessionId }
                     );
-                    console.log(`💳 WEBHOOK: Successfully added ${payment.credits} credits for payment ${sessionId}`);
+
                     return { success: true, creditsAdded: true };
                 }
             }
@@ -93,7 +89,6 @@ export class WebhookEventProcessor {
                 { stripePaymentId: sessionId }
             );
 
-            console.log(`💳 WEBHOOK: Successfully completed payment ${sessionId} for ${payment.credits} credits`);
 
             return { success: true, payment: result };
 
@@ -109,7 +104,6 @@ export class WebhookEventProcessor {
     async handlePaymentFailed(event) {
         const paymentIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing payment failure for intent ${paymentIntent.id}`);
 
         try {
             // Find sessions by payment intent (using Stripe API)
@@ -120,7 +114,6 @@ export class WebhookEventProcessor {
             });
 
             if (sessions.data.length === 0) {
-                console.log(`💳 WEBHOOK: No session found for payment intent ${paymentIntent.id}`);
 
                 return { success: true, noSession: true };
             }
@@ -133,7 +126,6 @@ export class WebhookEventProcessor {
                 data: { status: 'failed' }
             });
 
-            console.log(`💳 WEBHOOK: Marked payment ${sessionId} as failed`);
 
             return { success: true, sessionId };
 
@@ -149,7 +141,6 @@ export class WebhookEventProcessor {
     async handlePaymentSucceeded(event) {
         const paymentIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing payment success for intent ${paymentIntent.id}`);
 
         try {
             // Find sessions by payment intent
@@ -160,7 +151,6 @@ export class WebhookEventProcessor {
             });
 
             if (sessions.data.length === 0) {
-                console.log(`💳 WEBHOOK: No session found for payment intent ${paymentIntent.id}`);
 
                 return { success: true, noSession: true };
             }
@@ -184,7 +174,6 @@ export class WebhookEventProcessor {
     async handleInvoicePaymentFailed(event) {
         const invoice = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing invoice payment failure for ${invoice.id}`);
 
         try {
             // Find associated payment record
@@ -200,7 +189,6 @@ export class WebhookEventProcessor {
                     data: { status: 'failed' }
                 });
 
-                console.log(`💳 WEBHOOK: Marked payment ${payment.stripeSessionId} as failed due to invoice payment failure`);
             }
 
             return { success: true };
@@ -217,14 +205,11 @@ export class WebhookEventProcessor {
     async handleCustomerSubscriptionUpdated(event) {
         const subscription = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing subscription update for ${subscription.id}`);
 
         try {
             // Handle subscription status changes
             if (subscription.status === 'active') {
-                console.log(`💳 WEBHOOK: Subscription ${subscription.id} is now active`);
             } else if (subscription.status === 'canceled') {
-                console.log(`💳 WEBHOOK: Subscription ${subscription.id} has been canceled`);
             }
 
             return { success: true };
@@ -241,11 +226,9 @@ export class WebhookEventProcessor {
     async handleCustomerSubscriptionDeleted(event) {
         const subscription = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing subscription deletion for ${subscription.id}`);
 
         try {
             // Handle subscription cancellation
-            console.log(`💳 WEBHOOK: Subscription ${subscription.id} has been deleted`);
 
             return { success: true };
 
@@ -261,11 +244,9 @@ export class WebhookEventProcessor {
     async handleCustomerCreated(event) {
         const customer = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing customer creation for ${customer.id}`);
 
         try {
             // Handle new customer creation
-            console.log(`💳 WEBHOOK: New customer ${customer.id} created`);
 
             return { success: true };
 
@@ -281,11 +262,9 @@ export class WebhookEventProcessor {
     async handleCustomerUpdated(event) {
         const customer = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing customer update for ${customer.id}`);
 
         try {
             // Handle customer updates
-            console.log(`💳 WEBHOOK: Customer ${customer.id} updated`);
 
             return { success: true };
 
@@ -301,11 +280,9 @@ export class WebhookEventProcessor {
     async handleCustomerDeleted(event) {
         const customer = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing customer deletion for ${customer.id}`);
 
         try {
             // Handle customer deletion
-            console.log(`💳 WEBHOOK: Customer ${customer.id} deleted`);
 
             return { success: true };
 
@@ -321,11 +298,9 @@ export class WebhookEventProcessor {
     async handlePaymentMethodAttached(event) {
         const paymentMethod = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing payment method attachment for ${paymentMethod.id}`);
 
         try {
             // Handle payment method attachment
-            console.log(`💳 WEBHOOK: Payment method ${paymentMethod.id} attached to customer ${paymentMethod.customer}`);
 
             return { success: true };
 
@@ -341,11 +316,9 @@ export class WebhookEventProcessor {
     async handlePaymentMethodDetached(event) {
         const paymentMethod = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing payment method detachment for ${paymentMethod.id}`);
 
         try {
             // Handle payment method detachment
-            console.log(`💳 WEBHOOK: Payment method ${paymentMethod.id} detached from customer ${paymentMethod.customer}`);
 
             return { success: true };
 
@@ -361,11 +334,9 @@ export class WebhookEventProcessor {
     async handlePaymentMethodUpdated(event) {
         const paymentMethod = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing payment method update for ${paymentMethod.id}`);
 
         try {
             // Handle payment method updates
-            console.log(`💳 WEBHOOK: Payment method ${paymentMethod.id} updated`);
 
             return { success: true };
 
@@ -381,11 +352,9 @@ export class WebhookEventProcessor {
     async handleSetupIntentSucceeded(event) {
         const setupIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing setup intent success for ${setupIntent.id}`);
 
         try {
             // Handle setup intent success
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} succeeded`);
 
             return { success: true };
 
@@ -401,11 +370,9 @@ export class WebhookEventProcessor {
     async handleSetupIntentFailed(event) {
         const setupIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing setup intent failure for ${setupIntent.id}`);
 
         try {
             // Handle setup intent failure
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} failed`);
 
             return { success: true };
 
@@ -421,11 +388,9 @@ export class WebhookEventProcessor {
     async handleSetupIntentCanceled(event) {
         const setupIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing setup intent cancellation for ${setupIntent.id}`);
 
         try {
             // Handle setup intent cancellation
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} canceled`);
 
             return { success: true };
 
@@ -441,11 +406,9 @@ export class WebhookEventProcessor {
     async handleSetupIntentRequiresAction(event) {
         const setupIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing setup intent requires action for ${setupIntent.id}`);
 
         try {
             // Handle setup intent requires action
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} requires action`);
 
             return { success: true };
 
@@ -461,11 +424,9 @@ export class WebhookEventProcessor {
     async handleSetupIntentSetupSucceeded(event) {
         const setupIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing setup intent setup success for ${setupIntent.id}`);
 
         try {
             // Handle setup intent setup success
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} setup succeeded`);
 
             return { success: true };
 
@@ -481,11 +442,9 @@ export class WebhookEventProcessor {
     async handleSetupIntentSetupFailed(event) {
         const setupIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing setup intent setup failure for ${setupIntent.id}`);
 
         try {
             // Handle setup intent setup failure
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} setup failed`);
 
             return { success: true };
 
@@ -501,11 +460,9 @@ export class WebhookEventProcessor {
     async handleSetupIntentSetupCanceled(event) {
         const setupIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing setup intent setup cancellation for ${setupIntent.id}`);
 
         try {
             // Handle setup intent setup cancellation
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} setup canceled`);
 
             return { success: true };
 
@@ -521,91 +478,9 @@ export class WebhookEventProcessor {
     async handleSetupIntentSetupRequiresAction(event) {
         const setupIntent = event.data.object;
 
-        console.log(`💳 WEBHOOK: Processing setup intent setup requires action for ${setupIntent.id}`);
 
         try {
             // Handle setup intent setup requires action
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} setup requires action`);
-
-            return { success: true };
-
-        } catch (error) {
-            console.error('💳 WEBHOOK: Error handling setup intent setup requires action:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Handle setup intent setup succeeded
-     */
-    async handleSetupIntentSetupSucceeded(event) {
-        const setupIntent = event.data.object;
-
-        console.log(`💳 WEBHOOK: Processing setup intent setup success for ${setupIntent.id}`);
-
-        try {
-            // Handle setup intent setup success
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} setup succeeded`);
-
-            return { success: true };
-
-        } catch (error) {
-            console.error('💳 WEBHOOK: Error handling setup intent setup success:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Handle setup intent setup failed
-     */
-    async handleSetupIntentSetupFailed(event) {
-        const setupIntent = event.data.object;
-
-        console.log(`💳 WEBHOOK: Processing setup intent setup failure for ${setupIntent.id}`);
-
-        try {
-            // Handle setup intent setup failure
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} setup failed`);
-
-            return { success: true };
-
-        } catch (error) {
-            console.error('💳 WEBHOOK: Error handling setup intent setup failure:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Handle setup intent setup canceled
-     */
-    async handleSetupIntentSetupCanceled(event) {
-        const setupIntent = event.data.object;
-
-        console.log(`💳 WEBHOOK: Processing setup intent setup cancellation for ${setupIntent.id}`);
-
-        try {
-            // Handle setup intent setup cancellation
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} setup canceled`);
-
-            return { success: true };
-
-        } catch (error) {
-            console.error('💳 WEBHOOK: Error handling setup intent setup cancellation:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Handle setup intent setup requires action
-     */
-    async handleSetupIntentSetupRequiresAction(event) {
-        const setupIntent = event.data.object;
-
-        console.log(`💳 WEBHOOK: Processing setup intent setup requires action for ${setupIntent.id}`);
-
-        try {
-            // Handle setup intent setup requires action
-            console.log(`💳 WEBHOOK: Setup intent ${setupIntent.id} setup requires action`);
 
             return { success: true };
 

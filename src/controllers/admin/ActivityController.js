@@ -88,9 +88,6 @@ class ActivityController {
                 }
             };
 
-            // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-ACTIVITY: Retrieved activity data for ${range}`);
-
             res.json({
                 success: true,
                 data: activityData
@@ -136,7 +133,6 @@ class ActivityController {
             }
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-ACTIVITY: Retrieved ${metric} metrics for ${range}`);
 
             res.json({
                 success: true,
@@ -191,7 +187,6 @@ class ActivityController {
             }
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-ACTIVITY: System health check completed - Overall: ${healthStatus.overall}`);
 
             res.json({
                 success: true,
@@ -230,7 +225,6 @@ class ActivityController {
             const paginatedLogs = ActivityController.paginateLogs(filteredLogs, page, limit);
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-ACTIVITY: Retrieved ${paginatedLogs.items.length} error logs`);
 
             return res.json({
                 success: true,

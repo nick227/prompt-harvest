@@ -11,17 +11,17 @@ export const setupWordRoutes = app => {
     // Get all words (for terms.html)
     app.get('/words', async (req, res) => {
         try {
-            console.log('🔍 /words endpoint called - fetching from MySQL');
+            // /words endpoint called
 
             // Test database connection first
             await prisma.$connect();
-            console.log('✅ Database connection successful');
+            // Database connection successful
 
             const wordRecords = await prisma.word_types.findMany({
                 select: { word: true, types: true }
             });
 
-            console.log(`📊 Found ${wordRecords.length} word records in database`);
+            // Found word records in database
 
             const response = wordRecords.map(record => {
                 try {
@@ -31,6 +31,7 @@ export const setupWordRoutes = app => {
                     };
                 } catch (parseError) {
                     console.warn(`⚠️ Failed to process types for word "${record.word}":`, parseError.message);
+
                     return {
                         word: record.word,
                         types: []
@@ -40,7 +41,7 @@ export const setupWordRoutes = app => {
 
             response.sort((a, b) => a.word.localeCompare(b.word));
 
-            console.log(`✅ Returning ${response.length} words to client`);
+            // Returning words to client
             res.json(response);
         } catch (error) {
             console.error('❌ Error fetching words:', error);
@@ -62,8 +63,6 @@ export const setupWordRoutes = app => {
             const word = decodeURIComponent(req.params.word).toLowerCase();
             const _limit = parseInt(req.query.limit) || 8;
 
-            console.log(`🔍 Fetching types for word: ${word}`);
-
             // Get all word records to search through (like original NeDB implementation)
             const allWordRecords = await prisma.word_types.findMany({
                 // Remove the take limit to get all records
@@ -82,15 +81,19 @@ export const setupWordRoutes = app => {
                     }
                 }
 
-                // Check if word is in the types array
                 try {
                     const typesArray = Array.isArray(record.types) ? record.types : [];
+
                     if (typesArray && typesArray.length > 0) {
+
                         const hasMatch = typesArray.some(type => {
-                            if (!type || typeof type !== 'string') return false;
+
+                            if (!type || typeof type !== 'string') {
+                                return false;
+                            }
                             const typeLower = type.toLowerCase();
                             const wordLower = word.toLowerCase();
-                            // Check if type starts with the word or word starts with the type
+
                             return typeLower.startsWith(wordLower) || wordLower.startsWith(typeLower);
                         });
 
@@ -117,15 +120,12 @@ export const setupWordRoutes = app => {
                 if (aStartsWith && !bStartsWith) { return -1; }
                 if (!aStartsWith && bStartsWith) { return 1; }
 
-                // Then sort by length (shorter first)
                 return a.length - b.length;
             });
 
             // Limit results
             const limitedResults = results.slice(0, _limit);
 
-            console.log(`✅ Found ${limitedResults.length} total matches for word: ${word}`);
-            console.log('🔍 Results:', limitedResults);
             res.json(limitedResults);
         } catch (error) {
             console.error('❌ Error fetching word types:', error);
@@ -139,11 +139,6 @@ export const setupWordRoutes = app => {
             const word = decodeURIComponent(req.params.word).toLowerCase();
             const _limit = parseInt(req.query.limit) || 8;
 
-            console.log(`🔍 Fetching examples for word: ${word}`);
-
-            // For now, return empty array since we don't have examples migrated yet
-            // TODO: Migrate word-examples.db to MySQL as well
-            console.log(`⚠️ Examples not yet migrated for word: ${word}`);
             res.json([]);
         } catch (error) {
             console.error('❌ Error fetching word examples:', error);
@@ -156,7 +151,7 @@ export const setupWordRoutes = app => {
         try {
             const word = decodeURIComponent(req.params.word).toLowerCase();
 
-            console.log(`🔍 AI word generation requested for: ${word}`);
+            // AI word generation requested
 
             // TODO: Implement AI word generation
             // For now, return a placeholder response

@@ -867,8 +867,15 @@ class AdminTermsManager {
             statusDiv.classList.remove('hidden');
             statusDiv.innerHTML = '<p class="status-info">Saving changes...</p>';
 
+            // Check authentication before making request
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                console.warn('🔐 ADMIN-TERMS: No valid token for term update, skipping');
+                statusDiv.innerHTML = '<p class="status-error">Authentication required</p>';
+                return;
+            }
+
             // Make actual API call to update term
-            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const authToken = window.AdminAuthUtils.getAuthToken();
             const response = await fetch(`/api/admin/terms/${encodeURIComponent(word)}`, {
                 method: 'PUT',
                 headers: {

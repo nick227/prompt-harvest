@@ -43,7 +43,7 @@ export const imageGenerationRateLimit = mvpRateLimit(60000, 5); // 5 requests pe
 export const apiRateLimit = mvpRateLimit(60000, 20); // 20 requests per minute
 export const authRateLimit = mvpRateLimit(300000, 5); // 5 requests per 5 minutes
 
-export const clearRateLimit = (ip) => {
+export const clearRateLimit = ip => {
     if (ip) {
         rateLimitStore.delete(ip);
     } else {

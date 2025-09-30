@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 class DatabaseClient {
     constructor() {
         this.prisma = new PrismaClient({
-            log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
+            log: ['error']
         });
     }
 
@@ -16,8 +16,7 @@ class DatabaseClient {
     async connect() {
         try {
             await this.prisma.$connect();
-            // eslint-disable-next-line no-console
-            console.log('✅ Database connected successfully');
+            // Database connected successfully
         } catch (error) {
             console.error('❌ Database connection failed:', error);
             throw error;
@@ -28,8 +27,7 @@ class DatabaseClient {
     async disconnect() {
         try {
             await this.prisma.$disconnect();
-            // eslint-disable-next-line no-console
-            console.log('✅ Database disconnected successfully');
+            // Database disconnected successfully
         } catch (error) {
             console.error('❌ Database disconnection failed:', error);
             throw error;

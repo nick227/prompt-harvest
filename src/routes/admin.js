@@ -629,10 +629,10 @@ router.get('/system-settings/cache-stats',
 router.get('/queue/status', requireAdmin, async (req, res) => {
     try {
         // Import QueueManager dynamically
-        const QueueManager = await import('../services/feed/QueueManager.js');
+        const QueueManager = await import('../services/generate/QueueManager.js');
 
         // Get all queue data in one optimized call
-        const queueData = QueueManager.default.getQueueData();
+        const queueData = QueueManager.default().getOverview();
 
         res.json({
             success: true,
@@ -659,9 +659,9 @@ router.get('/queue/status', requireAdmin, async (req, res) => {
 router.post('/queue/clear', requireAdmin, async (req, res) => {
     try {
         // Import QueueManager dynamically
-        const QueueManager = await import('../services/feed/QueueManager.js');
+        const QueueManager = await import('../services/generate/QueueManager.js');
 
-        const clearedCount = QueueManager.default.clearQueue();
+        const clearedCount = QueueManager.default().clearQueue();
 
         res.json({
             success: true,
@@ -676,6 +676,313 @@ router.post('/queue/clear', requireAdmin, async (req, res) => {
             success: false,
             error: 'Failed to clear queue',
             message: error.message
+        });
+    }
+});
+
+/**
+ * Manually process queue
+ * POST /api/admin/queue/process
+ */
+router.post('/queue/process', requireAdmin, logAdminActionMiddleware('manual_queue_process'), async (req, res) => {
+    try {
+        // Import generate module dynamically
+        const generateModule = await import('../generate.js');
+
+        console.log('🔄 ADMIN: Manual queue processing triggered');
+
+        // Import QueueManager for processing
+        const QueueManager = await import('../services/generate/QueueManager.js');
+
+        // Process the queue manually
+        await QueueManager.default().processQueue(async requestData => await generateModule.default._executeGeneration({
+            prompt: requestData.prompt,
+            original: requestData.original,
+            promptId: requestData.promptId,
+            providers: requestData.providers,
+            guidance: requestData.guidance,
+            req: requestData.req || {}
+        }));
+
+        res.json({
+            success: true,
+            data: {
+                message: 'Queue processing completed',
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Manual queue processing error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to process queue',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Get enhanced queue metrics
+ * GET /api/admin/queue/metrics
+ */
+router.get('/queue/metrics', requireAdmin, async (req, res) => {
+    try {
+        const QueueManager = await import('../services/generate/QueueManager.js');
+        const queueManager = QueueManager.default();
+
+        // Get comprehensive metrics
+        const baseMetrics = queueManager.getOverview();
+        const enhancedMetrics = queueManager.getEnhancedMetrics();
+        const detailedHealth = queueManager.getDetailedHealthStatus();
+        const backpressureConfig = queueManager._backpressure?.getBackpressureConfig();
+        const capObservability = queueManager._backpressure?.getCapObservability();
+
+        // Calculate performance metrics
+        const performance = {
+            avgProcessingTime: enhancedMetrics.performance?.avgProcessingTime || 0,
+            successRate: enhancedMetrics.performance?.successRate || 0,
+            errorRate: enhancedMetrics.performance?.errorRate || 0,
+            retryRate: enhancedMetrics.performance?.retryRate || 0,
+            tasksPerMinute: enhancedMetrics.performance?.tasksPerMinute || 0,
+            throughput: enhancedMetrics.performance?.throughput || 0
+        };
+
+        // Calculate backpressure metrics
+        const backpressure = {
+            maxQueueSize: enhancedMetrics.capacity?.maxQueueSize || 0,
+            waitingRoomCap: enhancedMetrics.capacity?.waitingRoomCap || 0,
+            utilization: enhancedMetrics.capacity?.currentUtilization || 0,
+            isNearCapacity: enhancedMetrics.capacity?.isNearCapacity || false,
+            queueMultiplier: backpressureConfig?.queueMultiplier || 20,
+            nearCapacityThreshold: backpressureConfig?.nearCapacityThreshold || 0.8
+        };
+
+        // Get recent metrics history
+        const metricsHistory = queueManager._metrics?.getMetricsHistory?.() || [];
+
+        res.json({
+            success: true,
+            data: {
+                current: baseMetrics.current,
+                health: baseMetrics.health,
+                config: baseMetrics.config,
+                initialization: baseMetrics.initialization,
+                performance,
+                backpressure,
+                trends: enhancedMetrics.trends,
+                recommendations: detailedHealth.recommendations,
+                metricsHistory: metricsHistory.slice(-20), // Last 20 data points
+                capObservability,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue metrics error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get queue metrics',
+            message: error.message
+        });
+    }
+});
+
+// Update queue concurrency dynamically
+// PUT /api/admin/queue/concurrency
+router.put('/queue/concurrency', requireAdmin, logAdminActionMiddleware('update_queue_concurrency'), async (req, res) => {
+    try {
+        const { concurrency } = req.body;
+
+        if (!concurrency || typeof concurrency !== 'number' || concurrency < 1 || concurrency > 10) {
+            return res.status(400).json({
+                success: false,
+                error: 'Concurrency must be a number between 1 and 10'
+            });
+        }
+
+        // Import QueueManager dynamically
+        const QueueManager = await import('../services/generate/QueueManager.js');
+
+        // Update concurrency
+        const result = await QueueManager.default().updateConcurrency(concurrency);
+
+        res.json({
+            success: true,
+            data: result,
+            message: `Queue concurrency updated to ${concurrency}`
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue concurrency update error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to update queue concurrency'
+        });
+    }
+});
+
+// Simple queue monitoring - no complex configuration endpoints needed
+
+/**
+ * Get queue monitoring dashboard data
+ * GET /api/admin/queue/dashboard
+ */
+router.get('/queue/dashboard', requireAdmin, async (req, res) => {
+    try {
+        const QueueManager = await import('../services/generate/QueueManager.js');
+        const queueManager = QueueManager.default();
+
+        // Get all queue monitoring data
+        const queueData = queueManager.getOverview();
+        const enhancedMetrics = queueManager.getEnhancedMetrics();
+        const detailedHealth = queueManager.getDetailedHealthStatus();
+
+        res.json({
+            success: true,
+            data: {
+                overview: queueData,
+                metrics: enhancedMetrics,
+                health: detailedHealth,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue dashboard error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get queue dashboard data',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Get queue logs for monitoring
+ * GET /api/admin/queue/logs
+ */
+router.get('/queue/logs', requireAdmin, async (req, res) => {
+    try {
+        const { databaseQueueLogger } = await import('../services/queue/logging/DatabaseQueueLogger.js');
+        const { limit = 50, level } = req.query;
+        const logs = await databaseQueueLogger.getRecentLogs(parseInt(limit), level);
+
+        res.json({
+            success: true,
+            data: {
+                logs,
+                count: logs.length,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue logs error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get queue logs',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * Get queue log statistics
+ * GET /api/admin/queue/logs/stats
+ */
+router.get('/queue/logs/stats', requireAdmin, async (req, res) => {
+    try {
+        const { databaseQueueLogger } = await import('../services/queue/logging/DatabaseQueueLogger.js');
+        const stats = await databaseQueueLogger.getLogStats();
+
+        res.json({
+            success: true,
+            data: {
+                stats,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue log stats error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get queue log stats',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * Search queue logs with advanced filtering
+ * GET /api/admin/queue/logs/search
+ */
+router.get('/queue/logs/search', requireAdmin, async (req, res) => {
+    try {
+        const { databaseQueueLogger } = await import('../services/queue/logging/DatabaseQueueLogger.js');
+        const {
+            level,
+            requestId,
+            userId,
+            message,
+            startDate,
+            endDate,
+            limit = 100,
+            offset = 0
+        } = req.query;
+
+        const filters = {
+            level,
+            requestId,
+            userId,
+            message,
+            startDate,
+            endDate,
+            limit: parseInt(limit),
+            offset: parseInt(offset)
+        };
+
+        const logs = await databaseQueueLogger.searchLogs(filters);
+
+        res.json({
+            success: true,
+            data: {
+                logs,
+                count: logs.length,
+                filters,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue log search error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to search queue logs',
+            details: error.message
+        });
+    }
+});
+
+/**
+ * Get queue log trends for analytics
+ * GET /api/admin/queue/logs/trends
+ */
+router.get('/queue/logs/trends', requireAdmin, async (req, res) => {
+    try {
+        const { databaseQueueLogger } = await import('../services/queue/logging/DatabaseQueueLogger.js');
+        const { days = 7 } = req.query;
+
+        const trends = await databaseQueueLogger.getLogTrends(parseInt(days));
+
+        res.json({
+            success: true,
+            data: {
+                trends,
+                days: parseInt(days),
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue log trends error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get queue log trends',
+            details: error.message
         });
     }
 });

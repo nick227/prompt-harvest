@@ -34,6 +34,7 @@ export class MemoryOptimizer {
      */
     updateMemoryStats() {
         const current = process.memoryUsage();
+
         this.memoryStats.current = current;
 
         // Update peak memory usage
@@ -52,11 +53,12 @@ export class MemoryOptimizer {
      * @returns {boolean} Whether GC should be triggered
      */
     shouldTriggerGC() {
-        const current = this.memoryStats.current;
-        const peak = this.memoryStats.peak;
+        const { current } = this.memoryStats;
+        const { peak } = this.memoryStats;
 
         // Trigger GC if heap usage is high
         const heapUsageRatio = current.heapUsed / current.heapTotal;
+
         return heapUsageRatio > 0.8;
     }
 
@@ -77,14 +79,14 @@ export class MemoryOptimizer {
      * Check memory thresholds and warn if needed
      */
     checkMemoryThresholds() {
-        const current = this.memoryStats.current;
+        const { current } = this.memoryStats;
         const heapUsageRatio = current.heapUsed / current.heapTotal;
 
         if (heapUsageRatio > 0.9) {
             console.warn('⚠️ High memory usage detected:', {
                 heapUsed: this.formatBytes(current.heapUsed),
                 heapTotal: this.formatBytes(current.heapTotal),
-                ratio: (heapUsageRatio * 100).toFixed(2) + '%'
+                ratio: `${(heapUsageRatio * 100).toFixed(2)}%`
             });
         }
     }
@@ -159,9 +161,9 @@ export class MemoryOptimizer {
      * @returns {Object} Memory statistics
      */
     getMemoryStats() {
-        const current = this.memoryStats.current;
-        const peak = this.memoryStats.peak;
-        const initial = this.memoryStats.initial;
+        const { current } = this.memoryStats;
+        const { peak } = this.memoryStats;
+        const { initial } = this.memoryStats;
 
         return {
             current: {
@@ -183,7 +185,7 @@ export class MemoryOptimizer {
                 heapUsed: this.formatBytes(current.heapUsed - initial.heapUsed)
             },
             gcCount: this.memoryStats.gcCount,
-            heapUsageRatio: (current.heapUsed / current.heapTotal * 100).toFixed(2) + '%'
+            heapUsageRatio: `${(current.heapUsed / current.heapTotal * 100).toFixed(2)}%`
         };
     }
 
@@ -193,13 +195,13 @@ export class MemoryOptimizer {
      * @returns {string} Formatted string
      */
     formatBytes(bytes) {
-        if (bytes === 0) return '0 B';
+        if (bytes === 0) { return '0 B'; }
 
         const k = 1024;
         const sizes = ['B', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
     }
 
     /**
@@ -219,6 +221,7 @@ export class MemoryOptimizer {
      */
     async executeOptimizationStrategy(name, options = {}) {
         const strategy = this.optimizationStrategies.get(name);
+
         if (!strategy) {
             throw new Error(`Optimization strategy '${name}' not found`);
         }
@@ -238,7 +241,7 @@ export class MemoryOptimizer {
      */
     getOptimizationRecommendations() {
         const recommendations = [];
-        const current = this.memoryStats.current;
+        const { current } = this.memoryStats;
         const heapUsageRatio = current.heapUsed / current.heapTotal;
 
         if (heapUsageRatio > 0.8) {

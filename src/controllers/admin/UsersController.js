@@ -144,7 +144,6 @@ class UsersController {
             const totalPages = Math.ceil(totalCount / parseInt(limit));
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-USERS: Retrieved ${users.length} users (page ${page}/${totalPages})`);
 
             res.json({
                 success: true,
@@ -179,61 +178,92 @@ class UsersController {
             const { userId } = req.params;
 
             const user = await prisma.user.findUnique({
-                where: { id: userId },
-                include: {
-                    images: {
-                        orderBy: { createdAt: 'desc' },
-                        take: 10, // Last 10 images
-                        select: {
-                            id: true,
-                            prompt: true,
-                            provider: true,
-                            model: true,
-                            createdAt: true
-                        }
-                    },
-                    stripePayments: {
-                        orderBy: { createdAt: 'desc' },
-                        take: 10, // Last 10 payments
-                        select: {
-                            stripeSessionId: true,
-                            amount: true,
-                            credits: true,
-                            status: true,
-                            createdAt: true
-                        }
-                    },
-                    creditLedger: {
-                        orderBy: { createdAt: 'desc' },
-                        take: 20, // Last 20 credit transactions
-                        select: {
-                            id: true,
-                            amount: true,
-                            type: true,
-                            description: true,
-                            createdAt: true
-                        }
-                    },
-                    promoRedemptions: {
-                        include: {
-                            promoCode: {
-                                select: {
-                                    code: true,
-                                    credits: true
-                                }
-                            }
-                        }
-                    }
-                }
+                where: { id: userId }
             });
 
             if (!user) {
                 return res.status(404).json({
                     success: false,
-                    error: 'User not found',
-                    message: `User with ID ${userId} not found`
+                    error: 'User not found'
                 });
             }
+
+            // Get related data separately
+            const [images, stripePayments, creditLedger, promoRedemptions] = await Promise.all([
+                prisma.image.findMany({
+                    where: { userId },
+                    orderBy: { createdAt: 'desc' },
+                    take: 10,
+                    select: {
+                        id: true,
+                        prompt: true,
+                        provider: true,
+                        model: true,
+                        createdAt: true
+                    }
+                }),
+                prisma.stripePayment.findMany({
+                    where: { userId },
+                    orderBy: { createdAt: 'desc' },
+                    take: 10,
+                    select: {
+                        stripeSessionId: true,
+                        amount: true,
+                        credits: true,
+                        status: true,
+                        createdAt: true
+                    }
+                }),
+                prisma.creditLedger.findMany({
+                    where: { userId },
+                    orderBy: { createdAt: 'desc' },
+                    take: 20,
+                    select: {
+                        id: true,
+                        amount: true,
+                        type: true,
+                        description: true,
+                        createdAt: true
+                    }
+                }),
+                prisma.promoRedemption.findMany({
+                    where: { userId },
+                    orderBy: { createdAt: 'desc' },
+                    take: 10,
+                    select: {
+                        id: true,
+                        credits: true,
+                        createdAt: true,
+                        promoCodeId: true
+                    }
+                })
+            ]);
+
+            // Get promo codes for redemptions
+            const promoCodeIds = [...new Set(promoRedemptions.map(r => r.promoCodeId))];
+            const promoCodes = await prisma.promoCode.findMany({
+                where: { id: { in: promoCodeIds } },
+                select: {
+                    id: true,
+                    code: true,
+                    credits: true,
+                    createdAt: true
+                }
+            });
+
+            const promoCodeMap = new Map(promoCodes.map(pc => [pc.id, pc]));
+
+            // Combine user data with related data
+            const userWithDetails = {
+                ...user,
+                images,
+                stripePayments,
+                creditLedger,
+                promoRedemptions: promoRedemptions.map(redemption => ({
+                    ...redemption,
+                    promoCode: promoCodeMap.get(redemption.promoCodeId) || null
+                }))
+            };
 
             // Calculate user statistics
             const [totalSpent, totalCreditsEarned, totalCreditsUsed] = await Promise.all([
@@ -261,20 +291,19 @@ class UsersController {
             ]);
 
             const userDetails = {
-                ...user,
+                ...userWithDetails,
                 password: undefined, // Remove password from response
                 resetToken: undefined, // Remove reset token from response
                 statistics: {
-                    totalImagesGenerated: user.images.length,
+                    totalImagesGenerated: images.length,
                     totalSpent: (totalSpent._sum.amount || 0) / 100, // Convert to dollars
                     totalCreditsEarned: totalCreditsEarned._sum.amount || 0,
                     totalCreditsUsed: Math.abs(totalCreditsUsed._sum.amount || 0),
-                    promoCodesRedeemed: user.promoRedemptions.length
+                    promoCodesRedeemed: promoRedemptions.length
                 }
             };
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-USERS: Retrieved user details for ${user.email}`);
 
             res.json({
                 success: true,
@@ -332,9 +361,7 @@ class UsersController {
             }
 
             // Add credits using transaction
-            console.log('🔍 ADMIN-USERS: Starting database transaction...');
             const result = await prisma.$transaction(async tx => {
-                console.log('🔍 ADMIN-USERS: Creating credit ledger entry...');
                 // Create credit ledger entry
                 const ledgerEntry = await tx.creditLedger.create({
                     data: {
@@ -350,9 +377,7 @@ class UsersController {
                     }
                 });
 
-                console.log('🔍 ADMIN-USERS: Credit ledger entry created:', ledgerEntry.id);
 
-                console.log('🔍 ADMIN-USERS: Updating user credit balance...');
                 // Update user's credit balance
                 const updatedUser = await tx.user.update({
                     where: { id: userId },
@@ -369,15 +394,12 @@ class UsersController {
                     }
                 });
 
-                console.log('🔍 ADMIN-USERS: User credit balance updated:', updatedUser.creditBalance);
 
                 return { ledgerEntry, updatedUser };
             });
 
-            console.log('🔍 ADMIN-USERS: Database transaction completed successfully');
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-USERS: Added ${amount} credits to ${user.email} by ${adminUser.email}`);
 
             const responseData = {
                 success: true,
@@ -390,7 +412,6 @@ class UsersController {
                 }
             };
 
-            console.log('🔍 ADMIN-USERS: Sending response:', JSON.stringify(responseData, null, 2));
             res.json(responseData);
 
         } catch (error) {
@@ -666,7 +687,6 @@ class UsersController {
             };
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-USERS: Retrieved activity summary for ${user.email} (${range})`);
 
             res.json({
                 success: true,
@@ -709,9 +729,7 @@ class UsersController {
             }
 
             // eslint-disable-next-line no-console
-            console.log(`⚠️ ADMIN-USERS: Bulk update requested for ${userIds.length} users by ${adminUser.email}`);
             // eslint-disable-next-line no-console
-            console.log('Updates:', updates);
 
             // For now, just log the bulk operation
             // In a production system, you would implement the actual bulk update logic
@@ -820,7 +838,6 @@ class UsersController {
             }
 
             // eslint-disable-next-line no-console
-            console.log(`✅ ADMIN-USERS: Exported ${users.length} users as ${format}`);
 
         } catch (error) {
             console.error('❌ ADMIN-USERS: Export users failed:', error);

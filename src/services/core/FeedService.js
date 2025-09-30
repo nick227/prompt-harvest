@@ -14,7 +14,6 @@ export class FeedService {
     }
 
     async getFeed(userId, limit = 8, page = 0, tags = []) {
-        console.log('🔧 FeedService.getFeed called:', { userId, limit, page, tags });
 
         try {
             const skip = page * limit;
@@ -68,7 +67,6 @@ export class FeedService {
     }
 
     async getUserPublicImages(userId, limit = 20, page = 1) {
-        console.log('🔧 FeedService.getUserPublicImages called:', { userId, limit, page });
 
         if (!userId) {
             throw new ValidationError('User ID is required');
@@ -120,7 +118,6 @@ export class FeedService {
     }
 
     async getUserOwnImages(userId, limit = 8, page = 0, tags = []) {
-        console.log('🔧 FeedService.getUserOwnImages called:', { userId, limit, page, tags });
 
         if (!userId) {
             throw new ValidationError('User ID is required');

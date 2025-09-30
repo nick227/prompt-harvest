@@ -48,10 +48,42 @@ class AdminAuthCheck {
      */
     async checkAuthStatus() {
         try {
+            // Check if we have a valid token before making the request
+            const token = this.getAuthToken();
+            if (!token) {
+                console.log('🔐 ADMIN-AUTH: No auth token available, skipping auth check');
+                return {
+                    isAuthenticated: false,
+                    isAdmin: false,
+                    message: 'No authentication token'
+                };
+            }
+
+            // Check if token is expired
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const now = Math.floor(Date.now() / 1000);
+                if (payload.exp && payload.exp < now) {
+                    console.log('🔐 ADMIN-AUTH: Token expired, skipping auth check');
+                    return {
+                        isAuthenticated: false,
+                        isAdmin: false,
+                        message: 'Authentication token expired'
+                    };
+                }
+            } catch (tokenError) {
+                console.log('🔐 ADMIN-AUTH: Invalid token format, skipping auth check');
+                return {
+                    isAuthenticated: false,
+                    isAdmin: false,
+                    message: 'Invalid authentication token'
+                };
+            }
+
             const response = await fetch('/api/admin/auth/verify', {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${this.getAuthToken()}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -80,7 +112,7 @@ class AdminAuthCheck {
      * Get authentication token from storage
      */
     getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        return window.AdminAuthUtils?.getAuthToken();
     }
 
     /**
@@ -246,7 +278,7 @@ class AdminAuthCheck {
      * Start periodic authentication check
      */
     startPeriodicAuthCheck() {
-        // Check auth status every 5 minutes
+        // Check auth status every 10 minutes (reduced frequency)
         this.authCheckInterval = setInterval(async () => {
             try {
                 const authStatus = await this.checkAuthStatus();
@@ -257,7 +289,7 @@ class AdminAuthCheck {
             } catch (error) {
                 console.warn('⚠️ ADMIN-AUTH: Periodic check failed:', error);
             }
-        }, 5 * 60 * 1000); // 5 minutes
+        }, 10 * 60 * 1000); // 10 minutes (reduced frequency)
     }
 
     /**

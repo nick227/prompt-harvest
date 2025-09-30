@@ -164,9 +164,8 @@ class BillingUIManager {
                     promoCodeInput.value = '';
                 }
 
-                // Show success in main message area with reload option
-                const successMessage = this.config.SUCCESS_MESSAGES.PROMO_REDEEMED.replace('{credits}', credits) +
-                    ' <button onclick="location.reload()" class="ml-2 text-blue-600 hover:text-blue-800 underline">Reload page to see all updates</button>';
+                // Show success in main message area
+                const successMessage = this.config.SUCCESS_MESSAGES.PROMO_REDEEMED.replace('{credits}', credits);
                 this.domManager.showSuccess(successMessage);
 
                 // Trigger data refresh

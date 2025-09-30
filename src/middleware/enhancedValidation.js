@@ -99,15 +99,17 @@ export const validateImageGenerationEnhanced = async (req, res, next) => {
             }
         }
 
-        if (req.body.photogenic !== undefined) {
-            if (typeof req.body.photogenic !== 'boolean' && typeof req.body.photogenic !== 'string') {
-                warnings.push('Photogenic should be a boolean or string value');
-            }
-        }
-
-        if (req.body.artistic !== undefined) {
-            if (typeof req.body.artistic !== 'boolean' && typeof req.body.artistic !== 'string') {
-                warnings.push('Artistic should be a boolean or string value');
+        // Validate prompt helpers object
+        if (req.body.promptHelpers !== undefined) {
+            if (typeof req.body.promptHelpers !== 'object' || req.body.promptHelpers === null) {
+                warnings.push('PromptHelpers should be an object');
+            } else {
+                // Validate individual helper values
+                Object.entries(req.body.promptHelpers).forEach(([key, value]) => {
+                    if (typeof value !== 'boolean') {
+                        warnings.push(`Prompt helper '${key}' should be a boolean value`);
+                    }
+                });
             }
         }
 
@@ -173,8 +175,7 @@ export const validateImageGenerationEnhanced = async (req, res, next) => {
             promptId: req.body.promptId || null,
             original: req.body.original || req.body.prompt,
             autoPublic: req.body.autoPublic === 'true' || req.body.autoPublic === true,
-            photogenic: req.body.photogenic === 'true' || req.body.photogenic === true,
-            artistic: req.body.artistic === 'true' || req.body.artistic === true
+            promptHelpers: req.body.promptHelpers || {}
         };
 
         // eslint-disable-next-line no-console

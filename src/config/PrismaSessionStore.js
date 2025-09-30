@@ -225,28 +225,6 @@ class PrismaSessionStore extends EventEmitter {
         });
     }
 
-    // Touch session (required by express-session)
-    touch(req, callback) {
-        if (!callback) {
-            return;
-        }
-
-        if (!req.sessionID) {
-            return callback(null);
-        }
-
-        this.get(req.sessionID, (err, session) => {
-            if (err) {
-                return callback(err);
-            }
-            if (!session) {
-                return callback(null);
-            }
-
-            // Update the session with new expiration
-            this.set(req.sessionID, session, callback);
-        });
-    }
 
     // Clean up expired sessions
     async cleanup() {
@@ -260,7 +238,6 @@ class PrismaSessionStore extends EventEmitter {
 
             // Check if session model exists
             if (!this.prisma.session) {
-                console.log('⚠️ Session model not available in Prisma client - skipping cleanup');
 
                 return { success: false, error: 'Session model not available - Prisma client needs regeneration' };
             }
@@ -298,7 +275,6 @@ class PrismaSessionStore extends EventEmitter {
 
             // Check if session model exists
             if (!this.prisma.session) {
-                console.log('⚠️ Session model not available in Prisma client - skipping stats');
 
                 return { error: 'Session model not available - Prisma client needs regeneration' };
             }

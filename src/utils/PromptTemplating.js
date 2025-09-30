@@ -34,10 +34,13 @@ export function substituteVariables(text, variables = {}) {
     // Handle ${variable} syntax
     result = result.replace(/\$\{([^}]+)\}/g, (match, varName) => {
         const value = variables[varName.trim()];
+
         if (value === undefined || value === null) {
             console.warn(`⚠️ PROMPT TEMPLATING: Variable '${varName}' not found`);
+
             return ''; // Remove missing variables
         }
+
         return String(value);
     });
 
@@ -69,12 +72,14 @@ export function validatePromptTemplate(template, requiredVariables = []) {
 
     if (!template || typeof template !== 'string') {
         errors.push('Template must be a non-empty string');
+
         return { isValid: false, errors };
     }
 
     // Check for required variables
     for (const varName of requiredVariables) {
         const pattern = new RegExp(`\\$\\{${varName}\\}`);
+
         if (!pattern.test(template)) {
             errors.push(`Required variable '${varName}' not found in template`);
         }

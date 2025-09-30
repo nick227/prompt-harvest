@@ -61,50 +61,11 @@ export class EnhancedImageController {
                 promptId,
                 original,
                 'auto-enhance': autoEnhance,
-                photogenic,
-                artistic,
-                avatar,
+                promptHelpers,
                 autoPublic
             } = req.validatedData || req.body;
 
-            // Log autoPublic value for debugging
-            console.log('🔍 CONTROLLER DEBUG: autoPublic value received:', {
-                autoPublic,
-                type: typeof autoPublic,
-                fromValidatedData: !!req.validatedData,
-                fromBody: !!req.body,
-                bodyKeys: Object.keys(req.body || {}),
-                validatedDataKeys: Object.keys(req.validatedData || {})
-            });
-
-            // Log artistic, photogenic, and avatar values for debugging
-            console.log('🔍 CONTROLLER DEBUG: artistic, photogenic, and avatar values received:', {
-                artistic,
-                artisticType: typeof artistic,
-                photogenic,
-                photogenicType: typeof photogenic,
-                avatar,
-                avatarType: typeof avatar,
-                fullBody: req.body
-            });
-
             const userId = req.user?.id;
-
-            // Debug authentication status
-            console.log('🔍 CONTROLLER DEBUG: Authentication status:', {
-                hasReq: !!req,
-                hasUser: !!req.user,
-                hasUserId: !!req.user?.id,
-                userId,
-                userEmail: req.user?.email,
-                userObject: req.user
-            });
-
-            if (!userId) {
-                console.log('🚨 CONTROLLER CRITICAL: No userId found - this will result in userId: null in database');
-                console.log('🚨 CONTROLLER CRITICAL: req object keys:', Object.keys(req));
-                console.log('🚨 CONTROLLER CRITICAL: req.user:', req.user);
-            }
 
             // Validate image generation parameters
             validateImageGenerationParams({ prompt, providers, guidance });
@@ -118,18 +79,9 @@ export class EnhancedImageController {
                 mashup,
                 customVariables,
                 autoEnhance,
-                photogenic,
-                artistic,
-                avatar,
+                promptHelpers,
                 autoPublic
             };
-
-            // Log options being passed to service
-            console.log('🔍 CONTROLLER DEBUG: Options being passed to service:', {
-                options,
-                autoPublicInOptions: options.autoPublic,
-                autoPublicType: typeof options.autoPublic
-            });
 
             // Call service to generate image
             const result = await this.imageService.generateImage(
@@ -162,16 +114,8 @@ export class EnhancedImageController {
                 provider: result.provider
             });
 
-            // Fire-and-forget tagging service call
-            // This does NOT block the HTTP response
-            if (process.env.NODE_ENV === 'production') {
-                taggingService.tagImageAsync(result.id, prompt, {
-                    provider: result.provider,
-                    userId,
-                    requestId,
-                    duration
-                });
-            }
+            // Note: Tagging is handled by GenerationResultProcessor during image processing
+            // No need for duplicate tagging call here
 
             res.status(200).json(response);
 
@@ -406,16 +350,10 @@ export class EnhancedImageController {
 
             const pagination = validatePaginationParams(req.query, 50);
 
-            this.logGetUserImagesRequest(userId, pagination);
-
             const result = await this.imageService.getUserImages(userId, pagination.limit, pagination.page);
-
-            this.logGetUserImagesResult(result);
 
             const duration = Date.now() - startTime;
             const responseData = { images: result.images || [] };
-
-            this.logGetUserImagesResponse(responseData);
 
             const response = formatSuccessResponse(
                 responseData,
@@ -452,11 +390,8 @@ export class EnhancedImageController {
 
         try {
             // Extract and validate parameters
-            console.log('🔍 DEBUG: req.params:', req.params);
-            console.log('🔍 DEBUG: req.params.id:', req.params.id);
             const imageId = validateImageId(req.params.id);
 
-            console.log('🔍 DEBUG: validated imageId:', imageId);
             const userId = req.user?.id;
 
             // Call service to get image
@@ -581,15 +516,6 @@ export class EnhancedImageController {
                     .slice(0, 10); // Limit to 10 tags max
             }
 
-            console.log('🔍 BACKEND: getFeed called with:', {
-                requestId,
-                userId,
-                query: req.query,
-                pagination,
-                tags: tags.length > 0 ? tags : 'none',
-                userAgent: req.get('User-Agent')
-            });
-
             // Call service to get feed with tag filters
             const result = await this.imageService.getFeed(userId, pagination.limit, pagination.page, tags);
 
@@ -660,8 +586,6 @@ export class EnhancedImageController {
             const tags = this.extractTagFilters(req.query.tags);
             const pagination = { limit: parseInt(limit), page: parseInt(page) };
 
-            this.logGetUserOwnImagesRequest(requestId, userId, req.query, pagination, tags, req);
-
             if (!this.validateUserAuthentication(userId, res)) {
                 return;
             }
@@ -701,20 +625,6 @@ export class EnhancedImageController {
     }
 
     /**
-     * Log request details for getUserOwnImages
-     */
-    logGetUserOwnImagesRequest(requestId, userId, query, pagination, tags, req) {
-        console.log('🔍 BACKEND: getUserOwnImages called with:', {
-            requestId,
-            userId,
-            query,
-            pagination,
-            tags: tags.length > 0 ? tags : 'none',
-            userAgent: req.get('User-Agent')
-        });
-    }
-
-    /**
      * Validate authentication for getUserOwnImages
      */
     validateUserAuthentication(userId, res) {
@@ -746,43 +656,6 @@ export class EnhancedImageController {
         }, requestId, Date.now() - startTime);
     }
 
-    /**
-     * Log getUserImages request details
-     */
-    logGetUserImagesRequest(userId, pagination) {
-        console.log('🔄 ENHANCED-IMAGE-CONTROLLER: getUserImages called with userId:', userId);
-        console.log('🔄 ENHANCED-IMAGE-CONTROLLER: Pagination params:', pagination);
-        console.log('🔄 ENHANCED-IMAGE-CONTROLLER: Calling imageService.getUserImages...');
-    }
-
-    /**
-     * Log getUserImages service result
-     */
-    logGetUserImagesResult(result) {
-        console.log('✅ ENHANCED-IMAGE-CONTROLLER: Service result:', {
-            imagesCount: result.images?.length || 0,
-            totalCount: result.totalCount,
-            hasMore: result.hasMore
-        });
-    }
-
-    /**
-     * Log getUserImages response data
-     */
-    logGetUserImagesResponse(responseData) {
-        console.log('🔄 ENHANCED-IMAGE-CONTROLLER: Response data:', {
-            imagesCount: responseData.images.length,
-            firstImage: responseData.images[0]
-                ? {
-                    id: responseData.images[0].id,
-                    provider: responseData.images[0].provider,
-                    model: responseData.images[0].model
-                }
-                : null
-        });
-        console.log('✅ ENHANCED-IMAGE-CONTROLLER: Sending response with', responseData.images.length, 'images');
-    }
-
     // ============================================================================
     // PRIVATE HELPER METHODS
     // ============================================================================
@@ -805,6 +678,7 @@ export class EnhancedImageController {
                     model: true,
                     rating: true,
                     isPublic: true,
+                    userId: true,
                     tags: true,
                     taggedAt: true,
                     taggingMetadata: true,
@@ -827,6 +701,7 @@ export class EnhancedImageController {
                 model: image.model,
                 rating: image.rating,
                 isPublic: image.isPublic,
+                userId: image.userId,
                 tags: image.tags || [],
                 taggedAt: image.taggedAt,
                 taggingMetadata: image.taggingMetadata,

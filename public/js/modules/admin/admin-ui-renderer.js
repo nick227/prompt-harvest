@@ -100,6 +100,11 @@ class AdminUIRenderer {
                 this.systemSettingsManager.init();
             }
 
+            // Initialize queue management UI
+            if (this.summaryRenderer && this.summaryRenderer.initQueueManagement) {
+                this.summaryRenderer.initQueueManagement();
+            }
+
             // Setup queue event listeners
             if (this.eventHandler) {
                 this.eventHandler.setupQueueEventListeners();
@@ -286,15 +291,21 @@ class AdminUIRenderer {
         }
 
         try {
-            providersTab.innerHTML = this.createTabSectionHTML('Models Management', 'fas fa-server', 'add-model-btn', 'models-table-container');
-            await this.initializeProvidersTab();
+            // Use the AdminModelsRenderer to render the models tab
+            if (this.modelsRenderer) {
+                await this.modelsRenderer.render();
+            } else {
+                // Fallback to manual rendering if models renderer is not available
+                providersTab.innerHTML = this.createTabSectionHTML('Models Management', 'fas fa-server', 'add-model-btn', 'models-table-container');
+                await this.initializeProvidersTab();
+            }
         } catch (error) {
             this.handleTabRenderError(providersTab, 'models', error);
         }
     }
 
     /**
-     * Initialize providers tab functionality
+     * Initialize providers tab functionality (fallback method)
      */
     async initializeProvidersTab() {
         await this.loadModelsData();
@@ -516,7 +527,13 @@ class AdminUIRenderer {
 
     async loadPromoCardsData() {
         try {
-            const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            // Check authentication before making request
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                console.warn('🔐 ADMIN-UI: No valid token for promo codes request, skipping');
+                return;
+            }
+
+            const authToken = window.AdminAuthUtils.getAuthToken();
             const response = await fetch('/api/admin/promo-codes', {
                 headers: {
                     Authorization: `Bearer ${authToken}`,
@@ -583,7 +600,15 @@ class AdminUIRenderer {
     }
 
     showPromoCardModal(promoCardId = null) {
-        this.promoCodeModal.show(promoCardId);
+        console.log('🎭 ADMIN-UI: showPromoCardModal called with promoCardId:', promoCardId);
+        console.log('🎭 ADMIN-UI: promoCodeModal available:', !!this.promoCodeModal);
+        console.log('🎭 ADMIN-UI: promoCodeModal.show method available:', !!(this.promoCodeModal && this.promoCodeModal.show));
+
+        if (this.promoCodeModal && this.promoCodeModal.show) {
+            this.promoCodeModal.show(promoCardId);
+        } else {
+            console.error('🎭 ADMIN-UI: promoCodeModal or show method not available');
+        }
     }
 
     showNotification(message, type = 'info') {

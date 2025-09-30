@@ -55,6 +55,9 @@ class TextAreaManager {
         }
 
         this.isInitialized = true;
+
+        // Schedule page load resize after DOM and any localhost values are loaded
+        this.schedulePageLoadResize();
     }
 
     loadSavedHeight() {
@@ -65,9 +68,56 @@ class TextAreaManager {
             this.initialHeight = this.textArea.offsetHeight;
         }
 
-        // Only load saved height if it's different from initial height
-        if (savedHeight && this.textArea && savedHeight !== `${this.initialHeight}px`) {
-            this.textArea.style.height = savedHeight;
+        // Clear saved height if it's too large (indicating old larger initial height)
+        // This allows the textarea to start with the new smaller initial height
+        if (savedHeight && this.textArea) {
+            const savedHeightValue = parseInt(savedHeight);
+            const expectedInitialHeight = this.initialHeight || this.textArea.offsetHeight;
+
+            // If saved height is significantly larger than current initial height, clear it
+            if (savedHeightValue > expectedInitialHeight * 1.5) {
+                Utils.storage.remove('textAreaHeight');
+
+                return;
+            }
+
+            // Only load saved height if it's different from initial height and not too large
+            if (savedHeight !== `${this.initialHeight}px`) {
+                this.textArea.style.height = savedHeight;
+            }
+        }
+    }
+
+    schedulePageLoadResize() {
+        if (!this.textArea) {
+            return;
+        }
+
+        // Multiple resize attempts to handle different loading scenarios
+        const resizeDelays = [100, 500, 1000, 2000]; // Progressive delays for localhost loading
+
+        resizeDelays.forEach(delay => {
+            setTimeout(() => {
+                if (this.textArea && document.readyState === 'complete') {
+                    // Clear cache and recalculate with current viewport
+                    this.clearResizeCache();
+                    this.ensureInitialHeight();
+                    this.autoResize();
+                }
+            }, delay);
+        });
+
+        // Also resize when DOM content is fully loaded
+        if (document.readyState !== 'complete') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    if (this.textArea) {
+                        this.clearResizeCache();
+                        this.ensureInitialHeight();
+                        this.autoResize();
+                    }
+                }, 100);
+            });
         }
     }
 
@@ -88,6 +138,9 @@ class TextAreaManager {
 
         this.textArea.addEventListener('mouseup', this.handleResize.bind(this));
         this.matchesEl.addEventListener('click', this.handleMatchListItemClick.bind(this));
+
+        // Add window resize listener to recalculate viewport limits
+        window.addEventListener('resize', Utils.async.debounce(this.handleWindowResize.bind(this), 250));
 
         this.setupSearchReplace();
     }
@@ -142,31 +195,29 @@ class TextAreaManager {
         }
     }
 
+    handleWindowResize() {
+        // Clear resize cache to force recalculation with new viewport dimensions
+        this.clearResizeCache();
+
+        // Recalculate and apply resize with new viewport limits
+        this.autoResize();
+    }
+
     // ============================================================================
     // MATCH PROCESSING METHODS
     // ============================================================================
 
     async updateMatches(value, cursorPosition) {
-        console.log('🔍 TEXTAREA MANAGER: updateMatches called', {
-            value: `${value.substring(0, 50)}...`,
-            cursorPosition,
-            matchesEl: !!this.matchesEl
-        });
-
         const textBeforeCursor = window.TextUtils.getTextBeforeCursor(value, cursorPosition);
 
         if (!this.matchProcessor.isReadyForMatching(textBeforeCursor)) {
-            console.log('🔍 TEXTAREA MANAGER: Not ready for matching, showing samples');
             this.matchesEl.innerHTML = await this.matchProcessor.getSampleMatches();
             this.hasReplacedTrigger = false;
 
             return;
         }
 
-        console.log('🔍 TEXTAREA MANAGER: Ready for matching, finding matches for:', textBeforeCursor);
         const matches = await this.matchProcessor.findMatches(textBeforeCursor);
-
-        console.log('🔍 TEXTAREA MANAGER: Found matches:', matches);
 
         // Only reset replacement flag if this is a completely new search (different triggering word)
         const currentTriggeringWord = this.matchProcessor.getLastMatchedWord();
@@ -230,57 +281,52 @@ class TextAreaManager {
 
         const triggeringWord = this.matchProcessor.getLastMatchedWord();
 
-        // If we've already replaced this triggering word in this session, always append
-        if (this.hasReplacedTrigger) {
-            console.log('🔍 TEXTAREA MANAGER: Already replaced trigger in this session, appending instead');
+        // Handle cases where we should append instead of replace
+        if (this.shouldAppendInsteadOfReplace()) {
             this.appendToEnd(replacement);
 
             return;
         }
 
-        // Check if the textarea already contains any ${term} patterns (indicating previous replacements)
-        const hasAnyReplacements = this.textArea.value.includes('${') && this.textArea.value.includes('}');
-
-        if (hasAnyReplacements) {
-            console.log('🔍 TEXTAREA MANAGER: Textarea already contains replacements, appending instead');
-            this.appendToEnd(replacement);
-
-            return;
-        }
-
-        const wordPosition = window.MatchProcessorUtils.findTriggeringWordPosition(
-            this.textArea.value,
-            triggeringWord,
-            this.textArea.selectionStart
-        );
-
-        console.log('🔍 TEXTAREA MANAGER: Replacement attempt', {
-            triggeringWord,
-            wordPosition,
-            hasReplacedTrigger: this.hasReplacedTrigger,
-            hasAnyReplacements
-        });
-
-        if (wordPosition !== -1) {
-            const { value, cursorPosition } = window.MatchProcessorUtils.replaceTriggeringWord(
-                this.textArea.value,
-                triggeringWord,
-                replacement,
-                wordPosition
-            );
-
-            this.textArea.value = value;
-            this.textArea.selectionStart = cursorPosition;
-            this.textArea.selectionEnd = cursorPosition;
-            this.textArea.focus();
-
-            // Mark that we've replaced the trigger
+        // Attempt to replace the triggering word
+        if (this.attemptTriggeringWordReplacement(triggeringWord, replacement)) {
             this.hasReplacedTrigger = true;
         } else {
             this.insertText(replacement);
         }
 
         this.triggerInputEvent();
+    }
+
+    shouldAppendInsteadOfReplace() {
+        return this.hasReplacedTrigger ||
+               (this.textArea.value.includes('${') && this.textArea.value.includes('}'));
+    }
+
+    attemptTriggeringWordReplacement(triggeringWord, replacement) {
+        const wordPosition = window.MatchProcessorUtils.findTriggeringWordPosition(
+            this.textArea.value,
+            triggeringWord,
+            this.textArea.selectionStart
+        );
+
+        if (wordPosition === -1) {
+            return false;
+        }
+
+        const { value, cursorPosition } = window.MatchProcessorUtils.replaceTriggeringWord(
+            this.textArea.value,
+            triggeringWord,
+            replacement,
+            wordPosition
+        );
+
+        this.textArea.value = value;
+        this.textArea.selectionStart = cursorPosition;
+        this.textArea.selectionEnd = cursorPosition;
+        this.textArea.focus();
+
+        return true;
     }
 
     triggerInputEvent() {
@@ -413,32 +459,40 @@ class TextAreaManager {
             return;
         }
 
-        // Ensure initial height is captured
-        this.ensureInitialHeight();
+        try {
+            // Ensure initial height is captured
+            this.ensureInitialHeight();
 
-        const content = this.textArea.value;
+            const content = this.textArea.value;
 
-        // Performance optimization: skip if content hasn't changed
-        if (content === this.lastResizeContent && this.textArea.style.height === this.lastResizeHeight) {
-            return;
-        }
+            // Performance optimization: skip if content hasn't changed
+            if (content === this.lastResizeContent && this.textArea.style.height === this.lastResizeHeight) {
+                return;
+            }
 
-        // Handle empty content
-        if (!content.trim()) {
-            this.resetToInitialHeight();
+            // Handle empty content
+            if (!content.trim()) {
+                this.resetToInitialHeight();
+                this.updateResizeCache(content);
+
+                return;
+            }
+
+            // Calculate and apply appropriate height
+            const resizeData = this.calculateResizeData(content);
+
+            this.applyResize(resizeData);
+
+            // Update cache and save height for persistence
             this.updateResizeCache(content);
-
-            return;
+            Utils.storage.set('textAreaHeight', this.textArea.style.height);
+        } catch (error) {
+            console.warn('Auto-resize error:', error);
+            // Fallback: reset to initial height on error
+            if (this.initialHeight !== null) {
+                this.textArea.style.height = `${this.initialHeight}px`;
+            }
         }
-
-        // Calculate and apply appropriate height
-        const resizeData = this.calculateResizeData(content);
-
-        this.applyResize(resizeData);
-
-        // Update cache and save height for persistence
-        this.updateResizeCache(content);
-        Utils.storage.set('textAreaHeight', this.textArea.style.height);
     }
 
     /**
@@ -479,7 +533,8 @@ class TextAreaManager {
             const borderBottom = parseInt(computedStyle.borderBottomWidth) || 0;
 
             // Calculate content area and line counts
-            const contentHeight = Math.max(1, this.initialHeight - paddingTop - paddingBottom - borderTop - borderBottom);
+            const contentHeight = Math.max(1,
+                this.initialHeight - paddingTop - paddingBottom - borderTop - borderBottom);
             const linesInInitialHeight = Math.max(1, Math.floor(contentHeight / lineHeight));
             const explicitLines = content.split('\n').length;
 
@@ -504,7 +559,7 @@ class TextAreaManager {
             // Fallback to basic calculation
             return {
                 totalLines: content.split('\n').length,
-                linesInInitialHeight: 6,
+                linesInInitialHeight: 3,
                 lineHeight: 20,
                 paddingTop: 8,
                 paddingBottom: 8,
@@ -515,30 +570,47 @@ class TextAreaManager {
     }
 
     /**
-     * Apply the calculated resize based on content
+     * Apply the calculated resize based on content with viewport height limits
      */
     applyResize(resizeData) {
-        const { totalLines, linesInInitialHeight } = resizeData;
-        const doubleHeight = this.initialHeight * 2;
-        const tripleHeight = this.initialHeight * 3;
-        const linesInDoubleHeight = linesInInitialHeight * 2;
-        const linesInTripleHeight = linesInInitialHeight * 3;
+        const {
+            totalLines, linesInInitialHeight, lineHeight,
+            paddingTop, paddingBottom, borderTop, borderBottom
+        } = resizeData;
+
+        // Calculate viewport height limit (90vh)
+        const viewportHeight = window.innerHeight;
+        const maxHeightLimit = Math.floor(viewportHeight * 0.9);
+
+        // Calculate minimum height needed for content
+        const contentHeight = totalLines * lineHeight;
+        const minHeightNeeded = contentHeight + paddingTop + paddingBottom + borderTop + borderBottom;
+
+        // Calculate natural height (let textarea expand naturally)
+        this.textArea.style.height = 'auto';
+        const naturalHeight = this.textArea.scrollHeight;
+
+        // Determine the appropriate height
+        let newHeight;
 
         if (totalLines <= linesInInitialHeight) {
-            this.textArea.style.height = `${this.initialHeight}px`;
-        } else if (totalLines <= linesInDoubleHeight) {
-            const naturalHeight = this.textArea.scrollHeight;
-            const newHeight = Math.min(doubleHeight, naturalHeight);
-
-            this.textArea.style.height = `${newHeight}px`;
-        } else if (totalLines <= linesInTripleHeight) {
-            const naturalHeight = this.textArea.scrollHeight;
-            const newHeight = Math.min(tripleHeight, naturalHeight);
-
-            this.textArea.style.height = `${newHeight}px`;
+            // Content fits in initial height
+            newHeight = this.initialHeight;
+        } else if (naturalHeight <= maxHeightLimit) {
+            // Natural height fits within viewport limit
+            newHeight = naturalHeight;
+        } else if (minHeightNeeded <= maxHeightLimit) {
+            // We can fit the content within viewport limit
+            newHeight = minHeightNeeded;
         } else {
-            this.textArea.style.height = `${tripleHeight}px`;
+            // Content exceeds viewport limit, use max height
+            newHeight = maxHeightLimit;
         }
+
+        // Ensure we don't go below initial height
+        newHeight = Math.max(newHeight, this.initialHeight);
+
+        this.textArea.style.height = `${newHeight}px`;
     }
 
     // ============================================================================
@@ -579,25 +651,35 @@ class TextAreaManager {
         const computedStyle = window.getComputedStyle(this.textArea);
         const lineHeight = parseInt(computedStyle.lineHeight) || 20;
 
-        // Calculate height levels
-        const doubleHeight = this.initialHeight * 2;
-        const tripleHeight = this.initialHeight * 3;
+        // Calculate viewport-based height limits
+        const viewportHeight = window.innerHeight;
+        const maxHeightLimit = Math.floor(viewportHeight * 0.9);
+
+        // Calculate content requirements
+        const contentHeight = explicitLines * lineHeight;
+        const paddingTop = parseInt(computedStyle.paddingTop) || 8;
+        const paddingBottom = parseInt(computedStyle.paddingBottom) || 8;
+        const borderTop = parseInt(computedStyle.borderTopWidth) || 0;
+        const borderBottom = parseInt(computedStyle.borderBottomWidth) || 0;
+        const minHeightNeeded = contentHeight + paddingTop + paddingBottom + borderTop + borderBottom;
 
         return {
             initialHeight: this.initialHeight,
-            doubleHeight,
-            tripleHeight,
             currentHeight: this.textArea.offsetHeight,
-            maxHeight: tripleHeight,
+            maxHeight: maxHeightLimit,
+            viewportHeight,
             explicitLines,
             lineHeight,
+            contentHeight,
+            minHeightNeeded,
             content: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
-            heightLevel: this.getCurrentHeightLevel()
+            heightLevel: this.getCurrentHeightLevel(),
+            isAtMaxHeight: this.textArea.offsetHeight >= maxHeightLimit - 5 // 5px tolerance
         };
     }
 
     /**
-     * Get current height level (1=initial, 2=double, 3=triple)
+     * Get current height level (1=initial, 2=expanded, 3=viewport limit)
      */
     getCurrentHeightLevel() {
         if (!this.textArea || this.initialHeight === null) {
@@ -605,18 +687,16 @@ class TextAreaManager {
         }
 
         const currentHeight = this.textArea.offsetHeight;
-        const doubleHeight = this.initialHeight * 2;
-        const tripleHeight = this.initialHeight * 3;
+        const viewportHeight = window.innerHeight;
+        const maxHeightLimit = Math.floor(viewportHeight * 0.9);
 
         if (currentHeight <= this.initialHeight + 5) { // 5px tolerance
             return 1; // Initial height
-        } else if (currentHeight <= doubleHeight + 5) {
-            return 2; // Double height
-        } else if (currentHeight <= tripleHeight + 5) {
-            return 3; // Triple height
+        } else if (currentHeight >= maxHeightLimit - 5) {
+            return 3; // At viewport limit
+        } else {
+            return 2; // Expanded but not at limit
         }
-
-        return 3; // Default to triple if beyond
     }
 
     getCharacterCount() {

@@ -9,6 +9,72 @@ class UnifiedCreditService {
         this.baseUrl = '/api/credits';
         this.cache = new Map();
         this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+        this.listeners = new Set();
+        this.balance = 0;
+        this.packages = null;
+        this.isLoading = false;
+        this.init();
+    }
+
+    /**
+     * Initialize the service
+     */
+    init() {
+        this.setupEventListeners();
+        // Removed periodic refresh - components will request balance when needed
+    }
+
+    /**
+     * Setup event listeners for credit updates
+     */
+    setupEventListeners() {
+        // Listen for authentication state changes
+        if (window.UnifiedAuthUtils) {
+            window.UnifiedAuthUtils.addAuthListener(isAuthenticated => {
+                if (isAuthenticated) {
+                    this.getBalance();
+                } else {
+                    this.clearCache(); // Clear all cache when not authenticated
+                }
+            });
+        }
+
+        // Listen for promo code redemption
+        window.addEventListener('credits:promo-redeemed', _event => {
+            this.getBalance();
+        });
+
+        // Listen for payment completion
+        window.addEventListener('credits:payment-completed', _event => {
+            this.getBalance();
+        });
+    }
+
+    // Removed periodic refresh method - components will request balance when needed
+
+    /**
+     * Subscribe to credit updates
+     * @param {Function} callback - Callback function
+     * @returns {Function} Unsubscribe function
+     */
+    subscribe(callback) {
+        this.listeners.add(callback);
+
+        return () => this.listeners.delete(callback);
+    }
+
+    /**
+     * Notify all listeners of credit updates
+     * @param {Object} data - Credit data
+     */
+    notify(data) {
+        this.listeners.forEach(callback => {
+            try {
+                callback(data);
+            } catch (error) {
+                console.error('❌ Error in credit listener:', error);
+            }
+        });
     }
 
     /**
@@ -20,6 +86,7 @@ class UnifiedCreditService {
         };
 
         const token = this.getAuthToken();
+
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
@@ -28,19 +95,38 @@ class UnifiedCreditService {
     }
 
     /**
-     * Get authentication token
+     * Get authentication token from centralized system
      */
     getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        return window.AdminAuthUtils?.getAuthToken() ||
+               window.UnifiedAuthUtils?.getAuthToken() ||
+               localStorage.getItem('authToken') ||
+               sessionStorage.getItem('authToken');
     }
 
     /**
      * Make authenticated API request
      */
     async makeRequest(endpoint, options = {}) {
+        // Check authentication before making request
+        if (!this.isAuthenticated()) {
+            console.warn('🔐 UNIFIED-CREDIT: No valid token for request to', endpoint, ', skipping');
+            throw new Error('Authentication required');
+        }
+
         const url = `${this.baseUrl}${endpoint}`;
+        const headers = this.getAuthHeaders();
+
+        // Debug authentication for balance requests
+        if (endpoint === '/balance') {
+            console.log('🔐 UNIFIED-CREDIT: Making balance request with headers:', headers);
+            const token = this.getAuthToken();
+
+            console.log('🔐 UNIFIED-CREDIT: Token available:', !!token, token ? `${token.substring(0, 20)}...` : 'null');
+        }
+
         const config = {
-            headers: this.getAuthHeaders(),
+            headers,
             ...options
         };
 
@@ -64,21 +150,33 @@ class UnifiedCreditService {
     /**
      * Get user's current credit balance
      */
-    async getBalance() {
+    async getBalance(forceRefresh = false) {
+        if (this.isLoading) {
+            return this.balance;
+        }
+
         const cacheKey = 'balance';
         const cached = this.getCached(cacheKey);
 
-        if (cached) {
+        if (!forceRefresh && cached) {
             return cached;
         }
 
         try {
+            this.isLoading = true;
             const data = await this.makeRequest('/balance');
+
+            this.balance = data.balance;
             this.setCache(cacheKey, data.balance);
+            this.notify({ balance: this.balance, type: 'balance' });
+
             return data.balance;
         } catch (error) {
-            console.error('❌ UnifiedCreditService: Failed to get balance:', error);
-            throw error;
+            this.handleError(error, 'Failed to get balance', false);
+
+            return this.balance;
+        } finally {
+            this.isLoading = false;
         }
     }
 
@@ -87,6 +185,7 @@ class UnifiedCreditService {
      */
     async hasCredits(amount = 1) {
         const balance = await this.getBalance();
+
         return balance >= amount;
     }
 
@@ -119,7 +218,7 @@ class UnifiedCreditService {
                 message: data.message
             };
         } catch (error) {
-            console.error('❌ UnifiedCreditService: Promo code redemption failed:', error);
+            this.handleError(error, 'Promo code redemption failed', false);
 
             // Return structured error for better handling
             return {
@@ -177,11 +276,12 @@ class UnifiedCreditService {
 
         try {
             const data = await this.makeRequest('/packages');
+
             this.setCache(cacheKey, data.packages);
+
             return data.packages;
         } catch (error) {
-            console.error('❌ UnifiedCreditService: Failed to get packages:', error);
-            throw error;
+            this.handleError(error, 'Failed to get packages', true);
         }
     }
 
@@ -210,8 +310,7 @@ class UnifiedCreditService {
                 throw new Error('No checkout URL received');
             }
         } catch (error) {
-            console.error('❌ UnifiedCreditService: Package purchase failed:', error);
-            throw error;
+            this.handleError(error, 'Package purchase failed', true);
         }
     }
 
@@ -230,11 +329,12 @@ class UnifiedCreditService {
 
         try {
             const data = await this.makeRequest(`/history?limit=${limit}`);
+
             this.setCache(cacheKey, data.history);
+
             return data.history;
         } catch (error) {
-            console.error('❌ UnifiedCreditService: Failed to get credit history:', error);
-            throw error;
+            this.handleError(error, 'Failed to get credit history', true);
         }
     }
 
@@ -251,11 +351,12 @@ class UnifiedCreditService {
 
         try {
             const data = await this.makeRequest('/stats');
+
             this.setCache(cacheKey, data);
+
             return data;
         } catch (error) {
-            console.error('❌ UnifiedCreditService: Failed to get user stats:', error);
-            throw error;
+            this.handleError(error, 'Failed to get user stats', true);
         }
     }
 
@@ -285,20 +386,39 @@ class UnifiedCreditService {
     }
 
     /**
-     * Clear specific cache entry
+     * Clear cache - specific key or all cache
+     * @param {string} key - Optional specific cache key to clear
      */
-    clearCache(key) {
-        this.cache.delete(key);
+    clearCache(key = null) {
+        if (key) {
+            this.cache.delete(key);
+        } else {
+            this.cache.clear();
+            this.balance = 0;
+            this.packages = null;
+            this.notify({ balance: 0, type: 'clear' });
+        }
     }
 
-    /**
-     * Clear all cache
-     */
-    clearAllCache() {
-        this.cache.clear();
-    }
 
     // ===== UTILITY METHODS =====
+
+    /**
+     * Handle service errors consistently
+     * @param {Error} error - The error object
+     * @param {string} operation - The operation that failed
+     * @param {boolean} shouldThrow - Whether to re-throw the error
+     * @returns {any} Fallback value or throws error
+     */
+    handleError(error, operation, shouldThrow = true) {
+        console.error(`❌ UnifiedCreditService: ${operation} failed:`, error);
+
+        if (shouldThrow) {
+            throw error;
+        }
+
+        return null;
+    }
 
     /**
      * Format credits for display
@@ -321,7 +441,29 @@ class UnifiedCreditService {
      * Check if user is authenticated
      */
     isAuthenticated() {
-        return !!this.getAuthToken();
+        const token = this.getAuthToken();
+
+        if (!token) {
+            return false;
+        }
+
+        // Check if token is expired
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const now = Math.floor(Date.now() / 1000);
+
+            if (payload.exp && payload.exp < now) {
+                console.log('🔐 UNIFIED-CREDIT: Token expired, not authenticated');
+
+                return false;
+            }
+        } catch (error) {
+            console.log('🔐 UNIFIED-CREDIT: Invalid token format, not authenticated');
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -333,8 +475,10 @@ class UnifiedCreditService {
         }
 
         const trimmed = promoCode.trim();
-        return trimmed.length >= 3 && trimmed.length <= 50 && /^[A-Z0-9]+$/.test(trimmed);
+
+        return trimmed.length >= 3 && trimmed.length <= 50 && (/^[A-Z0-9]+$/).test(trimmed);
     }
+
 }
 
 // Create singleton instance

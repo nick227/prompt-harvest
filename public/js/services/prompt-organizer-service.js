@@ -71,7 +71,11 @@ class PromptOrganizerService {
             // Provide specific error messages based on error type
             let errorMessage = 'Error organizing prompt. Please try again.';
 
-            if (error.message.includes('API error: 401')) {
+            if (error.message.includes('AI service temporarily unavailable')) {
+                errorMessage = 'AI service is temporarily unavailable. Please try again in a few minutes.';
+            } else if (error.message.includes('Authentication required')) {
+                errorMessage = 'Please log in to use the prompt organizer.';
+            } else if (error.message.includes('API error: 401')) {
                 errorMessage = 'Authentication required. Please log in and try again.';
             } else if (error.message.includes('API error: 500')) {
                 errorMessage = 'Server error. Please try again later.';
@@ -118,6 +122,18 @@ class PromptOrganizerService {
             return result.organizedPrompt;
         } catch (error) {
             console.error('Send to organizer error:', error);
+
+            // Provide more specific error messages based on error type
+            if (error.message.includes('503') || error.message.includes('AI service temporarily unavailable')) {
+                throw new Error('AI service temporarily unavailable. Please try again later.');
+            } else if (error.message.includes('401')) {
+                throw new Error('Authentication required. Please log in and try again.');
+            } else if (error.message.includes('500')) {
+                throw new Error('Server error. Please try again later.');
+            } else if (error.message.includes('Failed to fetch')) {
+                throw new Error('Network error. Please check your connection.');
+            }
+
             throw error;
         }
     }
@@ -164,7 +180,8 @@ class PromptOrganizerService {
     }
 
     getAuthToken() {
-        return localStorage.getItem('authToken') ||
+        return window.AdminAuthUtils?.getAuthToken() ||
+               localStorage.getItem('authToken') ||
                sessionStorage.getItem('authToken') ||
                document.querySelector('meta[name="auth-token"]')?.content || '';
     }

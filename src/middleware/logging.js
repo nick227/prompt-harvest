@@ -2,11 +2,9 @@ export const requestLogger = (req, res, next) => {
     const start = Date.now();
 
     // Log request
-    console.log(`📥 ${req.method} ${req.originalUrl} - ${req.ip || 'unknown'}`);
 
     // Log request body for non-GET requests
     if (req.method !== 'GET' && req.body && Object.keys(req.body).length > 0) {
-        console.log('📦 Request Body:', JSON.stringify(req.body, null, 2));
     }
 
     // Override res.end to log response
@@ -27,7 +25,6 @@ export const requestLogger = (req, res, next) => {
             statusColor = '🔴'; // Server error
         }
 
-        console.log(`${statusColor} ${req.method} ${req.originalUrl} - ${status} (${duration}ms)`);
 
         originalEnd.call(this, chunk, encoding);
     };

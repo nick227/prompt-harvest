@@ -23,6 +23,7 @@ export class AIConversationService {
     async saveConversation(prompt, response, userId, conversationId, type) {
         if (!this.prisma) {
             console.error('❌ Prisma client not available for saving conversation');
+
             return null;
         }
 
@@ -51,6 +52,7 @@ export class AIConversationService {
             return result;
         } catch (error) {
             console.error('❌ Error saving conversation:', error);
+
             return null;
         }
     }
@@ -68,22 +70,25 @@ export class AIConversationService {
 
         if (!conversationId) {
             console.log('❌ No conversation ID provided');
+
             return [];
         }
 
         if (!this.prisma) {
             console.error('❌ Prisma client not available');
+
             return [];
         }
 
         try {
             const skip = page * limit;
+
             console.log('📊 Database query parameters:', { skip, limit, conversationId });
 
             const history = await this.prisma.aIPrompt.findMany({
                 where: { conversationId },
                 orderBy: { createdAt: 'desc' },
-                skip: skip,
+                skip,
                 take: limit,
                 select: {
                     type: true,
@@ -138,6 +143,7 @@ export class AIConversationService {
             return messages;
         } catch (error) {
             console.error('❌ Error getting conversation history:', error);
+
             return [];
         }
     }
@@ -148,6 +154,7 @@ export class AIConversationService {
     async getUserPrompts(userId, limit = 10) {
         if (!this.prisma) {
             console.error('❌ Prisma client not available');
+
             return [];
         }
 
@@ -169,6 +176,7 @@ export class AIConversationService {
             return prompts;
         } catch (error) {
             console.error('❌ Error getting user prompts:', error);
+
             return [];
         }
     }
@@ -179,6 +187,7 @@ export class AIConversationService {
     async getApplicationPrompts(limit = 10) {
         if (!this.prisma) {
             console.error('❌ Prisma client not available');
+
             return [];
         }
 
@@ -196,6 +205,7 @@ export class AIConversationService {
             return prompts;
         } catch (error) {
             console.error('❌ Error getting application prompts:', error);
+
             return [];
         }
     }
@@ -213,6 +223,7 @@ export class AIConversationService {
     async getConversationStats(userId = null) {
         if (!this.prisma) {
             console.error('❌ Prisma client not available');
+
             return null;
         }
 
@@ -234,6 +245,7 @@ export class AIConversationService {
             };
         } catch (error) {
             console.error('❌ Error getting conversation stats:', error);
+
             return null;
         }
     }

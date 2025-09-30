@@ -14,6 +14,13 @@ class SystemSettingsManager {
 
     init() {
         console.log('⚙️ SYSTEM-SETTINGS: Initializing system settings manager...');
+
+        // Check authentication before initializing
+        if (!window.AdminAuthUtils?.hasValidToken()) {
+            console.warn('🔐 SYSTEM-SETTINGS: No valid token, skipping system settings manager initialization');
+            return;
+        }
+
         this.setupEventListeners();
         this.loadSettings();
         console.log('✅ SYSTEM-SETTINGS: System settings manager initialized');

@@ -29,7 +29,6 @@ export class ConnectionPoolOptimizer {
             await this.performHealthCheck();
         }, 30000);
 
-        console.log('🔧 Connection pool health monitoring started');
     }
 
     /**
@@ -40,7 +39,6 @@ export class ConnectionPoolOptimizer {
             clearInterval(this.healthCheckInterval);
             this.healthCheckInterval = null;
         }
-        console.log('🔧 Connection pool health monitoring stopped');
     }
 
     /**
@@ -49,6 +47,7 @@ export class ConnectionPoolOptimizer {
     async performHealthCheck() {
         try {
             const startTime = Date.now();
+
             await this.prisma.$queryRaw`SELECT 1`;
             const responseTime = Date.now() - startTime;
 
@@ -140,6 +139,7 @@ export class ConnectionPoolOptimizer {
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
             console.error(`❌ Query failed [${queryName}] after ${duration}ms:`, error.message);
             throw error;
         }
@@ -158,11 +158,12 @@ export class ConnectionPoolOptimizer {
             const results = await Promise.all(queries);
             const duration = Date.now() - startTime;
 
-            console.log(`✅ Batch executed ${queries.length} queries in ${duration}ms`);
+
             return results;
 
         } catch (error) {
             const duration = Date.now() - startTime;
+
             console.error(`❌ Batch execution failed after ${duration}ms:`, error.message);
             throw error;
         }
@@ -206,6 +207,7 @@ export class ConnectionPoolOptimizer {
 
         } catch (error) {
             console.error('❌ Failed to get query performance:', error);
+
             return {
                 averageResponseTime: 0,
                 totalQueries: 0,
@@ -220,6 +222,5 @@ export class ConnectionPoolOptimizer {
      */
     cleanup() {
         this.stopHealthMonitoring();
-        console.log('🔧 Connection pool optimizer cleaned up');
     }
 }

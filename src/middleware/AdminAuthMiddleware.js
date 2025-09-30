@@ -23,23 +23,26 @@ export const requireAdmin = async (req, res, next) => {
 
         if (token) {
             try {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+                if (!process.env.JWT_SECRET) {
+                    throw new Error('JWT_SECRET not configured');
+                }
+
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
                 userId = decoded.userId;
-                console.log('🔐 ADMIN-AUTH: JWT token authentication successful');
             } catch (jwtError) {
-                console.log('🔐 ADMIN-AUTH: JWT token invalid:', jwtError.message);
             }
         }
 
         // Fall back to session authentication if JWT failed
         if (!userId && req.session?.userId) {
             userId = req.session.userId;
-            console.log('🔐 ADMIN-AUTH: Session authentication used');
         }
 
         if (!userId) {
-            console.log('🔐 ADMIN-AUTH: No valid authentication found');
+            // Only log authentication failures for actual admin requests, not health checks or favicon requests
+            if (!req.path.includes('/favicon') && !req.path.includes('/health') && !req.path.includes('/status')) {
+            }
 
             return res.status(401).json({
                 success: false,
@@ -61,7 +64,6 @@ export const requireAdmin = async (req, res, next) => {
         });
 
         if (!user) {
-            console.log('🔐 ADMIN-AUTH: User not found in database:', userId);
 
             return res.status(401).json({
                 success: false,
@@ -73,7 +75,6 @@ export const requireAdmin = async (req, res, next) => {
         // Check if user has admin privileges
         if (!user.isAdmin) {
             // eslint-disable-next-line no-console
-            console.log('🔐 ADMIN-AUTH: Non-admin user attempted admin access:', user.email);
 
             return res.status(403).json({
                 success: false,
@@ -87,7 +88,6 @@ export const requireAdmin = async (req, res, next) => {
         req.adminUser = user; // Explicit admin user reference
 
         // eslint-disable-next-line no-console
-        console.log('✅ ADMIN-AUTH: Admin access granted to:', user.email);
 
         return next();
 
@@ -117,7 +117,11 @@ export const verifyAdmin = async (req, res, _next) => {
 
         if (token) {
             try {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+                if (!process.env.JWT_SECRET) {
+                    throw new Error('JWT_SECRET not configured');
+                }
+
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
                 userId = decoded.userId;
             } catch (jwtError) {
@@ -220,7 +224,6 @@ export const makeUserAdmin = async email => {
         });
 
         // eslint-disable-next-line no-console
-        console.log('✅ ADMIN-AUTH: User promoted to admin:', user.email);
 
         return user;
 
@@ -242,7 +245,6 @@ export const removeUserAdmin = async email => {
         });
 
         // eslint-disable-next-line no-console
-        console.log('✅ ADMIN-AUTH: Admin privileges removed from user:', user.email);
 
         return user;
 
@@ -281,7 +283,6 @@ export const getAdminUsers = async () => {
 export const logAdminAction = async (userId, action, details = {}) => {
     try {
         // eslint-disable-next-line no-console
-        console.log(`📝 ADMIN-ACTION: ${action} by ${userId}`, details);
 
         // In a production system, you might want to store this in a dedicated audit log table
         // For now, we'll just log to console and could extend this later

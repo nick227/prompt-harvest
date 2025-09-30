@@ -108,7 +108,7 @@ export class PerformanceMonitor {
                     console.log(`⚠️ Unknown optimization action: ${recommendation.action}`);
             }
         } catch (error) {
-            console.error(`❌ Optimization execution failed:`, error);
+            console.error('❌ Optimization execution failed:', error);
         }
     }
 
@@ -152,9 +152,11 @@ export class PerformanceMonitor {
      */
     calculateCacheHitRate() {
         const total = this.metrics.cacheHits + this.metrics.cacheMisses;
-        if (total === 0) return '0%';
+
+        if (total === 0) { return '0%'; }
 
         const hitRate = (this.metrics.cacheHits / total * 100).toFixed(1);
+
         return `${hitRate}%`;
     }
 

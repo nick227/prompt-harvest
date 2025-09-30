@@ -24,8 +24,11 @@ class UnifiedAuthUtils {
 
         // Periodically check auth state (in case token expires)
         setInterval(() => {
-            this.checkAuthState();
-        }, 30000); // Check every 30 seconds
+            // Only check if page is visible to avoid unnecessary requests
+            if (!document.hidden) {
+                this.checkAuthState();
+            }
+        }, 60000); // Check every 60 seconds (reduced frequency)
     }
 
     // ============================================================================
@@ -93,7 +96,7 @@ class UnifiedAuthUtils {
      * @returns {string|null} Auth token or null
      */
     getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        return window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     }
 
     // ============================================================================

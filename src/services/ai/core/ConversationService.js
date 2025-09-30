@@ -15,6 +15,7 @@ export class ConversationService {
     async createConversation(userId, title = null) {
         if (!this.prisma) {
             console.error('❌ Prisma client not available');
+
             return null;
         }
 
@@ -35,6 +36,7 @@ export class ConversationService {
             return conversation;
         } catch (error) {
             console.error('❌ Error creating conversation:', error);
+
             return null;
         }
     }
@@ -45,6 +47,7 @@ export class ConversationService {
     async getOrCreateConversation(userId, conversationId = null) {
         if (!this.prisma) {
             console.error('❌ Prisma client not available');
+
             return null;
         }
 
@@ -67,6 +70,7 @@ export class ConversationService {
             return await this.createConversation(userId);
         } catch (error) {
             console.error('❌ Error getting/creating conversation:', error);
+
             return null;
         }
     }
@@ -77,6 +81,7 @@ export class ConversationService {
     async addMessage(conversationId, role, content, metadata = null) {
         if (!this.prisma) {
             console.error('❌ Prisma client not available');
+
             return null;
         }
 
@@ -100,6 +105,7 @@ export class ConversationService {
             return message;
         } catch (error) {
             console.error('❌ Error adding message:', error);
+
             return null;
         }
     }
@@ -118,22 +124,25 @@ export class ConversationService {
 
         if (!conversationId) {
             console.log('❌ [CONVERSATION SERVICE] No conversation ID provided');
+
             return [];
         }
 
         if (!this.prisma) {
             console.error('❌ [CONVERSATION SERVICE] Prisma client not available');
+
             return [];
         }
 
         try {
             const skip = page * limit;
+
             console.log('📊 [CONVERSATION SERVICE] Database query parameters:', { skip, limit, conversationId });
 
             const messages = await this.prisma.chatMessage.findMany({
                 where: { conversationId },
                 orderBy: { createdAt: 'desc' },
-                skip: skip,
+                skip,
                 take: limit,
                 select: {
                     role: true,
@@ -179,6 +188,7 @@ export class ConversationService {
                 page,
                 limit
             });
+
             return [];
         }
     }
@@ -189,6 +199,7 @@ export class ConversationService {
     async getUserConversations(userId, limit = 10) {
         if (!this.prisma) {
             console.error('❌ Prisma client not available');
+
             return [];
         }
 
@@ -213,6 +224,7 @@ export class ConversationService {
             return conversations;
         } catch (error) {
             console.error('❌ Error getting user conversations:', error);
+
             return [];
         }
     }

@@ -255,7 +255,7 @@ class AuthService {
      * @returns {string|null} Auth token or null
      */
     getAuthToken() {
-        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        return window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     }
 
     /**
@@ -338,7 +338,7 @@ class AuthService {
      */
     notifyAuthStateChange() {
         const isAuthenticated = this.isAuthenticated();
-        
+
         // Notify listeners
         this.authStateListeners.forEach(callback => {
             try {

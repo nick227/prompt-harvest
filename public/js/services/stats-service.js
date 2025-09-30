@@ -1,12 +1,38 @@
-// Stats Service - Centralized service for managing user statistics
+// Stats Service - Lightweight wrapper for backward compatibility
+// This service now delegates to UnifiedStatsService to eliminate redundancy
 
 class StatsService {
     constructor() {
-        this.cache = null;
-        this.lastFetch = null;
-        this.cacheTimeout = 30000; // 30 seconds cache
         this.listeners = new Set();
         this.isLoading = false;
+        // Initialize asynchronously
+        this.init().catch(error => {
+            console.error('❌ STATS-SERVICE: Initialization error:', error);
+        });
+    }
+
+    async waitForUnifiedServices() {
+        const maxRetries = 10;
+        let retries = 0;
+
+        while (retries < maxRetries) {
+            if (window.UnifiedStatsService) {
+                this.setupUnifiedService();
+
+                return;
+            }
+            retries++;
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        console.warn('⚠️ STATS-SERVICE: UnifiedStatsService not available, using fallback');
+    }
+
+    setupUnifiedService() {
+        // Subscribe to unified stats service
+        this.unsubscribe = window.UnifiedStatsService.subscribe(stats => {
+            this.notify(stats);
+        });
     }
 
     // Subscribe to stats updates
@@ -27,80 +53,65 @@ class StatsService {
         });
     }
 
-    // Check if cache is valid
+    // Check if cache is valid (delegated to unified service)
     isCacheValid() {
-        if (!this.cache || !this.lastFetch) {
-            return false;
+        if (window.UnifiedStatsService) {
+            return window.UnifiedStatsService.isCacheValid();
         }
 
-        return (Date.now() - this.lastFetch) < this.cacheTimeout;
+        return false;
     }
 
     // Get cached stats or fetch fresh ones
     async getStats(forceRefresh = false) {
-        // Check authentication first
-        if (!window.userApi || !window.userApi.isAuthenticated()) {
-            this.clearCache();
-
-            return null;
+        // Delegate to unified service if available
+        if (window.UnifiedStatsService) {
+            return await window.UnifiedStatsService.getStats(forceRefresh);
         }
 
-        // Return cached data if valid and not forcing refresh
-        if (!forceRefresh && this.isCacheValid()) {
-            return this.cache;
-        }
-
-        // Prevent multiple simultaneous fetches
-        if (this.isLoading) {
-            return this.cache;
-        }
-
-        return this.fetchStats();
+        // Fallback to direct API call
+        return this.fetchStatsFallback();
     }
 
-    // Fetch stats from server
-    async fetchStats() {
+    // Fallback fetch stats from server
+    async fetchStatsFallback() {
         if (this.isLoading) {
-            return this.cache;
+            return null;
         }
 
         try {
             this.isLoading = true;
 
             // Check if user is authenticated
-            if (!window.userApi || !window.userApi.isAuthenticated()) {
-                this.clearCache();
-
+            if (!window.UnifiedAuthUtils || !window.UnifiedAuthUtils.isAuthenticated()) {
                 return null;
             }
 
-            // Check if API service is available
-            if (!window.apiService) {
-                console.warn('⚠️ STATS-SERVICE: API service not available');
+            // Fetch from server
+            const response = await fetch('/api/transactions/user/stats', {
+                headers: window.UnifiedAuthUtils.getAuthHeaders()
+            });
 
-                return this.cache;
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
 
-            // Fetch from server
-            const response = await window.apiService.get('/api/transactions/user/stats');
+            const data = await response.json();
 
-            if (response.success) {
-                this.cache = response.data;
-                this.lastFetch = Date.now();
-
+            if (data.success) {
                 // Notify all listeners
-                this.notify(this.cache);
+                this.notify(data.data);
 
-                return this.cache;
+                return data.data;
             } else {
-                console.error('❌ STATS-SERVICE: Failed to fetch stats:', response.error);
+                console.error('❌ STATS-SERVICE: Failed to fetch stats:', data.error);
 
-                return this.cache;
+                return null;
             }
         } catch (error) {
             console.error('❌ STATS-SERVICE: Error fetching stats:', error);
 
-            return this.cache;
+            return null;
         } finally {
             this.isLoading = false;
         }
@@ -108,9 +119,13 @@ class StatsService {
 
     // Refresh stats after image generation
     async refreshAfterGeneration() {
-        // Don't refresh stats if user is not authenticated
-        if (!window.userApi || !window.userApi.isAuthenticated()) {
+        // Delegate to unified service if available
+        if (window.UnifiedStatsService) {
+            return await window.UnifiedStatsService.refreshAfterGeneration();
+        }
 
+        // Fallback
+        if (!window.UnifiedAuthUtils || !window.UnifiedAuthUtils.isAuthenticated()) {
             return null;
         }
 
@@ -118,9 +133,7 @@ class StatsService {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-            const stats = await this.fetchStats();
-
-            return stats;
+            return await this.fetchStatsFallback();
         } catch (error) {
             console.error('❌ STATS-SERVICE: Error refreshing stats', error);
 
@@ -130,142 +143,145 @@ class StatsService {
 
     // Clear cache (e.g., on logout)
     clearCache() {
-        this.cache = null;
-        this.lastFetch = null;
+        // Delegate to unified service if available
+        if (window.UnifiedStatsService) {
+            window.UnifiedStatsService.clearCache();
+        }
         this.notify(null);
     }
 
     // Get formatted stats for display
     getFormattedStats() {
-        if (!this.cache) {
-            return null;
+        // Delegate to unified service if available
+        if (window.UnifiedStatsService) {
+            return window.UnifiedStatsService.getFormattedStats();
         }
 
-        const { generationCount = 0, totalCost = 0, creditBalance = 0, creditValue = 0 } = this.cache;
-
-        return {
-            count: generationCount,
-            cost: this.formatCost(totalCost),
-            credits: creditBalance,
-            creditValue: this.formatCost(creditValue),
-            raw: this.cache
-        };
+        return null;
     }
 
-    // Format cost for display
+    // Format cost for display (delegated to unified service)
     formatCost(cost) {
-        if (cost === 0) {
-            return '$0.000';
+        if (window.UnifiedStatsService) {
+            return window.UnifiedStatsService.formatCost(cost);
         }
 
-        // Format to 3 decimal places (fractions of a penny)
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3
-        }).format(cost);
+        return cost === 0 ? '$0.000' : `$${cost.toFixed(3)}`;
     }
 
     // Get current loading state
     getLoadingState() {
+        // Delegate to unified service if available
+        if (window.UnifiedStatsService) {
+            return window.UnifiedStatsService.getLoadingState();
+        }
+
         return this.isLoading;
     }
 
     // Get current credit balance
     getCreditBalance() {
-        if (!this.cache) {
-            return 0;
+        // Delegate to unified service if available
+        if (window.UnifiedStatsService) {
+            return window.UnifiedStatsService.getCreditBalance();
         }
 
-        return this.cache.creditBalance || 0;
+        return 0;
     }
 
     // Get credit value in USD
     getCreditValue() {
-        if (!this.cache) {
-            return 0;
+        // Delegate to unified service if available
+        if (window.UnifiedStatsService) {
+            return window.UnifiedStatsService.getCreditValue();
         }
 
-        return this.cache.creditValue || 0;
+        return 0;
     }
 
-    // Format credits for display
+    // Format credits for display (delegated to unified service)
     formatCredits(credits) {
-        if (credits === 0) {
-            return '0 credits';
+        if (window.UnifiedStatsService) {
+            return window.UnifiedStatsService.formatCredits(credits);
         }
 
-        return `${credits} credits`;
+        return credits === 0 ? '0 credits' : `${credits} credits`;
     }
 
     // Initialize service and set up event listeners
-    init() {
+    async init() {
         try {
+            // Wait for unified services first
+            await this.waitForUnifiedServices();
+
             // Listen for authentication state changes
             const self = this;
 
-            window.addEventListener('authStateChanged', event => {
-                if (event.detail) {
-                    // User logged in, fetch stats
-                    self.fetchStats();
-                } else {
-                    // User logged out, clear cache
-                    self.clearCache();
-                }
-            });
+            if (window.UnifiedEventService) {
+                window.UnifiedEventService.onAuthChange(isAuthenticated => {
+                    if (isAuthenticated) {
+                        // User logged in, fetch stats
+                        self.getStats();
+                    } else {
+                        // User logged out, clear cache
+                        self.clearCache();
+                    }
+                });
 
-            // Listen for image generation events
-            window.addEventListener('imageGenerated', async _event => {
+                // Listen for image generation events
+                window.UnifiedEventService.onImageGenerated(async () => {
+                    try {
+                        await self.refreshAfterGeneration();
+                    } catch (error) {
+                        console.error('❌ STATS-SERVICE: Error refreshing stats after generation:', error);
+                    }
+                });
 
-                try {
-                    await self.refreshAfterGeneration();
-                } catch (error) {
-                    console.error('❌ STATS-SERVICE: Error refreshing stats after generation:', error);
-                }
-            });
+                // Listen for payment completion events
+                window.UnifiedEventService.onPaymentCompleted(async () => {
+                    try {
+                        await self.getStats(true);
+                    } catch (error) {
+                        console.error('❌ STATS-SERVICE: Error refreshing stats after payment:', error);
+                    }
+                });
 
-            // Listen for payment completion events
-            window.addEventListener('paymentCompleted', async _event => {
-                console.log('💳 STATS-SERVICE: Payment completed, refreshing stats');
-                try {
-                    await self.fetchStats();
-                } catch (error) {
-                    console.error('❌ STATS-SERVICE: Error refreshing stats after payment:', error);
-                }
-            });
-
-            // Listen for credit updates
-            window.addEventListener('creditsUpdated', async _event => {
-                console.log('💎 STATS-SERVICE: Credits updated, refreshing stats');
-                try {
-                    await self.fetchStats();
-                } catch (error) {
-                    console.error('❌ STATS-SERVICE: Error refreshing stats after credit update:', error);
-                }
-            });
+                // Listen for credit updates
+                window.UnifiedEventService.onCreditUpdate(async () => {
+                    try {
+                        await self.getStats(true);
+                    } catch (error) {
+                        console.error('❌ STATS-SERVICE: Error refreshing stats after credit update:', error);
+                    }
+                });
+            } else {
+                // Fallback to legacy event system
+                this.setupLegacyEventListeners();
+            }
 
         } catch (error) {
             console.error('❌ STATS-SERVICE: Error during initialization:', error);
             throw error;
         }
     }
+
+    setupLegacyEventListeners() {
+        // Legacy event listeners are deprecated - unified services handle this
+        console.warn('⚠️ STATS-SERVICE: Legacy event listeners are deprecated, using unified services');
+    }
 }
 
-// Create and initialize the service with dependency checking
+// Create and initialize the service
 let statsService = null;
 
 const initializeStatsService = () => {
     try {
         statsService = new StatsService();
-
         statsService.init();
 
         // Export for global access
         if (typeof window !== 'undefined') {
             window.statsService = statsService;
-        } else {
-            console.warn('⚠️ STATS-SERVICE: Window not available, cannot expose globally');
         }
 
         return true;
@@ -276,29 +292,10 @@ const initializeStatsService = () => {
     }
 };
 
-// Wait for dependencies and initialize
-const waitForDependenciesAndInit = () => {
-    // Check if required dependencies are available
-    if (typeof window !== 'undefined' && window.apiService && window.userApi) {
-
-        return initializeStatsService();
-    } else {
-        // Retry after a short delay
-        setTimeout(waitForDependenciesAndInit, 100);
-    }
-};
-
-// Start the initialization process
+// Initialize immediately
 if (typeof window !== 'undefined') {
-    // If DOM is already loaded, start immediately
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', waitForDependenciesAndInit);
-    } else {
-        waitForDependenciesAndInit();
-    }
+    initializeStatsService();
 } else {
     // Node.js environment - create but don't initialize
     statsService = new StatsService();
 }
-
-// Export removed - not needed for browser script tags

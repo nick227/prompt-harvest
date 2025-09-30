@@ -23,9 +23,6 @@ model User {
   name            String?  @db.VarChar(100)
   picture         String?  @db.VarChar(500)
 
-  // Relations
-  conversations Conversation[]
-
   @@map("users")
 }
 
@@ -41,15 +38,15 @@ model Image {
   rating          Int?
   isPublic        Boolean   @default(false)
   isHidden        Boolean   @default(false)
-  isDeleted       Boolean   @default(false)
-  deletedAt       DateTime?
-  deletedBy       String?   @db.VarChar(25)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   modelId         String?   @db.VarChar(25)
   taggedAt        DateTime?
   taggingMetadata Json?
   tags            Json?
+  isDeleted       Boolean   @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?   @db.VarChar(25)
 
   @@index([userId], map: "userId")
   @@index([isPublic], map: "isPublic")
@@ -240,9 +237,6 @@ model PromoCode {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  // Relations
-  redemptions        PromoRedemption[]
-
   @@index([code])
   @@index([isActive])
   @@index([expiresAt])
@@ -255,9 +249,6 @@ model PromoRedemption {
   promoCodeId String   @db.VarChar(25)
   credits     Int
   createdAt   DateTime @default(now())
-
-  // Relations
-  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id])
 
   @@unique([userId, promoCodeId], map: "userId_promoCodeId")
   @@index([userId])
@@ -303,46 +294,31 @@ model Provider {
   @@map("providers")
 }
 
-// Conversation table - represents a chat session
 model Conversation {
   id        String   @id @default(cuid()) @db.VarChar(25)
   userId    String   @db.VarChar(25)
-  title     String?  @db.VarChar(255) // Optional conversation title
+  title     String?  @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  messages ChatMessage[]
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([createdAt])
   @@map("conversations")
 }
 
-// ChatMessage table - individual messages in a conversation
 model ChatMessage {
-  id             String   @id @default(cuid()) @db.VarChar(25)
-  conversationId String   @db.VarChar(25)
+  id             String      @id @default(cuid()) @db.VarChar(25)
+  conversationId String      @db.VarChar(25)
   role           MessageRole
-  content        String   @db.Text
-  metadata       Json?    // For storing buttons, newPrompt, etc. as JSON
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  content        String      @db.Text
+  metadata       Json?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@index([conversationId])
   @@index([role])
   @@index([createdAt])
   @@map("chat_messages")
-}
-
-enum MessageRole {
-  user
-  assistant
-  system
 }
 
 model Package {
@@ -407,4 +383,27 @@ model Session {
 
   @@index([expiresAt])
   @@map("sessions")
+}
+
+model QueueLog {
+  id        String   @id @default(cuid()) @db.VarChar(25)
+  level     String   @db.VarChar(20)
+  message   String   @db.Text
+  context   String?  @db.Text
+  error     String?  @db.Text
+  requestId String?  @db.VarChar(50)
+  userId    String?  @db.VarChar(25)
+  createdAt DateTime @default(now())
+
+  @@index([level])
+  @@index([createdAt])
+  @@index([requestId])
+  @@index([userId])
+  @@map("queue_logs")
+}
+
+enum MessageRole {
+  user
+  assistant
+  system
 }

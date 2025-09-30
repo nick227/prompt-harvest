@@ -16,7 +16,7 @@ class AIImageGeneratorService {
             'Content-Type': 'application/json'
         };
 
-        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const token = window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
@@ -29,19 +29,43 @@ class AIImageGeneratorService {
      */
     async generateImage(prompt, provider = 'dalle3', options = {}) {
         try {
+            console.log('🤖 AI GENERATOR: Starting image generation...', {
+                prompt: prompt.substring(0, 50) + '...',
+                provider,
+                baseUrl: this.baseUrl,
+                hasAuth: !!this.getAuthHeaders().Authorization
+            });
+
+            const requestBody = {
+                prompt,
+                provider,
+                ...options
+            };
+
+            console.log('🤖 AI GENERATOR: Request body:', requestBody);
+
             const response = await fetch(`${this.baseUrl}/profile/generate-avatar`, {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
-                body: JSON.stringify({
-                    prompt,
-                    provider,
-                    ...options
-                })
+                body: JSON.stringify(requestBody)
             });
 
-            const data = await response.json();
+            console.log('🤖 AI GENERATOR: Response status:', response.status, response.statusText);
 
-            if (response.ok && data.success) {
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('🤖 AI GENERATOR: Response not OK:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    body: errorText
+                });
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('🤖 AI GENERATOR: Response data:', data);
+
+            if (data.success) {
                 return {
                     success: true,
                     imageUrl: data.data.avatarUrl,
@@ -53,7 +77,11 @@ class AIImageGeneratorService {
                 throw new Error(data.message || 'Failed to generate image');
             }
         } catch (error) {
-            console.error('AI Image Generation Error:', error);
+            console.error('🤖 AI GENERATOR: Generation failed:', {
+                error: error.message,
+                type: error.constructor.name,
+                stack: error.stack
+            });
             return {
                 success: false,
                 error: error.message || 'Failed to generate image'
@@ -145,7 +173,11 @@ class AIImageGeneratorService {
      * Check if user is authenticated
      */
     isAuthenticated() {
-        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const token = window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        console.log('🔐 AI GENERATOR: Auth check:', {
+            hasToken: !!token,
+            tokenPreview: token ? token.substring(0, 20) + '...' : 'none'
+        });
         return !!token;
     }
 

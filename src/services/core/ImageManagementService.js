@@ -14,7 +14,6 @@ export class ImageManagementService {
     }
 
     async getImageById(imageId, userId) {
-        console.log('🔧 ImageManagementService.getImageById called:', { imageId, userId });
 
         if (!imageId) {
             throw new ValidationError('Image ID is required');
@@ -52,7 +51,6 @@ export class ImageManagementService {
     }
 
     async updateRating(imageId, rating, userId) {
-        console.log('🔧 ImageManagementService.updateRating called:', { imageId, rating, userId });
 
         if (!imageId || !rating) {
             throw new ValidationError('Image ID and rating are required');
@@ -81,7 +79,7 @@ export class ImageManagementService {
                 }
             });
 
-            console.log('✅ Image rating updated successfully');
+
             return updatedImage;
         } catch (error) {
             console.error('❌ Error updating image rating:', error);
@@ -90,7 +88,6 @@ export class ImageManagementService {
     }
 
     async updatePublicStatus(imageId, isPublic, userId) {
-        console.log('🔧 ImageManagementService.updatePublicStatus called:', { imageId, isPublic, userId });
 
         if (!imageId || typeof isPublic !== 'boolean') {
             throw new ValidationError('Image ID and public status are required');
@@ -115,7 +112,7 @@ export class ImageManagementService {
                 }
             });
 
-            console.log('✅ Image public status updated successfully');
+
             return updatedImage;
         } catch (error) {
             console.error('❌ Error updating image public status:', error);
@@ -124,7 +121,6 @@ export class ImageManagementService {
     }
 
     async deleteImage(imageId, userId) {
-        console.log('🔧 ImageManagementService.deleteImage called:', { imageId, userId });
 
         if (!imageId) {
             throw new ValidationError('Image ID is required');
@@ -149,7 +145,7 @@ export class ImageManagementService {
                 where: { id: imageId }
             });
 
-            console.log('✅ Image deleted successfully');
+
             return { success: true, message: 'Image deleted successfully' };
         } catch (error) {
             console.error('❌ Error deleting image:', error);
@@ -158,7 +154,6 @@ export class ImageManagementService {
     }
 
     async getImages(userId, limit = 8, page = 0) {
-        console.log('🔧 ImageManagementService.getImages called:', { userId, limit, page });
 
         try {
             const skip = page * limit;
@@ -200,7 +195,6 @@ export class ImageManagementService {
     }
 
     async getUserImages(userId, limit = 50, page = 0, tags = []) {
-        console.log('🔧 ImageManagementService.getUserImages called:', { userId, limit, page, tags });
 
         if (!userId) {
             throw new ValidationError('User ID is required');

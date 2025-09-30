@@ -27,7 +27,7 @@ export class PromptController {
 
             // Only allow authenticated users
             if (!req.user?.id) {
-                console.log('🔍 PROMPT CONTROLLER: User not authenticated, returning empty prompts');
+                console.error('🔍 PROMPT CONTROLLER: User not authenticated, returning empty prompts');
 
                 return res.json({
                     success: true,
@@ -145,6 +145,7 @@ export class PromptController {
             logRequestError(requestId, 'Get Prompt By ID', startTime, error);
 
             let statusCode = 500;
+
             if (error.message.includes('not found')) {
                 statusCode = 404;
             } else if (error.message.includes('Unauthorized')) {
@@ -311,6 +312,7 @@ export class PromptController {
             logRequestError(requestId, 'Update Prompt', startTime, error);
 
             let statusCode = 500;
+
             if (error.message.includes('not found')) {
                 statusCode = 404;
             } else if (error.message.includes('Unauthorized')) {
@@ -386,6 +388,7 @@ export class PromptController {
             logRequestError(requestId, 'Delete Prompt', startTime, error);
 
             let statusCode = 500;
+
             if (error.message.includes('not found')) {
                 statusCode = 404;
             } else if (error.message.includes('Unauthorized')) {

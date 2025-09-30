@@ -25,7 +25,8 @@ class AdminDashboardManager {
             models: { loaded: false, data: null },
             'promo-cards': { loaded: false, data: null },
             terms: { loaded: false, data: null },
-            messages: { loaded: false, data: null }
+            messages: { loaded: false, data: null },
+            'queue-monitor': { loaded: false, data: null }
         };
     }
 
@@ -38,6 +39,12 @@ class AdminDashboardManager {
 
         try {
             console.log('🎛️ ADMIN-DASHBOARD: Initializing dashboard manager...');
+
+            // Check authentication before initializing
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                console.warn('🔐 ADMIN-DASHBOARD: No valid token, skipping dashboard manager initialization');
+                return;
+            }
 
             // Initialize services with proper dependency injection
             this.eventBus = new AdminEventBus();
@@ -132,7 +139,7 @@ class AdminDashboardManager {
         this.currentTab = tabName;
 
         // Load tab data if not already loaded (only for history tabs)
-        if (!this.tabs[tabName].loaded && tabName !== 'summary' && tabName !== 'packages' && tabName !== 'models' && tabName !== 'promo-cards' && tabName !== 'terms' && tabName !== 'messages') {
+        if (!this.tabs[tabName].loaded && tabName !== 'summary' && tabName !== 'packages' && tabName !== 'models' && tabName !== 'promo-cards' && tabName !== 'terms' && tabName !== 'messages' && tabName !== 'queue-monitor') {
             await this.loadHistoryData(tabName);
         }
 
@@ -210,9 +217,26 @@ class AdminDashboardManager {
             this.uiRenderer.renderTermsTab();
         } else if (tabName === 'messages') {
             this.uiRenderer.renderMessagesTab();
+        } else if (tabName === 'queue-monitor') {
+            this.renderQueueMonitorTab();
         } else {
             this.uiRenderer.renderHistoryTab(tabName, tabData.data);
         }
+    }
+
+    /**
+     * Render the queue monitoring tab
+     */
+    renderQueueMonitorTab() {
+        console.log('🚀 ADMIN-DASHBOARD: Rendering queue monitoring tab...');
+
+        // Initialize the queue monitor if not already done
+        if (!this.queueMonitor) {
+            this.queueMonitor = new AdminQueueMonitor();
+        }
+
+        // Initialize the queue monitor for the active tab
+        this.queueMonitor.initWhenActive();
     }
 
     async handleTableAction(actionData) {
@@ -268,8 +292,9 @@ class AdminDashboardManager {
             }
 
             // Update UI if summary tab is currently active
-            if (this.currentTab === 'summary' && this.uiRenderer) {
-                this.uiRenderer.updateQueueDisplay(queueData);
+            if (this.currentTab === 'summary' && window.AdminSummaryRenderer) {
+                const summaryRenderer = new window.AdminSummaryRenderer();
+                summaryRenderer.updateSummaryQueueStatus(queueData);
             }
 
             if (this.eventBus) {

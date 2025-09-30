@@ -45,7 +45,6 @@ export const logRequestStart = (requestId, req, operation, additionalData = {}) 
         ...additionalData
     };
 
-    console.log(`🚀 ${operation} request [${requestId}]:`, logData);
 };
 
 /**
@@ -63,7 +62,6 @@ export const logRequestSuccess = (requestId, operation, duration, resultData = {
         ...resultData
     };
 
-    console.log(`✅ ${operation} successful [${requestId}]:`, logData);
 };
 
 /**

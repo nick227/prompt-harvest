@@ -16,7 +16,6 @@ export const requireJWTAdmin = async (req, res, next) => {
     try {
         // Check if user is authenticated via JWT
         if (!req.user?.id) {
-            console.log('🔐 JWT-ADMIN-AUTH: No user found in request');
 
             return res.status(401).json({
                 success: false,
@@ -38,7 +37,6 @@ export const requireJWTAdmin = async (req, res, next) => {
         });
 
         if (!user) {
-            console.log('🔐 JWT-ADMIN-AUTH: User not found in database:', req.user.id);
 
             return res.status(401).json({
                 success: false,
@@ -48,7 +46,6 @@ export const requireJWTAdmin = async (req, res, next) => {
         }
 
         if (!user.isAdmin) {
-            console.log('🔐 JWT-ADMIN-AUTH: User is not admin:', user.email);
 
             return res.status(403).json({
                 success: false,
@@ -65,7 +62,6 @@ export const requireJWTAdmin = async (req, res, next) => {
             isAdmin: user.isAdmin
         };
 
-        console.log('✅ JWT-ADMIN-AUTH: Admin access granted for:', user.email);
         next();
 
     } catch (error) {

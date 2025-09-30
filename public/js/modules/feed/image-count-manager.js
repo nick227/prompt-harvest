@@ -21,13 +21,11 @@ class ImageCountManager {
     async getImageCount(filter) {
         // Check if we have a recent cached count
         if (this.isCountCached(filter)) {
-            console.log(`📊 COUNT: Using cached count for ${filter}:`, this.counts[filter]);
             return this.counts[filter];
         }
 
         // Prevent multiple simultaneous requests
         if (this.isLoading) {
-            console.log('📊 COUNT: Request already in progress, waiting...');
             return this.waitForCurrentRequest(filter);
         }
 
@@ -45,7 +43,9 @@ class ImageCountManager {
         }
 
         const lastFetch = this.lastFetchTime[filter];
+
         if (!lastFetch) {
+
             return false;
         }
 
@@ -53,7 +53,6 @@ class ImageCountManager {
         const isExpired = (now - lastFetch) > this.cacheTimeout;
 
         if (isExpired) {
-            console.log(`📊 COUNT: Cache expired for ${filter}, will refetch`);
             return false;
         }
 
@@ -89,7 +88,6 @@ class ImageCountManager {
      */
     async fetchImageCount(filter) {
         this.isLoading = true;
-        console.log(`📊 COUNT: Fetching image count for ${filter}`);
 
         try {
             let response;
@@ -103,13 +101,14 @@ class ImageCountManager {
             } else {
                 console.error(`📊 COUNT: Unknown filter type: ${filter}`);
                 this.counts[filter] = 0;
+
                 return 0;
             }
 
             if (response !== null && response !== undefined && typeof response === 'number' && response >= 0) {
                 this.counts[filter] = response;
                 this.lastFetchTime[filter] = Date.now();
-                console.log(`📊 COUNT: Successfully fetched count for ${filter}:`, this.counts[filter]);
+
                 return this.counts[filter];
             } else {
                 console.error('📊 COUNT: Invalid response format:', {
@@ -119,11 +118,13 @@ class ImageCountManager {
                     filter
                 });
                 this.counts[filter] = 0;
+
                 return 0;
             }
         } catch (error) {
             console.error(`📊 COUNT: Failed to fetch count for ${filter}:`, error);
             this.counts[filter] = 0;
+
             return 0;
         } finally {
             this.isLoading = false;
@@ -137,10 +138,18 @@ class ImageCountManager {
     async fetchSiteImageCount() {
         try {
             // Use the site feed endpoint to get total count of public images
+            const headers = {
+                'Accept': 'application/json'
+            };
+
+            // Add auth token if available
+            const token = window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch('/api/feed/site?page=0&limit=1', {
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers
             });
 
             if (!response.ok) {
@@ -149,25 +158,15 @@ class ImageCountManager {
 
             const data = await response.json();
 
-            // Debug: Log the response structure
-            if (window.DEBUG_MODE) {
-                console.log('📊 COUNT: Site feed response structure:', data);
-                console.log('📊 COUNT: Site feed data object:', data.data);
-                console.log('📊 COUNT: Site feed data keys:', Object.keys(data.data || {}));
-            }
-
-            // Debug: Log the full response for troubleshooting
-            console.log('📊 COUNT: Full site feed response:', JSON.stringify(data, null, 2));
-
             if (data.success && data.data && data.data.pagination) {
                 // The total count is in data.pagination.total
                 const totalCount = data.data.pagination.total;
 
                 if (typeof totalCount === 'number') {
-                    console.log(`📊 COUNT: Found site total count: ${totalCount}`);
                     return totalCount;
                 } else {
                     console.error('📊 COUNT: total is not a number:', totalCount, 'type:', typeof totalCount);
+
                     return 0;
                 }
             } else {
@@ -178,10 +177,12 @@ class ImageCountManager {
                     dataKeys: data.data ? Object.keys(data.data) : 'no data',
                     fullResponse: data
                 });
+
                 return 0;
             }
         } catch (error) {
             console.error('📊 COUNT: Failed to fetch site image count:', error);
+
             return 0;
         }
     }
@@ -220,22 +221,11 @@ class ImageCountManager {
 
             const data = await response.json();
 
-            // Debug: Log the response structure
-            if (window.DEBUG_MODE) {
-                console.log('📊 COUNT: User feed response structure:', data);
-                console.log('📊 COUNT: User feed data object:', data.data);
-                console.log('📊 COUNT: User feed data keys:', Object.keys(data.data || {}));
-            }
-
-            // Debug: Log the full response for troubleshooting
-            console.log('📊 COUNT: Full user feed response:', JSON.stringify(data, null, 2));
-
             if (data.success && data.data && data.data.pagination) {
                 // The total count is in data.pagination.total
                 const totalCount = data.data.pagination.total;
 
                 if (typeof totalCount === 'number') {
-                    console.log(`📊 COUNT: Found user total count: ${totalCount}`);
                     return totalCount;
                 } else {
                     console.error('📊 COUNT: total is not a number:', totalCount, 'type:', typeof totalCount);
@@ -267,10 +257,6 @@ class ImageCountManager {
 
         if (displayElement) {
             displayElement.textContent = count.toLocaleString();
-            console.log(`📊 COUNT: Updated display for ${filter}: ${count}`);
-        } else {
-            // Display element not found - this is optional functionality
-            console.log(`📊 COUNT: Image count for ${filter}: ${count} (display element not found - this is optional)`);
         }
     }
 
@@ -295,7 +281,6 @@ class ImageCountManager {
     clearCache(filter) {
         this.counts[filter] = null;
         this.lastFetchTime[filter] = null;
-        console.log(`📊 COUNT: Cleared cache for ${filter}`);
     }
 
     /**
@@ -310,7 +295,6 @@ class ImageCountManager {
             site: null,
             user: null
         };
-        console.log('📊 COUNT: Cleared all caches');
     }
 
     /**

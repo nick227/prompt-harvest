@@ -93,12 +93,50 @@ class ImageDOMManager {
 
                 return img;
             },
-            downloadImage: img => {
-                const a = document.createElement('a');
+            downloadImage: async img => {
+                try {
+                    // Fetch the image as a blob to force Save As dialog
+                    const response = await fetch(img.src);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
 
-                a.href = img.src;
-                a.download = img.src.split('/').pop();
-                a.click();
+                    const blob = await response.blob();
+                    const fileName = img.src.split('/').pop() || 'image.png';
+
+                    // Create object URL and download
+                    const objectUrl = URL.createObjectURL(blob);
+
+                    const a = document.createElement('a');
+                    a.href = objectUrl;
+                    a.download = fileName;
+                    a.style.display = 'none';
+
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+
+                    // Clean up object URL
+                    URL.revokeObjectURL(objectUrl);
+
+                    console.log('📥 DOWNLOAD: Blob download triggered for:', fileName);
+                } catch (error) {
+                    console.error('❌ DOWNLOAD: Blob download failed, trying fallback:', error);
+
+                    // Fallback to old method
+                    try {
+                        const a = document.createElement('a');
+                        a.href = img.src;
+                        a.download = img.src.split('/').pop() || 'image.png';
+                        a.style.display = 'none';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        console.log('📥 DOWNLOAD: Fallback download triggered');
+                    } catch (fallbackError) {
+                        console.error('❌ DOWNLOAD: All download methods failed:', fallbackError);
+                    }
+                }
             }
         };
     }

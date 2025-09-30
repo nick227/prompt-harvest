@@ -15,6 +15,7 @@
     <link href="css/admin-dashboard-refactored.css" rel="stylesheet">
     <link href="css/admin-shared-table.css" rel="stylesheet">
     <link href="css/admin-mobile.css" rel="stylesheet">
+    <link href="css/admin-queue-monitor.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Preload critical resources -->
@@ -143,6 +144,7 @@
     <script src="js/modules/admin/admin-shared-table.js"></script>
     <script src="js/modules/admin/AdminUtils.js"></script>
     <script src="js/modules/admin/admin-queue-service.js"></script>
+    <script src="js/modules/admin/admin-queue-monitor.js"></script>
     <script src="js/modules/admin/AdminPromoCodeModal.js"></script>
     <script src="js/modules/admin/AdminModelsRenderer.js"></script>
     <script src="js/modules/admin/AdminSummaryRenderer.js"></script>
@@ -157,11 +159,54 @@
     <script src="js/modules/admin/admin-event-bus.js"></script>
     <script src="js/modules/admin/admin-dashboard-manager.js"></script>
 
-    <!-- Chart.js for activity metrics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <!-- Admin Authentication Check -->
     <script src="js/modules/admin/admin-auth-check.js"></script>
+
+    <!-- Chart.js for activity metrics - Load before queue monitor -->
+    <script>
+        console.log('🔄 ADMIN: Chart.js loading script starting...');
+
+        function loadChartJS() {
+            console.log('🔄 ADMIN: Starting Chart.js loading process...');
+            console.log('🔄 ADMIN: DOM ready state:', document.readyState);
+
+            // Try local file first
+            const localScript = document.createElement('script');
+            localScript.src = 'js/lib/chart.min.js';
+            localScript.onload = function() {
+                console.log('✅ Chart.js loaded from local file');
+                console.log('✅ Chart object available:', typeof Chart !== 'undefined');
+                window.ChartJSLoaded = true;
+                window.dispatchEvent(new CustomEvent('chartjs-loaded'));
+            };
+            localScript.onerror = function() {
+                console.error('❌ Local Chart.js failed to load, trying CDN...');
+
+                // Try CDN fallback
+                const cdnScript = document.createElement('script');
+                cdnScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js';
+                cdnScript.onload = function() {
+                    console.log('✅ Chart.js loaded successfully from CDN fallback');
+                    console.log('✅ Chart object available:', typeof Chart !== 'undefined');
+                    window.ChartJSLoaded = true;
+                    window.dispatchEvent(new CustomEvent('chartjs-loaded'));
+                };
+                cdnScript.onerror = function() {
+                    console.error('❌ Chart.js failed to load from both local and CDN');
+                    window.ChartJSLoaded = false;
+                };
+                document.head.appendChild(cdnScript);
+            };
+            document.head.appendChild(localScript);
+        }
+
+        // Load Chart.js when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadChartJS);
+        } else {
+            loadChartJS();
+        }
+    </script>
 
     <!-- Admin Package Management -->
     <script src="js/modules/admin/admin-pricing-calculator.js"></script>
@@ -174,6 +219,21 @@
 
     <!-- Admin Router -->
     <script src="js/modules/admin/admin-router.js"></script>
+
+    <!-- Admin Authentication Utilities -->
+    <script src="js/modules/admin/admin-auth-utils.js"></script>
+
+    <!-- Admin Authentication Manager -->
+    <script src="js/modules/admin/AdminAuthManager.js"></script>
+
+    <!-- Admin Modal Functions -->
+    <script src="js/modules/admin/AdminModalFunctions.js"></script>
+
+    <!-- Admin User Manager -->
+    <script src="js/modules/admin/AdminUserManager.js"></script>
+
+    <!-- Admin Promo Manager -->
+    <script src="js/modules/admin/AdminPromoManager.js"></script>
 
     <!-- Main Admin Application -->
     <script src="js/admin.js"></script>
@@ -196,6 +256,9 @@
         if (window.AdminModalManager) {
             window.adminModal = new AdminModalManager();
             window.adminModal.init();
+            console.log('✅ ADMIN: Modal manager initialized successfully');
+        } else {
+            console.error('❌ ADMIN: AdminModalManager not available');
         }
     </script>
 </body>

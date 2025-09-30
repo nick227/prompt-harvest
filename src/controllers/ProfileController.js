@@ -288,8 +288,11 @@ export class ProfileController {
             const pageNum = Math.max(1, parseInt(page) || 1);
             const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 20));
 
+            // Convert 1-based page to 0-based for the service
+            const zeroBasedPage = pageNum - 1;
+
             // Get user's images
-            const result = await this.enhancedImageService.getUserImages(userId, limitNum, pageNum);
+            const result = await this.enhancedImageService.getUserImages(userId, limitNum, zeroBasedPage);
 
             if (result.error || result.success === false) {
                 const duration = Date.now() - startTime;

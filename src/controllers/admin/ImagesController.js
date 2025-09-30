@@ -173,36 +173,44 @@ class ImagesController {
             const { imageId } = req.params;
 
             const image = await prisma.image.findUnique({
-                where: { id: parseInt(imageId) },
-                include: {
-                    user: {
-                        select: {
-                            id: true,
-                            email: true,
-                            username: true,
-                            createdAt: true
-                        }
-                    }
-                }
+                where: { id: parseInt(imageId) }
             });
 
             if (!image) {
                 return res.status(404).json({
                     success: false,
-                    error: 'Image not found',
-                    message: 'The requested image does not exist'
+                    error: 'Image not found'
                 });
             }
 
+            // Get user data separately
+            const user = await prisma.user.findUnique({
+                where: { id: image.userId },
+                select: {
+                    id: true,
+                    email: true,
+                    username: true,
+                    createdAt: true
+                }
+            });
+
+            // Attach user data to image
+            const imageWithUser = {
+                ...image,
+                user: user || null
+            };
+
             // Transform data for frontend
             const transformedImage = {
-                id: image.id,
-                user: {
-                    id: image.user.id,
-                    email: image.user.email,
-                    username: image.user.username,
-                    created_at: image.user.createdAt
-                },
+                id: imageWithUser.id,
+                user: imageWithUser.user
+                    ? {
+                        id: imageWithUser.user.id,
+                        email: imageWithUser.user.email,
+                        username: imageWithUser.user.username,
+                        created_at: imageWithUser.user.createdAt
+                    }
+                    : null,
                 prompt: image.prompt,
                 provider: image.provider,
                 status: image.status,
@@ -263,7 +271,6 @@ class ImagesController {
                 // Permanent delete - remove from R2 and database
                 await this.permanentDeleteImage(imageId, existingImage);
 
-                console.log(`🗑️ ADMIN-IMAGES: Image ${imageId} permanently deleted by admin ${req.adminUser.email}`);
 
                 res.json({
                     success: true,
@@ -281,7 +288,6 @@ class ImagesController {
                     }
                 });
 
-                console.log(`🗑️ ADMIN-IMAGES: Image ${imageId} soft deleted by admin ${req.adminUser.email}`);
 
                 res.json({
                     success: true,
@@ -319,7 +325,6 @@ class ImagesController {
                     if (key) {
                         const deleted = await cloudflareR2Service.deleteImage(key);
 
-                        console.log(`🗑️ R2: Image ${key} deleted: ${deleted ? 'success' : 'failed'}`);
                     }
                 } catch (r2Error) {
                     console.error('❌ R2: Failed to delete image:', r2Error.message);
@@ -379,7 +384,6 @@ class ImagesController {
                 }
             });
 
-            console.log(`🛡️ ADMIN-IMAGES: Image ${imageId} moderated as ${action} by admin ${req.adminUser.email}`);
 
             res.json({
                 success: true,
@@ -434,27 +438,29 @@ class ImagesController {
             // Get images for export
             const images = await prisma.image.findMany({
                 where,
-                include: {
-                    user: {
-                        select: {
-                            email: true,
-                            username: true
-                        }
-                    }
-                },
                 orderBy: { createdAt: 'desc' }
             });
+
+            // Get user data separately
+            const userIds = [...new Set(images.map(img => img.userId))];
+            const users = await prisma.user.findMany({
+                where: { id: { in: userIds } },
+                select: { id: true, email: true, username: true }
+            });
+
+            const userMap = new Map(users.map(user => [user.id, user]));
 
             // Convert to CSV format
             const csvHeader = 'Image ID,User Email,User Username,Prompt,Provider,Status,Cost,Created At,Image URL\n';
             const csvRows = images.map(image => {
+                const user = userMap.get(image.userId);
                 const row = [
                     image.id,
-                    image.user.email,
-                    image.user.username,
+                    user?.email || 'Unknown',
+                    user?.username || 'Unknown',
                     `"${image.prompt.replace(/"/g, '""')}"`, // Escape quotes in prompt
                     image.provider,
-                    image.status,
+                    image.status || 'unknown',
                     image.cost || 0,
                     image.createdAt.toISOString(),
                     image.imageUrl || ''
@@ -469,7 +475,6 @@ class ImagesController {
             res.setHeader('Content-Type', 'text/csv');
             res.setHeader('Content-Disposition', `attachment; filename="images-export-${new Date().toISOString().split('T')[0]}.csv"`);
 
-            console.log(`📊 ADMIN-IMAGES: Images exported by admin ${req.adminUser.email} (${images.length} records)`);
 
             res.send(csvContent);
 
@@ -512,7 +517,6 @@ class ImagesController {
                 }
             });
 
-            console.log(`👁️ ADMIN-IMAGES: Image ${imageId} visibility toggled to ${updatedImage.isPublic} by admin ${req.adminUser.email}`);
 
             res.json({
                 success: true,
@@ -560,7 +564,6 @@ class ImagesController {
                 }
             });
 
-            console.log(`🚫 ADMIN-IMAGES: Image ${imageId} hidden by admin ${req.adminUser.email}`);
 
             res.json({
                 success: true,
@@ -608,7 +611,6 @@ class ImagesController {
                 }
             });
 
-            console.log(`✅ ADMIN-IMAGES: Image ${imageId} shown by admin ${req.adminUser.email}`);
 
             res.json({
                 success: true,
@@ -658,7 +660,6 @@ class ImagesController {
                 adminUser: req.adminUser.email
             });
 
-            console.log(`🤖 ADMIN-IMAGES: AI tag generation triggered for image ${imageId} by admin ${req.adminUser.email}`);
 
             res.json({
                 success: true,
@@ -724,7 +725,6 @@ class ImagesController {
                 }
             });
 
-            console.log(`✏️ ADMIN-IMAGES: Tags updated manually for image ${imageId} by admin ${req.adminUser.email}:`, cleanTags);
 
             res.json({
                 success: true,

@@ -28,6 +28,7 @@ class CacheManager {
         // Check if we have valid cached data
         if (!forceRefresh && this.cache.has(key)) {
             const cached = this.cache.get(key);
+
             if (now - cached.timestamp < ttl) {
                 return cached.data;
             }
@@ -42,7 +43,7 @@ class CacheManager {
 
             // Wait for pending refresh
             if (this.pendingRefreshes.has(key)) {
-                return new Promise((resolve) => {
+                return new Promise(resolve => {
                     const checkPending = () => {
                         if (!this.pendingRefreshes.has(key)) {
                             resolve(this.cache.get(key)?.data);
@@ -50,6 +51,7 @@ class CacheManager {
                             setTimeout(checkPending, 100);
                         }
                     };
+
                     checkPending();
                 });
             }
@@ -65,7 +67,7 @@ class CacheManager {
     async refresh(key, fetcher) {
         if (this.pendingRefreshes.has(key)) {
             // Wait for existing refresh
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 const checkPending = () => {
                     if (!this.pendingRefreshes.has(key)) {
                         resolve(this.cache.get(key)?.data);
@@ -73,6 +75,7 @@ class CacheManager {
                         setTimeout(checkPending, 100);
                     }
                 };
+
                 checkPending();
             });
         }
@@ -82,6 +85,7 @@ class CacheManager {
 
         try {
             const data = await fetcher();
+
             this.cache.set(key, {
                 data,
                 timestamp: Date.now()

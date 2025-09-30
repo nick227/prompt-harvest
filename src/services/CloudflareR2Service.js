@@ -33,7 +33,6 @@ export class CloudflareR2Service {
             this.s3Client = new S3Client(this.awsConfig);
             this.initialized = true;
 
-            console.log('🔧 CloudflareR2Service initialized');
         } catch (error) {
             console.warn('⚠️ CloudflareR2Service initialization failed:', error.message);
             this.initialized = false;
@@ -72,7 +71,6 @@ export class CloudflareR2Service {
         }
 
         try {
-            console.log(`💾 Uploading image to Cloudflare R2: ${key}`);
 
             // Determine content type
             const contentType = this.getContentType(key, options.contentType);
@@ -93,7 +91,6 @@ export class CloudflareR2Service {
 
             const publicUrl = cloudflareR2Config.getPublicUrl(key);
 
-            console.log(`✅ Image uploaded to Cloudflare R2: ${publicUrl}`);
 
             return publicUrl;
         } catch (error) {
@@ -122,7 +119,6 @@ export class CloudflareR2Service {
         }
 
         try {
-            console.log(`🗑️ Deleting image from Cloudflare R2: ${key}`);
 
             const command = new DeleteObjectCommand({
                 Bucket: this.config.bucketName,
@@ -131,7 +127,6 @@ export class CloudflareR2Service {
 
             await this.s3Client.send(command);
 
-            console.log(`✅ Image deleted from Cloudflare R2: ${key}`);
 
             return true;
         } catch (error) {
@@ -152,7 +147,6 @@ export class CloudflareR2Service {
         }
 
         try {
-            console.log(`📋 Getting image info from Cloudflare R2: ${key}`);
 
             const command = new HeadObjectCommand({
                 Bucket: this.config.bucketName,

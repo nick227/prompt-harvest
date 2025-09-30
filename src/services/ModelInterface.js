@@ -100,9 +100,9 @@ class ModelInterface {
 
         // Map provider names to provider types for ImageGenerator
         const providerTypeMap = {
-            'openai': 'openai',
-            'dezgo': 'dezgo',
-            'google': 'google'
+            openai: 'openai',
+            dezgo: 'dezgo',
+            google: 'google'
         };
 
         const providerType = providerTypeMap[model.provider] || model.provider;
@@ -291,7 +291,6 @@ class ModelInterface {
 
             this.lastCacheUpdate = Date.now();
             this.fallbackActive = false;
-            console.log(`🔄 MODEL-INTERFACE: Database cache refreshed with ${models.length} models`);
         } catch (error) {
             console.error('❌ MODEL-INTERFACE: Failed to refresh database cache:', error);
             throw error;

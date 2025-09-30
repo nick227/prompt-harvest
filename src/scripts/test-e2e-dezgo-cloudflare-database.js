@@ -16,8 +16,8 @@ import { PrismaClient } from '@prisma/client';
 import { imageStorageService } from '../src/services/ImageStorageService.js';
 import { cloudflareR2Service } from '../src/services/CloudflareR2Service.js';
 import { cloudflareR2Config } from '../src/services/CloudflareR2Config.js';
-import ImageGenerator from '../src/services/feed/ImageGenerator.js';
-import DatabaseService from '../src/services/feed/DatabaseService.js';
+import ImageGenerator from '../src/services/generate/ImageGenerator.js';
+import DatabaseService from '../src/services/generate/DatabaseService.js';
 
 // Load environment variables from project root
 dotenv.config();
@@ -50,9 +50,7 @@ const testResults = {
 const logStep = (step, message, data = {}) => {
     const timestamp = new Date().toISOString();
 
-    console.log(`\n[${timestamp}] ${step}: ${message}`);
     if (Object.keys(data).length > 0) {
-        console.log('   Data:', JSON.stringify(data, null, 2));
     }
     testResults.steps[step] = { message, data, timestamp };
 };
@@ -418,14 +416,6 @@ const cleanupTestData = async (imageUrl, imageId) => {
 const runE2ETest = async () => {
     testResults.startTime = Date.now();
 
-    console.log('🚀 Starting E2E Test: Dezgo AI + Cloudflare R2 + Database');
-    console.log('='.repeat(80));
-    console.log('Test Configuration:');
-    console.log(`  Provider: ${TEST_CONFIG.provider}`);
-    console.log(`  Prompt: ${TEST_CONFIG.prompt}`);
-    console.log(`  Guidance: ${TEST_CONFIG.guidance}`);
-    console.log(`  User ID: ${TEST_CONFIG.userId}`);
-    console.log('='.repeat(80));
 
     let imageUrl = null;
     let imageId = null;
@@ -461,15 +451,6 @@ const runE2ETest = async () => {
         testResults.endTime = Date.now();
         testResults.duration = testResults.endTime - testResults.startTime;
 
-        console.log('\n🎉 E2E TEST COMPLETED SUCCESSFULLY!');
-        console.log('='.repeat(80));
-        console.log(`Total Duration: ${testResults.duration}ms`);
-        console.log(`Image ID: ${imageId}`);
-        console.log(`Image URL: ${imageUrl}`);
-        console.log('Database Row: ✅ Valid');
-        console.log('Cloudflare R2: ✅ Working');
-        console.log('Dezgo AI: ✅ Working');
-        console.log('='.repeat(80));
 
         return {
             success: true,
@@ -483,13 +464,6 @@ const runE2ETest = async () => {
         testResults.endTime = Date.now();
         testResults.duration = testResults.endTime - testResults.startTime;
 
-        console.log('\n❌ E2E TEST FAILED!');
-        console.log('='.repeat(80));
-        console.log(`Error: ${error.message}`);
-        console.log(`Duration: ${testResults.duration}ms`);
-        console.log(`Steps Completed: ${Object.keys(testResults.steps).length}`);
-        console.log(`Errors: ${testResults.errors.length}`);
-        console.log('='.repeat(80));
 
         return {
             success: false,
@@ -531,10 +505,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     runTestWithTimeout()
         .then(result => {
             if (result.success) {
-                console.log('\n✅ E2E Test Result: SUCCESS');
                 process.exit(0);
             } else {
-                console.log('\n❌ E2E Test Result: FAILED');
                 process.exit(1);
             }
         })

@@ -16,6 +16,12 @@ class AdminHistoryManager {
     async init() {
         console.log('📋 ADMIN-HISTORY: Initializing history manager...');
 
+        // Check authentication before initializing
+        if (!window.AdminAuthUtils?.hasValidToken()) {
+            console.warn('🔐 ADMIN-HISTORY: No valid token, skipping history manager initialization');
+            return;
+        }
+
         // Initialize shared table
         this.sharedTable.init();
 
@@ -217,6 +223,7 @@ class AdminHistoryManager {
             case 'view':
                 return await this.apiService.getPackageDetails(id);
             case 'create':
+            case 'create-package':
                 return await this.apiService.createPackage(actionData.packageData);
             case 'update':
                 return await this.apiService.updatePackage(id, actionData.packageData);

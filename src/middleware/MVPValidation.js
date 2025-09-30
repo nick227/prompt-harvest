@@ -32,7 +32,7 @@ export const validatePromptEnhanced = (req, res, next) => {
     }
 
     // Basic security check
-    if (/<script|javascript:|on\w+\s*=/i.test(trimmed)) {
+    if ((/<script|javascript:|on\w+\s*=/i).test(trimmed)) {
         return res.status(400).json({
             error: 'Invalid prompt',
             message: 'Prompt contains potentially dangerous content'

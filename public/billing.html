@@ -79,22 +79,19 @@
                     <!-- Username Change Form -->
                     <div class="form-group">
                         <label for="username-input" class="form-label">Username</label>
-                        <div class="username-input-container">
+                        <div class="promo-input-group">
                             <input
                                 type="text"
                                 id="username-input"
-                                name="username"
-                                placeholder="Enter new username"
-                                class="form-input username-input"
-                                maxlength="50"
+                                placeholder="New username"
+                                class="promo-input"
+                                maxlength="20"
                                 aria-label="New username"
                                 aria-describedby="username-help username-status"
                             >
-                            <div class="username-actions">
-                                <button id="update-username-btn" type="button" disabled>
-                                    <i class="fas fa-save" aria-hidden="true"></i> Update
-                                </button>
-                            </div>
+                            <button id="update-username-btn">
+                                <i class="fas fa-save" aria-hidden="true"></i> Update
+                            </button>
                         </div>
                         <div id="username-status" class="input-status" role="alert" aria-live="polite"></div>
                         <div id="username-help" class="form-help">
@@ -148,13 +145,6 @@
                             </div>
                         </div>
 
-                        <!-- Upload Preview -->
-                        <div id="upload-preview" class="upload-preview hidden">
-                            <img id="upload-preview-img" src="" alt="Upload preview" class="upload-preview-image">
-                            <button id="remove-upload" class="btn btn-danger btn-sm" type="button">
-                                <i class="fas fa-times" aria-hidden="true"></i> Remove
-                            </button>
-                        </div>
                     </div>
 
                     <!-- Action buttons removed - each avatar type handles its own save operation -->
@@ -393,9 +383,18 @@
 
     <!-- AI Image Generator Widget -->
     <link rel="stylesheet" href="css/ai-image-generator-widget.css">
+    <script src="js/services/ai-image-generator-service.js"></script>
+    <script src="js/components/ai-image-generator-widget.js"></script>
+    <script src="js/components/ai-image-generator.js"></script>
 
     <!-- Profile Management System -->
-    <script type="module" src="js/modules/profile/profile-manager-refactored.js"></script>
+    <!-- Profile Dependencies -->
+    <script src="js/modules/profile/dom-manager.js"></script>
+    <script src="js/modules/profile/avatar-manager.js"></script>
+    <script src="js/modules/profile/form-validator.js"></script>
+    <script src="js/modules/profile/api-service.js"></script>
+    <script src="js/modules/profile/auth-utils.js"></script>
+    <script src="js/modules/profile/profile-manager-refactored.js"></script>
 
     <!-- Performance monitoring (optional) -->
     <script>

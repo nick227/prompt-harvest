@@ -19,6 +19,12 @@ class AdminPackageManager {
     async init() {
         console.log('📦 ADMIN-PACKAGES: Initializing package handler...');
 
+        // Check authentication before initializing
+        if (!window.AdminAuthUtils?.hasValidToken()) {
+            console.warn('🔐 ADMIN-PACKAGES: No valid token, skipping package handler initialization');
+            return;
+        }
+
         // Initialize shared table
         this.sharedTable.init();
 
@@ -37,10 +43,16 @@ class AdminPackageManager {
     setupEventListeners() {
         // Listen for admin table actions
         document.addEventListener('admin-table-action', event => {
-            const { action, data } = event.detail;
+            const { action, data, dataType } = event.detail;
+
+            // Only handle package-related actions
+            if (dataType !== 'packages') {
+                return;
+            }
 
             switch (action) {
                 case 'create':
+                case 'create-package':
                     this.showCreatePackageForm();
                     break;
                 case 'edit':
@@ -95,6 +107,13 @@ class AdminPackageManager {
 
             console.log('📦 ADMIN-PACKAGES: Starting to load packages data...');
 
+            // Check authentication first
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                console.warn('🔐 ADMIN-PACKAGES: No valid token available, skipping packages load');
+                this.isLoading = false;
+                return;
+            }
+
             // Use AdminAPIService for proper authentication
             if (window.adminApiService) {
                 console.log('🔑 ADMIN-PACKAGES: Using AdminAPIService for authenticated request');
@@ -110,14 +129,7 @@ class AdminPackageManager {
                 // Fallback to direct fetch with auth headers
                 console.log('🔑 ADMIN-PACKAGES: Using direct fetch with auth headers');
 
-                const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-
-                if (authToken) {
-                    headers.Authorization = `Bearer ${authToken}`;
-                }
+                const headers = window.AdminAuthUtils.getAuthHeaders();
 
                 const response = await fetch('/api/admin/packages', {
                     method: 'GET',
@@ -172,17 +184,7 @@ class AdminPackageManager {
                 // Fallback to direct fetch with auth headers
                 console.log('🔑 ADMIN-PACKAGES: Using direct fetch with auth headers');
 
-                const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-
-                if (authToken) {
-                    headers['Authorization'] = `Bearer ${authToken}`;
-                    console.log('🔑 ADMIN-PACKAGES: Added auth header with token:', `${authToken.substring(0, 20)}...`);
-                } else {
-                    console.warn('⚠️ ADMIN-PACKAGES: No auth token found');
-                }
+                const headers = window.AdminAuthUtils.getAuthHeaders();
 
                 const response = await fetch(`${this.apiBaseUrl}/packages`, {
                     method: 'GET',
@@ -563,14 +565,7 @@ class AdminPackageManager {
                 const url = isEdit ? `${this.apiBaseUrl}/packages/${packageData.id}` : `${this.apiBaseUrl}/packages`;
                 const method = isEdit ? 'PUT' : 'POST';
 
-                const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-
-                if (authToken) {
-                    headers['Authorization'] = `Bearer ${authToken}`;
-                }
+                const headers = window.AdminAuthUtils.getAuthHeaders();
 
                 console.log('📦 ADMIN-PACKAGES: Fallback fetch details:', {
                     url,
@@ -688,7 +683,8 @@ class AdminPackageManager {
     async activatePackage(packageId) {
         try {
             const response = await fetch(`/api/packages/${packageId}/activate`, {
-                method: 'POST'
+                method: 'POST',
+                headers: window.AdminAuthUtils.getAuthHeaders()
             });
 
             if (response.ok) {
@@ -711,7 +707,8 @@ class AdminPackageManager {
     async deactivatePackage(packageId) {
         try {
             const response = await fetch(`/api/packages/${packageId}/deactivate`, {
-                method: 'POST'
+                method: 'POST',
+                headers: window.AdminAuthUtils.getAuthHeaders()
             });
 
             if (response.ok) {
@@ -734,7 +731,9 @@ class AdminPackageManager {
     async configureProvider(providerId) {
         try {
             // Fetch provider data
-            const response = await fetch(`/api/providers/${providerId}`);
+            const response = await fetch(`/api/providers/${providerId}`, {
+                headers: window.AdminAuthUtils.getAuthHeaders()
+            });
             const result = await response.json();
 
             if (result.success) {
@@ -876,6 +875,7 @@ class AdminPackageManager {
                 const response = await fetch(`/api/providers/${providerId}/configure`, {
                     method: 'PUT',
                     headers: {
+                        ...window.AdminAuthUtils.getAuthHeaders(),
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(configData)
@@ -907,7 +907,8 @@ class AdminPackageManager {
     async testProvider(providerId) {
         try {
             const response = await fetch(`/api/providers/${providerId}/test`, {
-                method: 'POST'
+                method: 'POST',
+                headers: window.AdminAuthUtils.getAuthHeaders()
             });
 
             if (response.ok) {
@@ -931,7 +932,8 @@ class AdminPackageManager {
     async disableProvider(providerId) {
         try {
             const response = await fetch(`/api/providers/${providerId}/disable`, {
-                method: 'POST'
+                method: 'POST',
+                headers: window.AdminAuthUtils.getAuthHeaders()
             });
 
             if (response.ok) {
@@ -958,7 +960,8 @@ class AdminPackageManager {
 
         try {
             const response = await fetch(`/api/providers/${providerId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: window.AdminAuthUtils.getAuthHeaders()
             });
 
             if (response.ok) {
@@ -980,7 +983,9 @@ class AdminPackageManager {
      */
     async loadProvidersData() {
         try {
-            const response = await fetch('/api/providers?includeModels=true');
+            const response = await fetch('/api/providers?includeModels=true', {
+                headers: window.AdminAuthUtils.getAuthHeaders()
+            });
             const data = await response.json();
 
             if (data.success) {
@@ -1015,14 +1020,7 @@ class AdminPackageManager {
                 }
             } else {
                 // Fallback to direct fetch with auth headers
-                const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-
-                if (authToken) {
-                    headers['Authorization'] = `Bearer ${authToken}`;
-                }
+                const headers = window.AdminAuthUtils.getAuthHeaders();
 
                 const response = await fetch(`${this.apiBaseUrl}/packages/${packageId}`, {
                     method: 'DELETE',
