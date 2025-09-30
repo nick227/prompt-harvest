@@ -31,12 +31,12 @@ export async function autoPopulateWordTypes() {
             // Insert data in batches to avoid memory issues
             const batchSize = 100;
             const totalRecords = fullWordTypesData.length;
-            
+
             console.log(`📥 Inserting ${totalRecords} word_types records in batches of ${batchSize}...`);
-            
+
             for (let i = 0; i < totalRecords; i += batchSize) {
                 const batch = fullWordTypesData.slice(i, i + batchSize);
-                
+
                 await prisma.word_types.createMany({
                     data: batch.map(record => ({
                         word: record.word,
@@ -44,7 +44,7 @@ export async function autoPopulateWordTypes() {
                     })),
                     skipDuplicates: true
                 });
-                
+
                 const processed = Math.min(i + batchSize, totalRecords);
                 console.log(`📦 Processed ${processed}/${totalRecords} records`);
             }
