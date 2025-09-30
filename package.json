@@ -99,7 +99,7 @@
     "stripe:check": "node scripts/check-stripe-cli.js",
     "dev:with-stripe": "npm run stripe:check && npm run dev",
     "start:with-stripe": "npm run stripe:check && npm run start",
-    "sync:word-types": "node src/scripts/sync-word-types-railway-fixed.js"
+    "sync:word-types": "node src/scripts/populate-railway-word-types.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.888.0",
