@@ -15,8 +15,8 @@ export const validateImageGenerationEnhanced = async (req, res, next) => {
             errors.push('Prompt must be a string');
         } else if (req.body.prompt.trim().length === 0) {
             errors.push('Prompt cannot be empty');
-        } else if (req.body.prompt.length > 1000) {
-            errors.push('Prompt exceeds maximum length of 1000 characters');
+        } else if (req.body.prompt.length > 100000) {
+            errors.push('Prompt exceeds maximum length of 100000 characters');
         }
 
         // Providers validation
