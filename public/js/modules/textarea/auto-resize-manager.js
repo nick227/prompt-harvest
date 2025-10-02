@@ -18,6 +18,7 @@ class AutoResizeManager {
         this.ariaLiveRegion = null;
         this.metrics = { autoResizes: 0 };
         this.onHeightChangeCallback = null;
+        this.pendingRAF = new Set();
     }
 
     autoResize() {
@@ -30,6 +31,9 @@ class AutoResizeManager {
         }
 
         this.resizeFrameId = requestAnimationFrame(() => {
+            this.pendingRAF.add(this.resizeFrameId);
+            this.pendingRAF.delete(this.resizeFrameId);
+            this.resizeFrameId = null;
             try {
                 this.ensureInitialHeight();
 
@@ -353,6 +357,12 @@ class AutoResizeManager {
             cancelAnimationFrame(this.resizeFrameId);
             this.resizeFrameId = null;
         }
+
+        // Cancel all pending RAF
+        this.pendingRAF.forEach(rafId => {
+            cancelAnimationFrame(rafId);
+        });
+        this.pendingRAF.clear();
 
         if (this.visibilityObserver) {
             this.visibilityObserver.disconnect();

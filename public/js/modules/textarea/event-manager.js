@@ -15,6 +15,7 @@ class EventManager {
         this.lastPersistedHeight = null;
         this.resizeObserver = null;
         this.metrics = { manualResizes: 0, pasteOperations: 0 };
+        this.pendingRAF = new Set();
 
         // Bind event handlers
         this.boundHandleInput = this.handleInput.bind(this);
@@ -167,11 +168,13 @@ class EventManager {
         }
 
         this.pasteFrameId = requestAnimationFrame(() => {
+            this.pendingRAF.delete(this.pasteFrameId);
             this.pasteFrameId = null;
             if (this.autoResizeManager) {
                 this.autoResizeManager.autoResize();
             }
         });
+        this.pendingRAF.add(this.pasteFrameId);
     }
 
     handleWindowResize() {
@@ -190,6 +193,12 @@ class EventManager {
             cancelAnimationFrame(this.pasteFrameId);
             this.pasteFrameId = null;
         }
+
+        // Cancel all pending RAF
+        this.pendingRAF.forEach(rafId => {
+            cancelAnimationFrame(rafId);
+        });
+        this.pendingRAF.clear();
 
         if (this.debouncedHandleInput?.cancel) {
             this.debouncedHandleInput.cancel();

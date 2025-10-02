@@ -247,7 +247,7 @@ class TextAreaUtils {
             if (ariaLiveRegion) {
                 ariaLiveRegion.remove();
             }
-            return;
+            return null;
         }
 
         if (!ariaLiveRegion) {
@@ -259,6 +259,8 @@ class TextAreaUtils {
             ariaLiveRegion.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;';
             document.body.appendChild(ariaLiveRegion);
         }
+
+        return ariaLiveRegion;
     }
 
     announceHeightLevel(ariaLiveRegion, heightLevel, lastAnnouncedHeightLevel) {
