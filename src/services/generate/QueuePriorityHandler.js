@@ -6,23 +6,36 @@
  */
 
 import { PRIORITY_MIN, PRIORITY_MAX } from './QueueConstants.js';
+import { ENQUEUE_CANCEL } from './QueueSymbols.js';
 
 export class QueuePriorityHandler {
-    constructor(analytics, epochNow) {
+    constructor(analytics, epochNow, logger) {
         this._analytics = analytics;
         this._epochNow = epochNow;
+        this._logger = logger;
     }
 
     /**
      * Calculate normalized priority for consistent metrics and enqueue
      * @param {string|number} priority - Priority value to normalize
-     * @returns {number} Normalized priority value
+     * @param {Object} [context] - Optional context for logging (requestId, userId)
+     * @returns {number} Normalized priority value (clamped to PRIORITY_MIN..PRIORITY_MAX)
      */
-    calculateNormalizedPriority(priority) {
+    calculateNormalizedPriority(priority, context = {}) {
         const priorityNumber = Number(priority);
         const numericPriority = Number.isFinite(priorityNumber)
             ? Math.trunc(priorityNumber)
             : 0;
+
+        // Log invalid priority values (NaN/Infinity) for observability
+        if (!Number.isFinite(priorityNumber)) {
+            this._logger?.logWarn('Invalid priority value, normalizing to 0', {
+                invalidPriority: priority,
+                priorityType: typeof priority,
+                requestId: context.requestId,
+                userId: context.userId
+            });
+        }
 
         return Math.max(PRIORITY_MIN, Math.min(PRIORITY_MAX, numericPriority));
     }
@@ -34,7 +47,7 @@ export class QueuePriorityHandler {
      * @param {number} priorityNormalized - Actual normalized priority value that will be enqueued
      */
     recordQueueAddMetrics(options, priorityOriginal, priorityNormalized) {
-        this._analytics.recordMetrics({
+        this._analytics?.recordMetrics({
             action: 'queue_add',
             userId: options.userId,
             priorityOriginal,                 // string|number as supplied by caller (or 'normal')
@@ -49,7 +62,7 @@ export class QueuePriorityHandler {
      * @param {Object} options - Task options
      * @param {number} normalizedPriority - Normalized priority value
      * @param {Object} queueSnapshot - Queue metrics snapshot
-     * @returns {Error} AbortError to throw
+     * @returns {Error} AbortError to throw with stable error code for HTTP mapping
      */
     handlePreAbortedSignal(options, normalizedPriority, queueSnapshot) {
         // Build metrics object, only including values when present
@@ -58,6 +71,7 @@ export class QueuePriorityHandler {
             requestId: options.requestId,
             userId: options.userId,
             priorityNormalized: normalizedPriority,
+            phase: 'enqueue',
             timestamp: this._epochNow()
         };
 
@@ -80,13 +94,15 @@ export class QueuePriorityHandler {
         const error = new Error('Task cancelled before enqueue');
 
         error.name = 'AbortError';
+        error.code = 'ERR_TASK_ABORTED_PRE_ENQUEUE'; // Stable error code for HTTP mapping
+        error.queuePhase = 'enqueue'; // Well-named property for HTTP mappers to identify lifecycle phase
         error.cause = {
             type: 'enqueue-time-cancel',
             reason: 'signal-already-aborted',
             requestId: options.requestId,
             userId: options.userId
         }; // Structured cause for log filters and SLO dashboards
-        error[Symbol.for('enqueue-cancel')] = true; // Internal symbol for robust cancel semantics
+        error[ENQUEUE_CANCEL] = true; // Internal symbol for robust cancel semantics
 
         return error;
     }

@@ -2,26 +2,38 @@
 // TEXTAREA MANAGER - Main Manager Class (Refactored)
 // ============================================================================
 
-// ============================================================================
-// TEXTAREA MANAGER CLASS
-// ============================================================================
-
 class TextAreaManager {
     constructor() {
-        this.isMatchClick = false;
-        this.hasReplacedTrigger = false;
-        this.lastTriggeringWord = null;
-        this.isInitialized = false;
-        this.initialHeight = null; // Store the initial height
-        this.lastResizeContent = ''; // Cache for performance optimization
-        this.lastResizeHeight = null; // Cache for performance optimization
+        // SSR/No-DOM safety check
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+            console.warn('TextAreaManager requires a browser environment');
+            this.destroyed = true;
 
-        // Initialize modules
-        this.matchProcessor = new window.MatchProcessor();
-        this.searchReplaceManager = null; // Will be initialized after textArea is available
+            return;
+        }
+
+        this.isInitialized = false;
+        this.initialHeight = null;
+        this.destroyed = false;
+        this.domReadyHandler = null;
+        this.domReadyFired = false;
+        this.onHeightChangeCallback = null;
+        this.lastScrollTop = 0;
+        this.ariaLiveRegion = null;
+        this.lastAnnouncedHeightLevel = 0;
+        this.isMatchClick = false;
+
+        // Initialize component managers
+        this.textArea = null;
+        this.matchesEl = null;
+        this.autoResizeManager = null;
+        this.matchManager = null;
+        this.eventManager = null;
+        this.textAreaUtils = new window.TextAreaUtils();
+        this.searchReplaceManager = null;
 
         this.init();
-        this.bindEvents();
+        this._ensureEventsOnDOMReady();
     }
 
     // ============================================================================
@@ -36,307 +48,254 @@ class TextAreaManager {
         this.textArea = Utils.dom.get(TEXTAREA_CONFIG.selectors.textArea);
         this.matchesEl = Utils.dom.get(TEXTAREA_CONFIG.selectors.matches);
 
-        this.loadSavedHeight();
-        Utils.dom.init(TEXTAREA_CONFIG.selectors);
-
-        // Store initial height if not already stored
-        if (this.textArea && this.initialHeight === null) {
-            // Use setTimeout to ensure DOM is fully rendered
-            setTimeout(() => {
-                if (this.textArea && this.initialHeight === null) {
-                    this.initialHeight = this.textArea.offsetHeight;
-                }
-            }, 0);
-        }
-
-        // Initialize search replace manager after textArea is available
-        if (this.textArea) {
-            this.searchReplaceManager = new window.SearchReplaceManager(this.textArea);
-        }
-
-        this.isInitialized = true;
-
-        // Schedule page load resize after DOM and any localhost values are loaded
-        this.schedulePageLoadResize();
-    }
-
-    loadSavedHeight() {
-        const savedHeight = Utils.storage.get('textAreaHeight');
-
-        // Store initial height BEFORE loading saved height to preserve baseline
-        if (this.textArea && this.initialHeight === null) {
-            this.initialHeight = this.textArea.offsetHeight;
-        }
-
-        // Clear saved height if it's too large (indicating old larger initial height)
-        // This allows the textarea to start with the new smaller initial height
-        if (savedHeight && this.textArea) {
-            const savedHeightValue = parseInt(savedHeight);
-            const expectedInitialHeight = this.initialHeight || this.textArea.offsetHeight;
-
-            // If saved height is significantly larger than current initial height, clear it
-            if (savedHeightValue > expectedInitialHeight * 1.5) {
-                Utils.storage.remove('textAreaHeight');
-
-                return;
-            }
-
-            // Only load saved height if it's different from initial height and not too large
-            if (savedHeight !== `${this.initialHeight}px`) {
-                this.textArea.style.height = savedHeight;
-            }
-        }
-    }
-
-    schedulePageLoadResize() {
-        if (!this.textArea) {
-            return;
-        }
-
-        // Multiple resize attempts to handle different loading scenarios
-        const resizeDelays = [100, 500, 1000, 2000]; // Progressive delays for localhost loading
-
-        resizeDelays.forEach(delay => {
-            setTimeout(() => {
-                if (this.textArea && document.readyState === 'complete') {
-                    // Clear cache and recalculate with current viewport
-                    this.clearResizeCache();
-                    this.ensureInitialHeight();
-                    this.autoResize();
-                }
-            }, delay);
-        });
-
-        // Also resize when DOM content is fully loaded
-        if (document.readyState !== 'complete') {
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => {
-                    if (this.textArea) {
-                        this.clearResizeCache();
-                        this.ensureInitialHeight();
-                        this.autoResize();
-                    }
-                }, 100);
-            });
-        }
-    }
-
-    bindEvents() {
         if (!this.textArea || !this.matchesEl) {
             return;
         }
 
-        this.textArea.addEventListener('input',
-            Utils.async.debounce(this.handleInput.bind(this), TEXTAREA_CONFIG.timeouts.debounce)
+        // Initialize component managers
+        this.autoResizeManager = new window.AutoResizeManager(this.textArea, this.initialHeight);
+        this.matchManager = new window.MatchManager(this.textArea, this.matchesEl);
+        this.eventManager = new window.EventManager(
+            this.textArea,
+            this.matchesEl,
+            this.matchManager,
+            this.autoResizeManager
         );
 
-        // Add paste event listener for autoResize
-        this.textArea.addEventListener('paste', () => {
-            // Use setTimeout to ensure paste content is processed before autoResize
-            setTimeout(() => this.autoResize(), 10);
-        });
+        // Set up height change callback
+        if (this.autoResizeManager && this.onHeightChangeCallback) {
+            this.autoResizeManager.onHeightChangeCallback = this.onHeightChangeCallback;
+        }
 
-        this.textArea.addEventListener('mouseup', this.handleResize.bind(this));
-        this.matchesEl.addEventListener('click', this.handleMatchListItemClick.bind(this));
+        this.textAreaUtils.loadSavedHeight(this.textArea, this.initialHeight);
+        Utils.dom.init(TEXTAREA_CONFIG.selectors);
 
-        // Add window resize listener to recalculate viewport limits
-        window.addEventListener('resize', Utils.async.debounce(this.handleWindowResize.bind(this), 250));
+        this.autoResizeManager.applyViewportClamp();
 
-        this.setupSearchReplace();
+        if (this.textArea && this.initialHeight === null) {
+            setTimeout(() => {
+                if (this.textArea && this.initialHeight === null) {
+                    this.initialHeight = this.textArea.offsetHeight;
+                    this.autoResizeManager.initialHeight = this.initialHeight;
+                }
+            }, 0);
+        }
+
+        if (this.textArea) {
+            this.searchReplaceManager = new window.SearchReplaceManager(this.textArea);
+            this.setupSearchReplace();
+        }
+
+        this.isInitialized = true;
     }
 
-    // ============================================================================
-    // EVENT HANDLERS
-    // ============================================================================
+    // Delegate to textAreaUtils
+    loadSavedHeight() {
+        this.textAreaUtils.loadSavedHeight(this.textArea, this.initialHeight);
+    }
 
-    async handleInput(e) {
-        Utils.dom.updateElementClass(e.target, e.target.value.length);
 
-        // Auto resize on content change
-        this.autoResize();
+    bindEvents() {
+        if (!this.eventManager) {
+            return false;
+        }
 
-        if (!this.isMatchClick) {
-            await this.updateMatches(e.target.value, e.target.selectionStart);
-        } else {
-            this.resetMatchClickFlag();
+        return this.eventManager.bindEvents();
+    }
+
+    unbindEvents() {
+        if (this.eventManager) {
+            this.eventManager.unbindEvents();
         }
     }
 
-    resetMatchClickFlag() {
-        setTimeout(() => {
-            this.isMatchClick = false;
-            this.hasReplacedTrigger = false;
-        }, 100);
+    destroy() {
+        this.destroyed = true;
+
+        if (this.eventManager) {
+            this.eventManager.destroy();
+        }
+
+        if (this.autoResizeManager) {
+            this.autoResizeManager.destroy();
+        }
+
+        if (this.matchManager) {
+            this.matchManager.destroy();
+        }
+
+        if (this.domReadyHandler && !this.domReadyFired) {
+            document.removeEventListener('DOMContentLoaded', this.domReadyHandler);
+            this.domReadyHandler = null;
+        }
+
+        if (this.searchReplaceManager?.destroy) {
+            this.searchReplaceManager.destroy();
+        }
+
+        this.textArea = null;
+        this.matchesEl = null;
+        this.onHeightChangeCallback = null;
+
+        // Clean up aria-live region
+        if (this.ariaLiveRegion) {
+            this.ariaLiveRegion.remove();
+            this.ariaLiveRegion = null;
+        }
+
+        // Clean up textAreaUtils
+        this.textAreaUtils = null;
     }
 
-    handleMatchListItemClick(e) {
-        if (e.target.tagName !== 'LI') {
+    // Delegate to eventManager
+    handlePaste() {
+        if (this.eventManager) {
+            this.eventManager.handlePaste();
+        }
+    }
+
+    _ensureEventsOnDOMReady() {
+        if (this.domReadyFired) {
             return;
         }
 
-        const isSample = e.target.classList.contains('sample');
-        const replacement = window.MatchProcessorUtils.processMatchSelection(e.target.innerText, isSample);
-
-        this.isMatchClick = true;
-
-        if (this.hasReplacedTrigger) {
-            // Subsequent clicks: append to end of textarea
-            this.appendToEnd(replacement);
+        if (document.readyState === 'loading') {
+            this.domReadyHandler = () => {
+                this.domReadyFired = true;
+                document.removeEventListener('DOMContentLoaded', this.domReadyHandler);
+                this._retryInitAndBind();
+            };
+            document.addEventListener('DOMContentLoaded', this.domReadyHandler);
         } else {
-            // First click: replace the triggering word
-            this.replaceTriggeringWord(replacement);
-            this.hasReplacedTrigger = true;
+            this.domReadyFired = true;
+            setTimeout(() => this._retryInitAndBind(), 0);
+        }
+    }
+
+    _retryInitAndBind() {
+        if (!this.textArea || !this.matchesEl) {
+            this.textArea = Utils.dom.get(TEXTAREA_CONFIG.selectors.textArea);
+            this.matchesEl = Utils.dom.get(TEXTAREA_CONFIG.selectors.matches);
+
+            if (this.textArea && !this.searchReplaceManager) {
+                this.searchReplaceManager = new window.SearchReplaceManager(this.textArea);
+            }
+        }
+
+        if (!this.isInitialized) {
+            this.init();
+        }
+
+        const success = this.bindEvents();
+
+        if (success) {
+            console.log('✅ Events successfully bound after DOM ready');
+            const resizeDelays = [100, 500, 1000, 2000];
+
+            resizeDelays.forEach(delay => {
+                setTimeout(() => {
+                    if (this.textArea && !this.destroyed && this.autoResizeManager) {
+                        this.autoResizeManager.clearResizeCache();
+                        this.autoResizeManager.ensureInitialHeight();
+                        this.autoResizeManager.autoResize();
+                    }
+                }, delay);
+            });
+        }
+    }
+
+    // ============================================================================
+    // DELEGATED METHODS
+    // ============================================================================
+
+    async handleInput(e) {
+        if (this.eventManager) {
+            await this.eventManager.handleInput(e);
+        }
+    }
+
+    handleCompositionStart() {
+        if (this.eventManager) {
+            this.eventManager.handleCompositionStart();
+        }
+    }
+
+    handleCompositionEnd() {
+        if (this.eventManager) {
+            this.eventManager.handleCompositionEnd();
+        }
+    }
+
+    handleMatchListItemClick(e) {
+        if (this.eventManager) {
+            this.eventManager.handleMatchListItemClick(e);
         }
     }
 
     handleResize() {
-        if (this.textArea?.style?.height) {
-            Utils.storage.set('textAreaHeight', this.textArea.style.height);
+        if (this.eventManager) {
+            this.eventManager.handleResize();
         }
     }
 
     handleWindowResize() {
-        // Clear resize cache to force recalculation with new viewport dimensions
-        this.clearResizeCache();
-
-        // Recalculate and apply resize with new viewport limits
-        this.autoResize();
+        if (this.eventManager) {
+            this.eventManager.handleWindowResize();
+        }
     }
 
     // ============================================================================
-    // MATCH PROCESSING METHODS
+    // DELEGATED MATCH METHODS
     // ============================================================================
 
     async updateMatches(value, cursorPosition) {
-        const textBeforeCursor = window.TextUtils.getTextBeforeCursor(value, cursorPosition);
-
-        if (!this.matchProcessor.isReadyForMatching(textBeforeCursor)) {
-            this.matchesEl.innerHTML = await this.matchProcessor.getSampleMatches();
-            this.hasReplacedTrigger = false;
-
-            return;
+        if (this.matchManager) {
+            await this.matchManager.updateMatches(value, cursorPosition);
         }
+    }
 
-        const matches = await this.matchProcessor.findMatches(textBeforeCursor);
-
-        // Only reset replacement flag if this is a completely new search (different triggering word)
-        const currentTriggeringWord = this.matchProcessor.getLastMatchedWord();
-
-        if (currentTriggeringWord && currentTriggeringWord !== this.lastTriggeringWord) {
-            this.hasReplacedTrigger = false;
-            this.lastTriggeringWord = currentTriggeringWord;
+    clearMatches() {
+        if (this.matchManager) {
+            this.matchManager.clearMatches();
         }
+    }
 
-        this.matchProcessor.updateMatchesDisplay(this.matchesEl, matches);
+    resetMatchState() {
+        if (this.matchManager) {
+            this.matchManager.resetMatchState();
+        }
     }
 
     // ============================================================================
-    // TEXT MANIPULATION METHODS
+    // DELEGATED TEXT METHODS
     // ============================================================================
 
     insertText(text) {
-        if (!this.textArea) {
-            return;
+        if (this.matchManager) {
+            this.matchManager.insertText(text);
         }
-
-        const { value, cursorPosition } = window.TextUtils.insertTextAtPosition(
-            this.textArea.value,
-            this.textArea.selectionStart,
-            this.textArea.selectionEnd,
-            text
-        );
-
-        this.textArea.value = value;
-        this.textArea.selectionStart = cursorPosition;
-        this.textArea.selectionEnd = cursorPosition;
-        this.textArea.focus();
-
-        // Auto resize after text insertion
-        this.autoResize();
-
-        this.triggerInputEvent();
     }
 
     appendToEnd(text) {
-        if (!this.textArea) {
-            return;
+        if (this.matchManager) {
+            this.matchManager.appendToEnd(text);
         }
-
-        // Move cursor to end of textarea
-        const endPosition = this.textArea.value.length;
-
-        this.textArea.selectionStart = endPosition;
-        this.textArea.selectionEnd = endPosition;
-
-        // Insert text at the end
-        this.insertText(text);
     }
 
     replaceTriggeringWord(replacement) {
-        if (!this.textArea || !this.matchProcessor.getLastMatchedWord()) {
-            this.insertText(replacement);
-
-            return;
+        if (this.matchManager) {
+            this.matchManager.replaceTriggeringWord(replacement);
         }
-
-        const triggeringWord = this.matchProcessor.getLastMatchedWord();
-
-        // Handle cases where we should append instead of replace
-        if (this.shouldAppendInsteadOfReplace()) {
-            this.appendToEnd(replacement);
-
-            return;
-        }
-
-        // Attempt to replace the triggering word
-        if (this.attemptTriggeringWordReplacement(triggeringWord, replacement)) {
-            this.hasReplacedTrigger = true;
-        } else {
-            this.insertText(replacement);
-        }
-
-        this.triggerInputEvent();
-    }
-
-    shouldAppendInsteadOfReplace() {
-        return this.hasReplacedTrigger ||
-               (this.textArea.value.includes('${') && this.textArea.value.includes('}'));
-    }
-
-    attemptTriggeringWordReplacement(triggeringWord, replacement) {
-        const wordPosition = window.MatchProcessorUtils.findTriggeringWordPosition(
-            this.textArea.value,
-            triggeringWord,
-            this.textArea.selectionStart
-        );
-
-        if (wordPosition === -1) {
-            return false;
-        }
-
-        const { value, cursorPosition } = window.MatchProcessorUtils.replaceTriggeringWord(
-            this.textArea.value,
-            triggeringWord,
-            replacement,
-            wordPosition
-        );
-
-        this.textArea.value = value;
-        this.textArea.selectionStart = cursorPosition;
-        this.textArea.selectionEnd = cursorPosition;
-        this.textArea.focus();
-
-        return true;
     }
 
     triggerInputEvent() {
-        if (this.textArea) {
-            this.textArea.dispatchEvent(new Event('input', { bubbles: true }));
+        if (this.matchManager) {
+            this.matchManager.triggerInputEvent();
         }
     }
 
     // ============================================================================
-    // SEARCH AND REPLACE METHODS
+    // DELEGATED SEARCH AND REPLACE METHODS
     // ============================================================================
 
     setupSearchReplace() {
@@ -346,415 +305,309 @@ class TextAreaManager {
     }
 
     // ============================================================================
-    // PUBLIC API METHODS
+    // DELEGATED PUBLIC API METHODS
     // ============================================================================
 
     getValue() {
-        return this.textArea?.value || '';
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.getValue(this.textArea);
+        }
+
+        return '';
     }
 
-    setValue(value) {
-        if (this.textArea) {
-            this.textArea.value = value;
-
-            // Auto resize after programmatic value change
-            this.autoResize();
-
-            if (!this.isMatchClick) {
-                this.triggerInputEvent();
-            }
+    setValue(value, options = {}) {
+        if (this.textAreaUtils) {
+            this.textAreaUtils.setValue(this.textArea, value, {
+                ...options,
+                autoResizeManager: this.autoResizeManager,
+                isMatchClick: this.isMatchClick
+            });
         }
     }
 
     getCursorPosition() {
-        return this.textArea?.selectionStart || 0;
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.getCursorPosition(this.textArea);
+        }
+
+        return 0;
     }
 
     setCursorPosition(position) {
-        if (this.textArea) {
-            this.textArea.selectionStart = position;
-            this.textArea.selectionEnd = position;
+        if (this.textAreaUtils) {
+            this.textAreaUtils.setCursorPosition(this.textArea, position);
         }
     }
 
     focus() {
-        this.textArea?.focus();
+        if (this.textAreaUtils) {
+            this.textAreaUtils.focus(this.textArea);
+        }
     }
 
     blur() {
-        this.textArea?.blur();
+        if (this.textAreaUtils) {
+            this.textAreaUtils.blur(this.textArea);
+        }
     }
 
     select() {
-        this.textArea?.select();
+        if (this.textAreaUtils) {
+            this.textAreaUtils.select(this.textArea);
+        }
     }
 
     clear() {
-        this.setValue('');
-    }
-
-    clearMatches() {
-        if (this.matchesEl) {
-            this.matchesEl.innerHTML = '';
+        if (this.textAreaUtils) {
+            this.textAreaUtils.clear(this.textArea);
         }
     }
 
     getWordAtCursor() {
-        if (!this.textArea) {
-            return '';
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.getWordAtCursor(this.textArea);
         }
 
-        return window.TextUtils.getWordAtCursor(this.textArea.value, this.textArea.selectionStart);
+        return '';
     }
 
     replaceWordAtCursor(newWord) {
-        if (!this.textArea) {
-            return;
+        if (this.textAreaUtils) {
+            this.textAreaUtils.replaceWordAtCursor(this.textArea, newWord);
         }
-
-        const { value, cursorPosition } = window.TextUtils.replaceWordAtCursor(
-            this.textArea.value,
-            this.textArea.selectionStart,
-            newWord
-        );
-
-        this.setValue(value);
-        this.setCursorPosition(cursorPosition);
     }
 
     getTextBeforeCursor() {
-        if (!this.textArea) {
-            return '';
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.getTextBeforeCursor(this.textArea);
         }
 
-        return window.TextUtils.getTextBeforeCursor(this.textArea.value, this.textArea.selectionStart);
+        return '';
     }
 
     getTextAfterCursor() {
-        if (!this.textArea) {
-            return '';
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.getTextAfterCursor(this.textArea);
         }
 
-        return window.TextUtils.getTextAfterCursor(this.textArea.value, this.textArea.selectionStart);
+        return '';
     }
 
-    insertAtCursor(text) {
-        if (!this.textArea) {
-            return;
+    insertAtCursor(text, options = {}) {
+        if (this.textAreaUtils) {
+            this.textAreaUtils.insertAtCursor(this.textArea, text, options);
         }
-
-        const { value, cursorPosition } = window.TextUtils.insertTextAtPosition(
-            this.textArea.value,
-            this.textArea.selectionStart,
-            this.textArea.selectionEnd,
-            text
-        );
-
-        this.setValue(value);
-        this.setCursorPosition(cursorPosition);
     }
 
     autoResize() {
-        if (!this.textArea) {
-            return;
-        }
-
-        try {
-            // Ensure initial height is captured
-            this.ensureInitialHeight();
-
-            const content = this.textArea.value;
-
-            // Performance optimization: skip if content hasn't changed
-            if (content === this.lastResizeContent && this.textArea.style.height === this.lastResizeHeight) {
-                return;
-            }
-
-            // Handle empty content
-            if (!content.trim()) {
-                this.resetToInitialHeight();
-                this.updateResizeCache(content);
-
-                return;
-            }
-
-            // Calculate and apply appropriate height
-            const resizeData = this.calculateResizeData(content);
-
-            this.applyResize(resizeData);
-
-            // Update cache and save height for persistence
-            this.updateResizeCache(content);
-            Utils.storage.set('textAreaHeight', this.textArea.style.height);
-        } catch (error) {
-            console.warn('Auto-resize error:', error);
-            // Fallback: reset to initial height on error
-            if (this.initialHeight !== null) {
-                this.textArea.style.height = `${this.initialHeight}px`;
-            }
+        if (this.autoResizeManager) {
+            this.autoResizeManager.autoResize();
         }
     }
 
-    /**
-     * Update resize cache for performance optimization
-     */
+    // ============================================================================
+    // DELEGATED AUTO RESIZE METHODS
+    // ============================================================================
+
     updateResizeCache(content) {
-        this.lastResizeContent = content;
-        this.lastResizeHeight = this.textArea.style.height;
-    }
-
-    /**
-     * Ensure initial height is captured
-     */
-    ensureInitialHeight() {
-        if (this.initialHeight === null) {
-            this.initialHeight = this.textArea.offsetHeight;
+        if (this.autoResizeManager) {
+            this.autoResizeManager.updateResizeCache(content);
         }
     }
 
-    /**
-     * Reset textarea to initial height
-     */
-    resetToInitialHeight() {
-        this.textArea.style.height = `${this.initialHeight}px`;
-        Utils.storage.set('textAreaHeight', this.textArea.style.height);
-    }
-
-    /**
-     * Calculate resize data including line counts and height levels
-     */
-    calculateResizeData(content) {
-        try {
-            const computedStyle = window.getComputedStyle(this.textArea);
-            const lineHeight = parseInt(computedStyle.lineHeight) || 20;
-            const paddingTop = parseInt(computedStyle.paddingTop) || 8;
-            const paddingBottom = parseInt(computedStyle.paddingBottom) || 8;
-            const borderTop = parseInt(computedStyle.borderTopWidth) || 0;
-            const borderBottom = parseInt(computedStyle.borderBottomWidth) || 0;
-
-            // Calculate content area and line counts
-            const contentHeight = Math.max(1,
-                this.initialHeight - paddingTop - paddingBottom - borderTop - borderBottom);
-            const linesInInitialHeight = Math.max(1, Math.floor(contentHeight / lineHeight));
-            const explicitLines = content.split('\n').length;
-
-            // Measure actual content height
-            this.textArea.style.height = 'auto';
-            const actualContentHeight = Math.max(1, this.textArea.scrollHeight - paddingTop - paddingBottom -
-                borderTop - borderBottom);
-            const actualLines = Math.ceil(actualContentHeight / lineHeight);
-
-            return {
-                totalLines: Math.max(explicitLines, actualLines),
-                linesInInitialHeight,
-                lineHeight,
-                paddingTop,
-                paddingBottom,
-                borderTop,
-                borderBottom
-            };
-        } catch (error) {
-            console.warn('Error calculating resize data:', error);
-
-            // Fallback to basic calculation
-            return {
-                totalLines: content.split('\n').length,
-                linesInInitialHeight: 3,
-                lineHeight: 20,
-                paddingTop: 8,
-                paddingBottom: 8,
-                borderTop: 0,
-                borderBottom: 0
-            };
-        }
-    }
-
-    /**
-     * Apply the calculated resize based on content with viewport height limits
-     */
-    applyResize(resizeData) {
-        const {
-            totalLines, linesInInitialHeight, lineHeight,
-            paddingTop, paddingBottom, borderTop, borderBottom
-        } = resizeData;
-
-        // Calculate viewport height limit (90vh)
-        const viewportHeight = window.innerHeight;
-        const maxHeightLimit = Math.floor(viewportHeight * 0.9);
-
-        // Calculate minimum height needed for content
-        const contentHeight = totalLines * lineHeight;
-        const minHeightNeeded = contentHeight + paddingTop + paddingBottom + borderTop + borderBottom;
-
-        // Calculate natural height (let textarea expand naturally)
-        this.textArea.style.height = 'auto';
-        const naturalHeight = this.textArea.scrollHeight;
-
-        // Determine the appropriate height
-        let newHeight;
-
-        if (totalLines <= linesInInitialHeight) {
-            // Content fits in initial height
-            newHeight = this.initialHeight;
-        } else if (naturalHeight <= maxHeightLimit) {
-            // Natural height fits within viewport limit
-            newHeight = naturalHeight;
-        } else if (minHeightNeeded <= maxHeightLimit) {
-            // We can fit the content within viewport limit
-            newHeight = minHeightNeeded;
-        } else {
-            // Content exceeds viewport limit, use max height
-            newHeight = maxHeightLimit;
-        }
-
-        // Ensure we don't go below initial height
-        newHeight = Math.max(newHeight, this.initialHeight);
-
-        this.textArea.style.height = `${newHeight}px`;
-    }
-
-    // ============================================================================
-    // AUTO RESIZE UTILITY METHODS
-    // ============================================================================
-
-    /**
-     * Reset the initial height baseline
-     * Useful when textarea dimensions change due to CSS changes
-     */
-    resetInitialHeight() {
-        if (this.textArea) {
-            this.initialHeight = this.textArea.offsetHeight;
-            this.clearResizeCache(); // Clear cache when resetting
-
-            this.autoResize(); // Trigger resize with new baseline
-        }
-    }
-
-    /**
-     * Clear resize cache to force recalculation
-     */
     clearResizeCache() {
-        this.lastResizeContent = '';
-        this.lastResizeHeight = null;
-    }
-
-    /**
-     * Get current resize information for debugging
-     */
-    getResizeInfo() {
-        if (!this.textArea || this.initialHeight === null) {
-            return null;
+        if (this.autoResizeManager) {
+            this.autoResizeManager.clearResizeCache();
         }
-
-        const content = this.textArea.value;
-        const explicitLines = content.split('\n').length;
-        const computedStyle = window.getComputedStyle(this.textArea);
-        const lineHeight = parseInt(computedStyle.lineHeight) || 20;
-
-        // Calculate viewport-based height limits
-        const viewportHeight = window.innerHeight;
-        const maxHeightLimit = Math.floor(viewportHeight * 0.9);
-
-        // Calculate content requirements
-        const contentHeight = explicitLines * lineHeight;
-        const paddingTop = parseInt(computedStyle.paddingTop) || 8;
-        const paddingBottom = parseInt(computedStyle.paddingBottom) || 8;
-        const borderTop = parseInt(computedStyle.borderTopWidth) || 0;
-        const borderBottom = parseInt(computedStyle.borderBottomWidth) || 0;
-        const minHeightNeeded = contentHeight + paddingTop + paddingBottom + borderTop + borderBottom;
-
-        return {
-            initialHeight: this.initialHeight,
-            currentHeight: this.textArea.offsetHeight,
-            maxHeight: maxHeightLimit,
-            viewportHeight,
-            explicitLines,
-            lineHeight,
-            contentHeight,
-            minHeightNeeded,
-            content: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
-            heightLevel: this.getCurrentHeightLevel(),
-            isAtMaxHeight: this.textArea.offsetHeight >= maxHeightLimit - 5 // 5px tolerance
-        };
     }
 
-    /**
-     * Get current height level (1=initial, 2=expanded, 3=viewport limit)
-     */
+    clearStyleCache() {
+        if (this.autoResizeManager) {
+            this.autoResizeManager.clearStyleCache();
+        }
+    }
+
+    ensureInitialHeight() {
+        if (this.autoResizeManager) {
+            this.autoResizeManager.ensureInitialHeight();
+        }
+    }
+
+    resetToInitialHeight() {
+        if (this.autoResizeManager) {
+            this.autoResizeManager.resetToInitialHeight();
+        }
+    }
+
+    resetInitialHeight() {
+        if (this.autoResizeManager) {
+            this.autoResizeManager.resetInitialHeight();
+        }
+    }
+
     getCurrentHeightLevel() {
-        if (!this.textArea || this.initialHeight === null) {
-            return 0;
+        if (this.autoResizeManager) {
+            return this.autoResizeManager.getCurrentHeightLevel();
         }
 
-        const currentHeight = this.textArea.offsetHeight;
-        const viewportHeight = window.innerHeight;
-        const maxHeightLimit = Math.floor(viewportHeight * 0.9);
+        return 0;
+    }
 
-        if (currentHeight <= this.initialHeight + 5) { // 5px tolerance
-            return 1; // Initial height
-        } else if (currentHeight >= maxHeightLimit - 5) {
-            return 3; // At viewport limit
-        } else {
-            return 2; // Expanded but not at limit
+    applyViewportClamp() {
+        if (this.autoResizeManager) {
+            this.autoResizeManager.applyViewportClamp();
         }
     }
+
+    // ============================================================================
+    // DELEGATED UTILITY METHODS
+    // ============================================================================
 
     getCharacterCount() {
-        return window.TextUtils.getCharacterCount(this.getValue());
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.getCharacterCount(this.getValue());
+        }
+
+        return 0;
     }
 
     getWordCount() {
-        return window.TextUtils.getWordCount(this.getValue());
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.getWordCount(this.getValue());
+        }
+
+        return 0;
     }
 
     isEmpty() {
-        return window.TextUtils.isEmpty(this.getValue());
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.isEmpty(this.getValue());
+        }
+
+        return true;
     }
 
     isTooLong(maxLength) {
-        return window.TextUtils.isTooLong(this.getValue(), maxLength);
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.isTooLong(this.getValue(), maxLength);
+        }
+
+        return false;
     }
 
     // ============================================================================
-    // HISTORY METHODS
+    // DELEGATED HISTORY METHODS
     // ============================================================================
 
     saveToHistory() {
-        const value = this.getValue();
-        const currentHistory = this.getHistory();
-        const newHistory = window.TextUtils.addToHistory(currentHistory, value);
-
-        Utils.storage.set('textAreaHistory', newHistory);
+        if (this.textAreaUtils) {
+            this.textAreaUtils.saveToHistory(this.getValue());
+        }
     }
 
     getHistory() {
-        return Utils.storage.get('textAreaHistory') || [];
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.getHistory();
+        }
+
+        return [];
     }
 
     loadFromHistory(index) {
-        const historyItem = window.TextUtils.getHistoryItem(this.getHistory(), index);
-
-        if (historyItem) {
-            this.setValue(historyItem);
+        if (this.textAreaUtils) {
+            this.textAreaUtils.loadFromHistory(this.textArea, index);
         }
     }
 
     clearHistory() {
-        Utils.storage.remove('textAreaHistory');
+        if (this.textAreaUtils) {
+            this.textAreaUtils.clearHistory();
+        }
     }
 
     // ============================================================================
-    // MATCH STATE MANAGEMENT METHODS
+    // DELEGATED UTILITY METHODS
     // ============================================================================
 
-    /**
-     * Reset the match replacement state
-     * Call this when user starts a new search or moves cursor
-     */
-    resetMatchState() {
-        this.hasReplacedTrigger = false;
-        this.lastTriggeringWord = null;
-        this.matchProcessor.resetMatchState();
+    setDebug(enabled) {
+        if (this.textAreaUtils) {
+            this.textAreaUtils.setDebug(enabled);
+        }
+    }
+
+    onHeightChange(callback) {
+        if (typeof callback !== 'function') {
+            console.warn('onHeightChange: callback must be a function');
+
+            return;
+        }
+
+        this.onHeightChangeCallback = callback;
+
+        // Pass callback to auto-resize manager if it exists
+        if (this.autoResizeManager) {
+            this.autoResizeManager.onHeightChangeCallback = callback;
+        }
+    }
+
+    offHeightChange() {
+        this.onHeightChangeCallback = null;
+
+        // Clear callback from auto-resize manager
+        if (this.autoResizeManager) {
+            this.autoResizeManager.onHeightChangeCallback = null;
+        }
+    }
+
+    enableA11yAnnouncements(enabled = true) {
+        if (this.textAreaUtils) {
+            this.textAreaUtils.enableA11yAnnouncements(this.ariaLiveRegion, enabled);
+        }
+    }
+
+    announceHeightLevel(heightLevel) {
+        if (this.textAreaUtils) {
+            this.textAreaUtils.announceHeightLevel(this.ariaLiveRegion, heightLevel, this.lastAnnouncedHeightLevel);
+        }
+    }
+
+    debug(...args) {
+        if (this.textAreaUtils) {
+            this.textAreaUtils.debug(...args);
+        }
+    }
+
+    getMetrics() {
+        if (this.textAreaUtils) {
+            return this.textAreaUtils.getMetrics();
+        }
+
+        return {};
+    }
+
+    resetMetrics() {
+        if (this.textAreaUtils) {
+            this.textAreaUtils.resetMetrics();
+        }
+    }
+
+    // ============================================================================
+    // ADDITIONAL UTILITY METHODS
+    // ============================================================================
+
+    getResizeInfo() {
+        if (this.autoResizeManager) {
+            return this.autoResizeManager.getResizeInfo();
+        }
+
+        return null;
+    }
+
+    resetMatchClickFlag() {
+        if (this.matchManager) {
+            this.matchManager.resetMatchClickFlag();
+        }
     }
 }
 
@@ -762,6 +615,5 @@ class TextAreaManager {
 // EXPORT TO GLOBAL SCOPE
 // ============================================================================
 
-// Make class available globally
+// Make class available globally (instantiated by textarea.js)
 window.TextAreaManager = TextAreaManager;
-window.textAreaManager = new TextAreaManager();

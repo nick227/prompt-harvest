@@ -12,10 +12,14 @@
  * @property {string} [userId] - User ID for rate limiting
  * @property {string|number} [priorityOriginal] - Original task priority (string or number input)
  * @property {number} [priorityNormalized] - Normalized priority (p-queue format, always number)
- * @property {number} [timestamp] - Timestamp when metric was recorded
+ * @property {number} [timestamp] - Timestamp when metric was recorded (epoch ms)
+ * @property {number} [enqueuedAtMonotonic] - Task enqueue time (monotonic clock, for latency calcs)
+ * @property {number} [enqueuedAtEpoch] - Task enqueue time (epoch ms, for trace correlation)
+ * @property {string} [phase] - Task lifecycle phase: 'init' | 'enqueue' | 'start' | 'run' | 'cleanup'
  * @property {string} [errorType] - Error type for failed tasks
- * @property {number} [queueSize] - Queue size when backpressure blocked
- * @property {number} [activeJobs] - Active jobs when backpressure blocked
+ * @property {number} [queueSize] - Current queue size
+ * @property {number} [activeJobs] - Current active jobs
+ * @property {number} [concurrency] - Current concurrency level
  * @property {number} [maxQueueSize] - Maximum queue size when backpressure blocked
  * @property {number} [count] - Count for shutdown metrics (aborted tasks, dropped queued)
  * @property {number} [timeout] - Timeout value for shutdown metrics
@@ -62,8 +66,8 @@
 /**
  * @typedef {Object} AddToQueueOptions
  * @property {number} [timeout] - Task timeout in milliseconds
- * @property {AbortSignal} [abortSignal] - Abort signal for cancellation
- * @property {AbortSignal} [signal] - Alias for abortSignal
+ * @property {AbortSignal} [signal] - Abort signal for cancellation (preferred API)
+ * @property {AbortSignal} [abortSignal] - Legacy alias for signal (deprecated, use 'signal' instead)
  * @property {string} [userId] - User ID for rate limiting
  * @property {string|number} [priority] - Task priority ('high', 'normal', 'low' or numeric).
  *   Lower numbers = higher priority; negative numbers allowed.

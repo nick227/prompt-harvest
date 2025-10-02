@@ -3,6 +3,19 @@
 // ============================================================================
 
 /**
+ * Sanitize text for HTML output (prevent XSS)
+ * @param {string} text - Text to sanitize
+ * @returns {string} Sanitized text
+ */
+const sanitizeHTML = text => {
+    const div = document.createElement('div');
+
+    div.textContent = text;
+
+    return div.innerHTML;
+};
+
+/**
  * Create HTML for match list items
  * @param {Array} matches - Array of match strings
  * @param {boolean} isSample - Whether these are sample matches
@@ -10,8 +23,10 @@
  */
 const createMatchListHTML = (matches, isSample = false) => matches.map(match => {
     const className = isSample ? 'sample' : '';
+    const safeMatch = sanitizeHTML(match);
+    const safeTitle = sanitizeHTML(match);
 
-    return `<li class="${className}" title="${match}">${match}</li>`;
+    return `<li class="${className}" title="${safeTitle}">${safeMatch}</li>`;
 }).join('');
 
 /**
@@ -33,7 +48,7 @@ const processMatchSelection = (matchText, isSample) => {
 };
 
 /**
- * Find triggering word position
+ * Find triggering word position (whole word match only)
  * @param {string} value - The text value
  * @param {string} triggeringWord - Word to find
  * @param {number} cursorPosition - Current cursor position
@@ -42,7 +57,20 @@ const processMatchSelection = (matchText, isSample) => {
 const findTriggeringWordPosition = (value, triggeringWord, cursorPosition) => {
     const textBeforeCursor = value.slice(0, cursorPosition);
 
-    return textBeforeCursor.lastIndexOf(triggeringWord);
+    // Find the last occurrence as a whole word (not substring)
+    // Use word boundary regex to ensure we match complete words only
+    const escapedWord = window.TextUtils.escapeRegex(triggeringWord);
+    const wordRegex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
+
+    // Find all matches and get the last one
+    let lastMatch = null;
+    let match;
+
+    while ((match = wordRegex.exec(textBeforeCursor)) !== null) {
+        lastMatch = match;
+    }
+
+    return lastMatch ? lastMatch.index : -1;
 };
 
 /**
@@ -107,7 +135,7 @@ class MatchProcessor {
     }
 
     /**
-     * Get matches for a specific word (enhanced with related terms matching)
+     * Get matches for a specific word using backend endpoint
      * @param {string} word - Word to get matches for
      * @returns {Promise<Array>} Array of matches
      */
@@ -118,91 +146,24 @@ class MatchProcessor {
                 return [];
             }
 
-            // Get all words from the /words endpoint
-            const allWords = await Utils.async.fetchJson('/words');
+            const searchWord = word.trim();
+            const limit = TEXTAREA_CONFIG.limits.wordType;
 
-            if (!Array.isArray(allWords)) {
-                console.warn('⚠️ Invalid response from /words endpoint');
+            // Use backend endpoint with intelligent scoring
+            const url = `${TEXTAREA_CONFIG.api.wordType}/${encodeURIComponent(searchWord)}?limit=${limit}`;
+            const matches = await Utils.async.fetchJson(url);
+
+            if (!Array.isArray(matches)) {
+                console.warn('⚠️ Invalid response from word types endpoint');
+
                 return [];
             }
 
-            const searchWord = word.toLowerCase().trim();
-            const seenWords = new Set();
-            const results = [];
-
-            // Single pass through records with early termination for performance
-            for (const record of allWords) {
-                // Skip invalid records early
-                if (!record || typeof record !== 'object' || typeof record.word !== 'string' || record.word.trim() === '') {
-                    continue;
-                }
-
-                const mainWord = record.word.toLowerCase();
-                const relatedTerms = Array.isArray(record.types) ? record.types : [];
-
-                // Skip if we already have this word (avoid duplicates)
-                if (seenWords.has(record.word)) {
-                    continue;
-                }
-
-                let bestScore = 0;
-
-                // Check main word matches (highest priority)
-                if (mainWord === searchWord) {
-                    bestScore = 100;
-                } else if (mainWord.startsWith(searchWord)) {
-                    bestScore = 80;
-                } else if (mainWord.includes(searchWord)) {
-                    bestScore = 60;
-                }
-
-                // Check related terms matches only if no main word match found
-                if (bestScore === 0) {
-                    for (const relatedTerm of relatedTerms) {
-                        if (typeof relatedTerm !== 'string') {
-                            continue;
-                        }
-
-                        const relatedTermLower = relatedTerm.toLowerCase();
-                        if (relatedTermLower === searchWord) {
-                            bestScore = 90;
-                            break; // Found exact match, no need to check further
-                        } else if (relatedTermLower.startsWith(searchWord)) {
-                            bestScore = 70;
-                        } else if (relatedTermLower.includes(searchWord) && bestScore < 50) {
-                            bestScore = 50;
-                        }
-                    }
-                }
-
-                // Add to results if we found a match
-                if (bestScore > 0) {
-                    seenWords.add(record.word);
-                    results.push({ word: record.word, score: bestScore });
-                }
-            }
-
-            // Sort by score (highest first), then by word length (shorter first)
-            results.sort((a, b) => {
-                if (a.score !== b.score) {
-                    return b.score - a.score;
-                }
-                return a.word.length - b.word.length;
-            });
-
-            // Extract just the word strings and limit results
-            const limitedResults = results.slice(0, TEXTAREA_CONFIG.limits.wordType).map(r => r.word);
-
-            console.log(`🔍 MATCH PROCESSOR: Found ${limitedResults.length} matches for "${word}":`, {
-                totalMatches: results.length,
-                finalResults: limitedResults,
-                topMatches: results.slice(0, 3).map(r => ({ word: r.word, score: r.score }))
-            });
-
-            return limitedResults;
+            return matches;
 
         } catch (error) {
             console.warn('⚠️ Word matching failed for:', word, error.message);
+
             return [];
         }
     }

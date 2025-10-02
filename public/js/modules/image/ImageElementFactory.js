@@ -95,12 +95,12 @@ class ImageElementFactory {
      * @param {HTMLImageElement} img - Image element
      * @param {Object} imageData - Image data object
      */
-    downloadImage(img, _imageData) {
-        this.downloadImageAsBlob(img.src);
+    downloadImage(img, imageData) {
+        this.downloadImageAsBlob(img.src, imageData);
     }
 
     // Download image as blob to force Save As dialog
-    async downloadImageAsBlob(imageUrl) {
+    async downloadImageAsBlob(imageUrl, imageData = null) {
         try {
             console.log('📥 DOWNLOAD: Fetching image as blob for download...');
 
@@ -111,7 +111,7 @@ class ImageElementFactory {
             }
 
             const blob = await response.blob();
-            const fileName = this.generateFileName(imageUrl);
+            const fileName = this.generateFileName(imageUrl, imageData);
 
             // Create object URL and download
             const objectUrl = URL.createObjectURL(blob);
@@ -135,7 +135,7 @@ class ImageElementFactory {
             // Fallback to old method
             try {
                 const a = document.createElement('a');
-                const fileName = decodeURIComponent(imageUrl.split('/').pop());
+                const fileName = this.generateFileName(imageUrl, imageData);
                 a.href = imageUrl;
                 a.download = fileName;
                 a.click();
@@ -147,7 +147,33 @@ class ImageElementFactory {
     }
 
     // Generate a proper filename for the download
-    generateFileName(imageUrl) {
+    generateFileName(imageUrl, imageData = null) {
+        // Try to use final prompt from imageData first
+        if (imageData) {
+            const finalPrompt = imageData.final ||
+                               imageData.finalPrompt ||
+                               imageData.enhancedPrompt ||
+                               imageData.prompt;
+            if (finalPrompt && finalPrompt.length > 0) {
+                // Take first 30 characters
+                const truncatedPrompt = finalPrompt.length > 30 ?
+                    finalPrompt.substring(0, 30) : finalPrompt;
+
+                // Sanitize filename - remove invalid characters but keep spaces
+                const sanitized = truncatedPrompt
+                    .replace(/[<>:"/\\|?*.,;(){}[\]!@#$%^&+=`~]/g, '') // Remove invalid filename characters
+                    .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
+                    .trim(); // Remove leading/trailing spaces
+
+                // Ensure we have a valid filename
+                if (sanitized && sanitized.length > 0) {
+                    // Add .jpg extension if not present
+                    return sanitized.endsWith('.jpg') ? sanitized : `${sanitized}.jpg`;
+                }
+            }
+        }
+
+        // Fallback to URL-based filename
         try {
             const { pathname } = new URL(imageUrl);
             const fileName = pathname.split('/').pop();
@@ -160,7 +186,7 @@ class ImageElementFactory {
 
             return decodeURIComponent(fileName);
         } catch (error) {
-            // Fallback filename
+            // Final fallback filename
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             return `generated-image-${timestamp}.jpg`;
         }

@@ -41,6 +41,15 @@ export class DatabaseQueueLogger {
     }
 
     /**
+     * Log a warning with context (alias for logWarning, matches console.warn convention)
+     * @param {string} message - Warning message
+     * @param {Object} context - Additional context
+     */
+    logWarn(message, context = {}) {
+        this.logWarning(message, context);
+    }
+
+    /**
      * Log an info message with context (fire-and-forget)
      * @param {string} message - Info message
      * @param {Object} context - Additional context

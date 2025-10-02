@@ -97,17 +97,19 @@ class ImageDOMManager {
                 try {
                     // Fetch the image as a blob to force Save As dialog
                     const response = await fetch(img.src);
+
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
                     const blob = await response.blob();
-                    const fileName = img.src.split('/').pop() || 'image.png';
+                    const fileName = this.generateFileNameFromPrompt(img);
 
                     // Create object URL and download
                     const objectUrl = URL.createObjectURL(blob);
 
                     const a = document.createElement('a');
+
                     a.href = objectUrl;
                     a.download = fileName;
                     a.style.display = 'none';
@@ -126,8 +128,9 @@ class ImageDOMManager {
                     // Fallback to old method
                     try {
                         const a = document.createElement('a');
+
                         a.href = img.src;
-                        a.download = img.src.split('/').pop() || 'image.png';
+                        a.download = this.generateFileNameFromPrompt(img);
                         a.style.display = 'none';
                         document.body.appendChild(a);
                         a.click();
@@ -266,7 +269,7 @@ class ImageDOMManager {
      * @returns {Object|null} Processed image data or null
      * @private
      */
-    processImageOutput(imageData, download) {
+    processImageOutput(imageData, _download) {
         // Validate and normalize image data
         const normalizedData = this.dataManager.normalizeImageData(imageData);
         const validation = this.dataManager.validateImageData(normalizedData);
@@ -317,8 +320,10 @@ class ImageDOMManager {
 
         // Check if image already exists in DOM (might have been added via loading placeholder replacement)
         const existingImage = document.querySelector(`[data-image-id="${imageData.id}"]`);
+
         if (existingImage) {
             console.log('✅ DOM INSERT: Image already exists in DOM, skipping fallback');
+
             return imageData;
         }
 
@@ -369,7 +374,7 @@ class ImageDOMManager {
      * @param {boolean} download - Whether to download (legacy parameter, not used)
      * @private
      */
-    handleAutoDownload(img, imageData, download) {
+    handleAutoDownload(img, imageData, _download) {
         const autoDownload = document.querySelector('input[name="autoDownload"]:checked');
 
         console.log('📥 AUTO DOWNLOAD DEBUG:', {
@@ -453,6 +458,7 @@ class ImageDOMManager {
 
             // Fetch the image as a blob
             const response = await fetch(imageUrl);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -464,6 +470,7 @@ class ImageDOMManager {
             const objectUrl = URL.createObjectURL(blob);
 
             const a = document.createElement('a');
+
             a.href = objectUrl;
             a.download = fileName;
             a.style.display = 'none';
@@ -496,6 +503,7 @@ class ImageDOMManager {
             // If no filename or extension, generate one
             if (!fileName || !fileName.includes('.')) {
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
                 return `generated-image-${timestamp}.jpg`;
             }
 
@@ -503,8 +511,46 @@ class ImageDOMManager {
         } catch (error) {
             // Fallback filename
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
             return `generated-image-${timestamp}.jpg`;
         }
+    }
+
+    /**
+     * Generate filename from final prompt (first 30 characters)
+     * @param {HTMLImageElement} img - Image element
+     * @returns {string} Sanitized filename
+     * @private
+     */
+    generateFileNameFromPrompt(img) {
+        // Get final prompt from dataset (check multiple possible fields)
+        const finalPrompt = img.dataset.final ||
+                           img.dataset.finalPrompt ||
+                           img.dataset.enhancedPrompt ||
+                           img.dataset.prompt ||
+                           img.alt ||
+                           'Generated Image';
+
+        // Take first 30 characters
+        const truncatedPrompt = finalPrompt.length > 30
+            ? finalPrompt.substring(0, 30)
+            : finalPrompt;
+
+        // Sanitize filename - remove invalid characters but keep spaces
+        const sanitized = truncatedPrompt
+            .replace(/[<>:"/\\|?*.,;(){}[\]!@#$%^&+=`~]/g, '') // Remove invalid filename characters
+            .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
+            .trim(); // Remove leading/trailing spaces
+
+        // Ensure we have a valid filename
+        if (!sanitized || sanitized.length === 0) {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+            return `Generated Image ${timestamp}.jpg`;
+        }
+
+        // Add .jpg extension if not present
+        return sanitized.endsWith('.jpg') ? sanitized : `${sanitized}.jpg`;
     }
 
     // ============================================================================

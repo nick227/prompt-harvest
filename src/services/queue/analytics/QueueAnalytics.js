@@ -265,7 +265,7 @@ export class QueueAnalytics {
 
         if (queueSize >= waitingRoomCap) {
             // Log backpressure event (fire-and-forget)
-            databaseQueueLogger.logWarning('Queue backpressure triggered', {
+            databaseQueueLogger.logWarn('Queue backpressure triggered', {
                 queueSize,
                 waitingRoomCap,
                 activeJobs,
@@ -307,7 +307,7 @@ export class QueueAnalytics {
 
         if (userLimits.requests.length >= maxRequestsPerMinute) {
             // Log rate limit event (fire-and-forget)
-            databaseQueueLogger.logWarning('User rate limit exceeded', {
+            databaseQueueLogger.logWarn('User rate limit exceeded', {
                 userId,
                 currentRequests: userLimits.requests.length,
                 maxRequestsPerMinute,

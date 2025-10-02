@@ -128,6 +128,7 @@ class UnifiedInfoBox {
                     const toggleEvent = new CustomEvent('infoBoxToggle', {
                         detail: { isExpanded: !isCollapsed }
                     });
+
                     window.dispatchEvent(toggleEvent);
                 }
             }
@@ -428,6 +429,7 @@ class UnifiedInfoBox {
         if (window.AdminAuthUtils && window.AdminAuthUtils.hasValidToken) {
             // Use centralized auth system for ownership check
             const currentUserId = window.userSystem?.getCurrentUser()?.id;
+
             return currentUserId && imageData.userId === currentUserId;
         }
 
@@ -443,6 +445,7 @@ class UnifiedInfoBox {
 
         // Check if user owns the image
         const currentUserId = window.userSystem?.getCurrentUser()?.id;
+
         return currentUserId && imageData.userId === currentUserId;
     }
 
@@ -503,6 +506,16 @@ class UnifiedInfoBox {
         if (config.titleSource === 'id') {
             return imageData.id || config.titleFallback;
         } else {
+            // Use final prompt (first 30 characters) instead of title
+            const finalPrompt = imageData.final ||
+                               imageData.finalPrompt ||
+                               imageData.enhancedPrompt ||
+                               imageData.prompt;
+
+            if (finalPrompt && finalPrompt.length > 0) {
+                return finalPrompt.length > 30 ? `${finalPrompt.substring(0, 30)}...` : finalPrompt;
+            }
+
             return imageData.title || config.titleFallback;
         }
     }
@@ -716,6 +729,7 @@ class UnifiedInfoBox {
         } else {
             // Fallback: remove from DOM directly
             const imageWrapper = document.querySelector(`[data-image-id="${imageId}"]`);
+
             if (imageWrapper) {
                 imageWrapper.remove();
             }

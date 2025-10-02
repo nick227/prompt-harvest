@@ -47,7 +47,7 @@ export class QueueInitializationManager {
             analytics,
             this._monotonicNow
         );
-        const signalHandler = new QueueSignalHandler(lifecycle);
+        const signalHandler = new QueueSignalHandler(lifecycle, analytics, this._epochNow);
         const duplicateRequestHandler = new QueueDuplicateRequestHandler(operations);
 
         return {

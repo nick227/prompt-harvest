@@ -11,6 +11,11 @@
 
 // Initialize when dependencies are available
 const initTextAreaManager = () => {
+    // Check if already initialized
+    if (window.textAreaManager) {
+        return;
+    }
+
     if (typeof TEXTAREA_CONFIG !== 'undefined' && typeof Utils !== 'undefined' && typeof window.TextAreaManager !== 'undefined') {
         try {
             window.textAreaManager = new window.TextAreaManager();

@@ -5,8 +5,13 @@
  */
 
 export class QueueSignalHandler {
-    constructor(lifecycle) {
+    // Track if we've warned about deprecated abortSignal (once per process)
+    static _hasWarnedAbortSignal = false;
+
+    constructor(lifecycle, analytics, epochNow) {
         this.lifecycle = lifecycle;
+        this._analytics = analytics;
+        this._epochNow = epochNow;
     }
 
     /**
@@ -70,10 +75,22 @@ export class QueueSignalHandler {
     }
 
     /**
-     * Normalize signal options
+     * Normalize signal options (unify signal API)
+     *
+     * Public API: Use options.signal (preferred)
+     * Legacy alias: options.abortSignal (supported but deprecated)
+     *
+     * Internally, we normalize to abortSignal for consistency with downstream code.
+     *
      * @param {Object} options - Task options
      */
     normalizeSignalOptions(options) {
+        // Detect deprecated abortSignal usage (when used without signal)
+        if (options.abortSignal && !options.signal) {
+            this._emitDeprecationWarning(options);
+        }
+
+        // Normalize signal -> abortSignal (options.signal is the preferred public API)
         if (options.signal && !options.abortSignal) {
             options.abortSignal = options.signal;
         }
@@ -81,6 +98,31 @@ export class QueueSignalHandler {
         // Safety: Delete original signal field to prevent downstream confusion
         if (options.signal && options.abortSignal) {
             delete options.signal;
+        }
+    }
+
+    /**
+     * Emit deprecation warning for abortSignal usage
+     * @param {Object} options - Task options
+     * @private
+     */
+    _emitDeprecationWarning(options) {
+        // Emit metric for every usage (for accurate deprecation tracking)
+        this._analytics?.recordMetrics({
+            action: 'deprecated_api_used',
+            api: 'abortSignal',
+            requestId: options.requestId,
+            userId: options.userId,
+            timestamp: this._epochNow?.() || Date.now()
+        });
+
+        // Log warning once per process to avoid spam
+        if (!QueueSignalHandler._hasWarnedAbortSignal) {
+            QueueSignalHandler._hasWarnedAbortSignal = true;
+            console.warn(
+                '[QueueManager] Deprecation warning: options.abortSignal is deprecated. ' +
+                'Use options.signal instead. abortSignal will be removed in a future version.'
+            );
         }
     }
 }

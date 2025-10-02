@@ -6,22 +6,58 @@ import databaseClient from '../database/PrismaClient.js';
 
 const prisma = databaseClient.getClient();
 
+// Helper function to score word matches
+const scoreWordMatch = (record, searchWord) => {
+    if (!record?.word || typeof record.word !== 'string' || record.word.trim() === '') {
+        return null;
+    }
+
+    const mainWord = record.word.toLowerCase();
+    const relatedTerms = Array.isArray(record.types) ? record.types : [];
+    let bestScore = 0;
+
+    // Priority 1: Main word matches (highest priority)
+    if (mainWord === searchWord) {
+        bestScore = 100; // Exact match on main word
+    } else if (mainWord.startsWith(searchWord)) {
+        bestScore = 80; // StartsWith on main word
+    }
+
+    // Priority 2: Related terms matches (only if no main word match)
+    if (bestScore === 0) {
+        for (const relatedTerm of relatedTerms) {
+            if (!relatedTerm || typeof relatedTerm !== 'string') {
+                continue;
+            }
+
+            const relatedTermLower = relatedTerm.toLowerCase();
+
+            if (relatedTermLower === searchWord) {
+                bestScore = 90; // Exact match on related term
+                break;
+            } else if (relatedTermLower.startsWith(searchWord)) {
+                bestScore = Math.max(bestScore, 70); // StartsWith on related term
+            }
+        }
+    }
+
+    return bestScore > 0
+        ? {
+            word: record.word,
+            score: bestScore,
+            length: record.word.length
+        }
+        : null;
+};
+
 // eslint-disable-next-line max-lines-per-function
 export const setupWordRoutes = app => {
     // Get all words (for terms.html)
     app.get('/words', async (req, res) => {
         try {
-            // /words endpoint called
-
-            // Test database connection first
-            await prisma.$connect();
-            // Database connection successful
-
             const wordRecords = await prisma.word_types.findMany({
                 select: { word: true, types: true }
             });
-
-            // Found word records in database
 
             const response = wordRecords.map(record => {
                 try {
@@ -41,7 +77,6 @@ export const setupWordRoutes = app => {
 
             response.sort((a, b) => a.word.localeCompare(b.word));
 
-            // Returning words to client
             res.json(response);
         } catch (error) {
             console.error('❌ Error fetching words:', error);
@@ -57,74 +92,42 @@ export const setupWordRoutes = app => {
         }
     });
 
-    // Get word types for a specific word (with fuzzy matching like original NeDB implementation)
+    // Get word types for a specific word with intelligent scoring
     app.get('/word/types/:word', async (req, res) => {
         try {
-            const word = decodeURIComponent(req.params.word).toLowerCase();
-            const _limit = parseInt(req.query.limit) || 8;
+            const searchWord = decodeURIComponent(req.params.word).toLowerCase().trim();
+            const limit = parseInt(req.query.limit) || 8;
 
-            // Get all word records to search through (like original NeDB implementation)
+            if (!searchWord || searchWord.length === 0) {
+                return res.json([]);
+            }
+
+            // Load all word records (needed to check JSON array types field)
             const allWordRecords = await prisma.word_types.findMany({
-                // Remove the take limit to get all records
+                select: { word: true, types: true }
             });
 
-            const results = [];
+            const seenWords = new Set();
+            const scoredResults = [];
 
-            // Search through all records like the original NeDB regex implementation
-            allWordRecords.forEach(record => {
-                const recordWord = record.word.toLowerCase();
-
-                // Check if word matches the record word (exact or starts with)
-                if (recordWord === word || recordWord.startsWith(word)) {
-                    if (!results.includes(record.word)) {
-                        results.push(record.word);
-                    }
+            // Score each record using helper function
+            for (const record of allWordRecords) {
+                if (seenWords.has(record.word)) {
+                    continue;
                 }
 
-                try {
-                    const typesArray = Array.isArray(record.types) ? record.types : [];
+                const result = scoreWordMatch(record, searchWord);
 
-                    if (typesArray && typesArray.length > 0) {
-
-                        const hasMatch = typesArray.some(type => {
-
-                            if (!type || typeof type !== 'string') {
-                                return false;
-                            }
-                            const typeLower = type.toLowerCase();
-                            const wordLower = word.toLowerCase();
-
-                            return typeLower.startsWith(wordLower) || wordLower.startsWith(typeLower);
-                        });
-
-                        if (hasMatch && record.word && !results.includes(record.word)) {
-                            results.push(record.word);
-                        }
-                    }
-                } catch (parseError) {
-                    console.warn(`Failed to process types for word "${record.word}":`, parseError.message);
+                if (result) {
+                    seenWords.add(record.word);
+                    scoredResults.push(result);
                 }
-            });
+            }
 
-            // Sort results: exact matches first, then startsWith matches, then by length (shorter first)
-            results.sort((a, b) => {
-                const aIsExact = a.toLowerCase() === word.toLowerCase();
-                const bIsExact = b.toLowerCase() === word.toLowerCase();
+            // Sort by score DESC, then length ASC
+            scoredResults.sort((a, b) => (a.score !== b.score ? b.score - a.score : a.length - b.length));
 
-                if (aIsExact && !bIsExact) { return -1; }
-                if (!aIsExact && bIsExact) { return 1; }
-
-                const aStartsWith = a.toLowerCase().startsWith(word.toLowerCase());
-                const bStartsWith = b.toLowerCase().startsWith(word.toLowerCase());
-
-                if (aStartsWith && !bStartsWith) { return -1; }
-                if (!aStartsWith && bStartsWith) { return 1; }
-
-                return a.length - b.length;
-            });
-
-            // Limit results
-            const limitedResults = results.slice(0, _limit);
+            const limitedResults = scoredResults.slice(0, limit).map(r => r.word);
 
             res.json(limitedResults);
         } catch (error) {
@@ -136,7 +139,7 @@ export const setupWordRoutes = app => {
     // Get word examples for a specific word
     app.get('/word/examples/:word', async (req, res) => {
         try {
-            const word = decodeURIComponent(req.params.word).toLowerCase();
+            const _word = decodeURIComponent(req.params.word).toLowerCase();
             const _limit = parseInt(req.query.limit) || 8;
 
             res.json([]);

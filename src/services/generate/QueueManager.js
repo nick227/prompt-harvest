@@ -9,34 +9,39 @@
  * - Proper initialization and error handling
  *
  * Time Sources:
- * - All durations/latencies use the monotonic clock
- * - All event timestamps use the epoch clock
+ * - All durations/latencies use the monotonic clock (performance.now)
+ * - All event timestamps use the epoch clock (Date.now)
+ * - Tasks are stamped with both clocks for comprehensive tracing
  */
 
 // Time sources managed by QueueTimeUtils for consistent timing across components
 import { QueueCore } from '../queue/core/QueueCore.js';
-import { BackpressureError, RateLimitError, InitializationError, ShutdownError, ValidationError, mapQueueErrorToHttp } from '../queue/errors/QueueErrors.js';
+import { InitializationError, ShutdownError, ValidationError } from '../queue/errors/QueueErrors.js';
 import { databaseQueueLogger } from '../queue/logging/DatabaseQueueLogger.js';
 import { createEpochTimeSource, createMonotonicTimeSource } from './QueueTimeUtils.js';
 import { QueueInitializationManager } from './QueueInitializationManager.js';
 import { QueueValidationHelper } from './QueueValidationHelper.js';
 import { ENQUEUE_CANCEL } from './QueueSymbols.js';
 import { QueuePriorityHandler } from './QueuePriorityHandler.js';
+import { PRIORITY_MIN, PRIORITY_MAX } from './QueueConstants.js';
 
 // Import type definitions
 import '../queue/types/QueueTypes.js';
 
-// Import utility functions
-
-// Re-export error classes and HTTP mapper for external use
-export { BackpressureError, RateLimitError, InitializationError, ShutdownError, ValidationError, mapQueueErrorToHttp };
+// Re-export error classes and HTTP mapper directly for external use (tree-shaking friendly)
+export { BackpressureError, RateLimitError, InitializationError, ShutdownError, ValidationError, mapQueueErrorToHttp } from '../queue/errors/QueueErrors.js';
 
 // Re-export utility functions
 export { createQueueController } from './QueueControllerFactory.js';
-export { ENQUEUE_CANCEL } from './QueueSymbols.js';
 
 // Re-export priority aliases to prevent drift
 export { PRIORITY_ALIASES } from '../queue/lifecycle/QueueLifecycle.js';
+
+// Re-export priority bounds helper (not imported internally, just pass-through)
+export { getPriorityBounds } from './QueueConstants.js';
+
+// Re-export imported symbols (consolidate to avoid duplicate bindings)
+export { ENQUEUE_CANCEL, PRIORITY_MIN, PRIORITY_MAX };
 
 // Local type aliases for better IDE support
 /** @typedef {import('../queue/types/QueueTypes.js').AddToQueueOptions} AddToQueueOptions */
@@ -45,23 +50,49 @@ export { PRIORITY_ALIASES } from '../queue/lifecycle/QueueLifecycle.js';
 /** @typedef {import('../queue/types/QueueTypes.js').QueueHealth} QueueHealth */
 
 /**
+ * @typedef {Object} QueueManagerOptions
+ * @property {number} [concurrency=2] - Queue concurrency limit
+ * @property {number} [timeout=300000] - Task timeout in milliseconds (default 5 minutes)
+ * @property {Function} [epochNow] - Custom epoch time source (default: Date.now)
+ * @property {Function} [monotonicNow] - Custom monotonic time source (default: performance.now)
+ * @property {('rejectNew'|'cancelPrevious'|'allow')} [duplicateRequestIdPolicy='cancelPrevious'] - Duplicate ID policy
+ */
+
+/**
  * SANITY CHECKS FOR TESTING
  *
  * The following scenarios should be tested to ensure proper metric behavior:
  *
- * 1. Enqueue with already-aborted external signal
+ * 1. Pre-aborted external signal
  *    → Should emit only 'task_cancelled_before_enqueue' (no 'task_enqueue_error')
+ *    → Error should have code 'ERR_TASK_ABORTED_PRE_ENQUEUE' and phase: 'enqueue'
  *
- * 2. Enqueue cancel via duplicate requestId with cancelPrevious
- *    → Should emit only one cancel metric for the previous task
+ * 2. Duplicate requestId with cancelPrevious
+ *    → Previous task gets exactly one cancel metric; new task runs
  *
- * 3. Pre-start cancel thrown from p-queue (native AbortError)
- *    → Should emit 'task_cancelled_before_start' exactly once
+ * 3. p-queue AbortError pre-start (native cancellation)
+ *    → Should emit 'task_cancelled_before_start' exactly once with phase: 'start'
  *
- * 4. Enqueue-time cancel with queue context
- *    → Should include priorityNormalized, queueSize, activeJobs in metrics
+ * 4. Priority normalization edge cases
+ *    → Non-numeric → clamped to 0 with warning logged once
+ *    → Negative → clamped to PRIORITY_MIN
+ *    → >PRIORITY_MAX → clamped to PRIORITY_MAX
+ *    → NaN/Infinity → normalized to 0 with warning logged once
  *
- * 5. Double cancellation prevention
+ * 5. Graceful shutdown idempotency
+ *    → Multiple concurrent calls return same promise
+ *    → Cleanup runs once; rate-limiter cleanup restarts only once after resumeAcceptingTasks()
+ *
+ * 6. Backpressure + user rate-limit
+ *    → Blocks with metrics including snapshot fields (queueSize, activeJobs, concurrency, phase)
+ *
+ * 7. Arity warning path
+ *    → Function with length 0 emits 'function_arity_warning' exactly once
+ *
+ * 8. Enqueue-time cancel with queue context
+ *    → Should include priorityNormalized, queueSize, activeJobs, concurrency in metrics
+ *
+ * 9. Double cancellation prevention
  *    → Enqueue-time cancels should not trigger cleanup-time metrics
  *
  * RATE LIMITER CLEANUP PATTERN
@@ -74,16 +105,27 @@ export { PRIORITY_ALIASES } from '../queue/lifecycle/QueueLifecycle.js';
 
 
 export class QueueManager {
+    /**
+     * Cold start threshold multiplier (configurable for ops tuning)
+     * Used to calculate queue cold start detection: concurrency * COLD_START_THRESHOLD_MULTIPLIER
+     */
+    static COLD_START_THRESHOLD_MULTIPLIER = 2;
+
+    /**
+     * Error phase tagging for HTTP mappers
+     *
+     * All errors thrown from QueueManager are tagged with a queuePhase property
+     * to help HTTP mappers and error handlers identify the lifecycle stage.
+     *
+     * Valid phases: 'init' | 'enqueue' | 'start' | 'run' | 'cleanup' | 'config'
+     *
+     * Example:
+     *   error.queuePhase = 'enqueue';
+     */
 
     /**
      * Create a new QueueManager instance
-     * @param {Object} options - Configuration options
-     * @param {Function} [options.epochNow] - Custom epoch time source (default: Date.now)
-     * @param {Function} [options.monotonicNow] - Custom monotonic time source (default: performance.now)
-     * @param {string} [options.duplicateRequestIdPolicy] - Policy for duplicate request IDs
-     *   ('rejectNew', 'cancelPrevious', 'allow')
-     * @param {number} [options.concurrency] - Queue concurrency limit
-     * @param {number} [options.timeout] - Task timeout in milliseconds
+     * @param {QueueManagerOptions} [options={}] - Configuration options
      */
     constructor(options = {}) {
         // Default configuration for image generation
@@ -96,7 +138,8 @@ export class QueueManager {
         this._epochNow = createEpochTimeSource(options.epochNow);
         this._monotonicNow = createMonotonicTimeSource(options.monotonicNow);
 
-        const { epochNow: _epochNow, monotonicNow: _monotonicNow, ...coreOptions } = options || {};
+        // Strip time sources from core options (avoid passing them to QueueCore)
+        const { epochNow: _, monotonicNow: __, ...coreOptions } = options || {};
 
         this.queueService = new QueueCore({ ...defaultOptions, ...coreOptions });
 
@@ -147,8 +190,8 @@ export class QueueManager {
         this._retryManager = managers.retryManager;
         this._initialization = managers.initialization;
 
-        // Initialize priority handler
-        this._priorityHandler = new QueuePriorityHandler(this._analytics, this._epochNow);
+        // Initialize priority handler with logger for centralized warnings
+        this._priorityHandler = new QueuePriorityHandler(this._analytics, this._epochNow, databaseQueueLogger);
 
         this._operations = managers.operations;
         this._shutdown = managers.shutdown;
@@ -168,7 +211,10 @@ export class QueueManager {
      *   Task functions should check signal.aborted and throw AbortError when cancelled.
      *   Expected signature: (signal) => Promise<any>
      *   Note: If you want cancellation, pass your own AbortController().signal OR set returnController: true.
+     *   If both are supplied, caller's signal wins; returnController will be null.
      * @param {AddToQueueOptions} options - Task options
+     *   Use options.signal (preferred) to pass an external AbortSignal.
+     *   Legacy alias: options.abortSignal is supported but deprecated.
      * @returns {Promise|Object} Promise that resolves when generation completes, or {promise, controller} if
      *   returnController is true
      *   Note: If caller provides their own signal, only the promise is returned (controller is null)
@@ -179,16 +225,28 @@ export class QueueManager {
 
         // Double-gate: Check again after initialization completes (prevents adds during shutdown)
         if (!this._operations.isAcceptingTasks()) {
-            throw new ShutdownError('Queue is shutting down and not accepting new tasks');
+            const error = new ShutdownError('Queue shutdown in progress; rejecting new tasks');
+
+            error.queuePhase = 'enqueue';
+            throw error;
         }
 
         const priorityOriginal = options.priority ?? 'normal';
 
-        // Capture original signal state before any processing
+        // Capture original signal state before any processing (check both preferred and legacy APIs)
         const callerHadSignal = !!(options.signal || options.abortSignal);
         const opts = this._prepareTaskOptions(options);
         const { controller, requestController } = this._signalHandler.setupControllers(opts);
         const abortSignal = this._signalHandler.prepareAbortSignal(opts);
+
+        // Set timestamps BEFORE pre-enqueue checks so they're available for metrics
+        const timestamps = this._getEnqueuedTimestamp();
+
+        // Store timestamps for trace correlation in metrics (before pre-enqueue checks)
+        if (Object.isExtensible(opts)) {
+            opts._enqueuedAtMonotonic = timestamps.monotonic;
+            opts._enqueuedAtEpoch = timestamps.epoch;
+        }
 
         this._checkPreEnqueueConditions(opts);
 
@@ -197,30 +255,61 @@ export class QueueManager {
             options: opts,
             abortSignal,
             onStartCallback,
-            enqueuedAt: this._getEnqueuedTimestamp()
+            enqueuedAt: timestamps.monotonic,        // Backwards-compatible field
+            enqueuedAtMonotonic: timestamps.monotonic, // Explicit alias for clarity
+            enqueuedAtEpoch: timestamps.epoch
         });
 
+        // Keep a single object so _enqueueTask's write-back updates the same reference
+        // Safe write: handle frozen/sealed options objects gracefully
+        let enqueueOpts;
+
+        if (Object.isExtensible(opts)) {
+            // Mutate opts directly (preferred for write-back)
+            opts.abortSignal = abortSignal;
+            enqueueOpts = opts;
+        } else {
+            // Frozen/sealed opts: create new object (write-back still works on this object)
+            enqueueOpts = {
+                ...opts,
+                abortSignal,
+                _enqueuedAtMonotonic: timestamps.monotonic,
+                _enqueuedAtEpoch: timestamps.epoch
+            };
+        }
+
         try {
-            const promise = this._enqueueTask(wrappedFunction, { ...opts, abortSignal });
+            const promise = this._enqueueTask(wrappedFunction, enqueueOpts);
 
             // Record queue add metrics only after successful enqueue (gates behind abort check)
-            this._priorityHandler.recordQueueAddMetrics(opts, priorityOriginal, opts.priority);
+            // enqueueOpts.priority now reflects the final clamped value from _enqueueTask
+            this._priorityHandler.recordQueueAddMetrics(
+                enqueueOpts,
+                priorityOriginal,
+                enqueueOpts.priority
+            );
 
             this._taskManager.setupTaskTracking(promise, {
-                options: opts,
+                options: enqueueOpts,
                 lifecycleEntry,
                 requestController,
                 wrappedFunction
             });
 
             return this._taskManager.handleReturnValue(promise, {
-                options: opts,
+                options: enqueueOpts,
                 requestController,
                 controller,
                 originalHadSignal: callerHadSignal
             });
         } catch (error) {
-            this._handleEnqueueError(error, { opts, requestController, lifecycleEntry, priorityOriginal });
+            this._handleEnqueueError(error, {
+                opts: enqueueOpts,
+                requestController,
+                lifecycleEntry,
+                priorityOriginal
+            });
+
             throw error;
         }
     }
@@ -238,19 +327,44 @@ export class QueueManager {
         this._duplicateRequestHandler.handleDuplicateRequestIds(opts);
 
         // Normalize priority once and store it on opts.priority for consistent use everywhere
-        opts.priority = this._priorityHandler.calculateNormalizedPriority(opts.priority);
+        // Pass context for better logging
+        opts.priority = this._priorityHandler.calculateNormalizedPriority(opts.priority, {
+            requestId: opts.requestId,
+            userId: opts.userId
+        });
 
         return opts;
     }
 
 
     /**
-     * Get high precision timestamp for enqueued tasks
-     * @returns {number} Timestamp
+     * Get timestamps for enqueued tasks (both clocks for comprehensive tracing)
+     * @returns {Object} Timestamps { monotonic: number, epoch: number }
+     *   - monotonic: for latency calculations (performance.now)
+     *   - epoch: for event tracing and logs (Date.now)
      * @private
      */
     _getEnqueuedTimestamp() {
-        return this._monotonicNow();
+        return {
+            monotonic: this._monotonicNow(),
+            epoch: this._epochNow()
+        };
+    }
+
+    /**
+     * Get queue snapshot for logging and metrics (DRY helper)
+     * @returns {Object} Queue snapshot with defaults for cleaner dashboards
+     * @private
+     */
+    _getQueueSnapshot() {
+        const metrics = this.queueService?.getMetrics();
+        const current = metrics?.current ?? {};
+
+        return {
+            queueSize: current.queueSize ?? 0,
+            activeJobs: current.activeJobs ?? 0,
+            concurrency: current.concurrency ?? this.queueService?.getConfig()?.concurrency ?? 2
+        };
     }
 
     /**
@@ -262,15 +376,46 @@ export class QueueManager {
     _handleEnqueueError(error, context) {
         const { opts, requestController, lifecycleEntry, priorityOriginal } = context;
 
+        // Don't log cancellations as errors (they're intentional user actions or p-queue timing)
+        const isEnqueueCancel = error[ENQUEUE_CANCEL] === true;
+        const isCancellation = this._taskManager.isCancellationError(error);
+        const isPreStartCancel = isCancellation && !isEnqueueCancel;
+
         try {
-            databaseQueueLogger.logError('Task enqueue failed', {
-                requestId: opts.requestId,
-                userId: opts.userId,
-                priorityOriginal,
-                priorityNormalized: opts.priority,
-                errorType: error.name,
-                queuePhase: 'enqueue'
-            }, error);
+            if (isEnqueueCancel) {
+                // Log at info level for pre-enqueue cancels (avoids polluting error dashboards)
+                databaseQueueLogger.logInfo('Task cancelled before enqueue', {
+                    requestId: opts.requestId,
+                    userId: opts.userId,
+                    priorityOriginal,
+                    priorityNormalized: opts.priority,
+                    phase: 'enqueue',
+                    reason: error.cause?.reason || 'signal-already-aborted',
+                    ...this._getQueueSnapshot()
+                });
+            } else if (isPreStartCancel) {
+                // Log at info level for pre-start cancels (p-queue native AbortError)
+                databaseQueueLogger.logInfo('Task cancelled before start', {
+                    requestId: opts.requestId,
+                    userId: opts.userId,
+                    priorityOriginal,
+                    priorityNormalized: opts.priority,
+                    phase: 'start',
+                    cancelType: 'pre-start',
+                    ...this._getQueueSnapshot()
+                });
+            } else {
+                // True errors get error-level logging
+                databaseQueueLogger.logError('Task enqueue failed', {
+                    requestId: opts.requestId,
+                    userId: opts.userId,
+                    priorityOriginal,
+                    priorityNormalized: opts.priority,
+                    errorType: error.name,
+                    phase: 'enqueue',
+                    ...this._getQueueSnapshot()
+                }, error);
+            }
         } catch { /* swallow logging errors */ }
 
         this._cleanupOnEnqueueFailure(opts, requestController, lifecycleEntry, error);
@@ -285,17 +430,12 @@ export class QueueManager {
         const metrics = this.queueService?.getMetrics();
         const health = this.queueService?.getHealthStatus();
         const initState = this._initialization?.getInitState();
-        const current = metrics?.current ?? {};
 
         return {
             // Basic metrics
             metrics: {
                 ...metrics,
-                current: {
-                    queueSize: current.queueSize ?? 0,
-                    activeJobs: current.activeJobs ?? 0,
-                    concurrency: current.concurrency ?? 2
-                }
+                current: this._getQueueSnapshot()
             },
 
             // Health status
@@ -315,10 +455,10 @@ export class QueueManager {
 
             // Queue state
             state: {
-                length: current.queueSize ?? 0,
-                isProcessing: (current.activeJobs ?? 0) > 0,
+                length: metrics?.current?.queueSize ?? 0,
+                isProcessing: (metrics?.current?.activeJobs ?? 0) > 0,
                 isPaused: this.queueService?.isPaused() ?? false,
-                concurrency: current.concurrency ?? this.queueService?.getConfig()?.concurrency ?? 2,
+                concurrency: metrics?.current?.concurrency ?? this.queueService?.getConfig()?.concurrency ?? 2,
                 pendingRequests: [] // p-queue limitation
             }
         };
@@ -373,8 +513,9 @@ export class QueueManager {
      * Get comprehensive queue overview for most consumers
      * This is the recommended method for general monitoring
      *
-     * Note: successRate and errorRate are fractions (0.0 to 1.0), not percentages
      * @returns {QueueOverview} Complete queue overview
+     *   - successRate: fraction 0.0-1.0 (not percentage; multiply by 100 for %)
+     *   - errorRate: fraction 0.0-1.0 (not percentage; multiply by 100 for %)
      */
     getOverview() {
         const data = this._getQueueData();
@@ -382,8 +523,8 @@ export class QueueManager {
         const health = this.getDetailedHealthStatus();
 
         return {
-            // Core status
-            status: data.health.status,
+            // Core status (always defined for UX)
+            status: data.health.status ?? 'unknown',
             isProcessing: data.state.isProcessing,
             isPaused: data.state.isPaused,
             isAcceptingTasks: this._operations.isAcceptingTasks(),
@@ -394,8 +535,8 @@ export class QueueManager {
             concurrency: data.metrics.current.concurrency,
 
             // Performance indicators (fractions: 0.0 to 1.0)
-            successRate: health.indicators?.successRate ?? 0,
-            errorRate: health.indicators?.errorRate ?? 0,
+            successRate: health?.indicators?.successRate ?? 0,
+            errorRate: health?.indicators?.errorRate ?? 0,
             avgProcessingTime: enhancedMetrics?.performance?.avgProcessingTime ?? 0,
 
             // Health indicators
@@ -497,16 +638,18 @@ export class QueueManager {
         // Input guard: Validate concurrency value (must be positive integer)
         if (typeof concurrency !== 'number' || !Number.isFinite(concurrency) ||
             concurrency < 1 || !Number.isInteger(concurrency)) {
-            throw new ValidationError(
-                `Invalid concurrency value: ${concurrency}. ` +
-                `Must be a positive integer >= 1 (received ${typeof concurrency}).`
+            const error = new ValidationError(
+                `Concurrency must be positive integer >= 1, got: ${concurrency} (${typeof concurrency})`
             );
+
+            error.queuePhase = 'config';
+            throw error;
         }
 
         const result = await this._initialization.updateConcurrency(concurrency);
 
-        // Update cold start threshold to match new concurrency
-        this._analytics?.setColdStartThreshold(concurrency * 2);
+        // Update cold start threshold to match new concurrency (using configurable multiplier)
+        this._analytics?.setColdStartThreshold(concurrency * QueueManager.COLD_START_THRESHOLD_MULTIPLIER);
 
         return result;
     }
@@ -583,17 +726,29 @@ export class QueueManager {
         // Capture context BEFORE cancellation (entry gets cleaned up after cancel)
         const lifecycleEntry = this._lifecycle.getLifecycleEntry?.(requestId);
         const userId = lifecycleEntry?.options?.userId;
+        const enqueuedAtMonotonic = lifecycleEntry?.options?._enqueuedAtMonotonic;
+        const enqueuedAtEpoch = lifecycleEntry?.options?._enqueuedAtEpoch;
 
         const cancelled = this._lifecycle.cancelRequest(requestId);
 
         if (cancelled) {
             // Emit metric for user cancellation with user context
-            this._analytics?.recordMetrics({
+            const metrics = {
                 action: 'user_cancellation',
                 requestId,
                 userId,
                 timestamp: this._epochNow()
-            });
+            };
+
+            // Add enqueued timestamps for trace correlation (when available)
+            if (enqueuedAtMonotonic !== undefined) {
+                metrics.enqueuedAtMonotonic = enqueuedAtMonotonic;
+            }
+            if (enqueuedAtEpoch !== undefined) {
+                metrics.enqueuedAtEpoch = enqueuedAtEpoch;
+            }
+
+            this._analytics?.recordMetrics(metrics);
         }
 
         return cancelled;
@@ -602,6 +757,7 @@ export class QueueManager {
     /**
      * Set the duplicate request ID policy at runtime
      * @param {string} policy - Policy to use ('rejectNew', 'cancelPrevious', 'allow')
+     * @returns {string} Previous policy value for ergonomics
      */
     setDuplicateRequestIdPolicy(policy) {
         const previousPolicy = this._operations.getDuplicateRequestIdPolicy();
@@ -615,6 +771,8 @@ export class QueueManager {
             newPolicy: policy,
             timestamp: this._epochNow()
         });
+
+        return previousPolicy;
     }
 
     /**
@@ -635,7 +793,10 @@ export class QueueManager {
     _validateAddToQueueInputs(generationFunction, options = {}) {
         // Check if accepting new tasks (graceful shutdown)
         if (!this._operations.isAcceptingTasks()) {
-            throw new ShutdownError('Queue is shutting down and not accepting new tasks');
+            const error = new ShutdownError('Queue shutdown in progress; rejecting new tasks');
+
+            error.queuePhase = 'enqueue';
+            throw error;
         }
 
         // Validate input
@@ -657,7 +818,10 @@ export class QueueManager {
                 this._readyPromise = this._initialization.initializeWithRetry();
                 await this._readyPromise;
             } else {
-                throw new InitializationError('Initialization failed and circuit breaker is open. Please try again later.', { cause: error });
+                const initError = new InitializationError('Initialization failed and circuit breaker is open. Please try again later.', { cause: error });
+
+                initError.queuePhase = 'init';
+                throw initError;
             }
         }
     }
@@ -668,22 +832,30 @@ export class QueueManager {
      * @private
      */
     _checkPreEnqueueConditions(options) {
-        // Cache metrics to avoid duplicate calls
-        const metrics = this.queueService.getMetrics();
-        const current = metrics?.current ?? {};
-
         try {
             // Check backpressure (now using real caps from settings)
             this._analytics?.checkBackpressure();
         } catch (error) {
             // Record backpressure metric for observability
-            this._analytics?.recordMetrics({
+            const metrics = {
                 action: 'backpressure_blocked',
-                queueSize: current.queueSize ?? 0,
-                activeJobs: current.activeJobs ?? 0,
+                requestId: options.requestId,
+                userId: options.userId,
+                phase: 'enqueue',
+                ...this._getQueueSnapshot(),
                 maxQueueSize: this._analytics?.getMaxQueueSize(),
                 timestamp: this._epochNow()
-            });
+            };
+
+            // Add enqueued timestamps for trace correlation (when available)
+            if (options._enqueuedAtMonotonic !== undefined) {
+                metrics.enqueuedAtMonotonic = options._enqueuedAtMonotonic;
+            }
+            if (options._enqueuedAtEpoch !== undefined) {
+                metrics.enqueuedAtEpoch = options._enqueuedAtEpoch;
+            }
+
+            this._analytics?.recordMetrics(metrics);
             throw error;
         }
 
@@ -692,12 +864,25 @@ export class QueueManager {
             try {
                 this._analytics?.checkUserRateLimit(options.userId);
             } catch (error) {
-                // Record rate limit metric for observability
-                this._analytics?.recordMetrics({
+                // Record rate limit metric for observability (with queue context for triage)
+                const metrics = {
                     action: 'rate_limit_blocked',
+                    requestId: options.requestId,
                     userId: options.userId,
+                    phase: 'enqueue',
+                    ...this._getQueueSnapshot(),
                     timestamp: this._epochNow()
-                });
+                };
+
+                // Add enqueued timestamps for trace correlation (when available)
+                if (options._enqueuedAtMonotonic !== undefined) {
+                    metrics.enqueuedAtMonotonic = options._enqueuedAtMonotonic;
+                }
+                if (options._enqueuedAtEpoch !== undefined) {
+                    metrics.enqueuedAtEpoch = options._enqueuedAtEpoch;
+                }
+
+                this._analytics?.recordMetrics(metrics);
                 throw error;
             }
         }
@@ -714,11 +899,21 @@ export class QueueManager {
     _enqueueTask(wrappedFunction, options) {
         // Add the wrapped function to p-queue with priority and signal
         // Priority is already normalized in _prepareTaskOptions, so use it directly
-        const { priority } = options; // Already normalized
+        let { priority } = options; // Already normalized
 
-        // Belt-and-suspenders: Final NaN check before enqueue
-        if (typeof priority === 'number' && !Number.isFinite(priority)) {
-            console.warn(`QueueManager: Priority ${priority} is NaN/Infinity, defaulting to 0`);
+        // Belt-and-suspenders: Final clamp before enqueue (guards against caller mutation)
+        // No logging here - warnings already emitted in calculateNormalizedPriority
+        if (typeof priority !== 'number' || !Number.isFinite(priority)) {
+            priority = 0;
+        } else {
+            // Clamp to valid range one more time (ensure both paths agree on PRIORITY_MIN..PRIORITY_MAX)
+            priority = Math.max(PRIORITY_MIN, Math.min(PRIORITY_MAX, Math.trunc(priority)));
+        }
+
+        // Write clamped priority back to options for accurate metric logging
+        // (Check extensibility in case opts was frozen upstream)
+        if (Object.isExtensible(options)) {
+            options.priority = priority;
         }
 
         // Fast-fail for already-aborted signals (improves observability)
@@ -731,7 +926,7 @@ export class QueueManager {
 
         // Create new options object with p-queue understood fields
         const queueOptions = {
-            priority, // Already normalized in _prepareTaskOptions
+            priority, // Fully normalized and clamped
             signal: options.abortSignal // Re-enable p-queue's native pre-start cancellation
         };
 
@@ -745,24 +940,42 @@ export class QueueManager {
      */
     _validateGenerationFunction(generationFunction, options = {}) {
         if (typeof generationFunction !== 'function') {
-            throw new ValidationError('generationFunction must be a function');
+            const error = new ValidationError(`Expected function, got ${typeof generationFunction}`);
+
+            error.queuePhase = 'enqueue';
+            throw error;
         }
 
         // Advisory: check function arity to catch callers that forgot the (signal) param
         if (generationFunction.length === 0) {
             const taskName = options.taskName || options.requestId || 'unknown';
 
-            console.warn(
-                `QueueManager: generationFunction for task '${taskName}' should accept a signal parameter: ` +
-                '(signal) => Promise'
-            );
+            databaseQueueLogger.logWarn('Task function missing signal parameter', {
+                taskName,
+                requestId: options.requestId,
+                userId: options.userId,
+                message: 'Should accept (signal) => Promise for cancellation support. Pass returnController: true or provide your own signal to enable cancel.'
+            });
 
-            // Emit metric for observability
-            this._analytics?.recordMetrics({
+            // Emit metric for observability (helpful during triage)
+            const metrics = {
                 action: 'function_arity_warning',
                 arity: 0,
+                taskName,
+                requestId: options.requestId,
+                userId: options.userId,
                 timestamp: this._epochNow()
-            });
+            };
+
+            // Add enqueued timestamps for trace correlation (when available)
+            if (options._enqueuedAtMonotonic !== undefined) {
+                metrics.enqueuedAtMonotonic = options._enqueuedAtMonotonic;
+            }
+            if (options._enqueuedAtEpoch !== undefined) {
+                metrics.enqueuedAtEpoch = options._enqueuedAtEpoch;
+            }
+
+            this._analytics?.recordMetrics(metrics);
         }
     }
 
@@ -789,7 +1002,12 @@ export class QueueManager {
                 options._signalCleanup();
             } catch (cleanupError) {
                 // Log but don't throw - cleanup errors shouldn't mask enqueue failures
-                console.warn('QueueManager: Signal cleanup error on enqueue failure:', cleanupError);
+                databaseQueueLogger.logWarn('Signal cleanup error on enqueue failure', {
+                    requestId: options.requestId,
+                    userId: options.userId,
+                    errorType: cleanupError?.name,
+                    errorMessage: cleanupError?.message
+                });
             }
         }
 
@@ -798,30 +1016,49 @@ export class QueueManager {
 
         if (isCancellation && options.requestId && !error[ENQUEUE_CANCEL]) {
             // This is a pre-start cancellation - record as such (skip if already recorded in enqueue)
-            this._analytics?.recordMetrics({
+            const metrics = {
                 action: 'task_cancelled_before_start',
                 requestId: options.requestId,
                 userId: options.userId,
+                phase: 'start',
                 timestamp: this._epochNow()
-            });
+            };
+
+            // Add enqueued timestamps for trace correlation (when available)
+            if (options._enqueuedAtMonotonic !== undefined) {
+                metrics.enqueuedAtMonotonic = options._enqueuedAtMonotonic;
+            }
+            if (options._enqueuedAtEpoch !== undefined) {
+                metrics.enqueuedAtEpoch = options._enqueuedAtEpoch;
+            }
+
+            this._analytics?.recordMetrics(metrics);
 
             return; // Early return to prevent any spurious metrics
         }
 
         if (!isCancellation) {
             // This is a regular enqueue error (not a cancellation)
-            this._analytics?.recordMetrics({
+            const metrics = {
                 action: 'task_enqueue_error',
                 errorType: error.name || 'UnknownError',
+                phase: 'enqueue',
                 timestamp: this._epochNow()
-            });
+            };
+
+            // Add enqueued timestamps for trace correlation (when available)
+            if (options._enqueuedAtMonotonic !== undefined) {
+                metrics.enqueuedAtMonotonic = options._enqueuedAtMonotonic;
+            }
+            if (options._enqueuedAtEpoch !== undefined) {
+                metrics.enqueuedAtEpoch = options._enqueuedAtEpoch;
+            }
+
+            this._analytics?.recordMetrics(metrics);
         }
     }
 }
 
 
-// Re-export factory functions
-export { createQueueManager, getQueueManager } from './QueueManagerFactory.js';
-
-// default-export the GETTER (not the instance)
-export { getQueueManager as default } from './QueueManagerFactory.js';
+// Re-export factory functions (named + default exports from single source)
+export { createQueueManager, getQueueManager, getQueueManager as default } from './QueueManagerFactory.js';

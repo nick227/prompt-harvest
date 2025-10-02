@@ -768,7 +768,7 @@ class UnifiedNavigation {
             }
 
             const blob = await response.blob();
-            const fileName = this.currentImageElement.alt || 'image.png';
+            const fileName = this.generateFileNameFromPrompt();
 
             // Create object URL and download
             const objectUrl = URL.createObjectURL(blob);
@@ -793,7 +793,7 @@ class UnifiedNavigation {
             try {
                 const link = document.createElement('a');
                 link.href = this.currentImageElement.src;
-                link.download = this.currentImageElement.alt || 'image.png';
+                link.download = this.generateFileNameFromPrompt();
                 link.style.display = 'none';
                 document.body.appendChild(link);
                 link.click();
@@ -803,6 +803,39 @@ class UnifiedNavigation {
                 console.error('❌ DOWNLOAD: All download methods failed:', fallbackError);
             }
         }
+    }
+
+    /**
+     * Generate filename from final prompt (first 30 characters)
+     * @returns {string} Sanitized filename
+     */
+    generateFileNameFromPrompt() {
+        // Get final prompt from dataset (check multiple possible fields)
+        const finalPrompt = this.currentImageElement.dataset.final ||
+                           this.currentImageElement.dataset.finalPrompt ||
+                           this.currentImageElement.dataset.enhancedPrompt ||
+                           this.currentImageElement.dataset.prompt ||
+                           this.currentImageElement.alt ||
+                           'Generated Image';
+
+        // Take first 30 characters
+        const truncatedPrompt = finalPrompt.length > 30 ?
+            finalPrompt.substring(0, 30) : finalPrompt;
+
+        // Sanitize filename - remove invalid characters but keep spaces
+        const sanitized = truncatedPrompt
+            .replace(/[<>:"/\\|?*.,;(){}[\]!@#$%^&+=`~]/g, '') // Remove invalid filename characters
+            .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
+            .trim(); // Remove leading/trailing spaces
+
+        // Ensure we have a valid filename
+        if (!sanitized || sanitized.length === 0) {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            return `Generated Image ${timestamp}.jpg`;
+        }
+
+        // Add .jpg extension if not present
+        return sanitized.endsWith('.jpg') ? sanitized : `${sanitized}.jpg`;
     }
 
     /**
