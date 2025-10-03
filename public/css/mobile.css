@@ -64,16 +64,34 @@
     }
 
     .info-box {
-        width: 100%;
+        width: calc(100vw - 20px);
         max-width: 100%;
         top: 0;
         left: 0;
-        max-height: 100%;
+        max-height: 88%;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.25);
+        top: 10px;
+        right: 10px;
+        left: 10px;
     }
 
-    .info-box-prompt-value {
-        overflow-y: auto;
-        max-height: 200px;
+    .info-box-content {
+        background: transparent;
+    }
+
+    .info-box-meta {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .info-box-meta-item {
+        padding: 10px;
+    }
+
+    .info-box-prompt-item {
+        padding: 12px;
+        background: var(--color-surface-secondary);
     }
 
     .label {
