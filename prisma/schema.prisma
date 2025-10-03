@@ -186,7 +186,7 @@ model CreditLedger {
   type            String   @db.VarChar(50)
   amount          Int
   description     String   @db.VarChar(255)
-  stripePaymentId String?  @db.VarChar(25)
+  stripePaymentId String?  @db.VarChar(255)
   metadata        Json?
   createdAt       DateTime @default(now())
   promoCodeId     String?  @db.VarChar(25)
