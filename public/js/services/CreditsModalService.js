@@ -90,7 +90,7 @@ class CreditsModalService {
 
                 <div class="credits-modal-content" style="padding: 30px;">
                     <div style="display: flex; gap: 30px; align-items: flex-start;">
-                        <div style="flex: 1;">
+                        <div style="flex: 1;" class="credits-modal-sample-image-container hide-mobile">
                             <div id="credits-sample-image" style="width: 280px; height: 200px; background: var(--color-surface-tertiary); border-radius: 6px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; color: var(--color-text-primary); font-size: 16px; font-weight: 500; border: 2px solid var(--color-border-secondary);">
                                 Loading sample image...
                             </div>
