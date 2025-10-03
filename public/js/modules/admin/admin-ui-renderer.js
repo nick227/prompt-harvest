@@ -191,12 +191,12 @@ class AdminUIRenderer {
         // Emit tab switch event using AdminEventBus
         if (window.adminApp && window.adminApp.eventBus) {
             window.adminApp.eventBus.emit('tab-switch', 'switch', { tab: tabName });
-        } else {
-            // Fallback to DOM events
-            window.dispatchEvent(new CustomEvent('admin-tab-switch', {
-                detail: { tab: tabName }
-            }));
         }
+
+        // Always emit DOM event as well for router compatibility
+        window.dispatchEvent(new CustomEvent('admin-tab-switch', {
+            detail: { tab: tabName }
+        }));
     }
 
     formatCurrency(amount) {

@@ -29,9 +29,31 @@ class AdminTermsManager {
             return;
         }
 
+        console.log('🔍 ADMIN-TERMS: Rendering terms tab...');
+
         try {
             termsTab.innerHTML = `
                 <div class="admin-section">
+                    <!-- Hidden loading indicator for AI generation -->
+                    <div id="terms-ai-loading" class="terms-ai-loading hidden">
+                        <div class="ai-loading-content">
+                            <div class="ai-loading-spinner">
+                                <i class="fas fa-brain fa-spin"></i>
+                            </div>
+                            <div class="ai-loading-text">
+                                <h4>AI Generating Word Types...</h4>
+                                <p id="ai-loading-status">Initializing AI service...</p>
+                                <div class="ai-progress-steps">
+                                    <div class="step" data-step="1">Validating term</div>
+                                    <div class="step" data-step="2">Calling AI service</div>
+                                    <div class="step" data-step="3">Processing response</div>
+                                    <div class="step" data-step="4">Saving to database</div>
+                                    <div class="step" data-step="5">Updating interface</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="admin-section-header">
                         <div class="admin-header-actions">
                             <button id="add-term-btn" class="admin-add-button" title="Add new term">
@@ -69,6 +91,7 @@ class AdminTermsManager {
             // Setup event listeners
             this.setupTermsEventListeners();
 
+
             // Load terms data
             await this.loadTermsData();
         } catch (error) {
@@ -93,8 +116,13 @@ class AdminTermsManager {
             return;
         }
 
+        // Remove any existing event listeners to prevent duplicates
+        if (this._tableClickHandler) {
+            container.removeEventListener('click', this._tableClickHandler);
+        }
+
         // Use event delegation for action buttons
-        container.addEventListener('click', e => {
+        this._tableClickHandler = (e) => {
             const actionBtn = e.target.closest('.term-action-btn');
             if (!actionBtn) {
                 return;
@@ -108,7 +136,9 @@ class AdminTermsManager {
             if (action && termId) {
                 this.handleTermAction(action, termId);
             }
-        });
+        };
+
+        container.addEventListener('click', this._tableClickHandler);
     }
 
     setupTermsEventListeners() {
@@ -127,6 +157,7 @@ class AdminTermsManager {
                 this.loadTermsData();
             });
         }
+
 
         // Search functionality
         const searchInput = document.getElementById('terms-search');
@@ -372,7 +403,7 @@ class AdminTermsManager {
 
     showMainSectionProgress(word) {
         // Find the terms section header
-        const sectionHeader = document.querySelector('.admin-section .section-header');
+        const sectionHeader = document.querySelector('.admin-section .admin-section-header');
         if (!sectionHeader) {
             console.error('❌ ADMIN-TERMS: Section header not found');
             return;
@@ -522,21 +553,91 @@ class AdminTermsManager {
                 <span>Submitting "${word}" for AI processing...</span>
             </div>
         `;
+
+        // AI loading indicator is now shown in addNewTerm method
+    }
+
+    showAILoadingIndicator(word) {
+        const loadingDiv = document.getElementById('terms-ai-loading');
+        const statusText = document.getElementById('ai-loading-status');
+
+        console.log('🔍 ADMIN-TERMS: Showing AI loading indicator for:', word);
+        console.log('🔍 ADMIN-TERMS: Loading div found:', !!loadingDiv);
+        console.log('🔍 ADMIN-TERMS: Status text found:', !!statusText);
+
+        if (loadingDiv) {
+            loadingDiv.classList.remove('hidden');
+            // Force visibility with inline styles as backup
+            loadingDiv.style.display = 'block';
+            loadingDiv.style.visibility = 'visible';
+            console.log('🔍 ADMIN-TERMS: Removed hidden class, loading div should be visible');
+            console.log('🔍 ADMIN-TERMS: Loading div computed style:', window.getComputedStyle(loadingDiv).display);
+            if (statusText) {
+                statusText.textContent = `Generating AI word types for "${word}"...`;
+                console.log('🔍 ADMIN-TERMS: Updated status text');
+            }
+        } else {
+            console.error('❌ ADMIN-TERMS: Loading div not found!');
+        }
+    }
+
+    hideAILoadingIndicator() {
+        const loadingDiv = document.getElementById('terms-ai-loading');
+        console.log('🔍 ADMIN-TERMS: Hiding AI loading indicator');
+        console.log('🔍 ADMIN-TERMS: Loading div found:', !!loadingDiv);
+        if (loadingDiv) {
+            loadingDiv.classList.add('hidden');
+            console.log('🔍 ADMIN-TERMS: Added hidden class, loading div should be hidden');
+        } else {
+            console.error('❌ ADMIN-TERMS: Loading div not found when trying to hide!');
+        }
+    }
+
+    updateAILoadingProgress(step, statusText = '') {
+        const loadingDiv = document.getElementById('terms-ai-loading');
+        const statusElement = document.getElementById('ai-loading-status');
+
+        if (loadingDiv && statusElement) {
+            // Update status text
+            if (statusText) {
+                statusElement.textContent = statusText;
+            }
+
+            // Update progress steps
+            const steps = loadingDiv.querySelectorAll('.ai-progress-steps .step');
+            steps.forEach((stepElement, index) => {
+                const stepNumber = parseInt(stepElement.dataset.step);
+                if (stepNumber <= step) {
+                    stepElement.classList.add('active');
+                } else {
+                    stepElement.classList.remove('active');
+                }
+            });
+        }
     }
 
     async addNewTerm(word) {
+        console.log('🚀 ADMIN-TERMS: Starting addNewTerm for:', word);
+
         if (this.duplicateCheckCache.has(word.toLowerCase())) {
             this.showNotification(`Term "${word}" already exists!`, 'warning');
             return;
         }
+
+        // Show the AI loading indicator immediately
+        console.log('🚀 ADMIN-TERMS: Showing AI loading indicator...');
+        this.showAILoadingIndicator(word);
 
         const statusDiv = document.getElementById('add-term-status');
         const submitBtn = document.querySelector('#add-term-form button[type="submit"]');
         const form = document.getElementById('add-term-form');
 
         try {
+            console.log('🚀 ADMIN-TERMS: About to show immediate progress...');
             // Update progress steps in main section
             this.updateMainSectionProgress(1); // Validating term (step 0) is already active
+            this.updateAILoadingProgress(1, `Validating term "${word}"...`);
+            console.log('🚀 ADMIN-TERMS: Progress updated, continuing with request...');
 
             // Add timeout for long-running requests
             const controller = new AbortController();
@@ -546,16 +647,23 @@ class AdminTermsManager {
 
             // Update progress: Calling AI service
             this.updateMainSectionProgress(2);
+            this.updateAILoadingProgress(2, `Calling AI service for "${word}"...`);
+
+            // Small delay to ensure loading indicator is visible
+            await new Promise(resolve => setTimeout(resolve, 200));
 
             // Call AI generation endpoint
+            console.log('🚀 ADMIN-TERMS: Making API request...');
             const response = await fetch(`/ai/word/add/${encodeURIComponent(word)}`, {
                 signal: controller.signal
             });
+            console.log('🚀 ADMIN-TERMS: API request completed, status:', response.status);
 
             clearTimeout(timeoutId);
 
             // Update progress: Processing response
             this.updateMainSectionProgress(3);
+            this.updateAILoadingProgress(3, `Processing AI response for "${word}"...`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -573,22 +681,43 @@ class AdminTermsManager {
 
                 // Update progress: Saving to database
                 this.updateMainSectionProgress(4);
+                this.updateAILoadingProgress(4, `Saving ${types.length} word types to database...`);
 
                 // Add the new term to the table immediately (optimistic update)
                 this.addTermToTable(word, { types: types });
 
                 // Update progress: Updating interface
                 this.updateMainSectionProgress(5, true); // Complete all steps
+                this.updateAILoadingProgress(5, `Updating interface with new term...`);
+
+                // Hide the AI loading indicator
+                console.log('🚀 ADMIN-TERMS: About to hide loading indicator on success...');
+                this.hideAILoadingIndicator();
 
                 // Show success in main section
                 this.showMainSectionSuccess(word, types.length);
                 this.showNotification(`Successfully added term "${word}" with ${types.length} AI-generated types`, 'success');
+            } else if (response.status === 409) {
+                // Handle duplicate term error
+                const errorData = await response.json().catch(() => ({}));
+                console.log('ℹ️ ADMIN-TERMS: Term already exists:', errorData);
+
+                // Hide the AI loading indicator
+                console.log('🚀 ADMIN-TERMS: About to hide loading indicator on duplicate...');
+                this.hideAILoadingIndicator();
+
+                this.showNotification(`Term "${word}" already exists in the database with ${errorData.existingTypes?.length || 0} types`, 'warning');
+                this.showMainSectionError(word, `Term already exists with ${errorData.existingTypes?.length || 0} existing types`);
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.error || 'Failed to generate term types');
             }
         } catch (error) {
             console.error('❌ ADMIN-TERMS: Error adding term:', error);
+
+            // Hide the AI loading indicator
+            console.log('🚀 ADMIN-TERMS: About to hide loading indicator on error...');
+            this.hideAILoadingIndicator();
 
             // Handle specific error types
             let errorMessage = error.message;
@@ -1012,6 +1141,13 @@ class AdminTermsManager {
     }
 
     destroy() {
+        // Clean up event listeners
+        const container = document.getElementById('terms-table-container');
+        if (container && this._tableClickHandler) {
+            container.removeEventListener('click', this._tableClickHandler);
+            this._tableClickHandler = null;
+        }
+
         // Clean up global instance
         if (window.adminTermsManager === this) {
             window.adminTermsManager = null;

@@ -32,6 +32,9 @@ class AdminRouter {
                 sessionStorage.setItem('admin-last-tab', this.currentTab);
             }
         });
+
+        // Connect to AdminEventBus when it becomes available
+        this.connectToAdminEventBus();
     }
 
     /**
@@ -146,11 +149,13 @@ class AdminRouter {
             const tabButtons = document.querySelectorAll('.tab-btn');
 
             if (adminDashboard && adminDashboard.style.display !== 'none' && tabButtons.length > 0) {
+                console.log('🔗 ADMIN-ROUTER: Admin dashboard ready, executing callback');
                 callback();
             } else if (attempts < maxAttempts) {
+                console.log(`🔗 ADMIN-ROUTER: Waiting for admin dashboard (attempt ${attempts}/${maxAttempts})`);
                 setTimeout(checkReady, 100); // Check again in 100ms
             } else {
-                console.warn('Admin dashboard not ready after maximum attempts');
+                console.warn('⚠️ ADMIN-ROUTER: Admin dashboard not ready after maximum attempts');
                 // Fallback: try to switch anyway
                 callback();
             }
@@ -279,6 +284,36 @@ class AdminRouter {
         const currentTabBtn = document.querySelector(`[data-tab="${tabName}"]`);
         if (currentTabBtn) {
             currentTabBtn.classList.add('has-url-param');
+        }
+    }
+
+    /**
+     * Connect to AdminEventBus when it becomes available
+     */
+    connectToAdminEventBus() {
+        // Check if AdminEventBus is available
+        if (window.AdminEventBus) {
+            console.log('🔗 ADMIN-ROUTER: Connecting to AdminEventBus');
+            // Listen for tab switch events from AdminEventBus
+            window.AdminEventBus.on('tab-switch', 'switch', (eventData) => {
+                console.log('🔗 ADMIN-ROUTER: AdminEventBus tab-switch event received:', eventData);
+                this.updateURL(eventData.tab);
+            });
+        } else {
+            // Wait for AdminEventBus to become available
+            const checkInterval = setInterval(() => {
+                if (window.AdminEventBus) {
+                    clearInterval(checkInterval);
+                    console.log('🔗 ADMIN-ROUTER: AdminEventBus now available, connecting...');
+                    this.connectToAdminEventBus();
+                }
+            }, 100);
+
+            // Stop checking after 10 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                console.warn('⚠️ ADMIN-ROUTER: AdminEventBus not available after 10 seconds');
+            }, 10000);
         }
     }
 }

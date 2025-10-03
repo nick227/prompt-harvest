@@ -6,9 +6,11 @@
  */
 
 import wordTypeManager from '../../../../lib/word-type-manager.js';
+import { AIService } from '../AIService.js';
 
 export class AIWordTypeService {
     constructor() {
+        this.aiService = new AIService();
         console.log('🔧 AIWordTypeService constructor initialized');
     }
 
@@ -60,21 +62,54 @@ export class AIWordTypeService {
     }
 
     /**
-     * Add word type
+     * Add word type using AI service
      */
     async addWordType(word) {
         const decodedWord = decodeURIComponent(word).toLowerCase();
 
         try {
-            // Use wordTypeManager for adding word types
-            const result = await wordTypeManager.addWordType(decodedWord);
+            // First, check if word already exists in database
+            const existingWord = await wordTypeManager.getWordTypes(decodedWord);
 
-            console.log('✅ Word type added:', {
+            if (existingWord && existingWord.length > 0) {
+                console.log('ℹ️ Word already exists in database:', {
+                    word: decodedWord,
+                    existingTypes: existingWord
+                });
+
+                return {
+                    success: false,
+                    error: 'Word already exists',
+                    message: `The word "${decodedWord}" already exists in the database with ${existingWord.length} types.`,
+                    existingTypes: existingWord
+                };
+            }
+
+            // Use AI service to generate word types
+            console.log('🤖 Generating AI word types for:', decodedWord);
+            const aiResult = await this.aiService._addAiWordType(decodedWord);
+
+            if (aiResult.error) {
+                console.error('❌ AI service error:', aiResult.error);
+                throw new Error(`AI service failed: ${aiResult.error}`);
+            }
+
+            if (!aiResult.success) {
+                throw new Error('AI service did not return success');
+            }
+
+            console.log('✅ Word type added with AI-generated types:', {
                 word: decodedWord,
-                result
+                types: aiResult.term.types,
+                result: aiResult.term
             });
 
-            return result;
+            return {
+                success: true,
+                message: `Successfully generated ${aiResult.term.types.length} word types for "${decodedWord}"`,
+                term: aiResult.term
+            };
+
         } catch (error) {
             console.error('❌ Error adding word type:', error);
             throw error;
@@ -91,10 +126,17 @@ export class AIWordTypeService {
             // Use wordTypeManager for deleting word types
             const result = await wordTypeManager.deleteWordType(decodedWord);
 
-            console.log('✅ Word type deleted:', {
-                word: decodedWord,
-                result
-            });
+            if (result.deleted) {
+                console.log('✅ Word type deleted:', {
+                    word: decodedWord,
+                    result
+                });
+            } else {
+                console.log('ℹ️ Word type not found (already deleted or never existed):', {
+                    word: decodedWord,
+                    result
+                });
+            }
 
             return result;
         } catch (error) {

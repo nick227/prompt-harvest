@@ -50,7 +50,26 @@ export class AIController {
             const { word } = req.params;
             const response = await this.aiService.addWordType(word);
 
-            res.send(response);
+            // Handle different response types
+            if (response.success === false && response.error === 'Word already exists') {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Word already exists',
+                    message: response.message,
+                    existingTypes: response.existingTypes
+                });
+            }
+
+            if (response.success) {
+                return res.status(201).json({
+                    success: true,
+                    message: response.message,
+                    term: response.term
+                });
+            }
+
+            // Default success response
+            res.json(response);
         } catch (error) {
             console.error('❌ Add word type error:', error);
             throw new ExternalServiceError('AI Service', error.message);

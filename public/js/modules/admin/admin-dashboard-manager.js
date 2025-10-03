@@ -117,6 +117,11 @@ class AdminDashboardManager {
         this.eventBus.on('refresh-snapshot', this.loadSiteSnapshot.bind(this));
         this.eventBus.on('refresh-history', this.handleHistoryRefresh.bind(this));
         this.eventBus.on('refresh-queue', this.loadQueueStatus.bind(this));
+
+        // Router-initiated tab switches
+        window.addEventListener('admin-tab-switch', (e) => {
+            this.handleRouterTabSwitch(e.detail.tab);
+        });
     }
 
     async loadSiteSnapshot() {
@@ -160,6 +165,11 @@ class AdminDashboardManager {
 
         this.currentTab = tabName;
 
+        // Update URL through router if available
+        if (window.adminRouter) {
+            window.adminRouter.updateURL(tabName);
+        }
+
         // Load tab data if not already loaded (only for history tabs)
         if (!this.tabs[tabName].loaded && tabName !== 'summary' && tabName !== 'packages' && tabName !== 'models' && tabName !== 'promo-cards' && tabName !== 'terms' && tabName !== 'messages' && tabName !== 'queue-monitor') {
             await this.loadHistoryData(tabName);
@@ -167,6 +177,55 @@ class AdminDashboardManager {
 
         // Render the tab content
         this.renderTabContent(tabName);
+    }
+
+    /**
+     * Handle tab switch initiated by router (URL changes)
+     */
+    async handleRouterTabSwitch(tabName) {
+        console.log(`🔗 ADMIN-DASHBOARD: Router-initiated tab switch to: ${tabName}`);
+
+        if (this.currentTab === tabName) {
+            console.log(`🔗 ADMIN-DASHBOARD: Already on tab ${tabName}, skipping`);
+            return;
+        }
+
+        // Update current tab
+        this.currentTab = tabName;
+
+        // Load tab data if not already loaded (only for history tabs)
+        if (!this.tabs[tabName].loaded && tabName !== 'summary' && tabName !== 'packages' && tabName !== 'models' && tabName !== 'promo-cards' && tabName !== 'terms' && tabName !== 'messages' && tabName !== 'queue-monitor') {
+            await this.loadHistoryData(tabName);
+        }
+
+        // Render the tab content
+        this.renderTabContent(tabName);
+
+        // Update UI to reflect the tab switch
+        this.updateTabUI(tabName);
+    }
+
+    /**
+     * Update tab UI elements to reflect current tab
+     */
+    updateTabUI(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const tabButton = document.querySelector(`[data-tab="${tabName}"]`);
+        if (tabButton) {
+            tabButton.classList.add('active');
+        }
+
+        // Update tab panels
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.remove('active');
+        });
+        const tabPanel = document.getElementById(`${tabName}-tab`);
+        if (tabPanel) {
+            tabPanel.classList.add('active');
+        }
     }
 
     async loadHistoryData(historyType) {
