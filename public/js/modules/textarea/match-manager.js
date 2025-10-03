@@ -57,7 +57,7 @@ class MatchManager {
         }
 
         const sanitizedMatches = this.sanitizeMatchesHTML(
-            this.matchProcessor.createMatchesHTML(matches)
+            window.MatchProcessorUtils.createMatchListHTML(matches)
         );
 
         this.matchesEl.innerHTML = sanitizedMatches;
