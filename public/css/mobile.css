@@ -95,6 +95,7 @@
 
     .info-box-prompt-item {
         padding: 12px;
+        max-height: 55px;
         background: var(--color-surface-secondary);
     }
 
