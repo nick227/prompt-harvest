@@ -77,6 +77,13 @@ class AdminModalManager {
     }
 
     show(title, content, options = {}) {
+        console.log('🎭 ADMIN-MODAL: show method called with title:', title);
+        console.log('🎭 ADMIN-MODAL: Modal elements check:', {
+            modalContainer: !!this.modalContainer,
+            modalTitle: !!this.modalTitle,
+            modalBody: !!this.modalBody
+        });
+
         if (!this.modalContainer || !this.modalTitle || !this.modalBody) {
             console.error('❌ ADMIN-MODAL: Modal elements not found', {
                 modalContainer: !!this.modalContainer,
@@ -148,6 +155,9 @@ class AdminModalManager {
         this.modalContainer.classList.remove('show');
         this.isOpen = false;
         this.currentModal = null;
+
+        // Reset global modal flag
+        window.adminModalOpen = false;
 
         // Hide after transition
         setTimeout(() => {

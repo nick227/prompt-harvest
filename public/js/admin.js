@@ -33,8 +33,18 @@ const showNotification = (message, type = 'info') => {
  * @param {object} options - Modal options
  */
 const showModal = (title, content, options = {}) => {
+    console.log('🎭 ADMIN: showModal called with title:', title);
+    console.log('🎭 ADMIN: window.adminModal available:', !!window.adminModal);
+    console.log('🎭 ADMIN: window.adminModal.show available:', !!(window.adminModal && window.adminModal.show));
+
     if (window.adminModal && window.adminModal.show) {
-        window.adminModal.show(title, content, options);
+        console.log('🎭 ADMIN: Calling window.adminModal.show');
+        try {
+            window.adminModal.show(title, content, options);
+            console.log('🎭 ADMIN: Modal show called successfully');
+        } catch (error) {
+            console.error('🎭 ADMIN: Error calling modal show:', error);
+        }
     } else {
         console.error(`[MODAL] AdminModal not available. Title: ${title}`);
     }
@@ -63,6 +73,14 @@ const hideModal = () => {
  * Handle authentication and redirect logic
  */
 const handleAuthentication = async () => {
+    console.log('🔐 ADMIN: handleAuthentication called');
+    console.log('🔐 ADMIN: window.AdminAuthManager available:', !!window.AdminAuthManager);
+
+    if (!window.AdminAuthManager) {
+        console.error('❌ ADMIN: AdminAuthManager not available');
+        return false;
+    }
+
     if (!await window.AdminAuthManager.waitForUserApi()) {
         console.error('❌ ADMIN: userApi not available, redirecting to login...');
         window.location.href = '/login.html';
@@ -148,6 +166,15 @@ const initializeAdminDashboard = async () => {
     try {
         console.log('🎛️ ADMIN: Initializing dashboard...');
         showScreen('loading');
+
+        // Initialize modal manager first
+        if (window.AdminModalManager) {
+            window.adminModal = new window.AdminModalManager();
+            window.adminModal.init();
+            console.log('🎭 ADMIN: Modal manager initialized');
+        } else {
+            console.warn('⚠️ ADMIN: AdminModalManager not available');
+        }
 
         // Initialize authentication check first
         if (window.AdminAuthCheck) {
@@ -427,6 +454,11 @@ window.rollbackPricing = function rollbackPricing(versionId) {
  * Assign global function wrappers after modules are loaded
  */
 const assignGlobalFunctions = () => {
+    // Modal functions - assign to global scope
+    window.showModal = showModal;
+    window.hideModal = hideModal;
+    window.showNotification = showNotification;
+
     // User management functions
     if (window.AdminUserManager) {
         window.viewPayment = window.AdminUserManager.viewPayment;

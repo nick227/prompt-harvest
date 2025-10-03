@@ -5,6 +5,7 @@
 
 class AdminSharedTable {
     constructor() {
+        this.eventListenersSetup = false; // Prevent duplicate event listeners
         this.tableConfigs = {
             billing: {
                 columns: [
@@ -308,6 +309,14 @@ class AdminSharedTable {
     }
 
     setupEventListeners() {
+        // Prevent duplicate event listeners
+        if (this.eventListenersSetup) {
+            console.log('🔧 ADMIN-SHARED-TABLE: Event listeners already set up, skipping');
+
+            return;
+        }
+        this.eventListenersSetup = true;
+
         // Sort event listeners
         const sortableHeaders = this.container.querySelectorAll('th.sortable');
 
@@ -351,8 +360,20 @@ class AdminSharedTable {
         // Add button event listeners
         const addButtons = this.container.querySelectorAll('.admin-add-button');
 
-        addButtons.forEach(button => {
+        console.log('🔧 ADMIN-SHARED-TABLE: Found add buttons:', addButtons.length);
+
+        addButtons.forEach((button, index) => {
+            console.log(`🔧 ADMIN-SHARED-TABLE: Button ${index}:`, {
+                text: button.textContent,
+                action: button.dataset.action,
+                class: button.className
+            });
+
             button.addEventListener('click', e => {
+                console.log('🔧 ADMIN-SHARED-TABLE: Add button clicked:', {
+                    text: button.textContent,
+                    action: button.dataset.action
+                });
                 e.stopPropagation();
                 const { action } = button.dataset;
 
@@ -738,18 +759,26 @@ class AdminSharedTable {
         console.log(`🔧 ADMIN-SHARED-TABLE: Add button clicked with action: ${action}`);
         console.log(`🔧 ADMIN-SHARED-TABLE: Current dataType: ${this.dataType}`);
 
-        // Dispatch the admin-table-action event for add button clicks
-        const eventDetail = {
-            dataType: this.dataType,
-            action,
-            id: null
-        };
+        // Use new centralized event system
+        if (window.AdminEventBus) {
+            console.log('🔧 ADMIN-SHARED-TABLE: Using new centralized event system');
+            window.AdminEventBus.emit('table', action, {
+                entity: this.dataType,
+                id: null
+            });
+        } else {
+            // Fallback to old system
+            console.log('🔧 ADMIN-SHARED-TABLE: Using fallback DOM event system');
+            const eventDetail = {
+                dataType: this.dataType,
+                action,
+                id: null
+            };
 
-        console.log('🔧 ADMIN-SHARED-TABLE: Dispatching admin-table-action event:', eventDetail);
-
-        window.dispatchEvent(new CustomEvent('admin-table-action', {
-            detail: eventDetail
-        }));
+            window.dispatchEvent(new CustomEvent('admin-table-action', {
+                detail: eventDetail
+            }));
+        }
     }
 
     handleAction(action, id) {

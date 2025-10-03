@@ -51,15 +51,12 @@ class AdminDashboardManager {
             this.snapshotService = new AdminSnapshotService();
             this.historyManager = new AdminHistoryManager();
             this.uiRenderer = new AdminUIRenderer();
-            this.packageHandler = new AdminPackageManager();
             this.queueService = new AdminQueueService();
-            this.apiService = new AdminAPIService();
 
             // Initialize sub-managers
             await this.snapshotService.init();
             await this.historyManager.init();
             this.uiRenderer.init();
-            await this.packageHandler.init();
 
             // Setup event listeners
             this.setupEventListeners();
@@ -70,27 +67,12 @@ class AdminDashboardManager {
             // Load queue status
             await this.loadQueueStatus();
 
-            // Render initial UI (after data is loaded)
+            // Render initial UI
             this.renderDashboard();
 
             // Ensure packages tab is rendered for package handler
             console.log('🎛️ ADMIN-DASHBOARD: Rendering packages tab for package handler...');
             this.uiRenderer.renderPackagesTab();
-
-            // Set up global admin app object for other components
-            window.adminApp = {
-                dashboardManager: this,
-                uiRenderer: this.uiRenderer,
-                packageHandler: this.packageHandler,
-                eventBus: this.eventBus,
-                apiService: this.apiService,
-                showNotification: window.showNotification,
-                showModal: window.showModal,
-                hideModal: window.hideModal
-            };
-
-            // Also set up global API service for backward compatibility
-            window.adminApiService = this.apiService;
 
             this.isInitialized = true;
             console.log('✅ ADMIN-DASHBOARD: Dashboard manager initialized successfully');
@@ -105,7 +87,7 @@ class AdminDashboardManager {
 
     setupEventListeners() {
         // Tab switching events
-        this.eventBus.on('tab-switch', 'switch', this.handleTabSwitch.bind(this));
+        this.eventBus.on('tab-switch', this.handleTabSwitch.bind(this));
 
         // History loading events
         this.eventBus.on('load-history', this.handleHistoryLoad.bind(this));
@@ -147,12 +129,8 @@ class AdminDashboardManager {
         }
     }
 
-    async handleTabSwitch(eventData) {
-        const tabName = eventData.tab;
-        console.log(`🔄 ADMIN-DASHBOARD: handleTabSwitch called with tab: ${tabName}`);
-
+    async handleTabSwitch(tabName) {
         if (this.currentTab === tabName) {
-            console.log(`🔄 ADMIN-DASHBOARD: Already on tab ${tabName}, skipping`);
             return;
         }
 

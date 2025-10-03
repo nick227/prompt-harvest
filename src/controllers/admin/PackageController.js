@@ -270,8 +270,8 @@ class PackageController {
 
         // Validate price
         if (packageData.price !== undefined &&
-            (typeof packageData.price !== 'number' || packageData.price < 0.99)) {
-            errors.push('Price must be a number >= 0.99');
+            (typeof packageData.price !== 'number' || packageData.price < 0.00)) {
+            errors.push('Price must be a number >= 0.00');
         }
 
         // Validate description

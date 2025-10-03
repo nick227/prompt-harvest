@@ -360,6 +360,109 @@ class AdminDemoDataService {
 
         return new Blob([csvContent], { type: 'text/csv' });
     }
+
+    // Package management methods
+    async getPackages() {
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        return {
+            success: true,
+            data: [
+                {
+                    id: 'pkg_001',
+                    name: 'starter',
+                    displayName: 'Starter Package',
+                    description: 'Perfect for trying out our service',
+                    credits: 10,
+                    price: 999, // $9.99 in cents
+                    isActive: true,
+                    isPopular: false,
+                    sortOrder: 1,
+                    createdAt: new Date('2024-01-01').toISOString()
+                },
+                {
+                    id: 'pkg_002',
+                    name: 'professional',
+                    displayName: 'Professional Package',
+                    description: 'Great for regular users and small businesses',
+                    credits: 50,
+                    price: 2499, // $24.99 in cents
+                    isActive: true,
+                    isPopular: true,
+                    sortOrder: 2,
+                    createdAt: new Date('2024-01-01').toISOString()
+                },
+                {
+                    id: 'pkg_003',
+                    name: 'enterprise',
+                    displayName: 'Enterprise Package',
+                    description: 'For high-volume users and large organizations',
+                    credits: 200,
+                    price: 7999, // $79.99 in cents
+                    isActive: true,
+                    isPopular: false,
+                    sortOrder: 3,
+                    createdAt: new Date('2024-01-01').toISOString()
+                }
+            ]
+        };
+    }
+
+    async createPackage(packageData) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const newPackage = {
+            id: `pkg_${Date.now()}`,
+            name: packageData.name,
+            displayName: packageData.name,
+            description: packageData.description,
+            credits: packageData.credits,
+            price: Math.round(packageData.price * 100), // Convert to cents
+            isActive: true,
+            isPopular: packageData.popular || false,
+            sortOrder: 0,
+            createdAt: new Date().toISOString()
+        };
+
+        return {
+            success: true,
+            message: 'Package created successfully',
+            data: newPackage
+        };
+    }
+
+    async updatePackage(packageId, packageData) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const updatedPackage = {
+            id: packageId,
+            name: packageData.name,
+            displayName: packageData.name,
+            description: packageData.description,
+            credits: packageData.credits,
+            price: Math.round(packageData.price * 100), // Convert to cents
+            isActive: true,
+            isPopular: packageData.popular || false,
+            sortOrder: 0,
+            createdAt: new Date().toISOString()
+        };
+
+        return {
+            success: true,
+            message: 'Package updated successfully',
+            data: updatedPackage
+        };
+    }
+
+    async deletePackage(packageId) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        return {
+            success: true,
+            message: 'Package deleted successfully',
+            data: { id: packageId, deleted: true }
+        };
+    }
 }
 
 // Export for global access

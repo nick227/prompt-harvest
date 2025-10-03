@@ -223,3 +223,4 @@ class AdminAuthManager {
 
 // Export for use in other modules
 window.AdminAuthManager = AdminAuthManager;
+console.log('🔐 ADMIN-AUTH: AdminAuthManager loaded and assigned to window.AdminAuthManager');

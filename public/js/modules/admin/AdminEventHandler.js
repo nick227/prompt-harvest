@@ -13,15 +13,14 @@ class AdminEventHandler {
         // The add button is now created by the shared table component with data-action="create-package"
         // Event handling is done in AdminPackageManager.js
 
-        // Listen for table action events from shared table
+        // Listen for table action events from shared table (only for images, not packages)
         window.addEventListener('admin-table-action', e => {
             const { dataType, action, id } = e.detail;
 
-            if (dataType === 'packages') {
-                this.handlePackageAction(action, id);
-            } else if (dataType === 'images') {
+            if (dataType === 'images') {
                 this.handleImageAction(action, id);
             }
+            // Note: Package actions are handled by AdminPackageManager.js
         });
     }
 

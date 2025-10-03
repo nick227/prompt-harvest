@@ -13,7 +13,7 @@ class AdminUIRenderer {
         this.promoCodeModal = new AdminPromoCodeModal(this);
         this.summaryRenderer = new AdminSummaryRenderer();
         this.imageManager = new AdminImageManager(this);
-        this.packageManager = null; // Will be set by AdminDashboardManager
+        this.packageManager = new AdminPackageManager(this);
         this.eventHandler = new AdminEventHandler(this);
         this.systemSettingsManager = new SystemSettingsManager();
         this.selectors = {
@@ -51,9 +51,7 @@ class AdminUIRenderer {
         }
 
         try {
-            console.log('🎨 ADMIN-UI: Rendering dashboard with snapshot data:', snapshotData);
             dashboardElement.innerHTML = this.summaryRenderer.generateDashboardHTML();
-            console.log('🎨 ADMIN-UI: Dashboard HTML inserted into DOM');
 
             // Check if router has a specific tab to show
             const currentTab = window.adminRouter ? window.adminRouter.getCurrentTab() : 'summary';
@@ -77,7 +75,6 @@ class AdminUIRenderer {
 
 
     renderSummaryTab(snapshotData) {
-        console.log('🎨 ADMIN-UI: Rendering summary tab with data:', snapshotData);
         const summaryTab = document.getElementById('summary-tab');
 
         if (!summaryTab) {
@@ -85,7 +82,6 @@ class AdminUIRenderer {
 
             return;
         }
-        console.log('🎨 ADMIN-UI: Summary tab element found:', summaryTab);
 
         if (!snapshotData) {
             console.warn('⚠️ ADMIN-UI: No snapshot data available, showing loading state');
@@ -188,15 +184,10 @@ class AdminUIRenderer {
         });
         document.getElementById(`${tabName}-tab`).classList.add('active');
 
-        // Emit tab switch event using AdminEventBus
-        if (window.adminApp && window.adminApp.eventBus) {
-            window.adminApp.eventBus.emit('tab-switch', 'switch', { tab: tabName });
-        } else {
-            // Fallback to DOM events
-            window.dispatchEvent(new CustomEvent('admin-tab-switch', {
-                detail: { tab: tabName }
-            }));
-        }
+        // Emit tab switch event
+        window.dispatchEvent(new CustomEvent('admin-tab-switch', {
+            detail: { tab: tabName }
+        }));
     }
 
     formatCurrency(amount) {
@@ -522,19 +513,7 @@ class AdminUIRenderer {
             const data = await response.json();
 
             if (data.success) {
-                // Use shared table system for models
-                const tableContainer = document.getElementById('models-table-container');
-                if (tableContainer && this.sharedTable) {
-                    this.sharedTable.render('models', data.data.models, tableContainer, {
-                        addButton: {
-                            action: 'create-model',
-                            text: 'Add Model',
-                            title: 'Add a new AI model'
-                        }
-                    });
-                } else {
-                    console.error('❌ ADMIN-UI: Models table container or shared table not available');
-                }
+                this.tableRenderer.renderModelsTable(data.data.models);
             } else {
                 throw new Error(data.error || 'Failed to load models');
             }
@@ -564,19 +543,7 @@ class AdminUIRenderer {
             const data = await response.json();
 
             if (data.success) {
-                // Use shared table system for promo cards
-                const tableContainer = document.getElementById('promo-cards-table-container');
-                if (tableContainer && this.sharedTable) {
-                    this.sharedTable.render('promo-cards', data.data.items || [], tableContainer, {
-                        addButton: {
-                            action: 'create-promo',
-                            text: 'Add Promo Code',
-                            title: 'Create a new promo code'
-                        }
-                    });
-                } else {
-                    console.error('❌ ADMIN-UI: Promo cards table container or shared table not available');
-                }
+                this.tableRenderer.renderPromoCardsTable(data.data.items || []);
             } else {
                 throw new Error(data.error || 'Failed to load promo cards');
             }
@@ -593,19 +560,7 @@ class AdminUIRenderer {
             const data = await response.json();
 
             if (data.success) {
-                // Use shared table system for providers
-                const tableContainer = document.getElementById('providers-table-container');
-                if (tableContainer && this.sharedTable) {
-                    this.sharedTable.render('providers', data.data.providers, tableContainer, {
-                        addButton: {
-                            action: 'create-provider',
-                            text: 'Add Provider',
-                            title: 'Add a new AI provider'
-                        }
-                    });
-                } else {
-                    console.error('❌ ADMIN-UI: Providers table container or shared table not available');
-                }
+                this.tableRenderer.renderProvidersTable(data.data.providers);
             } else {
                 throw new Error(data.error || 'Failed to load providers');
             }
@@ -701,8 +656,10 @@ class AdminUIRenderer {
     destroy() {
         this.sharedTable.destroy();
         this.promoCodeModal.destroy();
+        this.modelsRenderer.destroy();
         this.imageManager.destroy();
         this.packageManager.destroy();
+        this.tableRenderer.destroy();
         this.eventHandler.destroy();
         if (this.termsManager) {
             this.termsManager.destroy();

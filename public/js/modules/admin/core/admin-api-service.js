@@ -13,7 +13,7 @@ class AdminAPIService {
 
         // Use demo data service for development (can be toggled)
         this.demoService = new AdminDemoDataService();
-        this.useDemoData = false; // Set to false to use real API calls
+        this.useDemoData = true; // Set to true to use demo data for development
     }
 
     /**
@@ -124,7 +124,7 @@ class AdminAPIService {
             if (error.message && error.message.includes('400')) {
                 console.log('🔐 ADMIN-API: 400 Bad Request - checking authentication status');
                 console.log('🔐 ADMIN-API: Auth token available:', !!this.getAuthToken());
-                console.log('🔐 ADMIN-API: Token valid:', window.AdminAuthUtils?.hasValidToken());
+                console.log('🔐 ADMIN-API: Token valid:', this.hasValidToken());
 
                 if (this.useDemoData) {
                     console.log('📊 ADMIN-API: Falling back to demo data for development');

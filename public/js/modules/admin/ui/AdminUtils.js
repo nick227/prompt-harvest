@@ -71,12 +71,12 @@ class AdminUtils {
      * @param {string} type - Notification type (info, success, warning, error)
      */
     static showNotification(message, type = 'info') {
-        // Use existing notification system if available
-        if (window.showNotification) {
-            window.showNotification(message, type);
+        // Use existing notification system if available (but avoid recursion)
+        if (window.AdminNotificationSystem && window.AdminNotificationSystem.show) {
+            window.AdminNotificationSystem.show(message, type);
         } else {
-            // Fallback: use alert
-            alert(message);
+            // Fallback: use console log instead of alert
+            console.log(`[${type.toUpperCase()}] ${message}`);
         }
     }
 

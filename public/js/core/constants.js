@@ -136,7 +136,7 @@ const RATING_CONFIG = {
 // stats configuration
 const STATS_CONFIG = {
     multiplier: 50,
-    costPerImage: 0.99,
+    costPerImage: 0.02,
     costDivisor: 100,
     selectors: {
         imageCount: '#image-count',

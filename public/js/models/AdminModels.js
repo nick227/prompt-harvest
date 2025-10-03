@@ -206,7 +206,7 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
                     label: 'Small Package Price',
                     help: 'Price in USD for small credit package',
                     required: true,
-                    validation: { min: 0.99, max: 100 }
+                    validation: { min: 0.00, max: 100 }
                 },
                 {
                     name: 'credit_package_2',
@@ -222,7 +222,7 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
                     label: 'Medium Package Price',
                     help: 'Price in USD for medium credit package',
                     required: true,
-                    validation: { min: 0.99, max: 500 }
+                    validation: { min: 0.00, max: 500 }
                 },
                 {
                     name: 'credit_package_3',
@@ -238,7 +238,7 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
                     label: 'Large Package Price',
                     help: 'Price in USD for large credit package',
                     required: true,
-                    validation: { min: 0.99, max: 1000 }
+                    validation: { min: 0.00, max: 1000 }
                 },
                 {
                     name: 'markup_percentage',
@@ -737,7 +737,7 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
                     label: 'Package Price',
                     help: 'Price in USD for this package',
                     required: true,
-                    validation: { min: 0.99, max: 1000, step: 0.01 }
+                    validation: { min: 0.00, max: 1000, step: 0.01 }
                 },
                 {
                     name: 'description',

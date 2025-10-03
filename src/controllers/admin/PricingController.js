@@ -400,8 +400,8 @@ class PricingController {
             }
 
             if (pricing[price] !== undefined) {
-                if (typeof pricing[price] !== 'number' || pricing[price] < 0.99) {
-                    errors.push(`${price} must be a number >= 0.99`);
+                if (typeof pricing[price] !== 'number' || pricing[price] < 0.00) {
+                    errors.push(`${price} must be a number >= 0.00`);
                 }
             }
         });

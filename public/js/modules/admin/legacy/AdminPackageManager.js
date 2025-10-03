@@ -11,8 +11,6 @@ class AdminPackageManager {
         this.currentPackages = [];
         this.isLoading = false;
         this.sharedTable = new AdminSharedTable();
-        this.eventBusListenerSet = false; // Track if AdminEventBus listeners are set up
-        this.lastCreatePackageCall = null; // For debouncing rapid calls
     }
 
     /**
@@ -24,7 +22,6 @@ class AdminPackageManager {
         // Check authentication before initializing
         if (!window.AdminAuthUtils?.hasValidToken()) {
             console.warn('🔐 ADMIN-PACKAGES: No valid token, skipping package handler initialization');
-
             return;
         }
 
@@ -46,24 +43,7 @@ class AdminPackageManager {
     setupEventListeners() {
         console.log('📦 ADMIN-PACKAGES: Setting up event listeners');
 
-        // Listen for admin table actions using AdminEventBus
-        if (window.AdminEventBus && !this.eventBusListenerSet) {
-            console.log('📦 ADMIN-PACKAGES: Setting up AdminEventBus listeners');
-            this.eventBusListenerSet = true; // Prevent duplicate registrations
-
-            // Use a simple approach - just listen for the event once
-            window.AdminEventBus.on('table', 'create-package', eventData => {
-                console.log('📦 ADMIN-PACKAGES: AdminEventBus table.create-package event received:', eventData);
-                if (eventData.entity === 'packages') {
-                    console.log('📦 ADMIN-PACKAGES: AdminEventBus create-package received for packages');
-                    this.showCreatePackageForm();
-                }
-            });
-        } else if (this.eventBusListenerSet) {
-            console.log('📦 ADMIN-PACKAGES: AdminEventBus listeners already set up, skipping');
-        }
-
-        // Fallback: Listen for old DOM events
+        // Listen for admin table actions
         document.addEventListener('admin-table-action', event => {
             console.log('📦 ADMIN-PACKAGES: admin-table-action event received:', event.detail);
             const { action, data, dataType } = event.detail;
@@ -71,7 +51,6 @@ class AdminPackageManager {
             // Only handle package-related actions
             if (dataType !== 'packages') {
                 console.log('📦 ADMIN-PACKAGES: Ignoring non-package action:', dataType);
-
                 return;
             }
 
@@ -104,8 +83,6 @@ class AdminPackageManager {
         document.addEventListener('click', event => {
             if (event.target.matches('[data-action="create-package"]')) {
                 console.log('📦 ADMIN-PACKAGES: Add Package button clicked');
-                console.log('📦 ADMIN-PACKAGES: Event target:', event.target);
-                console.log('📦 ADMIN-PACKAGES: Event target text:', event.target.textContent);
                 event.preventDefault();
                 this.showCreatePackageForm();
             } else if (event.target.matches('[data-action="edit"]') && event.target.closest('table[data-type="packages"]')) {
@@ -141,7 +118,6 @@ class AdminPackageManager {
             if (!window.AdminAuthUtils?.hasValidToken()) {
                 console.warn('🔐 ADMIN-PACKAGES: No valid token available, skipping packages load');
                 this.isLoading = false;
-
                 return;
             }
 
@@ -149,8 +125,6 @@ class AdminPackageManager {
             if (window.adminApiService) {
                 console.log('🔑 ADMIN-PACKAGES: Using AdminAPIService for authenticated request');
                 const result = await window.adminApiService.request('GET', '/packages');
-
-                console.log('📦 ADMIN-PACKAGES: AdminAPIService result:', result);
 
                 if (result.success) {
                     this.currentPackages = result.data;
@@ -205,8 +179,6 @@ class AdminPackageManager {
             if (window.adminApiService) {
                 console.log('🔑 ADMIN-PACKAGES: Using AdminAPIService for authenticated request');
                 const result = await window.adminApiService.request('GET', '/packages');
-
-                console.log('📦 ADMIN-PACKAGES: AdminAPIService result (loadPackages):', result);
 
                 if (result.success) {
                     this.currentPackages = result.data;
@@ -276,14 +248,6 @@ class AdminPackageManager {
     showCreatePackageForm() {
         console.log('📦 ADMIN-PACKAGES: showCreatePackageForm called');
 
-        // Global flag to prevent multiple modal opens
-        if (window.adminModalOpen) {
-            console.log('📦 ADMIN-PACKAGES: Modal already open, ignoring duplicate call');
-
-            return;
-        }
-        window.adminModalOpen = true;
-
         const formData = {
             id: '',
             name: '',
@@ -318,7 +282,6 @@ class AdminPackageManager {
         console.log('📦 ADMIN-PACKAGES: window.adminModal available:', !!window.adminModal);
 
         const modalContent = this.generatePackageForm(formData);
-
         console.log('📦 ADMIN-PACKAGES: Generated modal content length:', modalContent.length);
 
         // Show modal using the admin modal system
@@ -558,13 +521,6 @@ class AdminPackageManager {
         }
         if (!packageData.description || packageData.description.trim() === '') {
             this.showError('Description is required');
-
-            return;
-        }
-
-        // Validate price
-        if (packageData.price < 0.00) {
-            this.showError('Price must be at least $0.00');
 
             return;
         }
@@ -1185,7 +1141,6 @@ class AdminPackageManager {
                 container: tableContainer
             });
 
-            console.log('📦 ADMIN-PACKAGES: About to render shared table for packages');
             this.sharedTable.render('packages', tableData, tableContainer, {
                 addButton: {
                     action: 'create-package',
@@ -1193,11 +1148,9 @@ class AdminPackageManager {
                     title: 'Create a new credit package'
                 }
             });
-            console.log('📦 ADMIN-PACKAGES: Shared table render completed');
 
             // Add profit margin summary after the table is rendered
             const profitMarginHTML = this.generateProfitMarginSummary();
-
             tableContainer.insertAdjacentHTML('afterbegin', profitMarginHTML);
             console.log('📦 ADMIN-PACKAGES: Table generation completed');
         } else {
@@ -1205,7 +1158,7 @@ class AdminPackageManager {
             tableContainer.innerHTML = '<div class="error-message">Shared table not available</div>';
         }
 
-        // Event listeners are already set up in init() - no need to set them up again
+        this.setupEventListeners();
     }
 
     /**
