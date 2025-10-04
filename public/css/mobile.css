@@ -92,10 +92,11 @@
 
     .info-box-meta-item {
         padding: 10px;
+        background: rgba(0, 0, 0, 0.75);
     }
 
     .info-box-prompt-item {
-        background: var(--color-surface-secondary);
+        background: rgba(0, 0, 0, 0.75);
     }
 
     /* Mobile touch scrolling improvements for info box content */
