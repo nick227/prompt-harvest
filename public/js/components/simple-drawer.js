@@ -353,7 +353,7 @@ class SimpleDrawer {
     handleThemeChange(themeName) {
         // Apply theme change
         if (window.themeManager) {
-            window.themeManager.setTheme(themeName);
+            window.themeManager.switchTheme(themeName);
         }
     }
 

@@ -30,11 +30,6 @@
         padding-left: 280px;
     }
 
-    /* Tablet-specific drawer adjustments */
-    #controls-drawer {
-        width: 280px;
-    }
-
     /* Ensure no overlap on tablets */
     .prompt-output {
         max-width: calc(100vw - 40px);
@@ -144,17 +139,7 @@
         display: none !important;
     }
 
-    input[name="image-search"],
-    div.search {
-        width: 280px !important;
-    }
-
     .sub-controls {
-        display: none !important;
-    }
-
-    /* Mobile: Hide desktop drawer completely */
-    #controls-drawer {
         display: none !important;
     }
 
