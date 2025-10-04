@@ -114,9 +114,6 @@ class UsersController {
                         creditBalance: true,
                         createdAt: true,
                         updatedAt: true
-                        // _count: {
-                        //     images: true
-                        // }
                     },
                     orderBy: UsersController.getOrderByClause(sortBy, sortOrder),
                     take: parseInt(limit),
@@ -124,6 +121,27 @@ class UsersController {
                 }),
                 prisma.user.count({ where })
             ]);
+
+            // Get image counts for each user
+            const userIds = users.map(user => user.id);
+            const imageCounts = await prisma.image.groupBy({
+                by: ['userId'],
+                where: {
+                    userId: {
+                        in: userIds
+                    },
+                    isDeleted: false
+                },
+                _count: {
+                    id: true
+                }
+            });
+
+            // Create a map of userId -> image count
+            const imageCountMap = {};
+            imageCounts.forEach(count => {
+                imageCountMap[count.userId] = count._count.id;
+            });
 
             // Format response data
             const formattedUsers = users.map(user => ({
@@ -133,7 +151,7 @@ class UsersController {
                 isAdmin: user.isAdmin,
                 isSuspended: user.isSuspended,
                 creditBalance: user.creditBalance || 0,
-                totalGenerated: 0, // Will be calculated separately when relations are available
+                totalGenerated: imageCountMap[user.id] || 0, // Use actual image count
                 totalPayments: 0, // Will be calculated separately if needed
                 totalTransactions: 0, // Will be calculated separately if needed
                 status: user.isSuspended ? 'suspended' : 'active',

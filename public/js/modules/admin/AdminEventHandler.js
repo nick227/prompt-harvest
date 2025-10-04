@@ -111,15 +111,6 @@ class AdminEventHandler {
         // Use the package handler if available
         if (window.adminApp && window.adminApp.packageHandler) {
             switch (action) {
-                case 'view':
-                case 'edit':
-                    // Find the package data and show edit form
-                    const packageData = window.adminApp.packageHandler.currentPackages?.find(pkg => pkg.id === id);
-
-                    if (packageData) {
-                        window.adminApp.packageHandler.showEditPackageForm(packageData);
-                    }
-                    break;
                 case 'delete':
                     // Find the package data and show delete confirmation
                     const deleteData = window.adminApp.packageHandler.currentPackages?.find(pkg => pkg.id === id);
@@ -127,12 +118,6 @@ class AdminEventHandler {
                     if (deleteData) {
                         window.adminApp.packageHandler.showDeletePackageConfirmation(deleteData);
                     }
-                    break;
-                case 'activate':
-                    this.uiRenderer.packageManager.activatePackage(id);
-                    break;
-                case 'deactivate':
-                    this.uiRenderer.packageManager.deactivatePackage(id);
                     break;
             }
         }
@@ -179,18 +164,6 @@ class AdminEventHandler {
 
     handlePromoCardAction(action, id) {
         switch (action) {
-            case 'view':
-                this.uiRenderer.promoCodeModal.show(id);
-                break;
-            case 'edit':
-                this.uiRenderer.promoCodeModal.show(id);
-                break;
-            case 'activate':
-                this.uiRenderer.promoCodeModal.activate(id);
-                break;
-            case 'deactivate':
-                this.uiRenderer.promoCodeModal.deactivate(id);
-                break;
             case 'delete':
                 // Dispatch to admin dashboard manager for proper handling
                 if (window.adminApp && window.adminApp.eventBus) {

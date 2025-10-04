@@ -87,15 +87,12 @@ class AdminSharedTable {
             'promo-cards': {
                 columns: [
                     { field: 'id', title: 'Promo ID', sortable: true, filterable: true, type: 'text' },
-                    { field: 'code', title: 'Promo Code', sortable: true, filterable: true, type: 'text' },
+                    { field: 'code', title: 'Code', sortable: true, filterable: true, type: 'text' },
+                    { field: 'credits', title: 'Credits', sortable: true, filterable: false, type: 'number' },
                     { field: 'description', title: 'Description', sortable: true, filterable: true, type: 'text', formatter: 'truncate' },
-                    { field: 'discount_type', title: 'Discount Type', sortable: true, filterable: true, type: 'select', options: ['percentage', 'fixed', 'credits'], formatter: 'discountType' },
-                    { field: 'discount_value', title: 'Discount Value', sortable: true, filterable: false, type: 'number' },
-                    { field: 'usage_limit', title: 'Usage Limit', sortable: true, filterable: false, type: 'number' },
-                    { field: 'used_count', title: 'Used Count', sortable: true, filterable: false, type: 'number' },
-                    { field: 'status', title: 'Status', sortable: true, filterable: true, type: 'select', options: ['active', 'inactive', 'expired'], formatter: 'status' },
-                    { field: 'expires_at', title: 'Expires', sortable: true, filterable: false, type: 'datetime', formatter: 'datetime' },
-                    { field: 'created_at', title: 'Created', sortable: true, filterable: false, type: 'datetime', formatter: 'datetime' },
+                    { field: 'isActive', title: 'Active', sortable: true, filterable: true, type: 'boolean', formatter: 'boolean' },
+                    { field: 'maxRedemptions', title: 'Max Redemptions', sortable: true, filterable: false, type: 'number' },
+                    { field: 'currentRedemptions', title: 'Current Redemptions', sortable: true, filterable: false, type: 'number' },
                     { field: 'actions', title: 'Actions', sortable: false, filterable: false, type: 'actions' }
                 ],
                 actions: ['view', 'edit', 'activate', 'deactivate', 'delete']
@@ -639,10 +636,6 @@ class AdminSharedTable {
                 moderate: { icon: 'fas fa-shield-alt', class: 'btn-sm btn-warning', tooltip: 'Moderate Content' }
             },
             packages: {
-                view: { icon: 'fas fa-eye', class: 'btn-sm btn-outline', tooltip: 'View Package' },
-                edit: { icon: 'fas fa-edit', class: 'btn-sm btn-primary', tooltip: 'Edit Package' },
-                activate: { icon: 'fas fa-check', class: 'btn-sm btn-success', tooltip: 'Activate Package' },
-                deactivate: { icon: 'fas fa-ban', class: 'btn-sm btn-warning', tooltip: 'Deactivate Package' },
                 delete: { icon: 'fas fa-trash', class: 'btn-sm btn-danger', tooltip: 'Delete Package' }
             },
             providers: {
@@ -653,10 +646,6 @@ class AdminSharedTable {
                 disable: { icon: 'fas fa-ban', class: 'btn-sm btn-warning', tooltip: 'Disable Provider' }
             },
             'promo-cards': {
-                view: { icon: 'fas fa-eye', class: 'btn-sm btn-outline', tooltip: 'View Promo Card' },
-                edit: { icon: 'fas fa-edit', class: 'btn-sm btn-primary', tooltip: 'Edit Promo Card' },
-                activate: { icon: 'fas fa-check', class: 'btn-sm btn-success', tooltip: 'Activate Promo Card' },
-                deactivate: { icon: 'fas fa-ban', class: 'btn-sm btn-warning', tooltip: 'Deactivate Promo Card' },
                 delete: { icon: 'fas fa-trash', class: 'btn-sm btn-danger', tooltip: 'Delete Promo Card' }
             }
         };
@@ -743,12 +732,18 @@ class AdminSharedTable {
     }
 
     setupActionButtonListeners() {
+        // Remove existing event listeners to prevent duplicates
         const actionButtons = this.container.querySelectorAll('.action-btn');
 
         actionButtons.forEach(button => {
-            button.addEventListener('click', e => {
+            // Clone the button to remove all event listeners
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+
+            // Add fresh event listener
+            newButton.addEventListener('click', e => {
                 e.stopPropagation();
-                const { action, id } = button.dataset;
+                const { action, id } = newButton.dataset;
 
                 this.handleAction(action, id);
             });
@@ -917,6 +912,8 @@ class AdminSharedTable {
                 return this.formatSuspension(value);
             case 'discountType':
                 return this.formatDiscountType(value);
+            case 'boolean':
+                return this.formatBoolean(value);
             default:
                 return this.escapeHtml(String(value));
         }
@@ -993,6 +990,14 @@ class AdminSharedTable {
         const className = typeClasses[type] || 'status-default';
 
         return `<span class="status-badge ${className}">${type}</span>`;
+    }
+
+    formatBoolean(value) {
+        const isActive = value === true || value === 1 || value === '1' || value === 'true';
+        const className = isActive ? 'status-active' : 'status-inactive';
+        const text = isActive ? 'Active' : 'Inactive';
+
+        return `<span class="status-badge ${className}">${text}</span>`;
     }
 
     formatThumbnail(imageUrl) {

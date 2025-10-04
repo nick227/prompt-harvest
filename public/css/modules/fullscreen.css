@@ -187,6 +187,15 @@
     background: var(--color-surface-primary);
 }
 
+/* Mobile-specific overrides */
+@media screen and (max-width: 768px) {
+    .info-box-content {
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        overscroll-behavior: contain;
+    }
+}
+
 .info-box-content.collapsed {
     max-height: 0;
     padding: 0 20px;

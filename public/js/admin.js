@@ -354,7 +354,8 @@ const setupAdminDashboardEvents = () => {
                 historyType: e.detail.dataType
             };
 
-            window.adminApp.dashboardManager.eventBus.emit('table-action', actionData);
+            // Emit the event with proper parameters: type, action, data
+            window.adminApp.dashboardManager.eventBus.emit('table-action', e.detail.action, actionData);
         }
     });
 

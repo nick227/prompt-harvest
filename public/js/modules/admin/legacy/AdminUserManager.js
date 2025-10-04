@@ -170,15 +170,22 @@ class AdminUserManager {
      */
     static async suspendUser(userId) {
         console.log('🚫 ADMIN: Suspending user:', userId);
+        console.log('🚫 ADMIN: AdminModalFunctions available:', !!window.AdminModalFunctions);
+        console.log('🚫 ADMIN: showSuspensionReasonModal available:', !!(window.AdminModalFunctions && window.AdminModalFunctions.showSuspensionReasonModal));
 
         const reason = await window.AdminModalFunctions.showSuspensionReasonModal();
+        console.log('🚫 ADMIN: Suspension reason received:', reason);
 
         if (!reason) {
+            console.log('🚫 ADMIN: No reason provided, cancelling suspension');
             return;
         }
 
-        if (await window.AdminModalFunctions.showConfirmModal('Are you sure you want to suspend this user?')) {
-            try {
+        console.log('🚫 ADMIN: Proceeding with suspension (no confirmation needed)');
+        try {
+                console.log('🚫 ADMIN: Making suspend API call to:', `/api/admin/users/${userId}/suspend`);
+                console.log('🚫 ADMIN: Request payload:', { reason });
+
                 const response = await fetch(`/api/admin/users/${userId}/suspend`, {
                     method: 'POST',
                     headers: {
@@ -189,13 +196,15 @@ class AdminUserManager {
                     })
                 });
 
+                console.log('🚫 ADMIN: API response status:', response.status);
                 const result = await response.json();
+                console.log('🚫 ADMIN: API response data:', result);
 
                 if (result.success) {
                     window.showNotification('User suspended successfully', 'warning');
 
                     // Update the user row status immediately
-                    this.updateUserRowStatus(userId, true);
+                    AdminUserManager.updateUserRowStatus(userId, true);
 
                     // Also refresh the entire table as backup
                     if (window.adminApp.dashboardManager?.eventBus) {
@@ -204,9 +213,18 @@ class AdminUserManager {
                 } else {
                     window.showNotification(`Failed to suspend user: ${result.message}`, 'error');
                 }
-            } catch (error) {
-                console.error('❌ ADMIN: Error suspending user:', error);
-                window.showNotification('Failed to suspend user. Please try again.', 'error');
+
+                // Close the modal after API call completes
+                if (window.adminApp?.modalManager) {
+                    window.adminApp.modalManager.close();
+                }
+        } catch (error) {
+            console.error('❌ ADMIN: Error suspending user:', error);
+            window.showNotification('Failed to suspend user. Please try again.', 'error');
+
+            // Close the modal on error
+            if (window.adminApp?.modalManager) {
+                window.adminApp.modalManager.close();
             }
         }
     }
@@ -224,8 +242,8 @@ class AdminUserManager {
             return;
         }
 
-        if (await window.AdminModalFunctions.showConfirmModal('Are you sure you want to unsuspend this user?')) {
-            try {
+        console.log('✅ ADMIN: Proceeding with unsuspension (no confirmation needed)');
+        try {
                 const response = await fetch(`/api/admin/users/${userId}/unsuspend`, {
                     method: 'POST',
                     headers: {
@@ -242,7 +260,7 @@ class AdminUserManager {
                     window.showNotification('User unsuspended successfully', 'success');
 
                     // Update the user row status immediately
-                    this.updateUserRowStatus(userId, false);
+                    AdminUserManager.updateUserRowStatus(userId, false);
 
                     // Also refresh the entire table as backup
                     if (window.adminApp.dashboardManager?.eventBus) {
@@ -251,9 +269,18 @@ class AdminUserManager {
                 } else {
                     window.showNotification(`Failed to unsuspend user: ${result.message}`, 'error');
                 }
-            } catch (error) {
-                console.error('❌ ADMIN: Error unsuspending user:', error);
-                window.showNotification('Failed to unsuspend user. Please try again.', 'error');
+
+                // Close the modal after API call completes
+                if (window.adminApp?.modalManager) {
+                    window.adminApp.modalManager.close();
+                }
+        } catch (error) {
+            console.error('❌ ADMIN: Error unsuspending user:', error);
+            window.showNotification('Failed to unsuspend user. Please try again.', 'error');
+
+            // Close the modal on error
+            if (window.adminApp?.modalManager) {
+                window.adminApp.modalManager.close();
             }
         }
     }
@@ -286,14 +313,24 @@ class AdminUserManager {
             const userRow = document.querySelector(`tr[data-id="${userId}"]`);
 
             if (userRow) {
-                const statusCell = userRow.querySelector('td.isSuspended');
+                // Try multiple selectors to find the status cell
+                let statusCell = userRow.querySelector('td.isSuspended') ||
+                                userRow.querySelector('td[class*="isSuspended"]') ||
+                                userRow.querySelector('td:nth-child(6)'); // Status is usually 6th column
 
                 if (statusCell) {
-                    // Update the status display
-                    statusCell.innerHTML = isSuspended
-                        ? '<span class="badge badge-warning">Suspended</span>'
-                        : '<span class="badge badge-success">Active</span>';
+                    // Use the same formatter as the shared table system
+                    const suspensionFormatter = (value) => {
+                        const isSuspendedBool = value === true || value === 'true' || value === 1;
+                        const className = isSuspendedBool ? 'status-failed' : 'status-active';
+                        const text = isSuspendedBool ? 'Suspended' : 'Active';
+                        return `<span class="status-badge ${className}">${text}</span>`;
+                    };
 
+                    // Update the status display using the same formatter
+                    statusCell.innerHTML = suspensionFormatter(isSuspended);
+
+                    // Add visual feedback
                     statusCell.style.backgroundColor = isSuspended ? '#f59e0b' : '#10b981';
                     statusCell.style.transition = 'background-color 0.3s ease';
 
@@ -302,10 +339,56 @@ class AdminUserManager {
                     }, 2000);
 
                     console.log('✅ ADMIN: Updated user row status to:', isSuspended ? 'suspended' : 'active');
+                } else {
+                    console.log('⚠️ ADMIN: Could not find status cell for user:', userId);
+                    // Trigger a table refresh as fallback
+                    this.refreshUsersTable();
                 }
+            } else {
+                console.log('⚠️ ADMIN: Could not find user row for:', userId);
+                // Trigger a table refresh as fallback
+                this.refreshUsersTable();
             }
         } catch (error) {
             console.error('❌ ADMIN: Error updating user row status:', error);
+            // Trigger a table refresh as fallback
+            this.refreshUsersTable();
+        }
+    }
+
+    /**
+     * Refresh users table as fallback
+     */
+    static async refreshUsersTable() {
+        try {
+            // Try to refresh the shared table if available
+            if (window.adminApp?.uiRenderer?.sharedTable && window.adminApp.uiRenderer.sharedTable.dataType === 'users') {
+                console.log('🔄 ADMIN: Refreshing users table via shared table system');
+
+                // Load fresh users data and refresh the table
+                if (window.adminApp.apiService) {
+                    const usersData = await window.adminApp.apiService.getUsersHistory();
+                    if (usersData.success) {
+                        window.adminApp.uiRenderer.sharedTable.refreshData(usersData.data);
+                        console.log('✅ ADMIN: Users table refreshed successfully');
+                    } else {
+                        throw new Error(usersData.message || 'Failed to load users data');
+                    }
+                } else {
+                    throw new Error('API service not available');
+                }
+            } else if (window.adminApp?.dashboardManager?.eventBus) {
+                console.log('🔄 ADMIN: Refreshing users table via event bus');
+                window.adminApp.dashboardManager.eventBus.emit('refresh-history', 'users');
+            } else {
+                console.log('🔄 ADMIN: Refreshing users table via page reload');
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('❌ ADMIN: Error refreshing users table:', error);
+            // Fallback to page reload
+            console.log('🔄 ADMIN: Falling back to page reload');
+            window.location.reload();
         }
     }
 

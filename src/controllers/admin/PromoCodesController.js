@@ -271,15 +271,8 @@ class PromoCodesController {
                 });
             }
 
-            // Check if promo code has been redeemed
-            if (existingPromo.currentRedemptions > 0) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Cannot delete redeemed promo code',
-                    message: `Promo code '${existingPromo.code}' has been redeemed ` +
-                        `${existingPromo.currentRedemptions} times and cannot be deleted`
-                });
-            }
+            // Note: Allowing deletion of redeemed promo codes - previous redemptions will be orphaned
+            // This is intentional for simpler data management
 
             // Delete promo code
             await prisma.promoCode.delete({

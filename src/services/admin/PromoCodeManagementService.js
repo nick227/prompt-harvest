@@ -208,9 +208,8 @@ export class PromoCodeManagementService {
             throw new Error('Promo code not found');
         }
 
-        if (promoCode.redemptions.length > 0) {
-            throw new Error('Cannot delete promo code with existing redemptions');
-        }
+        // Note: Allowing deletion of promo codes with existing redemptions
+        // Previous redemptions will be orphaned for simpler data management
 
         return await this.prisma.promoCode.delete({
             where: { id }

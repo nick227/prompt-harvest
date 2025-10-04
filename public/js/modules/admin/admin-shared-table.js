@@ -57,7 +57,7 @@ class AdminSharedTable {
                     { field: 'created_at', title: 'Created', sortable: true, filterable: false, type: 'datetime', formatter: 'datetime' },
                     { field: 'actions', title: 'Actions', sortable: false, filterable: false, type: 'actions' }
                 ],
-                actions: ['view', 'edit', 'activate', 'deactivate', 'delete']
+                actions: ['delete']
             },
             providers: {
                 columns: [
@@ -97,7 +97,7 @@ class AdminSharedTable {
                     { field: 'created_at', title: 'Created', sortable: true, filterable: false, type: 'datetime', formatter: 'datetime' },
                     { field: 'actions', title: 'Actions', sortable: false, filterable: false, type: 'actions' }
                 ],
-                actions: ['view', 'edit', 'activate', 'deactivate', 'delete']
+                actions: ['delete']
             }
         };
 
@@ -360,6 +360,9 @@ class AdminSharedTable {
             });
         });
 
+        // Setup action button listeners for table rows
+        this.setupActionButtonListeners();
+
         // Pagination buttons (will be set up when pagination is generated)
         this.setupPaginationEventListeners();
     }
@@ -618,10 +621,6 @@ class AdminSharedTable {
                 moderate: { icon: 'fas fa-shield-alt', class: 'btn-sm btn-warning', tooltip: 'Moderate Content' }
             },
             packages: {
-                view: { icon: 'fas fa-eye', class: 'btn-sm btn-outline', tooltip: 'View Package' },
-                edit: { icon: 'fas fa-edit', class: 'btn-sm btn-primary', tooltip: 'Edit Package' },
-                activate: { icon: 'fas fa-check', class: 'btn-sm btn-success', tooltip: 'Activate Package' },
-                deactivate: { icon: 'fas fa-ban', class: 'btn-sm btn-warning', tooltip: 'Deactivate Package' },
                 delete: { icon: 'fas fa-trash', class: 'btn-sm btn-danger', tooltip: 'Delete Package' }
             },
             providers: {
@@ -632,10 +631,6 @@ class AdminSharedTable {
                 disable: { icon: 'fas fa-ban', class: 'btn-sm btn-warning', tooltip: 'Disable Provider' }
             },
             'promo-cards': {
-                view: { icon: 'fas fa-eye', class: 'btn-sm btn-outline', tooltip: 'View Promo Card' },
-                edit: { icon: 'fas fa-edit', class: 'btn-sm btn-primary', tooltip: 'Edit Promo Card' },
-                activate: { icon: 'fas fa-check', class: 'btn-sm btn-success', tooltip: 'Activate Promo Card' },
-                deactivate: { icon: 'fas fa-ban', class: 'btn-sm btn-warning', tooltip: 'Deactivate Promo Card' },
                 delete: { icon: 'fas fa-trash', class: 'btn-sm btn-danger', tooltip: 'Delete Promo Card' }
             }
         };

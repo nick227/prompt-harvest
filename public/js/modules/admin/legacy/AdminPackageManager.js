@@ -270,7 +270,7 @@ class AdminPackageManager {
             price: packageData.price / 100 // Convert cents to dollars for form
         };
 
-        this.showPackageForm('Edit Package', formData);
+        this.showPackageForm('Edit Package hhh', formData);
     }
 
     /**

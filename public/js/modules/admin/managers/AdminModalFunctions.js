@@ -129,8 +129,11 @@ class AdminModalFunctions {
      * @returns {Promise<string|null>} Suspension reason or null if cancelled
      */
     static async showSuspensionReasonModal() {
+        console.log('🔍 ADMIN: showSuspensionReasonModal called');
         // Create a simple modal for suspension reason input
-        return await this.createInputModal('Enter suspension reason:', 'text');
+        const result = await this.createInputModal('Enter suspension reason:', 'text');
+        console.log('🔍 ADMIN: showSuspensionReasonModal result:', result);
+        return result;
     }
 
     /**
@@ -138,8 +141,11 @@ class AdminModalFunctions {
      * @returns {Promise<string|null>} Unsuspension reason or null if cancelled
      */
     static async showUnsuspensionReasonModal() {
+        console.log('🔍 ADMIN: showUnsuspensionReasonModal called');
         // Create a simple modal for unsuspension reason input
-        return await this.createInputModal('Enter unsuspension reason:', 'text');
+        const result = await this.createInputModal('Enter unsuspension reason:', 'text');
+        console.log('🔍 ADMIN: showUnsuspensionReasonModal result:', result);
+        return result;
     }
 
     /**
@@ -280,11 +286,13 @@ class AdminModalFunctions {
                 };
 
                 const handleCancel = () => {
+                    console.log('🔍 ADMIN: Confirm modal cancelled');
                     cleanup();
                     resolve(false);
                 };
 
                 const handleConfirm = () => {
+                    console.log('🔍 ADMIN: Confirm modal confirmed');
                     cleanup();
                     resolve(true);
                 };

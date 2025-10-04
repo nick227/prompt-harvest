@@ -70,7 +70,7 @@ class ImageViewUtils {
                 return 'Generated Image';
             }
 
-            return prompt.substring(0, 8);
+            return prompt.substring(0, 60);
         };
 
         const prompt = img.dataset.prompt || img.dataset.final || '';
@@ -105,19 +105,29 @@ class ImageViewUtils {
         const compactView = wrapper.querySelector('.compact-view');
         const listView = wrapper.querySelector('.list-view');
 
+        console.log('🔄 VIEW UTILS: Updating wrapper view to', viewType, {
+            hasCompactView: !!compactView,
+            hasListView: !!listView,
+            wrapperId: wrapper.id || 'no-id'
+        });
+
         if (viewType === 'list') {
             if (compactView) {
                 compactView.style.display = 'none';
+                console.log('🔄 VIEW UTILS: Hidden compact view');
             }
             if (listView) {
                 listView.style.display = 'flex';
+                console.log('🔄 VIEW UTILS: Shown list view');
             }
         } else {
             if (compactView) {
                 compactView.style.display = 'block';
+                console.log('🔄 VIEW UTILS: Shown compact view');
             }
             if (listView) {
                 listView.style.display = 'none';
+                console.log('🔄 VIEW UTILS: Hidden list view');
             }
         }
     }
@@ -323,13 +333,16 @@ class ImageViewUtils {
         // Create metadata rows for grid layout
         const createMetadataRow = (label, value, className = '') => {
             const row = document.createElement('div');
+
             row.className = `metadata-row ${className}`.trim();
 
             const labelElement = document.createElement('span');
+
             labelElement.className = 'metadata-label';
             labelElement.textContent = label;
 
             const valueElement = document.createElement('span');
+
             valueElement.className = 'metadata-value';
 
             // Check if value contains HTML (like our username links)
@@ -347,20 +360,24 @@ class ImageViewUtils {
 
         // Add model row (provider)
         const modelRow = createMetadataRow('Model', imageData.provider || 'Unknown');
+
         metadata.appendChild(modelRow);
 
         // Add rating row
         const ratingRow = createMetadataRow('Rating', `★ ${imageData.rating || 0}`);
+
         metadata.appendChild(ratingRow);
 
         // Add creator row (username)
         const creatorRow = createMetadataRow('Creator', this.formatUsername(imageData));
+
         metadata.appendChild(creatorRow);
 
         // Add isPublic row - only for owner
         if (this.shouldShowPublicToggle(imageData)) {
             const publicRow = createMetadataRow('Visibility', imageData.isPublic ? 'Public' : 'Private');
             const publicValue = publicRow.querySelector('.metadata-value');
+
             publicValue.style.color = imageData.isPublic ? '#10b981' : '#f59e0b';
             metadata.appendChild(publicRow);
         }
@@ -368,6 +385,7 @@ class ImageViewUtils {
         // Add tags if available
         if (imageData.tags && Array.isArray(imageData.tags) && imageData.tags.length > 0) {
             const tagsContainer = ImageViewUtils.createTagsContainer(imageData.tags);
+
             metadata.appendChild(tagsContainer);
         }
 
@@ -587,6 +605,7 @@ class ImageViewUtils {
 
                 // Extract data from the actual image element instead of using passed imageData
                 const imgElement = imageThumb.querySelector('img');
+
                 if (imgElement) {
                     // Check all image elements in the document
                     const allImages = document.querySelectorAll('img[data-id]');
@@ -773,21 +792,26 @@ class ImageViewUtils {
             if (updates.rating !== undefined) {
                 // Update header rating display
                 const headerRatingElement = listView.querySelector('.list-rating');
+
                 if (headerRatingElement) {
                     headerRatingElement.innerHTML = updates.rating > 0 ? `★ ${updates.rating}` : '★ 0';
                 }
 
                 // Update metadata rating display (the one with rating buttons)
                 const metadataRatingElement = listView.querySelector('.metadata-value');
+
                 if (metadataRatingElement && metadataRatingElement.textContent.includes('★')) {
                     metadataRatingElement.textContent = `★ ${updates.rating || 0}`;
 
                     // Update rating buttons if they exist
                     const ratingButtons = metadataRatingElement.querySelector('.rating-buttons');
+
                     if (ratingButtons && window.RatingButtons) {
                         const imageId = ratingButtons.getAttribute('data-image-id');
+
                         if (imageId) {
                             const ratingButtonsInstance = new window.RatingButtons(imageId, updates.rating);
+
                             ratingButtonsInstance.updateRating(updates.rating);
                         }
                     }
@@ -797,9 +821,11 @@ class ImageViewUtils {
             if (updates.isPublic !== undefined) {
                 // Find the status row and update its value
                 const statusRow = listView.querySelector('.metadata-row');
+
                 if (statusRow) {
                     const statusLabel = statusRow.querySelector('.metadata-label');
                     const statusValue = statusRow.querySelector('.metadata-value');
+
                     if (statusLabel && statusLabel.textContent === 'Status' && statusValue) {
                         statusValue.textContent = updates.isPublic ? 'Public' : 'Private';
                         statusValue.style.color = updates.isPublic ? '#10b981' : '#f59e0b';
@@ -875,7 +901,7 @@ class ImageViewUtils {
             });
 
             // Add click handler to filter by tag
-            tagElement.addEventListener('click', (e) => {
+            tagElement.addEventListener('click', e => {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -887,6 +913,7 @@ class ImageViewUtils {
                 } else {
                     // Fallback: update URL directly
                     const url = new URL(window.location);
+
                     url.searchParams.set('tag', tag);
                     window.location.href = url.toString();
                 }
@@ -959,6 +986,7 @@ class ImageViewUtils {
         // Never assume ownership if userId is missing - this prevents unauthorized access
         if (!imageData.userId) {
             console.warn('🔒 SECURITY: Image missing userId, denying ownership access for security');
+
             return false;
         }
 

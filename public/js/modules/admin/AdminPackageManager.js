@@ -5,8 +5,9 @@
  */
 
 class AdminPackageManager {
-    constructor(uiRenderer = null) {
+    constructor(uiRenderer = null, eventBus = null) {
         this.uiRenderer = uiRenderer;
+        this.eventBus = eventBus;
         this.apiBaseUrl = '/api/admin';
         this.currentPackages = [];
         this.isLoading = false;
@@ -47,26 +48,44 @@ class AdminPackageManager {
         console.log('📦 ADMIN-PACKAGES: Setting up event listeners');
 
         // Listen for admin table actions using AdminEventBus
-        if (window.AdminEventBus && !this.eventBusListenerSet) {
+        if (this.eventBus && !this.eventBusListenerSet) {
             console.log('📦 ADMIN-PACKAGES: Setting up AdminEventBus listeners');
+            console.log('📦 ADMIN-PACKAGES: AdminEventBus available:', !!this.eventBus);
             this.eventBusListenerSet = true; // Prevent duplicate registrations
 
-            // Use a simple approach - just listen for the event once
-            window.AdminEventBus.on('table', 'create-package', eventData => {
-                console.log('📦 ADMIN-PACKAGES: AdminEventBus table.create-package event received:', eventData);
-                if (eventData.entity === 'packages') {
-                    console.log('📦 ADMIN-PACKAGES: AdminEventBus create-package received for packages');
-                    this.showCreatePackageForm();
+            // Listen for delete actions
+            console.log('📦 ADMIN-PACKAGES: Registering AdminEventBus listener for table-action.delete');
+            this.eventBus.on('table-action', 'delete', eventData => {
+                console.log('📦 ADMIN-PACKAGES: AdminEventBus table-action.delete event received:', eventData);
+                console.log('📦 ADMIN-PACKAGES: Event data type:', eventData.dataType);
+                console.log('📦 ADMIN-PACKAGES: Event ID:', eventData.id);
+                if (eventData.dataType === 'packages') {
+                    console.log('📦 ADMIN-PACKAGES: AdminEventBus delete received for packages');
+                    const packageData = this.currentPackages.find(pkg => pkg.id === eventData.id);
+
+                    if (packageData) {
+                        console.log('📦 ADMIN-PACKAGES: Package data found, showing confirmation');
+                        this.showDeletePackageConfirmation(packageData);
+                    } else {
+                        console.error('📦 ADMIN-PACKAGES: Package not found for delete action:', eventData.id);
+                        console.log('📦 ADMIN-PACKAGES: Available packages:', this.currentPackages.map(p => p.id));
+                    }
+                } else {
+                    console.log('📦 ADMIN-PACKAGES: Event not for packages, dataType:', eventData.dataType);
                 }
             });
+
+            // Debug: Check what listeners are registered
+            console.log('📦 ADMIN-PACKAGES: AdminEventBus listeners after registration:', this.eventBus.getListeners());
         } else if (this.eventBusListenerSet) {
             console.log('📦 ADMIN-PACKAGES: AdminEventBus listeners already set up, skipping');
         }
 
         // Fallback: Listen for old DOM events
+        console.log('📦 ADMIN-PACKAGES: Setting up fallback DOM event listener');
         document.addEventListener('admin-table-action', event => {
             console.log('📦 ADMIN-PACKAGES: admin-table-action event received:', event.detail);
-            const { action, data, dataType } = event.detail;
+            const { action, data, dataType, id } = event.detail;
 
             // Only handle package-related actions
             if (dataType !== 'packages') {
@@ -85,9 +104,20 @@ class AdminPackageManager {
                 case 'edit':
                     this.showEditPackageForm(data);
                     break;
-                case 'delete':
-                    this.showDeletePackageConfirmation(data);
+                case 'delete': {
+                    console.log('📦 ADMIN-PACKAGES: Fallback DOM listener handling delete action for ID:', id);
+                    // Find the package data by ID
+                    const packageData = this.currentPackages.find(pkg => pkg.id === id);
+
+                    if (packageData) {
+                        console.log('📦 ADMIN-PACKAGES: Package data found in fallback, showing confirmation');
+                        this.showDeletePackageConfirmation(packageData);
+                    } else {
+                        console.error('📦 ADMIN-PACKAGES: Package not found for delete action:', id);
+                        console.log('📦 ADMIN-PACKAGES: Available packages in fallback:', this.currentPackages.map(p => p.id));
+                    }
                     break;
+                }
             }
         });
 

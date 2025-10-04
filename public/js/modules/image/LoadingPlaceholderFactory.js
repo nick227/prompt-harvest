@@ -358,9 +358,11 @@ class LoadingPlaceholderFactory {
             const row = this.createElement('div', 'metadata-row');
 
             const labelElement = this.createElement('span', 'metadata-label');
+
             labelElement.textContent = label;
 
             const valueElement = this.createElement('span', 'metadata-value');
+
             valueElement.innerHTML = `<div class="w-${width} h-3 bg-gray-600 rounded animate-pulse"></div>`;
 
             row.appendChild(labelElement);
@@ -371,8 +373,11 @@ class LoadingPlaceholderFactory {
 
         // Add skeleton rows for each metadata field (focused fields only)
         metadata.appendChild(createSkeletonRow('Model', '12'));
+
         metadata.appendChild(createSkeletonRow('Rating', '10'));
+
         metadata.appendChild(createSkeletonRow('Creator', '16'));
+
         metadata.appendChild(createSkeletonRow('Visibility', '12'));
 
         return metadata;
@@ -383,18 +388,25 @@ class LoadingPlaceholderFactory {
      * @param {HTMLElement} wrapper - Wrapper element
      */
     setInitialView(wrapper) {
-        if (window.feedManager && window.feedManager.viewManager) {
-            const currentView = window.feedManager.viewManager.currentView || 'compact';
+        // Try to get current view from feedViewManager first (direct access)
+        let currentView = 'compact'; // Default fallback
 
-            if (this.viewUtils?.updateWrapperView) {
-                this.viewUtils.updateWrapperView(wrapper, currentView);
-            } else {
-                this.setFallbackView(wrapper, currentView);
-            }
-        } else if (this.viewUtils?.updateWrapperView) {
-            this.viewUtils.updateWrapperView(wrapper, 'compact');
+        if (window.feedViewManager && window.feedViewManager.currentView) {
+            ({ currentView } = window.feedViewManager);
+        } else if (window.feedManager && window.feedManager.viewManager && window.feedManager.viewManager.currentView) {
+            ({ currentView } = window.feedManager.viewManager);
+        }
+
+        console.log('🔄 LOADING PLACEHOLDER: Setting initial view to', currentView, {
+            feedViewManager: !!window.feedViewManager,
+            feedManager: !!window.feedManager,
+            viewUtils: !!this.viewUtils
+        });
+
+        if (this.viewUtils?.updateWrapperView) {
+            this.viewUtils.updateWrapperView(wrapper, currentView);
         } else {
-            this.setFallbackView(wrapper, 'compact');
+            this.setFallbackView(wrapper, currentView);
         }
     }
 

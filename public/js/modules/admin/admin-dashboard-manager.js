@@ -51,7 +51,8 @@ class AdminDashboardManager {
             this.snapshotService = new AdminSnapshotService();
             this.historyManager = new AdminHistoryManager();
             this.uiRenderer = new AdminUIRenderer();
-            this.packageHandler = new AdminPackageManager();
+            this.packageHandler = new AdminPackageManager(null, this.eventBus);
+            this.promoCardsHandler = new AdminPromoCardsManager(this.uiRenderer, this.eventBus);
             this.queueService = new AdminQueueService();
             this.apiService = new AdminAPIService();
 
@@ -60,6 +61,7 @@ class AdminDashboardManager {
             await this.historyManager.init();
             this.uiRenderer.init();
             await this.packageHandler.init();
+            await this.promoCardsHandler.init();
 
             // Setup event listeners
             this.setupEventListeners();

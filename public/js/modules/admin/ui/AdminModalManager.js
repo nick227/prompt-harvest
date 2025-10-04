@@ -145,6 +145,7 @@ class AdminModalManager {
 
     close() {
         if (!this.isOpen || !this.modalContainer) {
+            console.log('🎭 ADMIN-MODAL: Close called but modal not open or container not found');
             return;
         }
 
