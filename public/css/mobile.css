@@ -72,7 +72,6 @@
         max-width: 100%;
         top: 0;
         left: 0;
-        max-height: 99%;
         overflow-y: auto;
         background: rgba(0, 0, 0, 0.25);
         top: 10px;
@@ -80,9 +79,10 @@
         left: 10px;
     }
 
-    .info-box-content {
+    .info-box-container {
         background: transparent;
-        padding-bottom: 100px;
+        height: 40vh;
+        overflow-y: auto;
     }
 
     .info-box-meta {

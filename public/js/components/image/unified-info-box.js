@@ -173,22 +173,29 @@ class UnifiedInfoBox {
      * @returns {HTMLElement} Content element
      */
     createContent(imageData, config) {
+        const container = this.createElement('div', config);
+
+        container.className = 'info-box-container';
+
         const content = this.createElement('div', config);
 
         const thumbnail = this.createThumbnail(imageData, config);
+
+        thumbnail.classList.add('info-box-thumbnail');
 
         content.className = config.contentClass;
 
         // Create metadata section
         const metadata = this.createMetadataSection(imageData, config);
 
-        content.appendChild(thumbnail);
-        content.appendChild(metadata);
-
         // Create prompts section
         const prompts = this.createPromptsSection(imageData, config);
 
-        content.appendChild(prompts);
+        container.appendChild(metadata);
+        container.appendChild(prompts);
+
+        content.appendChild(thumbnail);
+        content.appendChild(container);
 
         return content;
     }
