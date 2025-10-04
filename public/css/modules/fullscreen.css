@@ -314,8 +314,6 @@
     border-radius: 8px;
     transition: all 0.2s ease;
     position: relative;
-    overflow-y: auto;
-    max-height: 25vh;
 }
 
 .info-box-prompt-item:hover {

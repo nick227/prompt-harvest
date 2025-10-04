@@ -240,9 +240,11 @@ class UnifiedInfoBox {
             { label: 'Created', value: this.formatCreatedBy(imageData) }
         ];
 
-        // Add tags if available (FullscreenComponents only) - will be handled in prompts section for full width
-
         metadataItems.forEach(item => {
+            if (item.value === '') {
+                return;
+            }
+
             const itemConfig = { ...config, imageData };
             const itemElement = this.createMetadataItem(item.label, item.value, itemConfig);
 
@@ -384,13 +386,8 @@ class UnifiedInfoBox {
     createPublicToggle(imageData, config) {
         // Check if user should be able to see this toggle
         if (!this.shouldShowPublicToggle(imageData)) {
-            // Return a read-only display instead of a toggle
-            const display = this.createElement('div', config);
 
-            display.className = 'info-box-public-display';
-            display.textContent = imageData.isPublic ? 'Public' : 'Private';
-
-            return display;
+            return '';
         }
 
         const toggle = this.createElement('div', config);

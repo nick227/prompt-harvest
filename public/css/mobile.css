@@ -82,7 +82,13 @@
     .info-box-container {
         background: transparent;
         height: 40vh;
+        max-height: 40vh;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        overscroll-behavior: contain;
+        scroll-behavior: smooth;
+        position: relative;
     }
 
     .info-box-meta {
@@ -96,6 +102,21 @@
 
     .info-box-prompt-item {
         background: var(--color-surface-secondary);
+    }
+
+    /* Mobile touch scrolling improvements for info box content */
+    .info-box-content {
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        overscroll-behavior: contain;
+    }
+
+    /* Ensure prompt values are scrollable on mobile */
+    .info-box-prompt-value {
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        max-height: 200px;
+        overflow-y: auto;
     }
 
     .info-box-thumbnail {
