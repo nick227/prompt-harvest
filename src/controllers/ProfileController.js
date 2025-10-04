@@ -1,7 +1,7 @@
 import databaseClient from '../database/PrismaClient.js';
 import { EnhancedImageService } from '../services/EnhancedImageService.js';
 import { ImageRepository } from '../repositories/ImageRepository.js';
-import { AIPromptService } from '../services/ai/features/AIPromptService.js';
+import { getAIPromptService } from '../services/ai/features/AIPromptServiceSingleton.js';
 import { ImageStorageService } from '../services/ImageStorageService.js';
 import { formatErrorResponse, formatSuccessResponse } from '../utils/ResponseFormatter.js';
 import { generateRequestId, logRequestStart, logRequestSuccess, logRequestError } from '../utils/RequestLogger.js';
@@ -14,7 +14,7 @@ export class ProfileController {
         // Removed: databaseClient.getClient() = new PrismaClient();
         // Use databaseClient.getClient() when database access is needed
         this.imageRepository = new ImageRepository();
-        this.aiService = new AIPromptService();
+        this.aiService = getAIPromptService();
         this.enhancedImageService = new EnhancedImageService(this.imageRepository, this.aiService);
         this.imageStorageService = new ImageStorageService('cdn'); // Use CDN storage for profile pictures
     }
@@ -613,6 +613,7 @@ export class ProfileController {
             }
 
             // Get user's public images
+            console.log(`🔒 PROFILE SECURITY: Getting public images for user ${user.username} (ID: ${user.id})`);
             const result = await this.enhancedImageService.getUserPublicImages(user.id, limitNum, pageNum);
 
             if (result.error || result.success === false) {
@@ -623,6 +624,9 @@ export class ProfileController {
 
                 return res.status(errorResponse.statusCode || 500).json(errorResponse);
             }
+
+            // SECURITY: Log the response data
+            console.log(`🔒 PROFILE SECURITY: Returning ${result.images?.length || 0} public images for user ${user.username}`);
 
             const response = formatSuccessResponse({
                 user,

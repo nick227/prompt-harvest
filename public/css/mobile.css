@@ -72,7 +72,7 @@
         max-width: 100%;
         top: 0;
         left: 0;
-        max-height: 88%;
+        max-height: 99%;
         overflow-y: auto;
         background: rgba(0, 0, 0, 0.25);
         top: 10px;
@@ -82,6 +82,7 @@
 
     .info-box-content {
         background: transparent;
+        padding-bottom: 100px;
     }
 
     .info-box-meta {
@@ -94,9 +95,12 @@
     }
 
     .info-box-prompt-item {
-        padding: 12px;
-        max-height: 55px;
         background: var(--color-surface-secondary);
+    }
+
+    .info-box-thumbnail {
+        width: 100%;
+        object-fit: contain;
     }
 
     .label {

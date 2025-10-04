@@ -123,7 +123,6 @@
     background: var(--color-modal-background);
     border: 1px solid var(--color-border-secondary);
     border-radius: 12px;
-    overflow: hidden;
     backdrop-filter: blur(15px);
     transition: all 0.3s ease;
     position: fixed;
@@ -131,7 +130,7 @@
     right: 20px;
     z-index: 10;
     width: 400px;
-    max-width: calc(100vw - 40px);
+    height: auto;
     box-shadow: var(--color-card-shadow);
 }
 
@@ -195,7 +194,7 @@
 }
 
 .info-box-content.expanded {
-    max-height: 100%;
+    max-height: 90vh;
     opacity: 1;
 }
 

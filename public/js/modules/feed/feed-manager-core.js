@@ -422,6 +422,26 @@ class FeedManager {
         return this.imageHandler.addImageToFeed(imageData, filter);
     }
 
+    /**
+     * Load images for a specific context (profile, home, etc.)
+     * @param {string} context - 'profile' for public images only, 'home' for user's own images
+     * @param {Object} options - Configuration options
+     */
+    async loadImagesForContext(context, options = {}) {
+        if (context === 'profile') {
+            // For profile pages, only load public images
+            console.log('🔒 FEED MANAGER: Loading public images for profile context');
+            return await this.apiManager.loadFeedImages('site', options.page || 0, options.tags || [], options.customEndpoint);
+        } else if (context === 'home') {
+            // For home page, load user's own images (public and private)
+            console.log('🔒 FEED MANAGER: Loading user images for home context');
+            return await this.apiManager.loadFeedImages('user', options.page || 0, options.tags || []);
+        } else {
+            console.error(`❌ FEED MANAGER: Unknown context: ${context}`);
+            throw new Error(`Unknown context: ${context}`);
+        }
+    }
+
     // Get filter statistics
     getFilterStats() {
         return this.cacheManager.getCacheStats();
@@ -498,8 +518,20 @@ const initFeedManager = async() => {
         feedManager = new FeedManager();
         window.feedManager = feedManager;
 
-        // Initialize the feed manager (this sets up tag router subscription)
-        await feedManager.init();
+        // SECURITY: Check if we're on a profile page - don't auto-initialize feed loading
+        const isProfilePage = window.location.pathname.startsWith('/u/') ||
+                             window.location.pathname.includes('/profile');
+
+        if (isProfilePage) {
+            console.log('🔒 FEED MANAGER: Profile page detected - skipping auto-initialization to prevent private image loading');
+            // Initialize sub-managers but don't load initial feed
+            await feedManager.initializeSubManagers();
+            feedManager.setupEventListeners();
+            feedManager.isInitialized = true;
+        } else {
+            // Initialize the feed manager (this sets up tag router subscription)
+            await feedManager.init();
+        }
 
         // Export functions for global access (maintaining backward compatibility)
         const setupFeed = async() => await feedManager.setupFeed();

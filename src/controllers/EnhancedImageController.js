@@ -698,7 +698,7 @@ export class EnhancedImageController {
                 imageUrl: image.imageUrl,
                 provider: image.provider,
                 guidance: image.guidance,
-                model: image.model,
+                model: image.provider || 'unknown', // Map database provider column to frontend model field
                 rating: image.rating,
                 isPublic: image.isPublic,
                 userId: image.userId,

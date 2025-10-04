@@ -30,6 +30,7 @@ class UnifiedNavigation {
     openFullscreen(imageElement) {
         if (!imageElement) {
             console.error('🔍 NAVIGATION: No image element provided');
+
             return;
         }
 
@@ -46,6 +47,7 @@ class UnifiedNavigation {
 
         if (!imageData) {
             console.error('🔍 NAVIGATION: Could not extract image data from element');
+
             return;
         }
 
@@ -79,6 +81,7 @@ class UnifiedNavigation {
     navigateNext() {
         if (this.isNavigating) {
             console.log('🔍 NAVIGATION: Already navigating, skipping');
+
             return;
         }
         this.isNavigating = true;
@@ -106,6 +109,7 @@ class UnifiedNavigation {
     navigatePrevious() {
         if (this.isNavigating) {
             console.log('🔍 NAVIGATION: Already navigating, skipping');
+
             return;
         }
         this.isNavigating = true;
@@ -144,6 +148,7 @@ class UnifiedNavigation {
     getNextImageElement() {
         if (!this.currentImageElement) {
             console.log('🔍 NAVIGATION: No current image element');
+
             return null;
         }
 
@@ -157,6 +162,7 @@ class UnifiedNavigation {
 
         if (allImages.length === 0) {
             console.log('🔍 NAVIGATION: No visible images found');
+
             return null;
         }
 
@@ -168,9 +174,11 @@ class UnifiedNavigation {
         // If exact match fails, try matching by ID
         if (currentIndex === -1) {
             const currentId = this.currentImageElement.dataset.id || this.currentImageElement.dataset.imageId;
+
             if (currentId) {
                 currentIndex = allImages.findIndex(img => {
                     const imgId = img.dataset.id || img.dataset.imageId;
+
                     return imgId === currentId;
                 });
             }
@@ -193,17 +201,20 @@ class UnifiedNavigation {
                 id: img.dataset.id,
                 imageId: img.dataset.imageId
             })));
+
             return null;
         }
 
         // Handle single image case
         if (allImages.length === 1) {
             console.log('🔍 NAVIGATION: Only one image available, staying on current image');
+
             return allImages[0];
         }
 
         // Circular navigation: wrap to first image if at end
         const nextIndex = (currentIndex + 1) % allImages.length;
+
         console.log(`🔍 NAVIGATION: Moving from index ${currentIndex} to ${nextIndex}`);
 
         return allImages[nextIndex];
@@ -216,6 +227,7 @@ class UnifiedNavigation {
     getPreviousImageElement() {
         if (!this.currentImageElement) {
             console.log('🔍 NAVIGATION: No current image element');
+
             return null;
         }
 
@@ -223,6 +235,7 @@ class UnifiedNavigation {
 
         if (allImages.length === 0) {
             console.log('🔍 NAVIGATION: No visible images found');
+
             return null;
         }
 
@@ -232,9 +245,11 @@ class UnifiedNavigation {
         // If exact match fails, try matching by ID
         if (currentIndex === -1) {
             const currentId = this.currentImageElement.dataset.id || this.currentImageElement.dataset.imageId;
+
             if (currentId) {
                 currentIndex = allImages.findIndex(img => {
                     const imgId = img.dataset.id || img.dataset.imageId;
+
                     return imgId === currentId;
                 });
             }
@@ -257,17 +272,20 @@ class UnifiedNavigation {
                 id: img.dataset.id,
                 imageId: img.dataset.imageId
             })));
+
             return null;
         }
 
         // Handle single image case
         if (allImages.length === 1) {
             console.log('🔍 NAVIGATION: Only one image available, staying on current image');
+
             return allImages[0];
         }
 
         // Circular navigation: wrap to last image if at beginning
         const prevIndex = currentIndex === 0 ? allImages.length - 1 : currentIndex - 1;
+
         console.log(`🔍 NAVIGATION: Moving from index ${currentIndex} to ${prevIndex}`);
 
         return allImages[prevIndex];
@@ -282,10 +300,11 @@ class UnifiedNavigation {
         let foundImages = [];
 
         // Approach 1: Look in common containers
-        const containers = ['.prompt-output', '.images-section', '.image-container', 'body'];
+        const containers = ['#image-container-main'];
 
         for (const containerSelector of containers) {
             const container = document.querySelector(containerSelector);
+
             if (!container) {
                 continue;
             }
@@ -303,6 +322,7 @@ class UnifiedNavigation {
 
             for (const selector of selectors) {
                 const images = container.querySelectorAll(selector);
+
                 if (images.length > 0) {
                     const validImages = Array.from(images).filter(img => {
                         // Must have an ID or be a generated image
@@ -341,6 +361,7 @@ class UnifiedNavigation {
 
             for (const selector of globalSelectors) {
                 const images = document.querySelectorAll(selector);
+
                 if (images.length > 0) {
                     const validImages = Array.from(images).filter(img => {
                         const isVisible = img.offsetParent !== null && img.src;
@@ -348,6 +369,7 @@ class UnifiedNavigation {
                                           img.src.includes('r2.dev') ||
                                           img.src.includes('flux_') ||
                                           img.classList.contains('generated-image');
+
                         return isVisible && isGenerated;
                     });
 
@@ -367,7 +389,7 @@ class UnifiedNavigation {
             console.log(`🔍 NAVIGATION: Total images found: ${foundImages.length}`);
             foundImages.forEach((img, index) => {
                 console.log(`  Image ${index}:`, {
-                    src: img.src.substring(0, 50) + '...',
+                    src: `${img.src.substring(0, 50)}...`,
                     id: img.dataset.id,
                     imageId: img.dataset.imageId,
                     classes: img.className
@@ -396,7 +418,7 @@ class UnifiedNavigation {
 
             if (isGenerated || img.dataset.id || img.dataset.imageId) {
                 console.log(`🔍 DEBUG: Image ${index}:`, {
-                    src: img.src.substring(0, 80) + '...',
+                    src: `${img.src.substring(0, 80)}...`,
                     hasDataId: !!img.dataset.id,
                     hasDataImageId: !!img.dataset.imageId,
                     dataId: img.dataset.id,
@@ -412,9 +434,11 @@ class UnifiedNavigation {
         // Show container information
         containers.forEach(container => {
             const containerEl = document.querySelector(container);
+
             if (containerEl) {
                 const images = containerEl.querySelectorAll('img');
                 const generatedImages = containerEl.querySelectorAll('img[src*="r2.dev"], img[src*="uploads"], img[src*="flux_"], .generated-image');
+
                 console.log(`🔍 DEBUG: ${container} contains ${images.length} total images, ${generatedImages.length} generated images`);
             } else {
                 console.log(`🔍 DEBUG: Container ${container} not found`);
@@ -437,14 +461,25 @@ class UnifiedNavigation {
         // Get current user ID as fallback for missing userId
         const currentUserId = this.getCurrentUserId();
 
+        // Generate title from first 8 characters of prompt
+        const generateTitle = prompt => {
+            if (!prompt) {
+                return 'Generated Image';
+            }
+
+            return prompt.substring(0, 8);
+        };
+
+        const prompt = dataset.prompt || '';
+
         return {
             id: dataset.id || dataset.imageId,
             url: imageElement.src,
-            title: dataset.title || 'Generated Image',
-            prompt: dataset.prompt || '',
-            original: dataset.original || dataset.prompt || '',
-            provider: dataset.provider || 'unknown',
-            model: dataset.model || 'unknown',
+            title: generateTitle(prompt),
+            prompt,
+            original: dataset.original || prompt || '',
+            provider: dataset.provider || 'unknown', // This is actually the model name from database
+            model: dataset.provider || dataset.model || 'unknown', // Database provider column contains model name
             guidance: dataset.guidance || 'N/A',
             steps: dataset.steps || 'N/A',
             seed: dataset.seed || 'N/A',
@@ -542,6 +577,7 @@ class UnifiedNavigation {
 
         // Update the toggle button text to match the state
         const toggleButton = infoBox.querySelector('.info-box-toggle');
+
         if (toggleButton) {
             toggleButton.textContent = savedState.isExpanded ? '−' : '+';
         }
@@ -735,14 +771,15 @@ class UnifiedNavigation {
      */
     setupInfoBoxToggleEvents() {
         // Listen for custom info box toggle events
-        window.addEventListener('infoBoxToggle', (e) => {
+        window.addEventListener('infoBoxToggle', e => {
             this.saveInfoBoxState({ isExpanded: e.detail.isExpanded });
             console.log('🔍 NAVIGATION: Info box state changed:', e.detail);
         });
 
         // Also listen for direct clicks on toggle buttons as backup
-        this.fullscreenContainer.addEventListener('click', (e) => {
+        this.fullscreenContainer.addEventListener('click', e => {
             const toggle = e.target.closest('.info-box-toggle');
+
             if (toggle) {
                 setTimeout(() => {
                     // Small delay to allow the unified info box to update the DOM
@@ -763,6 +800,7 @@ class UnifiedNavigation {
         try {
             // Fetch the image as a blob to force Save As dialog
             const response = await fetch(this.currentImageElement.src);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -774,6 +812,7 @@ class UnifiedNavigation {
             const objectUrl = URL.createObjectURL(blob);
 
             const link = document.createElement('a');
+
             link.href = objectUrl;
             link.download = fileName;
             link.style.display = 'none';
@@ -792,6 +831,7 @@ class UnifiedNavigation {
             // Fallback to old method
             try {
                 const link = document.createElement('a');
+
                 link.href = this.currentImageElement.src;
                 link.download = this.generateFileNameFromPrompt();
                 link.style.display = 'none';
@@ -820,7 +860,8 @@ class UnifiedNavigation {
 
         // Take first 30 characters
         const truncatedPrompt = finalPrompt.length > 30 ?
-            finalPrompt.substring(0, 30) : finalPrompt;
+            finalPrompt.substring(0, 30)
+            : finalPrompt;
 
         // Sanitize filename - remove invalid characters but keep spaces
         const sanitized = truncatedPrompt
@@ -831,6 +872,7 @@ class UnifiedNavigation {
         // Ensure we have a valid filename
         if (!sanitized || sanitized.length === 0) {
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
             return `Generated Image ${timestamp}.jpg`;
         }
 
@@ -968,6 +1010,7 @@ class UnifiedNavigation {
 
         // Apply saved zoom level
         const zoomLevel = parseFloat(img.dataset.zoom);
+
         img.style.transform = `scale(${zoomLevel}) translate(0px, 0px)`;
         img.style.cursor = zoomLevel >= 3 ? 'zoom-out' : 'zoom-in';
     }
@@ -1041,6 +1084,7 @@ class UnifiedNavigation {
             return zoomLevel >= 1 && zoomLevel <= 3 ? zoomLevel : 1;
         } catch (error) {
             console.warn('Failed to get zoom level from localStorage:', error);
+
             return 1;
         }
     }
@@ -1079,8 +1123,10 @@ class UnifiedNavigation {
         }
         if (window.userApi && window.userApi.getCurrentUser) {
             const user = window.userApi.getCurrentUser();
+
             return user?.id;
         }
+
         return null;
     }
 
@@ -1091,9 +1137,11 @@ class UnifiedNavigation {
     getInfoBoxState() {
         try {
             const saved = localStorage.getItem('fullscreen-info-box-state');
+
             return saved ? JSON.parse(saved) : { isExpanded: false };
         } catch (error) {
             console.warn('Failed to get info box state:', error);
+
             return { isExpanded: false };
         }
     }
@@ -1119,8 +1167,10 @@ class UnifiedNavigation {
         }
 
         const content = this.fullscreenContainer.querySelector('.info-box-content');
+
         if (content) {
             const isExpanded = content.classList.contains('expanded');
+
             this.saveInfoBoxState({ isExpanded });
             console.log('🔍 NAVIGATION: Saved current info box state:', { isExpanded });
         }

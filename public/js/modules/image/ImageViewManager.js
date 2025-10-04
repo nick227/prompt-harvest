@@ -233,14 +233,26 @@ class ImageViewManager {
      * @returns {Object} Extracted image data
      */
     extractImageDataFromElement(img) {
+        // Generate title from first 8 characters of prompt
+        const generateTitle = prompt => {
+            if (!prompt) {
+                return 'Generated Image';
+            }
+
+            return prompt.substring(0, 8);
+        };
+
+        const prompt = img.dataset.prompt || img.dataset.final || '';
+
         return {
             id: img.dataset.id || img.dataset.imageId || 'unknown',
             url: img.src,
-            title: img.alt || 'Generated Image',
-            prompt: img.dataset.prompt || img.dataset.final || '',
+            title: generateTitle(prompt),
+            prompt,
             original: img.dataset.original || '',
             final: img.dataset.final || img.dataset.prompt || '',
-            provider: img.dataset.provider || '',
+            provider: img.dataset.provider || '', // This is actually the model name from database
+            model: img.dataset.provider || img.dataset.model || 'unknown', // Database provider column contains model name
             guidance: img.dataset.guidance || '',
             rating: parseInt(img.dataset.rating) || 0,
             isPublic: img.dataset.isPublic === 'true' || false,

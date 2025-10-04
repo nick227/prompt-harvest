@@ -216,7 +216,8 @@ class TransactionStatsComponent {
                 </div>
                 <button
                 id="add-credits-btn"
-                        class="add-credits-btn bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs transition-colors duration-200"
+                        class="add-credits-btn bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs
+                               transition-colors duration-200"
                         title="Add Credits">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -324,8 +325,23 @@ class TransactionStatsComponent {
     // Open credit purchase modal
     async openCreditPurchaseModal() {
         try {
-            // Create a simple modal for package selection
-            await this.createSimpleCreditModal();
+            // Use the shared credit purchase modal
+            if (window.CreditPurchaseModal) {
+                const modal = new window.CreditPurchaseModal();
+
+                await modal.show({
+                    showPromoCode: true,
+                    onSuccess: () => {
+                        console.log('Credit purchase/promo redemption completed');
+                    },
+                    onCancel: () => {
+                        console.log('Credit purchase cancelled');
+                    }
+                });
+            } else {
+                // Fallback to billing page if modal not available
+                window.location.href = '/billing.html';
+            }
         } catch (error) {
             console.error('❌ STATS-COMPONENT: Error opening credit purchase:', error);
             // Fallback to billing page
@@ -333,244 +349,6 @@ class TransactionStatsComponent {
         }
     }
 
-    // Create a simple credit purchase modal with dynamic packages
-    async createSimpleCreditModal() {
-        // Remove existing modal if present
-        const existingModal = document.getElementById('credit-purchase-modal');
-
-        if (existingModal) {
-            existingModal.remove();
-        }
-
-        // Create modal with loading state
-        const modal = document.createElement('div');
-
-        modal.id = 'credit-purchase-modal';
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        modal.innerHTML = `
-            <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-white">Add Credits</h3>
-                    <button class="close-modal text-gray-400 hover:text-white">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="space-y-4">
-                    <p class="text-gray-300 text-sm">Choose a credit package to purchase:</p>
-                    <div id="packages-container" class="space-y-2">
-                        <div class="text-center py-8">
-                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                            <p class="text-gray-400 mt-2">Loading packages...</p>
-                        </div>
-                    </div>
-                    <div class="flex space-x-3 pt-4">
-                        <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
-                                id="purchase-btn" disabled>
-                            Purchase
-                        </button>
-                        <button class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition-colors"
-                                id="cancel-btn">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Add modal to page
-        document.body.appendChild(modal);
-
-        // Load packages and setup event listeners
-        try {
-            await this.loadPackagesIntoModal(modal);
-            this.setupModalEventListeners(modal);
-        } catch (error) {
-            console.error('❌ STATS-COMPONENT: Error loading packages:', error);
-            this.showPackageLoadError(modal);
-        }
-    }
-
-    // Load packages from API into modal
-    async loadPackagesIntoModal(modal) {
-        try {
-            const response = await fetch('/api/packages');
-            const data = await response.json();
-
-            if (!data.success) {
-                throw new Error(data.error || 'Failed to load packages');
-            }
-
-            const { packages } = data.data;
-            const packagesContainer = modal.querySelector('#packages-container');
-
-            if (!packages || packages.length === 0) {
-                packagesContainer.innerHTML = '<div class="text-center py-8 text-gray-400">No packages available</div>';
-
-                return;
-            }
-
-            // Sort packages by sortOrder
-            packages.sort((a, b) => a.sortOrder - b.sortOrder);
-
-            // Generate package buttons
-            const packagesHTML = packages.map(pkg => `
-                <button class="package-btn w-full text-left p-3 border border-gray-600 rounded hover:border-blue-500 hover:bg-gray-700 transition-colors"
-                        data-package="${pkg.id}">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <div class="text-white font-medium">${pkg.name}</div>
-                            <div class="text-gray-400 text-sm">${pkg.credits} credits</div>
-                            ${pkg.description ? `<div class="text-gray-500 text-xs mt-1">${pkg.description}</div>` : ''}
-                        </div>
-                        <div class="text-right">
-                            <div class="text-green-400 font-semibold">$${(pkg.price / 100).toFixed(2)}</div>
-                            ${pkg.popular ? '<div class="text-yellow-400 text-xs">Popular</div>' : ''}
-                        </div>
-                    </div>
-                </button>
-            `).join('');
-
-            packagesContainer.innerHTML = packagesHTML;
-
-        } catch (error) {
-            console.error('❌ STATS-COMPONENT: Error loading packages:', error);
-            throw error;
-        }
-    }
-
-    // Show error when packages fail to load
-    showPackageLoadError(modal) {
-        const packagesContainer = modal.querySelector('#packages-container');
-
-        packagesContainer.innerHTML = `
-            <div class="text-center py-8">
-                <div class="text-red-400 mb-2">
-                    <i class="fas fa-exclamation-triangle text-2xl"></i>
-                </div>
-                <p class="text-gray-400">Failed to load packages</p>
-                <button class="mt-3 text-blue-400 hover:text-blue-300" onclick="location.reload()">
-                    <i class="fas fa-refresh mr-1"></i>Retry
-                </button>
-            </div>
-        `;
-    }
-
-    // Setup modal event listeners
-    setupModalEventListeners(modal) {
-        let selectedPackage = null;
-
-        // Package selection
-        modal.querySelectorAll('.package-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Remove previous selection
-                modal.querySelectorAll('.package-btn').forEach(b => b.classList.remove('border-blue-500', 'bg-gray-700'));
-
-                // Add selection to clicked button
-                btn.classList.add('border-blue-500', 'bg-gray-700');
-                selectedPackage = btn.dataset.package;
-
-                // Enable purchase button
-                const purchaseBtn = modal.querySelector('#purchase-btn');
-
-                purchaseBtn.disabled = false;
-            });
-        });
-
-        // Purchase button
-        modal.querySelector('#purchase-btn').addEventListener('click', () => {
-            if (selectedPackage) {
-                this.initiatePurchase(selectedPackage);
-                modal.remove();
-            }
-        });
-
-        // Cancel button
-        modal.querySelector('#cancel-btn').addEventListener('click', () => {
-            modal.remove();
-        });
-
-        // Close button
-        modal.querySelector('.close-modal').addEventListener('click', () => {
-            modal.remove();
-        });
-
-        // Close on backdrop click
-        modal.addEventListener('click', e => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-    }
-
-    // Initiate purchase process
-    async initiatePurchase(packageId) {
-        try {
-
-            // Check if user is authenticated
-            if (!window.UnifiedAuthUtils || !window.UnifiedAuthUtils.isAuthenticated()) {
-                window.location.href = '/login.html';
-
-                return;
-            }
-
-            // Show loading state
-            this.showPurchaseLoading();
-
-            // Create Stripe checkout session
-            const response = await fetch('/api/credits/purchase', {
-                method: 'POST',
-                headers: window.UnifiedAuthUtils.getAuthHeaders(),
-                body: JSON.stringify({
-                    packageId,
-                    successUrl: `${window.location.origin}/purchase-success.html`,
-                    cancelUrl: window.location.href
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success && data.url) {
-                // Redirect to Stripe checkout
-                window.location.href = data.url;
-            } else {
-                throw new Error(data.error || 'Failed to create checkout session');
-            }
-
-        } catch (error) {
-            console.error('❌ STATS-COMPONENT: Error initiating purchase:', error);
-            this.hidePurchaseLoading();
-            // eslint-disable-next-line no-alert
-            alert(`Error initiating purchase: ${error.message}`);
-        }
-    }
-
-    // Show loading state during purchase
-    showPurchaseLoading() {
-        const modal = document.getElementById('credit-purchase-modal');
-
-        if (modal) {
-            const purchaseBtn = modal.querySelector('#purchase-btn');
-
-            if (purchaseBtn) {
-                purchaseBtn.disabled = true;
-                purchaseBtn.innerHTML = '<span class="loading-spinner"></span> Processing...';
-            }
-        }
-    }
-
-    // Hide loading state
-    hidePurchaseLoading() {
-        const modal = document.getElementById('credit-purchase-modal');
-
-        if (modal) {
-            const purchaseBtn = modal.querySelector('#purchase-btn');
-
-            if (purchaseBtn) {
-                purchaseBtn.disabled = false;
-                purchaseBtn.textContent = 'Purchase';
-            }
-        }
-    }
 }
 
 // Export the class for use by other components

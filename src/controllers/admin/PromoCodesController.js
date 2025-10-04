@@ -768,13 +768,6 @@ class PromoCodesController {
                             email: true,
                             username: true
                         }
-                    },
-                    promoCode: {
-                        select: {
-                            id: true,
-                            code: true,
-                            credits: true
-                        }
                     }
                 },
                 orderBy: {
@@ -783,12 +776,20 @@ class PromoCodesController {
                 take: parseInt(limit)
             });
 
-            const formattedRedemptions = redemptions.map(redemption => ({
-                id: redemption.id,
-                code: redemption.promoCode.code,
-                credits: redemption.credits,
-                user: redemption.user,
-                createdAt: redemption.createdAt
+            // Get promo code details for each redemption
+            const formattedRedemptions = await Promise.all(redemptions.map(async redemption => {
+                const promoCode = await prisma.promoCode.findUnique({
+                    where: { id: redemption.promoCodeId },
+                    select: { id: true, code: true, credits: true }
+                });
+
+                return {
+                    id: redemption.id,
+                    code: promoCode?.code || 'Unknown',
+                    credits: redemption.credits,
+                    user: redemption.user,
+                    createdAt: redemption.createdAt
+                };
             }));
 
 

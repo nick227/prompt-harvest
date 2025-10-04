@@ -40,6 +40,7 @@ class ImageDataManager {
             original: this.extractOriginalPrompt(imageData),
             final: this.extractFinalPrompt(imageData),
             provider: this.extractProvider(imageData),
+            model: this.extractProvider(imageData), // Database provider column contains model name
             guidance: this.extractGuidance(imageData),
             rating: this.extractRating(imageData),
             isPublic: this.extractIsPublic(imageData),
@@ -63,6 +64,7 @@ class ImageDataManager {
             original: '',
             final: '',
             provider: 'unknown',
+            model: 'unknown', // Add model property
             guidance: '',
             rating: 0,
             isPublic: false,
@@ -103,6 +105,12 @@ class ImageDataManager {
      * @returns {string} Extracted title
      */
     extractTitle(imageData) {
+        // Use first 8 characters of prompt as title
+        const prompt = imageData.prompt || imageData.original || '';
+        if (prompt) {
+            return prompt.substring(0, 8);
+        }
+
         return imageData.title ||
                imageData.name ||
                imageData.filename ||

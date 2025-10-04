@@ -40,14 +40,21 @@ class ImageData {
             return null;
         }
 
+        // Generate title from first 8 characters of prompt
+        const generateTitle = (prompt) => {
+            if (!prompt) return 'Generated Image';
+            return prompt.substring(0, 8);
+        };
+
         return {
             id: imageData.id || this.generateId(),
             url: imageData.url || imageData.imageUrl || imageData.image || '',
-            title: imageData.title || imageData.alt || 'Generated Image',
+            title: generateTitle(imageData.prompt),
             prompt: imageData.prompt || '',
             original: imageData.original || imageData.prompt || '',
             final: imageData.final || imageData.prompt || '', // ✅ Include final field
-            provider: imageData.provider || imageData.providerName || 'unknown',
+            provider: imageData.provider || imageData.providerName || 'unknown', // This is actually the model name from database
+            model: imageData.provider || imageData.providerName || imageData.model || 'unknown', // Database provider column contains model name
             guidance: imageData.guidance || '',
             rating: parseInt(imageData.rating) || 0,
             isPublic: this.validatePublicStatus(imageData.isPublic) ? imageData.isPublic : false, // ✅ Include isPublic field with validation
@@ -90,14 +97,23 @@ class ImageData {
         //     }
         // });
 
+        // Generate title from first 8 characters of prompt
+        const generateTitle = (prompt) => {
+            if (!prompt) return 'Generated Image';
+            return prompt.substring(0, 8);
+        };
+
+        const prompt = img.dataset.prompt || img.alt || '';
+
         return {
             id: img.dataset.id || img.dataset.imageId || 'unknown',
             url: img.src,
-            title: img.alt || img.title || 'Generated Image',
-            prompt: img.dataset.prompt || img.alt || '',
+            title: generateTitle(prompt),
+            prompt: prompt,
             original: img.dataset.original || '',
             final: img.dataset.final || img.dataset.prompt || '', // ✅ Include final field
-            provider: img.dataset.provider || '',
+            provider: img.dataset.provider || '', // This is actually the model name from database
+            model: img.dataset.provider || img.dataset.model || 'unknown', // Database provider column contains model name
             guidance: img.dataset.guidance || '',
             rating: parseInt(img.dataset.rating) || 0,
             isPublic: img.dataset.isPublic === 'true' || false, // ✅ Include isPublic from dataset

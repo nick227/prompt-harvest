@@ -274,23 +274,23 @@ router.get('/promo-redemptions', validatePagination, async (req, res) => {
 
         const redemptions = await prisma.promoRedemption.findMany({
             where: { userId },
-            include: {
-                promoCode: {
-                    select: {
-                        code: true,
-                        credits: true
-                    }
-                }
-            },
             orderBy: { createdAt: 'desc' },
             take: limit
         });
 
-        const formattedRedemptions = redemptions.map(redemption => ({
-            id: redemption.id,
-            credits: redemption.credits,
-            code: redemption.promoCode.code,
-            createdAt: redemption.createdAt
+        // Get promo code details for each redemption
+        const formattedRedemptions = await Promise.all(redemptions.map(async redemption => {
+            const promoCode = await prisma.promoCode.findUnique({
+                where: { id: redemption.promoCodeId },
+                select: { code: true, credits: true }
+            });
+
+            return {
+                id: redemption.id,
+                credits: redemption.credits,
+                code: promoCode?.code || 'Unknown',
+                createdAt: redemption.createdAt
+            };
         }));
 
         return res.json({

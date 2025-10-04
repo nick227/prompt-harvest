@@ -31,7 +31,7 @@ import { TransactionController } from '../controllers/TransactionController.js';
 import { PromptController } from '../controllers/PromptController.js';
 import { ProfileController } from '../controllers/ProfileController.js';
 import { EnhancedImageService } from '../services/EnhancedImageService.js';
-import { AIPromptService } from '../services/ai/features/AIPromptService.js';
+import { getAIPromptService } from '../services/ai/features/AIPromptServiceSingleton.js';
 import { LikeService } from '../services/LikeService.js';
 import { TagService } from '../services/TagService.js';
 import { ImageRepository } from '../repositories/ImageRepository.js';
@@ -66,7 +66,7 @@ export const setupRoutes = async app => {
     let tagService;
 
     try {
-        aiService = new AIPromptService();
+        aiService = getAIPromptService();
         enhancedImageService = new EnhancedImageService(imageRepository, aiService);
         likeService = new LikeService();
         tagService = new TagService();

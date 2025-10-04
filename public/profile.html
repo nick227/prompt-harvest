@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/css/credits-modal.css" />
     <link rel="icon" href="/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Note: In production, replace with compiled Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Tailwind Configuration -->
     <script src="/js/config/tailwind-config.js"></script>
@@ -93,6 +94,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 
     <!-- Header Component -->
+    <!-- Shared Credit Purchase Modal -->
+    <script src="/js/shared/CreditPurchaseModal.js"></script>
+    <script src="/js/components/credit-balance-widget.js"></script>
     <script src="/js/components/transaction-stats-component.js"></script>
     <script src="/js/components/header-component.js"></script>
 
@@ -122,7 +126,6 @@
     <script src="/js/services/unified-stats-service.js"></script>
     <script src="/js/services/unified-event-service.js"></script>
     <script src="/js/services/public-status-service.js"></script>
-    <script src="/js/components/transaction-stats-component.js"></script>
 
     <!-- Image Component (Refactored Architecture) -->
     <script src="/js/components/image/ui-config.js"></script>
@@ -144,9 +147,8 @@
     <!-- Unified Info Box Component -->
     <script src="/js/components/image/unified-info-box.js"></script>
 
-    <!-- Simplified Navigation System -->
-    <script src="/js/components/image/simplified-navigation.js"></script>
-    <script src="/js/components/image/navigation-integration.js"></script>
+    <!-- Unified Navigation Component -->
+    <script src="/js/components/image/unified-navigation.js"></script>
 
     <!-- Profile page doesn't need form components -->
 
@@ -161,11 +163,17 @@
     <!-- Feed System Components (reuse existing with custom endpoint) -->
     <script src="/js/modules/feed/feed-constants.js"></script>
     <script src="/js/modules/feed/feed-cache-manager.js"></script>
-    <script src="/js/modules/feed/feed-dom-manager.js"></script>
+    <script src="/js/modules/feed/feed-dom-operations.js"></script>
     <script src="/js/modules/feed/feed-api-manager.js"></script>
     <script src="/js/modules/feed/feed-ui-manager.js"></script>
     <script src="/js/modules/feed/feed-view-manager.js"></script>
+    <script src="/js/modules/feed/image-count-manager.js"></script>
+    <script src="/js/modules/feed/feed-filter-manager.js"></script>
+    <script src="/js/modules/feed/feed-image-handler.js"></script>
+    <script src="/js/modules/feed/feed-download-manager.js"></script>
+    <script src="/js/modules/feed/hybrid-tab-service.js"></script>
     <script src="/js/modules/feed/fill-to-bottom-manager.js"></script>
+    <script src="/js/modules/feed/feed-manager-core.js"></script>
 
     <!-- Profile page initialization -->
     <script>

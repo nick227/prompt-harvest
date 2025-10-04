@@ -3,12 +3,9 @@
  * Handles AI chat widget functionality with intelligent AI agent
  */
 
-import { AIAgentService } from '../services/ai/features/AIAgentService.js';
-import { AIPromptService } from '../services/ai/features/AIPromptService.js';
+import { getAIAgentService } from '../services/ai/features/AIAgentServiceSingleton.js';
+import { getAIPromptService } from '../services/ai/features/AIPromptServiceSingleton.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
-
-const aiAgentService = new AIAgentService();
-const aiPromptService = new AIPromptService();
 
 export const setupAIChatRoutes = app => {
     app.post('/api/ai-chat', async(req, res) => {
@@ -26,7 +23,7 @@ export const setupAIChatRoutes = app => {
             });
 
             // Process with AI Agent service
-            const response = await aiAgentService.processChatRequest(
+            const response = await getAIAgentService().processChatRequest(
                 message,
                 context,
                 userId,
@@ -68,7 +65,7 @@ export const setupAIChatRoutes = app => {
                 referer: req.get('Referer')
             });
 
-            const history = await aiAgentService.getConversationHistory(conversationId, parseInt(limit), parseInt(page));
+            const history = await getAIAgentService().getConversationHistory(conversationId, parseInt(limit), parseInt(page));
 
             console.log('📊 [API] History retrieved:', {
                 conversationId,
@@ -114,9 +111,9 @@ export const setupAIChatRoutes = app => {
             let prompts;
 
             if (type === 'user') {
-                prompts = await aiAgentService.getUserPrompts(userId, parseInt(limit));
+                prompts = await getAIAgentService().getUserPrompts(userId, parseInt(limit));
             } else {
-                prompts = await aiAgentService.getApplicationPrompts(parseInt(limit));
+                prompts = await getAIAgentService().getApplicationPrompts(parseInt(limit));
             }
 
             res.json({ prompts });
@@ -152,7 +149,7 @@ export const setupAIChatRoutes = app => {
             });
 
             // Process with AI Prompt service for prompt organization
-            const organizedPrompt = await aiPromptService.organizePrompt(prompt, userId);
+            const organizedPrompt = await getAIPromptService().organizePrompt(prompt, userId);
 
             if (!organizedPrompt || organizedPrompt.trim().length === 0) {
                 return res.status(500).json({

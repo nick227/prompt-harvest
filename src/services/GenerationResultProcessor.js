@@ -32,15 +32,16 @@ export class GenerationResultProcessor {
         try {
             // Step 2: Save image metadata to database
             const userId = DatabaseService.getUserId(req);
+            // Map database fields: save model name to provider column, keep model column for future use
             const imageData = {
                 prompt,
                 original,
-                provider: result.provider,
+                provider: result.model || result.provider, // Save model name to database provider column
                 imageUrl,
                 promptId,
                 userId,
                 guidance: result.guidance || 10,
-                model: result.model || null,
+                model: null, // Database model column is for future use, keep as null for now
                 autoPublic
             };
 

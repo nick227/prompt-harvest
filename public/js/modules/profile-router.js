@@ -28,6 +28,8 @@ class ProfileRouter {
                 window.location.href = '/';
             });
         }
+
+        // Profile data loading is handled in DOMContentLoaded event
     }
 
     /**
@@ -38,11 +40,33 @@ class ProfileRouter {
         const match = path.match(/^\/u\/([^\/]+)/);
 
         if (match && match[1]) {
-            this.currentUsername = decodeURIComponent(match[1]);
-            this.updatePageTitle();
+            const extractedUsername = decodeURIComponent(match[1]);
+
+            // Validate username format
+            if (this.isValidUsername(extractedUsername)) {
+                this.currentUsername = extractedUsername;
+                this.updatePageTitle();
+                console.log(`🔍 PROFILE ROUTER: Extracted username: ${this.currentUsername}`);
+            } else {
+                console.error(`❌ PROFILE ROUTER: Invalid username format: ${extractedUsername}`);
+                this.currentUsername = null;
+            }
         } else {
             this.currentUsername = null;
+            console.log('🔍 PROFILE ROUTER: No username found in URL');
         }
+    }
+
+    /**
+     * Validate username format
+     */
+    isValidUsername(username) {
+        if (!username || typeof username !== 'string') {
+            return false;
+        }
+
+        // Username should be 3-50 characters, alphanumeric, underscore, or hyphen
+        return /^[a-zA-Z0-9_-]{3,50}$/.test(username);
     }
 
     /**
@@ -60,8 +84,11 @@ class ProfileRouter {
      */
     async loadProfileData(page = 1) {
         if (!this.currentUsername || this.isLoading) {
+            console.log(`🔍 PROFILE ROUTER: Skipping load - username: ${this.currentUsername}, isLoading: ${this.isLoading}`);
             return;
         }
+
+        console.log(`🔍 PROFILE ROUTER: Loading profile data for: ${this.currentUsername}`);
 
         this.isLoading = true;
         this.currentPage = page;
@@ -74,6 +101,7 @@ class ProfileRouter {
 
             // Initialize profile feed manager
             if (!window.profileFeedManagerInstance) {
+                console.log('🔍 PROFILE ROUTER: Creating new ProfileFeedManager instance');
                 window.profileFeedManagerInstance = new ProfileFeedManager(this.currentUsername);
                 await window.profileFeedManagerInstance.init();
             }
@@ -82,7 +110,7 @@ class ProfileRouter {
             await window.profileFeedManagerInstance.loadUserImages();
 
         } catch (error) {
-            console.error('Profile Router: Error loading profile data:', error);
+            console.error('❌ PROFILE ROUTER: Error loading profile data:', error);
             this.showError('Failed to load profile. Please try again.');
         } finally {
             this.isLoading = false;
@@ -95,13 +123,22 @@ class ProfileRouter {
      */
     async waitForFeedSystem() {
         return new Promise((resolve) => {
-        const checkFeedSystem = () => {
-            if (window.ProfileFeedManager && window.FeedDOMManager && window.FeedUIManager && window.FeedViewManager) {
-                resolve();
-            } else {
-                setTimeout(checkFeedSystem, 100);
-            }
-        };
+            const checkFeedSystem = () => {
+                const requiredComponents = [
+                    'FeedManager',
+                    'ProfileFeedManager'
+                ];
+
+                const missingComponents = requiredComponents.filter(comp => !window[comp]);
+
+                if (missingComponents.length === 0) {
+                    console.log('✅ PROFILE ROUTER: All feed components available');
+                    resolve();
+                } else {
+                    console.log(`⏳ PROFILE ROUTER: Waiting for components: ${missingComponents.join(', ')}`);
+                    setTimeout(checkFeedSystem, 100);
+                }
+            };
             checkFeedSystem();
         });
     }
@@ -186,23 +223,34 @@ class ProfileRouter {
 
 // Initialize profile router when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
-    // Wait for feed components to be available
+    console.log('🔍 PROFILE ROUTER: DOM loaded, initializing...');
+
+    // Wait for ProfileFeedManager to be available
     await new Promise(resolve => {
         const checkComponents = () => {
-            if (window.FeedAPIManager && window.FeedDOMManager && window.FeedUIManager && window.FeedViewManager && window.ProfileFeedManager) {
+            if (window.ProfileFeedManager) {
+                console.log('✅ PROFILE ROUTER: ProfileFeedManager available');
                 resolve();
             } else {
+                console.log('⏳ PROFILE ROUTER: Waiting for ProfileFeedManager...');
                 setTimeout(checkComponents, 100);
             }
         };
         checkComponents();
     });
 
+    console.log('🔍 PROFILE ROUTER: Creating ProfileRouter instance');
     window.profileRouter = new ProfileRouter();
 
     // Load initial profile data
-    if (window.profileRouter.getCurrentUsername()) {
+    const username = window.profileRouter.getCurrentUsername();
+    console.log(`🔍 PROFILE ROUTER: Current username: ${username}`);
+
+    if (username) {
+        console.log('🔍 PROFILE ROUTER: Starting profile data load...');
         window.profileRouter.loadProfileData();
+    } else {
+        console.error('❌ PROFILE ROUTER: No username found, cannot load profile data');
     }
 });
 

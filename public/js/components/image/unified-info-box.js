@@ -27,7 +27,7 @@ class UnifiedInfoBox {
             titleFallback: 'Image Info',
 
             // Content configuration
-            contentClass: 'info-box-content collapsed', // 'expanded' or 'collapsed'
+            contentClass: 'info-box-content expanded', // 'expanded' or 'collapsed'
 
             // Element creation method
             useUIConfig: !!this.uiConfig,
@@ -175,11 +175,14 @@ class UnifiedInfoBox {
     createContent(imageData, config) {
         const content = this.createElement('div', config);
 
+        const thumbnail = this.createThumbnail(imageData, config);
+
         content.className = config.contentClass;
 
         // Create metadata section
         const metadata = this.createMetadataSection(imageData, config);
 
+        content.appendChild(thumbnail);
         content.appendChild(metadata);
 
         // Create prompts section
@@ -188,6 +191,27 @@ class UnifiedInfoBox {
         content.appendChild(prompts);
 
         return content;
+    }
+
+    /**
+     * Create thumbnail element
+     * @param {Object} imageData - Image data
+     * @param {Object} config - Configuration
+     * @returns {HTMLElement} Thumbnail element
+     */
+    createThumbnail(imageData, config) {
+        const thumbnail = this.createElement('div', config);
+
+        thumbnail.className = 'info-box-thumbnail mb-2';
+
+        const img = this.createElement('img', config);
+
+        img.src = imageData.url;
+        img.alt = imageData.title;
+
+        thumbnail.appendChild(img);
+
+        return thumbnail;
     }
 
     /**
@@ -566,38 +590,17 @@ class UnifiedInfoBox {
      */
     formatCreatedBy(imageData) {
         // Use username from server, fallback to appropriate message if not available
-        let { username } = imageData;
+        const { username } = imageData;
 
-        if (!username && imageData.userId) {
-            username = 'Anonymous';
-        } else if (!username) {
-            username = 'Anonymous';
-        }
+        console.log('! imageData', imageData);
 
         const date = imageData.createdAt;
 
         // Create hyperlink for username
-        const usernameLink = username === 'Anonymous' || username === 'Unknown User'
-            ? username
-            : `<a href="/u/${encodeURIComponent(username)}" ` +
+        const usernameLink = `<a href="/u/${encodeURIComponent(username)}" ` +
               `class="text-blue-400 hover:text-blue-300 underline transition-colors">${username}</a>`;
 
-        if (!date) {
-            return usernameLink;
-        }
-
-        try {
-            const dateObj = new Date(date);
-
-            if (isNaN(dateObj.getTime())) {
-                return usernameLink;
-            }
-            const formattedDate = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
-
-            return `${usernameLink} (${formattedDate})`;
-        } catch (error) {
-            return usernameLink;
-        }
+        return usernameLink;
     }
 
     /**

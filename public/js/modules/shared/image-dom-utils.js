@@ -48,6 +48,9 @@ class ImageDOMUtils {
         if (imageData.provider || imageData.providerName) {
             img.dataset.provider = imageData.provider || imageData.providerName;
         }
+        if (imageData.model) {
+            img.dataset.model = imageData.model;
+        }
         if (imageData.guidance) {
             img.dataset.guidance = imageData.guidance;
         }
@@ -201,13 +204,20 @@ class ImageDOMUtils {
             imageUrl = `/${imageUrl}`;
         }
 
+        // Generate title from first 8 characters of prompt
+        const generateTitle = (prompt) => {
+            if (!prompt) return 'Generated Image';
+            return prompt.substring(0, 8);
+        };
+
         return {
             id: rawData.id || rawData._id || this.generateId(),
             url: imageUrl,
-            title: rawData.prompt || 'Generated Image',
+            title: generateTitle(rawData.prompt),
             prompt: rawData.prompt || '',
             original: rawData.original || rawData.prompt || '',
-            provider: rawData.provider || rawData.providerName || 'unknown',
+            provider: rawData.provider || rawData.providerName || 'unknown', // This is actually the model name from database
+            model: rawData.provider || rawData.providerName || rawData.model || 'unknown', // Database provider column contains model name
             guidance: rawData.guidance || '',
             rating: parseInt(rawData.rating) || 0,
             isPublic: rawData.isPublic || false,

@@ -139,6 +139,5 @@ Make it more descriptive, detailed, and optimized for AI image generation while 
     }
 }
 
-// Export singleton instance for backward compatibility
-export const aiEnhancementService = new AIEnhancementService();
-export default aiEnhancementService;
+// Export class for lazy instantiation
+export default AIEnhancementService;

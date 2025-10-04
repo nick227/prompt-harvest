@@ -7,7 +7,18 @@ import { circuitBreakerManager } from '../utils/CircuitBreaker.js';
 import { TransactionService } from './TransactionService.js';
 import { formatErrorResponse } from '../utils/ResponseFormatter.js';
 import databaseClient from '../database/PrismaClient.js';
-import { aiEnhancementService } from './ai/features/AIEnhancementService.js';
+import AIEnhancementService from './ai/features/AIEnhancementService.js';
+
+// Lazy singleton for AIEnhancementService
+let aiEnhancementServiceInstance = null;
+const getAIEnhancementService = () => {
+    if (!aiEnhancementServiceInstance) {
+        aiEnhancementServiceInstance = new AIEnhancementService();
+    }
+
+    return aiEnhancementServiceInstance;
+};
+
 import SimplifiedCreditService from './credit/SimplifiedCreditService.js';
 import { CreditManagementService } from './credit/CreditManagementService.js';
 import { ImageManagementService } from './ImageManagementService.js';
@@ -234,7 +245,7 @@ export class EnhancedImageService {
             // Step 2: Apply AI enhancement if requested
             if (autoEnhance && processedPrompt) {
                 try {
-                    const enhancedPrompt = await aiEnhancementService.enhancePrompt(processedPrompt);
+                    const enhancedPrompt = await getAIEnhancementService().enhancePrompt(processedPrompt);
 
 
                     processedPrompt = enhancedPrompt;
@@ -520,7 +531,11 @@ export class EnhancedImageService {
                 select: { id: true, username: true, email: true }
             });
 
-            username = user ? (user.username || (user.email ? user.email : 'Unknown User')) : (image.userId ? 'Unknown User' : 'Anonymous');
+            if (user) {
+                username = user.username || user.email || 'Unknown User';
+            } else {
+                username = image.userId ? 'Unknown User' : 'Anonymous';
+            }
         } else {
             username = 'Anonymous';
         }
@@ -533,9 +548,9 @@ export class EnhancedImageService {
             prompt: image.prompt,
             original: image.original,
             imageUrl: image.imageUrl,
-            provider: image.provider,
+            provider: image.model || 'unknown', // Map database model column to frontend provider field (future use)
             guidance: image.guidance,
-            model: image.model,
+            model: image.provider || 'unknown', // Map database provider column to frontend model field
             rating: image.rating,
             isPublic: image.isPublic,
             createdAt: image.createdAt,
@@ -620,6 +635,7 @@ export class EnhancedImageService {
         // Debug user lookup
 
         // Normalize image data
+        // Map database fields: provider column -> model field, model column -> provider field (future use)
         const normalizedImages = result.images.map(image => ({
             id: image.id,
             userId: image.userId, // ✅ Added userId for client-side filtering
@@ -627,9 +643,9 @@ export class EnhancedImageService {
             prompt: image.prompt,
             original: image.original,
             imageUrl: image.imageUrl,
-            provider: image.provider,
+            provider: image.model || 'unknown', // Map database model column to frontend provider field (future use)
             guidance: image.guidance,
-            model: image.model,
+            model: image.provider || 'unknown', // Map database provider column to frontend model field
             rating: image.rating,
             isPublic: image.isPublic,
             tags: image.tags || [],
@@ -667,6 +683,55 @@ export class EnhancedImageService {
      * Log user images fetch results
      */
     logUserImagesResults(result) {
+        // Implementation can be added later if needed
+    }
+
+    /**
+     * SECURITY: Validate that images are public-only
+     * @param {Array} images - Array of image objects
+     * @param {string} context - Context for logging (e.g., 'profile', 'feed')
+     */
+    validatePublicImagesOnly(images, context = 'unknown') {
+        if (!images || !Array.isArray(images)) {
+            return images;
+        }
+
+        const privateImages = images.filter(img => img.isPublic !== true);
+
+        if (privateImages.length > 0) {
+            console.error(`🚨 PRIVACY VIOLATION: Non-public images found in ${context}!`, {
+                privateImageIds: privateImages.map(img => img.id),
+                totalImages: images.length,
+                context
+            });
+
+            // Remove non-public images as safety measure
+            return images.filter(img => img.isPublic === true);
+        }
+
+        console.log(`✅ SECURITY: All images are public in ${context}`);
+
+        return images;
+    }
+
+    /**
+     * Create pagination metadata
+     * @param {number} page - Current page
+     * @param {number} limit - Items per page
+     * @param {number} totalCount - Total items available
+     * @returns {Object} Pagination metadata
+     */
+    createPaginationMetadata(page, limit, totalCount) {
+        const offset = (page - 1) * limit;
+        const hasMore = (offset + limit) < totalCount;
+
+        return {
+            page,
+            limit,
+            totalCount,
+            hasMore,
+            totalPages: Math.ceil(totalCount / limit)
+        };
     }
 
     /**
@@ -716,7 +781,7 @@ export class EnhancedImageService {
                 prompt: image.prompt,
                 url: image.imageUrl,
                 provider: image.provider,
-                model: image.model,
+                model: image.provider || 'unknown', // Map database provider column to frontend model field
                 modelDisplayName: modelInfo?.displayName || image.model,
                 costPerImage: modelInfo?.costPerImage || 1.0,
                 rating: image.rating,
@@ -728,8 +793,15 @@ export class EnhancedImageService {
         });
     }
 
+    /**
+     * Get user's own images (both public and private)
+     * @param {string} userId - User ID
+     * @param {number} limit - Number of images per page
+     * @param {number} page - Page number (0-based)
+     * @param {Array} tags - Optional tags filter
+     * @returns {Object} Response with images and pagination
+     */
     async getUserImages(userId, limit = 50, page = 0, tags = []) {
-
         this.validateUserInput(userId);
 
         const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
@@ -747,13 +819,21 @@ export class EnhancedImageService {
         };
     }
 
+    /**
+     * Get user's public images for profile display
+     * @param {string} userId - User ID
+     * @param {number} limit - Number of images per page
+     * @param {number} page - Page number (1-based)
+     * @returns {Object} Response with images and pagination
+     */
     async getUserPublicImages(userId, limit = 20, page = 1) {
-
         this.validateUserInput(userId);
 
         const offset = (page - 1) * limit;
 
         try {
+            console.log(`🔒 PROFILE SECURITY: Fetching public images for user ${userId}, page ${page}, limit ${limit}`);
+
             // SECURITY: Get user's public images ONLY - never private images
             const images = await this.prisma.image.findMany({
                 where: {
@@ -779,6 +859,39 @@ export class EnhancedImageService {
                 take: limit
             });
 
+            // DEBUG: Log the actual isPublic values from database
+            console.log(`🔍 DEBUG: Raw database results for user ${userId}:`, images.map(img => ({
+                id: img.id,
+                isPublic: img.isPublic,
+                isPublicType: typeof img.isPublic,
+                prompt: img.prompt?.substring(0, 30) + '...'
+            })));
+
+            // DEBUG: Check if any images are not explicitly public
+            const nonPublicImages = images.filter(img => img.isPublic !== true);
+            if (nonPublicImages.length > 0) {
+                console.error('🚨 DEBUG: Found non-public images in database query results!', nonPublicImages.map(img => ({
+                    id: img.id,
+                    isPublic: img.isPublic,
+                    isPublicType: typeof img.isPublic
+                })));
+            }
+
+            // SECURITY: Validate all images are public - CRITICAL SAFETY CHECK
+            const validatedImages = this.validatePublicImagesOnly(images, 'profile');
+
+            // DOUBLE-CHECK: Ensure no private images slipped through
+            if (validatedImages.some(img => img.isPublic !== true)) {
+                console.error('🚨 CRITICAL SECURITY VIOLATION: Private images in validated results!');
+                // Filter out any remaining private images as absolute safety measure
+                const safeImages = validatedImages.filter(img => img.isPublic === true);
+
+                console.log(`🔒 EMERGENCY FILTER: Removed ${validatedImages.length - safeImages.length} private images`);
+
+                validatedImages.length = 0;
+                validatedImages.push(...safeImages);
+            }
+
             // Get total count for pagination
             const totalCount = await this.prisma.image.count({
                 where: {
@@ -787,19 +900,10 @@ export class EnhancedImageService {
                 }
             });
 
-            const hasMore = (offset + limit) < totalCount;
-
-
             return {
                 success: true,
-                images,
-                pagination: {
-                    page,
-                    limit,
-                    totalCount,
-                    hasMore,
-                    totalPages: Math.ceil(totalCount / limit)
-                }
+                images: validatedImages,
+                pagination: this.createPaginationMetadata(page, limit, totalCount)
             };
 
         } catch (error) {
@@ -814,21 +918,21 @@ export class EnhancedImageService {
         }
     }
 
+    /**
+     * Get public feed images from all users
+     * @param {string} userId - Current user ID (for context)
+     * @param {number} limit - Number of images per page
+     * @param {number} page - Page number (0-based)
+     * @param {Array} tags - Optional tags filter
+     * @returns {Object} Response with images and pagination
+     */
     async getFeed(userId, limit = 8, page = 0, tags = []) {
         // Site feed should always show only public images from all users
         // regardless of authentication status
         const result = await this.imageRepository.findPublicImages(limit, page, tags);
 
-        // Double-check that all returned images are public
-        const nonPublicImages = result.images.filter(img => !img.isPublic);
-
-        if (nonPublicImages.length > 0) {
-            console.error('🚨 PRIVACY VIOLATION: Non-public images found in site feed!', nonPublicImages);
-            // Remove non-public images as a safety measure
-            result.images = result.images.filter(img => img.isPublic);
-            result.totalCount = result.images.length;
-        }
-
+        // SECURITY: Validate all images are public
+        result.images = this.validatePublicImagesOnly(result.images, 'feed');
 
         // Get unique user IDs and fetch usernames
         const userIds = [...new Set(result.images.map(img => img.userId))];

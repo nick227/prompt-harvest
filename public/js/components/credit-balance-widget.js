@@ -25,7 +25,7 @@ class CreditBalanceWidget {
     }
 
     async waitForServices() {
-        const maxRetries = 10;
+        const maxRetries = 20; // Increased from 10 to 20
         let retries = 0;
 
         while (retries < maxRetries) {
@@ -35,10 +35,9 @@ class CreditBalanceWidget {
                 return;
             }
             retries++;
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 150)); // Increased from 100ms to 150ms
         }
 
-        console.warn('🔐 CREDIT-WIDGET: Unified services not available, falling back to direct API');
         this.setupFallback();
     }
 
@@ -114,7 +113,7 @@ class CreditBalanceWidget {
                     <span class="animate-pulse">Loading...</span>
                 </span>
                 <button id="buyCreditsBtn"
-                        class="hidden px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-700
+                        class="add-credits-btn hidden px-2 py-1 text-xs bg-yellow-600 hover:bg-yellow-700
                                text-white rounded transition-colors">
                     Buy Credits
                 </button>
@@ -135,10 +134,23 @@ class CreditBalanceWidget {
         }
 
         // Check if user is authenticated
-        if (!window.UnifiedAuthUtils || !window.UnifiedAuthUtils.isAuthenticated()) {
-            this.hideWidget();
+        if (window.UnifiedAuthUtils) {
+            if (!window.UnifiedAuthUtils.isAuthenticated()) {
+                this.hideWidget();
 
-            return;
+                return;
+            }
+        } else {
+            // Fallback: check for auth token in localStorage and sessionStorage
+            const localToken = localStorage.getItem('authToken');
+            const sessionToken = sessionStorage.getItem('authToken');
+            const token = localToken || sessionToken;
+
+            if (!token) {
+                this.hideWidget();
+
+                return;
+            }
         }
 
         this.isLoading = true;
@@ -171,9 +183,28 @@ class CreditBalanceWidget {
     }
 
     async loadBalanceFallback() {
-        // Simplified fallback - just show error state
-        console.warn('⚠️ CREDIT-WIDGET: Unified services not available, showing error state');
-        this.showErrorState();
+        try {
+            // Direct API call to get credit balance
+            const headers = this.getAuthHeaders();
+            const response = await fetch('/api/credits/balance', {
+                method: 'GET',
+                headers
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            this.balance = data.balance || 0;
+            this.updateDisplay();
+            this.showWidget();
+
+        } catch (error) {
+            console.error('Credit balance fallback failed:', error);
+            this.showErrorState();
+        }
     }
 
     updateDisplay() {
@@ -243,355 +274,27 @@ class CreditBalanceWidget {
 
     async showPurchaseOptions() {
         try {
-            // Show loading modal first
-            this.createLoadingModal();
+            // Use the shared credit purchase modal
+            if (window.CreditPurchaseModal) {
+                const modal = new window.CreditPurchaseModal();
 
-            // Get available packages using UnifiedCreditService
-            const packages = window.UnifiedCreditService
-                ? await window.UnifiedCreditService.getPackages()
-                : await this.getPackagesFallback();
-
-            // Remove loading modal and create full modal
-            const loadingModal = document.getElementById('creditPurchaseModal');
-
-            if (loadingModal) {
-                loadingModal.remove();
-            }
-
-            // Create modal with both package selection and promo code redemption
-            this.createPurchaseModal(packages);
-
-        } catch (error) {
-            console.error('Error loading purchase options:', error);
-
-            // Remove loading modal
-            const loadingModal = document.getElementById('creditPurchaseModal');
-
-            if (loadingModal) {
-                loadingModal.remove();
-            }
-
-            this.showError('Unable to load purchase options. Please try again.');
-        }
-    }
-
-    createLoadingModal() {
-        // Remove existing modal
-        const existing = document.getElementById('creditPurchaseModal');
-
-        if (existing) {
-            existing.remove();
-        }
-
-        // Create loading modal
-        const modal = document.createElement('div');
-
-        modal.id = 'creditPurchaseModal';
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-
-        modal.innerHTML = `
-            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-2 sm:mx-4">
-                <div class="p-8 text-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Loading Packages</h3>
-                    <p class="text-sm text-gray-600">Please wait while we load your credit options...</p>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-    }
-
-    async getPackagesFallback() {
-        const response = await fetch('/api/credits/packages');
-        const data = await response.json();
-
-        if (!data.success) {
-            throw new Error('Failed to load packages');
-        }
-
-        return data.packages;
-    }
-
-    createPurchaseModal(packages) {
-        // Remove existing modal
-        const existing = document.getElementById('creditPurchaseModal');
-
-        if (existing) {
-            existing.remove();
-        }
-
-        // Create modal with promo code functionality
-        const modal = document.createElement('div');
-
-        modal.id = 'creditPurchaseModal';
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-
-        modal.innerHTML = `
-            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
-                <!-- Modal Header -->
-                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-900">
-                                <i class="fas fa-coins text-yellow-500 mr-2"></i>Get Credits
-                            </h2>
-                            <p class="text-sm text-gray-600 mt-1">Choose your credit package or redeem a promo code</p>
-                        </div>
-                        <button id="closePurchaseModal" class="text-gray-400 hover:text-gray-600 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Modal Content -->
-                <div class="p-6">
-                    <!-- Promo Code Section -->
-                    <div class="mb-6">
-                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
-                            <h3 class="text-sm font-semibold text-blue-900 mb-3">
-                                <i class="fas fa-ticket-alt mr-1"></i>Redeem Promo Code
-                            </h3>
-                            <div class="flex gap-2">
-                                <input
-                                    type="text"
-                                    id="headerPromoCodeInput"
-                                    placeholder="Enter promo code (e.g., WELCOME5)"
-                                    class="flex-1 px-3 py-2 border border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    maxlength="20"
-                                >
-                                <button
-                                    id="headerRedeemPromoBtn"
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1"
-                                >
-                                    <i class="fas fa-ticket-alt"></i>
-                                    Redeem
-                                </button>
-                            </div>
-                            <div id="headerPromoMessage" class="mt-2 text-sm"></div>
-                        </div>
-                    </div>
-
-                    <!-- Divider -->
-                    <div class="flex items-center mb-6">
-                        <div class="flex-1 border-t border-gray-200"></div>
-                        <span class="px-3 text-xs text-gray-500 bg-white font-medium">OR</span>
-                        <div class="flex-1 border-t border-gray-200"></div>
-                    </div>
-
-                    <!-- Credit Packages Section -->
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-900 mb-4">
-                            <i class="fas fa-shopping-cart mr-1"></i>Choose Your Credit Package
-                        </h3>
-
-                        <!-- Package Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            ${packages.map(pkg => `
-                                <div class="package-card bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-md transition-all cursor-pointer ${pkg.popular ? 'ring-2 ring-blue-500 border-blue-500' : ''}"
-                                     onclick="creditWidget.purchasePackage('${pkg.id}')">
-                                    ${pkg.popular ? '<div class="absolute -top-1 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Popular</div>' : ''}
-                                    <div class="text-center">
-                                        <div class="text-2xl font-bold text-gray-900 mb-1">${pkg.credits}</div>
-                                        <div class="text-xs text-gray-500 mb-1">credits</div>
-                                        <div class="text-sm font-semibold text-gray-900 mb-1">${pkg.name}</div>
-                                        <div class="text-lg font-bold text-blue-600 mb-2">$${(pkg.price / 100).toFixed(2)}</div>
-                                        <div class="text-xs text-gray-500 mb-3">${(pkg.price / 100 / pkg.credits).toFixed(3)}¢ per credit</div>
-
-                                        <button class="w-full py-2 px-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
-                                            Select Package
-                                        </button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="mt-6 pt-4 border-t border-gray-200 text-center">
-                        <div class="flex items-center justify-center gap-1 text-xs text-gray-500">
-                            <i class="fas fa-shield-alt text-green-500"></i>
-                            <span>Secure payment powered by Stripe</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-
-        // Add close handlers
-        modal.addEventListener('click', e => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-
-        document.getElementById('closePurchaseModal').addEventListener('click', () => {
-            modal.remove();
-        });
-
-        // Add keyboard close handler (Escape key)
-        const handleEscape = e => {
-            if (e.key === 'Escape') {
-                modal.remove();
-                document.removeEventListener('keydown', handleEscape);
-            }
-        };
-
-        document.addEventListener('keydown', handleEscape);
-
-        // Add promo code redemption handlers
-        this.setupPromoCodeHandlers(modal);
-    }
-
-    setupPromoCodeHandlers(modal) {
-        const promoCodeInput = modal.querySelector('#headerPromoCodeInput');
-        const redeemPromoBtn = modal.querySelector('#headerRedeemPromoBtn');
-        const promoMessage = modal.querySelector('#headerPromoMessage');
-
-        if (!promoCodeInput || !redeemPromoBtn || !promoMessage) {
-            return;
-        }
-
-        // Redeem button click handler
-        redeemPromoBtn.addEventListener('click', async () => {
-            await this.handleHeaderPromoRedeem(promoCodeInput, redeemPromoBtn, promoMessage);
-        });
-
-        // Enter key handler
-        promoCodeInput.addEventListener('keypress', async e => {
-            if (e.key === 'Enter') {
-                await this.handleHeaderPromoRedeem(promoCodeInput, redeemPromoBtn, promoMessage);
-            }
-        });
-
-        // Clear message on input
-        promoCodeInput.addEventListener('input', () => {
-            this.clearPromoMessage(promoMessage);
-        });
-    }
-
-    async handleHeaderPromoRedeem(input, button, messageEl) {
-        const promoCode = input.value.trim();
-
-        if (!promoCode) {
-            this.showPromoMessage(messageEl, 'Please enter a promo code', 'error');
-
-            return;
-        }
-
-        if (!window.UnifiedCreditService) {
-            this.showPromoMessage(messageEl, 'Service unavailable. Please try again later.', 'error');
-
-            return;
-        }
-
-        // Set loading state
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Redeeming...';
-        this.clearPromoMessage(messageEl);
-
-        try {
-            const result = await window.UnifiedCreditService.redeemPromoCode(promoCode);
-
-            if (result.success) {
-                this.showPromoMessage(messageEl,
-                    `Success! ${result.credits} credits added to your account.`, 'success');
-
-                // Clear input
-                input.value = '';
-
-                // Update balance display
-                await this.loadBalance(true);
-
-                // Close modal after a short delay
-                setTimeout(() => {
-                    const modal = document.getElementById('creditPurchaseModal');
-
-                    if (modal) {
-                        modal.remove();
-                    }
-                }, 2000);
-            } else {
-                this.showPromoMessage(messageEl, result.error || 'Failed to redeem promo code', 'error');
-            }
-        } catch (error) {
-            console.error('Promo code redemption error:', error);
-            this.showPromoMessage(messageEl, 'Failed to redeem promo code. Please try again.', 'error');
-        } finally {
-            // Reset button state
-            button.disabled = false;
-            button.innerHTML = '<i class="fas fa-ticket-alt"></i> Redeem';
-        }
-    }
-
-    showPromoMessage(messageEl, message, type = 'info') {
-        if (!messageEl) {
-            return;
-        }
-
-        messageEl.textContent = message;
-        messageEl.className = `mt-2 text-sm font-medium ${this.getPromoMessageClass(type)}`;
-    }
-
-    clearPromoMessage(messageEl) {
-        if (!messageEl) {
-            return;
-        }
-        messageEl.textContent = '';
-        messageEl.className = 'mt-2 text-sm';
-    }
-
-    getPromoMessageClass(type) {
-        switch (type) {
-            case 'success':
-                return 'text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200';
-            case 'error':
-                return 'text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200';
-            case 'info':
-            default:
-                return 'text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-200';
-        }
-    }
-
-    async purchasePackage(packageId) {
-        try {
-            if (window.UnifiedCreditService) {
-                const result = await window.UnifiedCreditService.purchasePackage(packageId);
-
-                if (result.url) {
-                    window.location.href = result.url;
-                }
-            } else {
-                // Fallback to direct API call
-                const response = await fetch('/api/credits/purchase', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
+                await modal.show({
+                    showPromoCode: true,
+                    onSuccess: () => {
+                        // Refresh balance after successful purchase/promo redemption
+                        this.loadBalance(true);
                     },
-                    body: JSON.stringify({
-                        packageId,
-                        successUrl: `${window.location.origin}/purchase-success.html`,
-                        cancelUrl: window.location.href
-                    })
+                    onCancel: () => {
+                        console.log('Credit purchase cancelled');
+                    }
                 });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Redirect to Stripe Checkout
-                    window.location.href = data.url;
-                } else {
-                    throw new Error(data.error || 'Purchase failed');
-                }
+            } else {
+                // Fallback to billing page if modal not available
+                window.location.href = '/billing.html';
             }
         } catch (error) {
-            console.error('Purchase error:', error);
-            this.showError('Purchase failed. Please try again.');
+            console.error('Error showing purchase options:', error);
+            this.showError('Unable to load purchase options. Please try again.');
         }
     }
 
@@ -615,7 +318,20 @@ class CreditBalanceWidget {
             return window.UnifiedAuthUtils.getAuthHeaders();
         }
 
-        return { 'Content-Type': 'application/json', Accept: 'application/json' };
+        // Fallback: try to get auth token from localStorage and sessionStorage
+        const localToken = localStorage.getItem('authToken');
+        const sessionToken = sessionStorage.getItem('authToken');
+        const token = localToken || sessionToken;
+        const headers = {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        return headers;
     }
 
     showErrorState() {

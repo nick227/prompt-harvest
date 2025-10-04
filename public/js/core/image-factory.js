@@ -5,14 +5,21 @@
 
 class ImageFactory {
     static createImageData(result) {
+        // Generate title from first 8 characters of prompt
+        const generateTitle = (prompt) => {
+            if (!prompt) return 'Generated Image';
+            return prompt.substring(0, 8);
+        };
+
         // Normalize different API response formats
         return {
             id: result.id || result.imageId || Date.now().toString(),
             url: result.imageUrl || result.image || result.url || `uploads/${result.imageName}`,
-            title: result.prompt || result.title || 'Generated Image',
+            title: generateTitle(result.prompt),
             prompt: result.prompt || '',
             original: result.original || result.prompt || '',
-            provider: result.provider || result.providerName || 'unknown',
+            provider: result.provider || result.providerName || 'unknown', // This is actually the model name from database
+            model: result.provider || result.providerName || result.model || 'unknown', // Database provider column contains model name
             guidance: result.guidance || '',
             rating: result.rating || 0,
             userId: result.userId || null,
