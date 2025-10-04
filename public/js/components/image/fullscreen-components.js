@@ -131,11 +131,8 @@ class FullscreenComponents {
         img.style.transition = 'transform 0.2s ease';
         img.style.userSelect = 'none';
 
-        // Load saved zoom level from localStorage
-        const savedZoom = this.getSavedZoomLevel();
-
-        // Always use saved zoom level for consistency across navigation
-        img.dataset.zoom = savedZoom.toString();
+        // Always start at zoom level 1 for new images
+        img.dataset.zoom = '1';
 
         // Initialize position if not set
         if (!img.dataset.translateX) {
@@ -145,10 +142,9 @@ class FullscreenComponents {
             img.dataset.translateY = '0';
         }
 
-        // Apply saved zoom level
-        const zoomLevel = parseFloat(img.dataset.zoom);
-        img.style.transform = `scale(${zoomLevel}) translate(0px, 0px)`;
-        img.style.cursor = zoomLevel >= 3 ? 'zoom-out' : 'zoom-in';
+        // Apply initial zoom level (always 1)
+        img.style.transform = 'scale(1) translate(0px, 0px)';
+        img.style.cursor = 'zoom-in';
     }
 
 
@@ -162,6 +158,7 @@ class FullscreenComponents {
             e.stopPropagation();
 
             const currentZoom = parseFloat(img.dataset.zoom);
+            // Cycle through zoom levels: 1 → 1.5 → 2 → 2.5 → 3 → 1
             const newZoom = currentZoom >= 3 ? 1 : currentZoom + 0.5;
 
             img.dataset.zoom = newZoom.toString();
@@ -174,9 +171,6 @@ class FullscreenComponents {
 
             // Update cursor based on zoom level
             img.style.cursor = newZoom >= 3 ? 'zoom-out' : 'zoom-in';
-
-            // Save zoom level to localStorage
-            this.saveZoomLevel(newZoom);
         });
 
         // Double-click event listener to reset zoom and position
@@ -190,9 +184,6 @@ class FullscreenComponents {
 
             img.style.transform = 'scale(1) translate(0px, 0px)';
             img.style.cursor = 'zoom-in';
-
-            // Save reset zoom level to localStorage
-            this.saveZoomLevel(1);
         });
     }
 
@@ -338,33 +329,21 @@ class FullscreenComponents {
      * @returns {string} Formatted date string
      */
     formatDate(date) {
-        console.log('🔍 FORMAT DATE: Received date:', date, 'Type:', typeof date);
-
         if (!date) {
-            console.log('🔍 FORMAT DATE: No date provided, returning Unknown');
-
             return 'Unknown';
         }
 
         try {
             const dateObj = new Date(date);
 
-            console.log('🔍 FORMAT DATE: Parsed date object:', dateObj);
-
             if (isNaN(dateObj.getTime())) {
-                console.log('🔍 FORMAT DATE: Invalid date object, returning Invalid date');
-
                 return 'Invalid date';
             }
 
             const formatted = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
 
-            console.log('🔍 FORMAT DATE: Formatted result:', formatted);
-
             return formatted;
         } catch (error) {
-            console.log('🔍 FORMAT DATE: Error formatting date:', error);
-
             return 'Invalid date';
         }
     }
@@ -418,38 +397,6 @@ class FullscreenComponents {
                element.classList.contains(this.uiConfig.getClasses().infoBox);
     }
 
-    // ============================================================================
-    // ZOOM PERSISTENCE METHODS
-    // ============================================================================
-
-    /**
-     * Save zoom level to localStorage
-     * @param {number} zoomLevel - Zoom level to save
-     */
-    saveZoomLevel(zoomLevel) {
-        try {
-            localStorage.setItem('fullscreen-image-zoom', zoomLevel.toString());
-        } catch (error) {
-            console.warn('Failed to save zoom level to localStorage:', error);
-        }
-    }
-
-    /**
-     * Get saved zoom level from localStorage
-     * @returns {number} Saved zoom level or default of 1
-     */
-    getSavedZoomLevel() {
-        try {
-            const saved = localStorage.getItem('fullscreen-image-zoom');
-            const zoomLevel = saved ? parseFloat(saved) : 1;
-
-            // Validate zoom level is within acceptable range
-            return zoomLevel >= 1 && zoomLevel <= 3 ? zoomLevel : 1;
-        } catch (error) {
-            console.warn('Failed to get zoom level from localStorage:', error);
-            return 1;
-        }
-    }
 }
 
 // ============================================================================

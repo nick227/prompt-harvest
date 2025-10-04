@@ -29,16 +29,8 @@ class UnifiedNavigation {
      */
     openFullscreen(imageElement) {
         if (!imageElement) {
-            console.error('🔍 NAVIGATION: No image element provided');
-
             return;
         }
-
-        console.log('🔍 NAVIGATION: Opening fullscreen for element:', {
-            src: imageElement.src,
-            id: imageElement.dataset.id,
-            imageId: imageElement.dataset.imageId
-        });
 
         this.currentImageElement = imageElement;
 
@@ -46,12 +38,8 @@ class UnifiedNavigation {
         const imageData = this.extractImageDataFromElement(imageElement);
 
         if (!imageData) {
-            console.error('🔍 NAVIGATION: Could not extract image data from element');
-
             return;
         }
-
-        console.log('🔍 NAVIGATION: Extracted image data:', imageData);
 
         // Setup fullscreen container if needed
         this.setupFullscreenContainer();
@@ -71,8 +59,6 @@ class UnifiedNavigation {
 
         // Ensure info box state is properly initialized
         this.initializeInfoBoxState();
-
-        console.log('🔍 NAVIGATION: Fullscreen opened successfully');
     }
 
     /**
@@ -80,13 +66,9 @@ class UnifiedNavigation {
      */
     navigateNext() {
         if (this.isNavigating) {
-            console.log('🔍 NAVIGATION: Already navigating, skipping');
-
             return;
         }
         this.isNavigating = true;
-
-        console.log('🔍 NAVIGATION: Navigating to next image');
 
         // Save current info box state before navigating
         this.saveCurrentInfoBoxState();
@@ -94,10 +76,7 @@ class UnifiedNavigation {
         const nextElement = this.getNextImageElement();
 
         if (nextElement) {
-            console.log('🔍 NAVIGATION: Found next element, opening fullscreen');
             this.openFullscreen(nextElement);
-        } else {
-            console.warn('🔍 NAVIGATION: No next element found');
         }
 
         this.isNavigating = false;
@@ -108,13 +87,9 @@ class UnifiedNavigation {
      */
     navigatePrevious() {
         if (this.isNavigating) {
-            console.log('🔍 NAVIGATION: Already navigating, skipping');
-
             return;
         }
         this.isNavigating = true;
-
-        console.log('🔍 NAVIGATION: Navigating to previous image');
 
         // Save current info box state before navigating
         this.saveCurrentInfoBoxState();
@@ -122,10 +97,7 @@ class UnifiedNavigation {
         const prevElement = this.getPreviousImageElement();
 
         if (prevElement) {
-            console.log('🔍 NAVIGATION: Found previous element, opening fullscreen');
             this.openFullscreen(prevElement);
-        } else {
-            console.warn('🔍 NAVIGATION: No previous element found');
         }
 
         this.isNavigating = false;
@@ -147,26 +119,14 @@ class UnifiedNavigation {
      */
     getNextImageElement() {
         if (!this.currentImageElement) {
-            console.log('🔍 NAVIGATION: No current image element');
-
             return null;
         }
-
-        console.log('🔍 NAVIGATION: Current image element:', {
-            src: this.currentImageElement.src,
-            id: this.currentImageElement.dataset.id,
-            imageId: this.currentImageElement.dataset.imageId
-        });
 
         const allImages = this.getAllVisibleImageElements();
 
         if (allImages.length === 0) {
-            console.log('🔍 NAVIGATION: No visible images found');
-
             return null;
         }
-
-        console.log(`🔍 NAVIGATION: Found ${allImages.length} visible images`);
 
         // Try exact match first
         let currentIndex = allImages.findIndex(img => img === this.currentImageElement);
@@ -190,32 +150,16 @@ class UnifiedNavigation {
         }
 
         if (currentIndex === -1) {
-            console.warn('🔍 NAVIGATION: Current image not found in visible images list');
-            console.log('🔍 NAVIGATION: Current image:', {
-                src: this.currentImageElement.src,
-                id: this.currentImageElement.dataset.id,
-                imageId: this.currentImageElement.dataset.imageId
-            });
-            console.log('🔍 NAVIGATION: Available images:', allImages.map(img => ({
-                src: img.src,
-                id: img.dataset.id,
-                imageId: img.dataset.imageId
-            })));
-
             return null;
         }
 
         // Handle single image case
         if (allImages.length === 1) {
-            console.log('🔍 NAVIGATION: Only one image available, staying on current image');
-
             return allImages[0];
         }
 
         // Circular navigation: wrap to first image if at end
         const nextIndex = (currentIndex + 1) % allImages.length;
-
-        console.log(`🔍 NAVIGATION: Moving from index ${currentIndex} to ${nextIndex}`);
 
         return allImages[nextIndex];
     }
@@ -226,16 +170,12 @@ class UnifiedNavigation {
      */
     getPreviousImageElement() {
         if (!this.currentImageElement) {
-            console.log('🔍 NAVIGATION: No current image element');
-
             return null;
         }
 
         const allImages = this.getAllVisibleImageElements();
 
         if (allImages.length === 0) {
-            console.log('🔍 NAVIGATION: No visible images found');
-
             return null;
         }
 
@@ -261,32 +201,16 @@ class UnifiedNavigation {
         }
 
         if (currentIndex === -1) {
-            console.error('🔍 NAVIGATION: Current image not found in visible images list');
-            console.log('🔍 NAVIGATION: Current image:', {
-                src: this.currentImageElement.src,
-                id: this.currentImageElement.dataset.id,
-                imageId: this.currentImageElement.dataset.imageId
-            });
-            console.log('🔍 NAVIGATION: Available images:', allImages.map(img => ({
-                src: img.src,
-                id: img.dataset.id,
-                imageId: img.dataset.imageId
-            })));
-
             return null;
         }
 
         // Handle single image case
         if (allImages.length === 1) {
-            console.log('🔍 NAVIGATION: Only one image available, staying on current image');
-
             return allImages[0];
         }
 
         // Circular navigation: wrap to last image if at beginning
         const prevIndex = currentIndex === 0 ? allImages.length - 1 : currentIndex - 1;
-
-        console.log(`🔍 NAVIGATION: Moving from index ${currentIndex} to ${prevIndex}`);
 
         return allImages[prevIndex];
     }
@@ -337,7 +261,6 @@ class UnifiedNavigation {
                     });
 
                     if (validImages.length > 0) {
-                        console.log(`🔍 NAVIGATION: Found ${validImages.length} images in ${containerSelector} using selector: ${selector}`);
                         foundImages = validImages;
                         break;
                     }
@@ -374,7 +297,6 @@ class UnifiedNavigation {
                     });
 
                     if (validImages.length > 0) {
-                        console.log(`🔍 NAVIGATION: Found ${validImages.length} images globally using selector: ${selector}`);
                         foundImages = validImages;
                         break;
                     }
@@ -382,69 +304,11 @@ class UnifiedNavigation {
             }
         }
 
-        if (foundImages.length === 0) {
-            console.warn('🔍 NAVIGATION: No visible image elements found. Debugging...');
-            this.debugImageElements();
-        } else {
-            console.log(`🔍 NAVIGATION: Total images found: ${foundImages.length}`);
-            foundImages.forEach((img, index) => {
-                console.log(`  Image ${index}:`, {
-                    src: `${img.src.substring(0, 50)}...`,
-                    id: img.dataset.id,
-                    imageId: img.dataset.imageId,
-                    classes: img.className
-                });
-            });
-        }
+        // No visible images found
 
         return foundImages;
     }
 
-    /**
-     * Debug method to help identify image elements
-     */
-    debugImageElements() {
-        const containers = ['.prompt-output', '.images-section', '.image-container', 'body'];
-        const allImages = document.querySelectorAll('img');
-
-        console.log('🔍 DEBUG: All img elements in page:', allImages.length);
-
-        // Show all images with their properties
-        allImages.forEach((img, index) => {
-            const isGenerated = img.src.includes('uploads/') ||
-                              img.src.includes('r2.dev') ||
-                              img.src.includes('flux_') ||
-                              img.classList.contains('generated-image');
-
-            if (isGenerated || img.dataset.id || img.dataset.imageId) {
-                console.log(`🔍 DEBUG: Image ${index}:`, {
-                    src: `${img.src.substring(0, 80)}...`,
-                    hasDataId: !!img.dataset.id,
-                    hasDataImageId: !!img.dataset.imageId,
-                    dataId: img.dataset.id,
-                    dataImageId: img.dataset.imageId,
-                    visible: img.offsetParent !== null,
-                    classes: img.className,
-                    parentElement: img.parentElement?.tagName,
-                    parentClasses: img.parentElement?.className
-                });
-            }
-        });
-
-        // Show container information
-        containers.forEach(container => {
-            const containerEl = document.querySelector(container);
-
-            if (containerEl) {
-                const images = containerEl.querySelectorAll('img');
-                const generatedImages = containerEl.querySelectorAll('img[src*="r2.dev"], img[src*="uploads"], img[src*="flux_"], .generated-image');
-
-                console.log(`🔍 DEBUG: ${container} contains ${images.length} total images, ${generatedImages.length} generated images`);
-            } else {
-                console.log(`🔍 DEBUG: Container ${container} not found`);
-            }
-        });
-    }
 
     /**
      * Extract image data directly from DOM element
@@ -478,15 +342,15 @@ class UnifiedNavigation {
             title: generateTitle(prompt),
             prompt,
             original: dataset.original || prompt || '',
-            provider: dataset.provider || 'unknown', // This is actually the model name from database
-            model: dataset.provider || dataset.model || 'unknown', // Database provider column contains model name
+            provider: dataset.provider || 'unknown',
+            model: dataset.model || dataset.provider || 'unknown', // Use model field, fallback to provider
             guidance: dataset.guidance || 'N/A',
             steps: dataset.steps || 'N/A',
             seed: dataset.seed || 'N/A',
             rating: parseInt(dataset.rating) || 0,
             isPublic: dataset.isPublic === 'true',
             userId: dataset.userId || currentUserId, // Use current user as fallback
-            username: dataset.username,
+            username: dataset.username || 'Unknown User', // Provide fallback for username
             createdAt: dataset.createdAt || new Date().toISOString()
         };
     }
@@ -582,8 +446,6 @@ class UnifiedNavigation {
             toggleButton.textContent = savedState.isExpanded ? '−' : '+';
         }
 
-        console.log('🔍 NAVIGATION: Created info box with state:', savedState);
-
         return infoBox;
     }
 
@@ -597,15 +459,12 @@ class UnifiedNavigation {
         controls.className = 'fullscreen-controls';
 
         const prevBtn = this.createButton('Previous', '← previous', () => {
-            console.log('🔍 NAVIGATION: Previous button clicked');
             this.navigatePrevious();
         });
         const nextBtn = this.createButton('Next', 'next →', () => {
-            console.log('🔍 NAVIGATION: Next button clicked');
             this.navigateNext();
         });
         const closeBtn = this.createButton('Close', 'close', () => {
-            console.log('🔍 NAVIGATION: Close button clicked');
             this.closeFullscreen();
         });
         const downloadBtn = this.createButton('Download', 'download', () => this.downloadImage());
@@ -664,27 +523,21 @@ class UnifiedNavigation {
             return;
         }
 
-        console.log('🔍 NAVIGATION: Key pressed:', e.key);
-
         switch (e.key) {
             case 'ArrowLeft':
                 e.preventDefault();
-                console.log('🔍 NAVIGATION: Arrow left - navigating previous');
                 this.navigatePrevious();
                 break;
             case 'ArrowRight':
                 e.preventDefault();
-                console.log('🔍 NAVIGATION: Arrow right - navigating next');
                 this.navigateNext();
                 break;
             case 'Escape':
                 e.preventDefault();
-                console.log('🔍 NAVIGATION: Escape - closing fullscreen');
                 this.closeFullscreen();
                 break;
             case '0': case '1': case '2': case '3': case '4': case '5':
                 e.preventDefault();
-                console.log('🔍 NAVIGATION: Rating image:', e.key);
                 this.rateImage(parseInt(e.key));
                 break;
         }
@@ -773,7 +626,6 @@ class UnifiedNavigation {
         // Listen for custom info box toggle events
         window.addEventListener('infoBoxToggle', e => {
             this.saveInfoBoxState({ isExpanded: e.detail.isExpanded });
-            console.log('🔍 NAVIGATION: Info box state changed:', e.detail);
         });
 
         // Also listen for direct clicks on toggle buttons as backup
@@ -824,7 +676,6 @@ class UnifiedNavigation {
             // Clean up object URL
             URL.revokeObjectURL(objectUrl);
 
-            console.log('📥 DOWNLOAD: Blob download triggered for:', fileName);
         } catch (error) {
             console.error('❌ DOWNLOAD: Blob download failed, trying fallback:', error);
 
@@ -838,7 +689,6 @@ class UnifiedNavigation {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                console.log('📥 DOWNLOAD: Fallback download triggered');
             } catch (fallbackError) {
                 console.error('❌ DOWNLOAD: All download methods failed:', fallbackError);
             }
@@ -909,7 +759,6 @@ class UnifiedNavigation {
             // Call API to update server
             if (window.imageApi && window.imageApi.rateImage) {
                 await window.imageApi.rateImage(imageId, rating);
-                console.log('✅ Rating saved to server');
             }
         } catch (error) {
             console.error('❌ Error saving rating:', error);
@@ -994,11 +843,8 @@ class UnifiedNavigation {
         img.style.transition = 'transform 0.2s ease';
         img.style.userSelect = 'none';
 
-        // Load saved zoom level from localStorage
-        const savedZoom = this.getSavedZoomLevel();
-
-        // Always use saved zoom level for consistency across navigation
-        img.dataset.zoom = savedZoom.toString();
+        // Always start at zoom level 1 for new images
+        img.dataset.zoom = '1';
 
         // Initialize position if not set
         if (!img.dataset.translateX) {
@@ -1008,11 +854,9 @@ class UnifiedNavigation {
             img.dataset.translateY = '0';
         }
 
-        // Apply saved zoom level
-        const zoomLevel = parseFloat(img.dataset.zoom);
-
-        img.style.transform = `scale(${zoomLevel}) translate(0px, 0px)`;
-        img.style.cursor = zoomLevel >= 3 ? 'zoom-out' : 'zoom-in';
+        // Apply initial zoom level (always 1)
+        img.style.transform = 'scale(1) translate(0px, 0px)';
+        img.style.cursor = 'zoom-in';
     }
 
     /**
@@ -1025,6 +869,7 @@ class UnifiedNavigation {
             e.stopPropagation();
 
             const currentZoom = parseFloat(img.dataset.zoom);
+            // Cycle through zoom levels: 1 → 1.5 → 2 → 2.5 → 3 → 1
             const newZoom = currentZoom >= 3 ? 1 : currentZoom + 0.5;
 
             img.dataset.zoom = newZoom.toString();
@@ -1037,9 +882,6 @@ class UnifiedNavigation {
 
             // Update cursor based on zoom level
             img.style.cursor = newZoom >= 3 ? 'zoom-out' : 'zoom-in';
-
-            // Save zoom level to localStorage
-            this.saveZoomLevel(newZoom);
         });
 
         // Double-click event listener to reset zoom and position
@@ -1053,41 +895,9 @@ class UnifiedNavigation {
 
             img.style.transform = 'scale(1) translate(0px, 0px)';
             img.style.cursor = 'zoom-in';
-
-            // Save reset zoom level to localStorage
-            this.saveZoomLevel(1);
         });
     }
 
-    /**
-     * Save zoom level to localStorage
-     * @param {number} zoomLevel - Zoom level to save
-     */
-    saveZoomLevel(zoomLevel) {
-        try {
-            localStorage.setItem('fullscreen-image-zoom', zoomLevel.toString());
-        } catch (error) {
-            console.warn('Failed to save zoom level to localStorage:', error);
-        }
-    }
-
-    /**
-     * Get saved zoom level from localStorage
-     * @returns {number} Saved zoom level or default of 1
-     */
-    getSavedZoomLevel() {
-        try {
-            const saved = localStorage.getItem('fullscreen-image-zoom');
-            const zoomLevel = saved ? parseFloat(saved) : 1;
-
-            // Validate zoom level is within acceptable range
-            return zoomLevel >= 1 && zoomLevel <= 3 ? zoomLevel : 1;
-        } catch (error) {
-            console.warn('Failed to get zoom level from localStorage:', error);
-
-            return 1;
-        }
-    }
 
     /**
      * Clean up event listeners
@@ -1172,7 +982,6 @@ class UnifiedNavigation {
             const isExpanded = content.classList.contains('expanded');
 
             this.saveInfoBoxState({ isExpanded });
-            console.log('🔍 NAVIGATION: Saved current info box state:', { isExpanded });
         }
     }
 
@@ -1201,7 +1010,6 @@ class UnifiedNavigation {
                 toggle.textContent = '+';
             }
 
-            console.log('🔍 NAVIGATION: Initialized info box state:', savedState);
         }
     }
 }

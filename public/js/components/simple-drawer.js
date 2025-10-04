@@ -37,8 +37,6 @@ class SimpleDrawer {
     }
 
     createDrawer() {
-        console.log('🔧 SIMPLE DRAWER: Creating drawer...');
-
         // Create overlay for mobile
         this.overlay = document.createElement('div');
         this.overlay.id = 'mobile-controls-overlay';
@@ -54,14 +52,9 @@ class SimpleDrawer {
         document.body.appendChild(this.overlay);
         document.body.appendChild(this.drawer);
 
-        console.log('🔧 SIMPLE DRAWER: Drawer created and appended to body');
-
         // Get button references (they might not exist yet)
         this.toggleButton = document.getElementById('drawer-toggle-closed');
         this.hamburgerButton = document.getElementById('mobile-hamburger');
-
-        console.log('🔧 SIMPLE DRAWER: Toggle button found:', !!this.toggleButton);
-        console.log('🔧 SIMPLE DRAWER: Hamburger button found:', !!this.hamburgerButton);
 
         // Set initial state based on device type and persisted state
         this.setInitialState();
@@ -297,17 +290,17 @@ class SimpleDrawer {
 
             if (checkbox) {
                 checkbox.addEventListener('change', e => {
-                    console.log(`🔧 DRAWER: ${name} checkbox changed to:`, e.target.checked);
                     localStorage.setItem(name, e.target.checked.toString());
                 });
             }
         });
 
         // Setup event listeners for prompt helpers
-        PromptHelpersForm.addChangeListeners(promptHelpers => {
-            console.log('🔧 DRAWER: Prompt helpers changed:', promptHelpers);
-            localStorage.setItem('promptHelpers', JSON.stringify(promptHelpers));
-        }, this.drawer);
+        if (window.PromptHelpersForm) {
+            PromptHelpersForm.addChangeListeners(promptHelpers => {
+                localStorage.setItem('promptHelpers', JSON.stringify(promptHelpers));
+            }, this.drawer);
+        }
     }
 
     handleFormChange(e) {
@@ -337,7 +330,7 @@ class SimpleDrawer {
 
         // Handle multiplier changes
         if (element.id === 'multiplier') {
-            console.log('🔧 DRAWER: Multiplier text changed to:', element.value);
+            // Multiplier text changed
         }
     }
 
@@ -480,31 +473,27 @@ class SimpleDrawer {
         this.checkboxNames.forEach(name => {
             const saved = localStorage.getItem(name);
 
-            console.log(`🔧 DRAWER: Loading persisted value for ${name}:`, saved);
-
             if (saved !== null) {
                 const checkbox = this.drawer.querySelector(`input[name="${name}"]`);
 
                 if (checkbox) {
                     checkbox.checked = saved === 'true';
-                    console.log(`🔧 DRAWER: Set ${name} checkbox to:`, checkbox.checked);
-                } else {
-                    console.log(`🔧 DRAWER: Checkbox ${name} not found in drawer`);
                 }
             }
         });
 
         // Load prompt helpers from localStorage
-        const savedPromptHelpers = localStorage.getItem('promptHelpers');
+        if (window.PromptHelpersForm) {
+            const savedPromptHelpers = localStorage.getItem('promptHelpers');
 
-        if (savedPromptHelpers) {
-            try {
-                const promptHelpers = JSON.parse(savedPromptHelpers);
+            if (savedPromptHelpers) {
+                try {
+                    const promptHelpers = JSON.parse(savedPromptHelpers);
 
-                console.log('🔧 DRAWER: Loading persisted prompt helpers:', promptHelpers);
-                PromptHelpersForm.setFormValues(promptHelpers, this.drawer);
-            } catch (error) {
-                console.warn('🔧 DRAWER: Failed to parse saved prompt helpers:', error);
+                    PromptHelpersForm.setFormValues(promptHelpers, this.drawer);
+                } catch (error) {
+                    console.warn('🔧 DRAWER: Failed to parse saved prompt helpers:', error);
+                }
             }
         }
 

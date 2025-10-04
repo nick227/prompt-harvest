@@ -112,8 +112,8 @@ class ImageData {
             prompt: prompt,
             original: img.dataset.original || '',
             final: img.dataset.final || img.dataset.prompt || '', // ✅ Include final field
-            provider: img.dataset.provider || '', // This is actually the model name from database
-            model: img.dataset.provider || img.dataset.model || 'unknown', // Database provider column contains model name
+            provider: img.dataset.provider || '',
+            model: img.dataset.model || img.dataset.provider || 'unknown', // Use model field, fallback to provider
             guidance: img.dataset.guidance || '',
             rating: parseInt(img.dataset.rating) || 0,
             isPublic: img.dataset.isPublic === 'true' || false, // ✅ Include isPublic from dataset

@@ -19,11 +19,8 @@ class AdminPromoCardsManager {
      * Initialize promo cards handler
      */
     async init() {
-        console.log('🎫 ADMIN-PROMO-CARDS: Initializing promo cards handler...');
-
         // Check authentication before initializing
         if (!window.AdminAuthUtils?.hasValidToken()) {
-            console.warn('🔐 ADMIN-PROMO-CARDS: No valid token, skipping promo cards handler initialization');
             return;
         }
 
@@ -36,27 +33,18 @@ class AdminPromoCardsManager {
         // Load initial promo cards data
         await this.loadPromoCardsData();
 
-        console.log('✅ ADMIN-PROMO-CARDS: Promo cards handler initialized');
     }
 
     /**
      * Setup event listeners for promo card management
      */
     setupEventListeners() {
-        console.log('🎫 ADMIN-PROMO-CARDS: Setting up event listeners');
-
         // Listen for admin table actions using AdminEventBus
         if (this.eventBus && !this.eventBusListenerSet) {
-            console.log('🎫 ADMIN-PROMO-CARDS: Setting up AdminEventBus listeners');
-            console.log('🎫 ADMIN-PROMO-CARDS: AdminEventBus available:', !!this.eventBus);
             this.eventBusListenerSet = true; // Prevent duplicate registrations
 
             // Listen for delete actions
-            console.log('🎫 ADMIN-PROMO-CARDS: Registering AdminEventBus listener for table-action.delete');
             this.eventBus.on('table-action', 'delete', eventData => {
-                console.log('🎫 ADMIN-PROMO-CARDS: AdminEventBus table-action.delete event received:', eventData);
-                console.log('🎫 ADMIN-PROMO-CARDS: Event data type:', eventData.dataType);
-                console.log('🎫 ADMIN-PROMO-CARDS: Event ID:', eventData.id);
                 if (eventData.dataType === 'promo-cards') {
                     console.log('🎫 ADMIN-PROMO-CARDS: AdminEventBus delete received for promo-cards');
 

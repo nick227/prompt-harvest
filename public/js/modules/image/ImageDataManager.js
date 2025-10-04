@@ -272,6 +272,7 @@ class ImageDataManager {
             original: img.dataset.original,
             final: img.dataset.final || img.dataset.prompt,
             provider: img.dataset.provider,
+            model: img.dataset.model, // Add model field
             guidance: img.dataset.guidance,
             rating: img.dataset.rating,
             isPublic: img.dataset.isPublic,

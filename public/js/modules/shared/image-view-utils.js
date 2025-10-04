@@ -52,7 +52,6 @@ class ImageViewUtils {
             const removed = window.feedManager.removeImageFromFeed(imageId);
 
             if (removed) {
-                console.log(`🗑️ Removed image ${imageId} from feed (made private)`);
             }
         }
     }
@@ -82,8 +81,8 @@ class ImageViewUtils {
             prompt,
             original: img.dataset.original || '',
             final: img.dataset.final || img.dataset.prompt || '',
-            provider: img.dataset.provider || '', // This is actually the model name from database
-            model: img.dataset.provider || img.dataset.model || 'unknown', // Database provider column contains model name
+            provider: img.dataset.provider || '',
+            model: img.dataset.model || img.dataset.provider || 'unknown', // Use model field, fallback to provider
             guidance: img.dataset.guidance || '',
             rating: parseInt(img.dataset.rating) || 0,
             isPublic: img.dataset.isPublic === 'true' || wrapper?.dataset.isPublic === 'true' || false,
@@ -105,29 +104,19 @@ class ImageViewUtils {
         const compactView = wrapper.querySelector('.compact-view');
         const listView = wrapper.querySelector('.list-view');
 
-        console.log('🔄 VIEW UTILS: Updating wrapper view to', viewType, {
-            hasCompactView: !!compactView,
-            hasListView: !!listView,
-            wrapperId: wrapper.id || 'no-id'
-        });
-
         if (viewType === 'list') {
             if (compactView) {
                 compactView.style.display = 'none';
-                console.log('🔄 VIEW UTILS: Hidden compact view');
             }
             if (listView) {
                 listView.style.display = 'flex';
-                console.log('🔄 VIEW UTILS: Shown list view');
             }
         } else {
             if (compactView) {
                 compactView.style.display = 'block';
-                console.log('🔄 VIEW UTILS: Shown compact view');
             }
             if (listView) {
                 listView.style.display = 'none';
-                console.log('🔄 VIEW UTILS: Hidden list view');
             }
         }
     }
@@ -491,7 +480,6 @@ class ImageViewUtils {
                     this.removeImageFromFeedIfAvailable(imageId);
                 }
             } else {
-                console.error('❌ PublicStatusService not available');
                 // Show error notification
                 if (window.notificationManager) {
                     window.notificationManager.error('Public status service not available');
@@ -531,12 +519,10 @@ class ImageViewUtils {
      * @param {boolean} isPublic - New public status
      */
     static updateListViewCheckboxIfExists(imageId, isPublic) {
-        console.warn('⚠️ DEPRECATED: updateListViewCheckboxIfExists() is deprecated. Use PublicStatusService instead.');
         const listCheckbox = document.querySelector(`#public-toggle-list-${imageId}`);
 
         if (listCheckbox) {
             listCheckbox.checked = isPublic;
-            console.log(`🔄 Updated list view checkbox for image ${imageId} to ${isPublic}`);
         }
     }
 

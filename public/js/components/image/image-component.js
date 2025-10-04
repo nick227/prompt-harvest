@@ -9,8 +9,9 @@ class ImageComponent {
         // Create unified navigation if not already created
         if (!this.navigation) {
             if (typeof window.UnifiedNavigation === 'undefined') {
-                console.warn('⚠️ ImageComponent: UnifiedNavigation not available yet, will retry later');
-                // Don't fail - we can still create image elements
+                // Retry after a short delay
+                setTimeout(() => this.retryInit(), 100);
+                return false;
             } else {
                 this.navigation = new window.UnifiedNavigation();
             }
@@ -29,11 +30,26 @@ class ImageComponent {
         return true;
     }
 
+    retryInit() {
+        if (!this.navigation && typeof window.UnifiedNavigation !== 'undefined') {
+            this.navigation = new window.UnifiedNavigation();
+            this.setupEventDelegation();
+            this.isInitialized = true;
+
+            // Expose navigation to global scope
+            window.imageNavigation = this.navigation;
+            window.imageComponent = this;
+
+        } else if (typeof window.UnifiedNavigation === 'undefined') {
+            // Retry again if still not available
+            setTimeout(() => this.retryInit(), 100);
+        }
+    }
+
     // Ensure navigation is available
     ensureNavigation() {
         if (!this.navigation) {
             if (typeof window.UnifiedNavigation === 'undefined') {
-                console.error('❌ ImageComponent: UnifiedNavigation not available');
                 return false;
             }
             this.navigation = new window.UnifiedNavigation();
@@ -45,7 +61,6 @@ class ImageComponent {
     setupEventDelegation() {
         const imageContainer = document.querySelector('.prompt-output');
         if (!imageContainer) {
-            console.warn('⚠️ No image container found for event delegation');
             return;
         }
 
@@ -82,7 +97,6 @@ class ImageComponent {
         const imageUrl = imageData?.url || imageData?.imageUrl;
 
         if (!imageData || !imageUrl) {
-            console.warn('⚠️ ImageComponent: Invalid imageData or missing URL');
             return null;
         }
 
@@ -187,7 +201,6 @@ class ImageComponent {
     // Open fullscreen (delegate to navigation)
     openFullscreen(imageData) {
         if (!this.ensureNavigation()) {
-            console.warn('⚠️ ImageComponent: Navigation not available for fullscreen');
             return;
         }
 
@@ -241,10 +254,9 @@ if (typeof window !== 'undefined') {
         try {
             const success = window.imageComponent.init();
             if (!success) {
-                console.warn('⚠️ ImageComponent initialization deferred - dependencies not ready');
             }
         } catch (error) {
-            console.warn('⚠️ ImageComponent initialization failed:', error);
+            // Initialization failed
         }
     }
 }
