@@ -76,8 +76,7 @@
 
     .info-box-container {
         background: transparent;
-        height: 40vh;
-        max-height: 40vh;
+        height: 66vh;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         touch-action: pan-y;
@@ -115,7 +114,7 @@
     }
 
     .info-box-thumbnail {
-        width: 100%;
+        width: 25%;
         object-fit: contain;
     }
 

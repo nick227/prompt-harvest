@@ -531,6 +531,8 @@ class UnifiedInfoBox {
      * @returns {string} Title text
      */
     getTitleText(imageData, config) {
+        const charLimit = 60;
+
         if (config.titleSource === 'id') {
             return imageData.id || config.titleFallback;
         } else {
@@ -541,7 +543,7 @@ class UnifiedInfoBox {
                                imageData.prompt;
 
             if (finalPrompt && finalPrompt.length > 0) {
-                return finalPrompt.length > 30 ? `${finalPrompt.substring(0, 30)}...` : finalPrompt;
+                return finalPrompt.length > charLimit ? `${finalPrompt.substring(0, charLimit)}...` : finalPrompt;
             }
 
             return imageData.title || config.titleFallback;
