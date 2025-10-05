@@ -165,7 +165,7 @@ class PrismaSessionStore extends EventEmitter {
                 self.save({ sessionID }, callback);
             };
             session.touch = callback => {
-                self.touch({ sessionID }, callback);
+                self.touch(sessionID, callback);
             };
             session.reload = callback => {
                 self.get(sessionID, callback);

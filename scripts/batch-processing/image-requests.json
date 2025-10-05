@@ -1,0 +1,42 @@
+[
+    {
+        "prompt": "A majestic dragon soaring through storm clouds, lightning crackling around its wings, fantasy art style",
+        "providers": ["flux"],
+        "guidance": 8,
+        "model": "flux-dev",
+        "size": "1024x1024",
+        "tags": ["fantasy", "dragon", "storm", "lightning"]
+    },
+    {
+        "prompt": "A minimalist modern kitchen with clean lines, white marble countertops, and natural wood accents",
+        "providers": ["flux"],
+        "guidance": 6,
+        "model": "flux-dev",
+        "size": "1024x1024",
+        "tags": ["interior", "kitchen", "modern", "minimalist"]
+    },
+    {
+        "prompt": "A vintage steam locomotive crossing a stone bridge over a misty valley, early morning light",
+        "providers": ["flux"],
+        "guidance": 7,
+        "model": "flux-dev",
+        "size": "1024x1024",
+        "tags": ["vintage", "train", "bridge", "misty"]
+    },
+    {
+        "prompt": "A bustling street market in an Asian city, colorful stalls, people shopping, vibrant atmosphere",
+        "providers": ["flux"],
+        "guidance": 8,
+        "model": "flux-dev",
+        "size": "1024x1024",
+        "tags": ["market", "street", "colorful", "people"]
+    },
+    {
+        "prompt": "A serene Japanese garden with cherry blossoms, koi pond, stone lanterns, peaceful zen atmosphere",
+        "providers": ["flux"],
+        "guidance": 6,
+        "model": "flux-dev",
+        "size": "1024x1024",
+        "tags": ["garden", "japanese", "zen", "peaceful"]
+    }
+]

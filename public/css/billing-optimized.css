@@ -144,24 +144,6 @@
     font-size: 1rem;
 }
 
-/* ===== RESPONSIVE BREAKPOINTS ===== */
-@media (max-width: 1024px) {
-    .billing-container {
-        padding: 1.5rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .billing-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .billing-container {
-        padding: 1rem;
-    }
-}
-
 /* ===== ENHANCED CARDS ===== */
 .billing-card {
     background: white;
@@ -678,18 +660,6 @@
     animation: slideIn 0.3s ease-out;
 }
 
-/* Mobile responsive for promo form */
-@media (max-width: 640px) {
-    .promo-input-group {
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .redeem-promo-btn {
-        width: 100%;
-    }
-}
-
 /* ===== UTILITY CLASSES ===== */
 .hidden {
     display: none !important;
@@ -749,39 +719,6 @@ button:focus,
     outline: 2px solid #3b82f6;
     outline-offset: 2px;
 }
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-
-    .skeleton {
-        animation: none;
-        background: #f0f0f0;
-    }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .billing-card {
-        border-width: 2px;
-    }
-
-    .package-card {
-        border-width: 3px;
-    }
-
-    .status-badge {
-        border: 1px solid currentColor;
-    }
-}
-
 /* ===== IMAGE HISTORY STYLES ===== */
 .image-list {
     display: flex;
@@ -935,30 +872,6 @@ button:focus,
     color: var(--color-gray-400);
 }
 
-/* Mobile responsive adjustments */
-@media (max-width: 768px) {
-    .image-item {
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .image-preview {
-        width: 100%;
-        height: 120px;
-        align-self: center;
-    }
-
-    .image-meta {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .image-prompt {
-        font-size: 0.8rem;
-    }
-}
-
 /* ===== LOAD MORE BUTTON STYLES ===== */
 .load-more-container {
     text-align: center;
@@ -994,19 +907,6 @@ button:focus,
 
 .load-more-btn i {
     font-size: 0.8rem;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-    .load-more-container {
-        margin-top: 1.5rem;
-        padding: 0.5rem;
-    }
-
-    .load-more-btn {
-        padding: 0.6rem 1.5rem;
-        font-size: 0.85rem;
-    }
 }
 
 .conversation-thread {
@@ -1294,36 +1194,6 @@ button:focus,
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
-}
-
-/* Mobile responsive for username input */
-@media (max-width: 640px) {
-    .username-input-container {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .username-actions {
-        justify-content: stretch;
-    }
-
-    .username-actions .btn {
-        flex: 1;
-    }
-}
-
-/* Mobile responsive for existing images grid */
-@media (max-width: 640px) {
-    .existing-images-grid {
-        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-        gap: 0.4rem;
-        padding: 0.5rem;
-        max-height: 250px;
-    }
-
-    .existing-image-item {
-        border-radius: 4px;
-    }
 }
 
 .input-status {
@@ -1706,25 +1576,105 @@ font-size: 0.875rem;
     box-shadow: 0 0 0 2px var(--color-primary-200);
 }
 
-/* ===== PRINT STYLES ===== */
-@media print {
+
+
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+@media (max-width: 1024px) {
     .billing-container {
-        max-width: none;
-        padding: 0;
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .billing-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 
-    .add-credits-btn,
-    .select-package-btn,
-    .package-grid {
-        display: none;
+    .billing-container {
+        padding: 1rem;
     }
 
-    .billing-card,
-    .history-section,
-    .support-section,
-    .profile-section {
-        box-shadow: none;
-        border: 1px solid #000;
-        break-inside: avoid;
+    .username-input-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .username-actions {
+        justify-content: stretch;
+    }
+
+    .username-actions .btn {
+        flex: 1;
+    }
+
+    .load-more-container {
+        margin-top: 1.5rem;
+        padding: 0.5rem;
+    }
+
+    .load-more-btn {
+        padding: 0.6rem 1.5rem;
+        font-size: 0.85rem;
+    }
+
+    .image-item {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .image-preview {
+        width: 100%;
+        height: 120px;
+        align-self: center;
+    }
+
+    .image-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .image-prompt {
+        font-size: 0.8rem;
+    }
+
+    .promo-input-group {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .redeem-promo-btn {
+        width: 100%;
+    }
+
+    .existing-images-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 0.4rem;
+        padding: 0.5rem;
+        max-height: 250px;
+    }
+
+    .existing-image-item {
+        border-radius: 4px;
+    }
+
+
+    .current-profile-display {
+        gap: 0;
+    }
+
+    .profile-info {
+        width: 50%;
+        margin-left: 10px;
+    }
+
+    #current-email {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-clamp: 1;
+        max-width: 90%;
+
     }
 }

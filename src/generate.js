@@ -99,108 +99,112 @@ const generate = async options => {
 };
 
 /**
- * Core image generation function (called by queue)
+ * Validate and setup generation parameters
  */
-const _executeGeneration = async (options, signal) => {
-    const {
-        prompt,
-        original,
-        promptId,
-        providers,
-        guidance,
-        req,
-        autoPublic
-    } = options;
-
+const _validateAndSetupGeneration = options => {
+    const { prompt, providers, guidance, req } = options;
     const effectiveGuidance = guidance ?? DEFAULT_GUIDANCE_VALUE;
-
     const requestId = GenerateUtils.generateRequestId();
     const startTime = Date.now();
 
+    GenerateUtils.logRequestStart(requestId, {
+        prompt,
+        providers,
+        guidance: effectiveGuidance,
+        userId: DatabaseService.getUserId(req)
+    });
+
+    const validation = GenerateUtils.validateImageGenerationParams({
+        prompt,
+        providers,
+        guidance: effectiveGuidance
+    });
+
+    if (!validation.isValid) {
+        throw new Error(`Invalid parameters: ${validation.errors.join(', ')}`);
+    }
+
+    return { requestId, startTime, effectiveGuidance };
+};
+
+/**
+ * Generate images using single or multi-provider approach
+ */
+const _generateImages = async generationParams => {
+    const { providers, prompt, effectiveGuidance, req, signal } = generationParams;
+    const useMultiProvider = process.env.ENABLE_MULTI_PROVIDER_FANOUT === 'true';
+
+    if (useMultiProvider) {
+        const multiResults = await ImageGenerator.generateMultipleProviderImages(
+            providers,
+            prompt,
+            effectiveGuidance,
+            DatabaseService.getUserId(req),
+            { signal }
+        );
+
+        const successfulResults = multiResults.filter(r => r.success);
+
+        if (successfulResults.length === 0) {
+            throw new Error('All providers failed to generate images');
+        }
+
+        return successfulResults.map(r => ({
+            provider: r.provider,
+            ...r.data
+        }));
+    }
+
+    const singleResult = await ImageGenerator.generateRandomProviderImage(
+        providers,
+        prompt,
+        effectiveGuidance,
+        DatabaseService.getUserId(req),
+        { signal }
+    );
+
+    return [singleResult];
+};
+
+/**
+ * Process results and build response
+ */
+const _processResultsAndBuildResponse = async (results, options, requestId, startTime) => {
+    const { prompt, original, promptId, req, autoPublic } = options;
+    const context = {
+        prompt,
+        original,
+        promptId,
+        requestId,
+        req,
+        autoPublic
+    };
+
+    const processedResults = await processGenerationResults(results, context);
+    const duration = Date.now() - startTime;
+
+    GenerateUtils.logRequestCompletion(requestId, duration, true);
+
+    return {
+        success: true,
+        requestId,
+        results: processedResults,
+        duration
+    };
+};
+
+/**
+ * Core image generation function (called by queue)
+ */
+const _executeGeneration = async (options, signal) => {
+    const { prompt, providers, req } = options;
+    const { requestId, startTime, effectiveGuidance } = _validateAndSetupGeneration(options);
+
     try {
-        GenerateUtils.logRequestStart(requestId, {
-            prompt,
-            providers,
-            guidance: effectiveGuidance,
-            userId: DatabaseService.getUserId(req)
-        });
+        const results = await _generateImages({ providers, prompt, effectiveGuidance, req, signal });
 
-        const validation = GenerateUtils.validateImageGenerationParams({
-            prompt,
-            providers,
-            guidance: effectiveGuidance
-        });
-
-        if (!validation.isValid) {
-            throw new Error(`Invalid parameters: ${validation.errors.join(', ')}`);
-        }
-
-        // Generate images using either single random provider or multi-provider fanout
-        const useMultiProvider = process.env.ENABLE_MULTI_PROVIDER_FANOUT === 'true';
-
-        let results;
-
-        if (useMultiProvider) {
-
-            const multiResults = await ImageGenerator.generateMultipleProviderImages(
-                providers,
-                prompt,
-                effectiveGuidance,
-                DatabaseService.getUserId(req),
-                { signal } // <-- pass through
-            );
-
-            // Convert multi-provider results to single result format for compatibility
-            const successfulResults = multiResults.filter(r => r.success);
-
-            if (successfulResults.length === 0) {
-                throw new Error('All providers failed to generate images');
-            }
-
-            // Use the first successful result for now (could be enhanced to return all)
-            results = successfulResults.map(r => ({
-                provider: r.provider,
-                ...r.data
-            }));
-        } else {
-
-            const singleResult = await ImageGenerator.generateRandomProviderImage(
-                providers,
-                prompt,
-                effectiveGuidance,
-                DatabaseService.getUserId(req),
-                { signal } // <-- pass through
-            );
-
-            results = [singleResult];
-        }
-
-        // Process results and save to database
-        const context = {
-            prompt,
-            original,
-            promptId,
-            requestId,
-            req,
-            autoPublic
-        };
-
-        const processedResults = await processGenerationResults(results, context);
-
-        // Log successful completion
-        const duration = Date.now() - startTime;
-
-        GenerateUtils.logRequestCompletion(requestId, duration, true);
-
-        return {
-            success: true,
-            requestId,
-            results: processedResults,
-            duration
-        };
-
+        return await _processResultsAndBuildResponse(results, options, requestId, startTime);
     } catch (error) {
-        // Log the error but don't let it crash the application
         console.error('❌ Generation error caught:', {
             requestId,
             error: error.message,
@@ -240,6 +244,31 @@ const cleanupAfterFailure = async _requestId => {
 // ============================================================================
 
 /**
+ * Save processed prompt to database
+ */
+const _savePromptToDatabase = async (processedPrompt, req) => {
+    try {
+        const savedPrompt = await DatabaseService.saveGenerateEvent('prompt', {
+            original: processedPrompt.original,
+            prompt: processedPrompt.prompt,
+            provider: 'prompt-builder'
+        }, req);
+
+        if (!savedPrompt || !savedPrompt._id) {
+            console.warn('⚠️ Prompt save returned no ID:', savedPrompt);
+
+            return null;
+        }
+
+        return savedPrompt._id;
+    } catch (error) {
+        console.error('❌ Failed to save prompt to database:', error);
+
+        return null;
+    }
+};
+
+/**
  * Build and process prompt with all modifications
  *
  * This function handles the complete prompt processing pipeline:
@@ -260,15 +289,10 @@ const cleanupAfterFailure = async _requestId => {
  * @param {Object} req - Express request object
  * @returns {Promise<Object>} Processed prompt data
  */
-const buildPrompt = async (
-    prompt,
-    options = {},
-    req
-) => {
+const buildPrompt = async (prompt, options = {}, req) => {
     const { multiplier, mixup, mashup, customVariables, promptHelpers = {} } = options;
 
     try {
-        // Validate prompt processing parameters
         const validation = GenerateUtils.validatePromptProcessingParams({
             prompt,
             multiplier,
@@ -280,56 +304,25 @@ const buildPrompt = async (
             throw new Error(`Invalid prompt parameters: ${validation.errors.join(', ')}`);
         }
 
-        // Process prompt using PromptProcessor service
-        const processedPrompt = await PromptProcessor.buildPrompt(
-            prompt,
-            {
-                multiplier,
-                mixup,
-                mashup,
-                customVariables,
-                promptHelpers
-            }
-        );
+        const processedPrompt = await PromptProcessor.buildPrompt(prompt, {
+            multiplier,
+            mixup,
+            mashup,
+            customVariables,
+            promptHelpers
+        });
 
         if (processedPrompt.error) {
             throw new Error(processedPrompt.error);
         }
 
-        // Save prompt to database
-        try {
-            const savedPrompt = await DatabaseService.saveGenerateEvent('prompt', {
-                original: processedPrompt.original,
-                prompt: processedPrompt.prompt,
-                provider: 'prompt-builder'
-            }, req);
+        const promptId = await _savePromptToDatabase(processedPrompt, req);
 
-            if (!savedPrompt || !savedPrompt._id) {
-                console.warn('⚠️ Prompt save returned no ID:', savedPrompt);
-
-                return {
-                    original: processedPrompt.original,
-                    prompt: processedPrompt.prompt,
-                    promptId: null
-                };
-            }
-
-            return {
-                original: processedPrompt.original,
-                prompt: processedPrompt.prompt,
-                promptId: savedPrompt._id
-            };
-        } catch (error) {
-            console.error('❌ Failed to save prompt to database:', error);
-
-            // Return prompt data even if save failed
-            return {
-                original: processedPrompt.original,
-                prompt: processedPrompt.prompt,
-                promptId: null
-            };
-        }
-
+        return {
+            original: processedPrompt.original,
+            prompt: processedPrompt.prompt,
+            promptId
+        };
     } catch (error) {
         console.error('❌ Error building prompt:', error);
 
@@ -391,12 +384,6 @@ const saveImageToDatabase = async imageData => DatabaseService.saveImageToDataba
  * @returns {Promise<Object>} Saved prompt data
  */
 const savePromptToDatabase = async promptData => DatabaseService.savePromptToDatabase(promptData);
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-// Unused _fetchImageWithTags method removed - TagController handles tag fetching
 
 // ============================================================================
 // EXPORTS

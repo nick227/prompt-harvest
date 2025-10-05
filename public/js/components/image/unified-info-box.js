@@ -733,7 +733,6 @@ class UnifiedInfoBox {
         // Use username from server, fallback to appropriate message if not available
         const { username } = imageData;
 
-        console.log('! imageData', imageData);
 
         const date = imageData.createdAt;
 

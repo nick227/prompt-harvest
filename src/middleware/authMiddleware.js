@@ -41,7 +41,8 @@ export const authenticateToken = async (req, res, next) => {
                 id: true,
                 email: true,
                 username: true,
-                createdAt: true
+                createdAt: true,
+                isAdmin: true
             }
         });
 
@@ -140,9 +141,19 @@ export const authenticateTokenRequired = async (req, res, next) => {
 
 // Require authentication middleware
 export const requireAuth = (req, res, next) => {
+    console.log('🔐 REQUIRE-AUTH: Checking authentication for:', req.path);
+    console.log('🔐 REQUIRE-AUTH: User data:', {
+        hasUser: !!req.user,
+        userId: req.user?.id,
+        isAdmin: req.user?.isAdmin
+    });
+
     if (!req.user) {
+        console.log('🔐 REQUIRE-AUTH: No user found, throwing AuthenticationError');
         return next(new AuthenticationError('Authentication required'));
     }
+
+    console.log('🔐 REQUIRE-AUTH: User authenticated, proceeding');
     next();
 };
 

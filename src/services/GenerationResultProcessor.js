@@ -29,68 +29,62 @@ export class GenerationResultProcessor {
         // Step 1: Save image to storage
         const imageUrl = await this.saveImageToStorage(result);
 
-        try {
-            // Step 2: Save image metadata to database
-            const userId = DatabaseService.getUserId(req);
-            // Map database fields: save model name to provider column, keep model column for future use
-            const imageData = {
-                prompt,
-                original,
-                provider: result.model || result.provider, // Save model name to database provider column
-                imageUrl,
-                promptId,
-                userId,
-                guidance: result.guidance || 10,
-                model: null, // Database model column is for future use, keep as null for now
-                autoPublic
-            };
+        // Step 2: Save image metadata to database
+        const userId = DatabaseService.getUserId(req);
+        // Map database fields: save model name to provider column, keep model column for future use
+        const imageData = {
+            prompt,
+            original,
+            provider: result.model || result.provider, // Save model name to database provider column
+            imageUrl,
+            promptId,
+            userId,
+            guidance: result.guidance || 10,
+            model: null, // Database model column is for future use, keep as null for now
+            autoPublic
+        };
 
-            // Log imageData being passed to database save
-            console.log('🔍 PROCESSOR DEBUG: ImageData being passed to saveImageToDatabase:', {
-                imageData,
-                userId,
-                autoPublicInImageData: imageData.autoPublic,
-                autoPublicType: typeof imageData.autoPublic
+        // Log imageData being passed to database save
+        console.log('🔍 PROCESSOR DEBUG: ImageData being passed to saveImageToDatabase:', {
+            imageData,
+            userId,
+            autoPublicInImageData: imageData.autoPublic,
+            autoPublicType: typeof imageData.autoPublic
+        });
+
+        // Critical check for userId
+        if (!userId) {
+            console.log('🚨 CRITICAL: req object:', {
+                hasReq: !!req,
+                hasUser: !!req?.user,
+                hasUserId: !!req?.user?.id,
+                userObject: req?.user
             });
-
-            // Critical check for userId
-            if (!userId) {
-                console.log('🚨 CRITICAL: req object:', {
-                    hasReq: !!req,
-                    hasUser: !!req?.user,
-                    hasUserId: !!req?.user?.id,
-                    userObject: req?.user
-                });
-            }
-
-            const savedImage = await this.saveImageToDatabase(imageData);
-
-            // Step 3: Fetch tags for the saved image
-            const imageWithTags = await this.fetchImageWithTags(savedImage._id);
-
-            // Step 4: Trigger async tagging (fire-and-forget)
-            this.triggerAsyncTagging(savedImage._id, prompt, {
-                provider: result.provider,
-                userId: DatabaseService.getUserId(req),
-                promptId,
-                original
-            });
-
-            return {
-                provider: result.provider,
-                success: true,
-                imageId: savedImage._id,
-                imageUrl,
-                imageData: result.data,
-                tags: imageWithTags.tags || [],
-                taggedAt: imageWithTags.taggedAt,
-                taggingMetadata: imageWithTags.taggingMetadata
-            };
-        } catch (dbError) {
-            // Rollback: Delete the stored image if database save fails
-            await this.rollbackImageStorage(imageUrl, dbError);
-            throw dbError;
         }
+
+        const savedImage = await this.saveImageToDatabase(imageData);
+
+        // Step 3: Fetch tags for the saved image
+        const imageWithTags = await this.fetchImageWithTags(savedImage._id);
+
+        // Step 4: Trigger async tagging (fire-and-forget)
+        this.triggerAsyncTagging(savedImage._id, prompt, {
+            provider: result.provider,
+            userId: DatabaseService.getUserId(req),
+            promptId,
+            original
+        });
+
+        return {
+            provider: result.provider,
+            success: true,
+            imageId: savedImage._id,
+            imageUrl,
+            imageData: result.data,
+            tags: imageWithTags.tags || [],
+            taggedAt: imageWithTags.taggedAt,
+            taggingMetadata: imageWithTags.taggingMetadata
+        };
     }
 
     /**
@@ -180,6 +174,7 @@ export class GenerationResultProcessor {
 
             if (!image) {
                 console.warn('⚠️ Image not found in database:', imageId);
+
                 return {
                     tags: [],
                     taggedAt: null,
@@ -197,6 +192,7 @@ export class GenerationResultProcessor {
             };
         } catch (error) {
             console.error('❌ Error fetching image with tags:', error);
+
             return {
                 tags: [],
                 taggedAt: null,
@@ -212,9 +208,8 @@ export class GenerationResultProcessor {
         // Fire-and-forget tagging service call
         // This does NOT block the HTTP response
         // Only run auto-tagging in production
-        if (process.env.NODE_ENV === 'production') {
-            taggingService.tagImageAsync(imageId, prompt, metadata);
-        }
+
+        taggingService.tagImageAsync(imageId, prompt, metadata);
     }
 
     /**

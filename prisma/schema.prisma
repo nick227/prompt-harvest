@@ -195,7 +195,7 @@ model CreditLedger {
   @@index([type])
   @@index([createdAt])
   @@index([promoCodeId], map: "credit_ledger_promoCodeId_fkey")
-  @@index([stripePaymentId], map: "credit_ledger_stripePaymentId_fkey")
+  @@index([stripePaymentId(length: 250)], map: "credit_ledger_stripePaymentId_fkey")
   @@map("credit_ledger")
 }
 
@@ -237,9 +237,6 @@ model PromoCode {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  // Relations
-  redemptions        PromoRedemption[]
-
   @@index([code])
   @@index([isActive])
   @@index([expiresAt])
@@ -252,9 +249,6 @@ model PromoRedemption {
   promoCodeId String   @db.VarChar(25)
   credits     Int
   createdAt   DateTime @default(now())
-
-  // Relations
-  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, promoCodeId], map: "userId_promoCodeId")
   @@index([userId])
@@ -406,6 +400,53 @@ model QueueLog {
   @@index([requestId])
   @@index([userId])
   @@map("queue_logs")
+}
+
+model BlogPost {
+  id          String    @id @default(cuid()) @db.VarChar(25)
+  title       String    @db.VarChar(255)
+  slug        String    @unique @db.VarChar(100)
+  content     String    @db.Text
+  excerpt     String?   @db.VarChar(500)
+  authorId    String    @db.VarChar(25)
+  isPublished Boolean   @default(false)
+  isFeatured  Boolean   @default(false)
+  viewCount   Int       @default(0)
+  tags        Json?
+  metadata    Json?
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  thumbnail   String?   @db.VarChar(500)
+
+  @@index([authorId])
+  @@index([isPublished])
+  @@index([isFeatured])
+  @@index([publishedAt])
+  @@index([createdAt])
+  @@index([slug(length: 50)])
+  @@map("blog_posts")
+}
+
+model ApiRequest {
+  id           String   @id @default(cuid()) @db.VarChar(25)
+  userId       String   @db.VarChar(25)
+  endpoint     String   @db.VarChar(100)
+  method       String   @db.VarChar(10)
+  requestData  Json?
+  responseData Json?
+  statusCode   Int
+  duration     Int?
+  ipAddress    String?  @db.VarChar(45)
+  userAgent    String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([endpoint])
+  @@index([method])
+  @@index([statusCode])
+  @@index([createdAt])
+  @@map("api_requests")
 }
 
 enum MessageRole {

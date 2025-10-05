@@ -87,15 +87,6 @@ class ImageData {
             tags: img.dataset.tags ? JSON.parse(img.dataset.tags) : [] // ✅ Include tags from dataset
         };
 
-        // console.log('🔍 EXTRACT: Extracted data from DOM element:', {
-        //     id: extractedData.id,
-        //     username: extractedData.username,
-        //     tags: extractedData.tags,
-        //     dataset: {
-        //         username: img.dataset.username,
-        //         tags: img.dataset.tags
-        //     }
-        // });
 
         // Generate title from first 8 characters of prompt
         const generateTitle = (prompt) => {

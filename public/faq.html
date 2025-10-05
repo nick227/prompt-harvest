@@ -14,515 +14,260 @@
     <script src="js/config/tailwind-config.js"></script>
     <!-- Input Helper Functions -->
     <script src="js/utils/input-helpers.js"></script>
+    <!-- Tag Utilities -->
+    <script src="js/utils/tag-utils.js"></script>
+    <style>
+        /* ===== FONT IMPORTS ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+        /* ===== TYPOGRAPHY SYSTEM ===== */
+        .hero-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 0.9;
+        }
+
+        .display-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+        }
+
+        .body-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            line-height: 1.6;
+        }
+
+        .mono-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== TEXT EFFECTS ===== */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-alt {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .text-shadow {
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .text-outline {
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1);
+            text-stroke: 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* ===== ANIMATIONS ===== */
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 20px rgba(102, 126, 234, 0.4); }
+            to { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8); }
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            /* Typography scaling */
+            .hero-text { font-size: 3rem !important; }
+            .text-8xl { font-size: 4rem !important; }
+            .text-6xl { font-size: 3rem !important; }
+            .text-5xl { font-size: 2.5rem !important; }
+            .text-3xl { font-size: 1.5rem !important; }
+            .text-2xl { font-size: 1.25rem !important; }
+            .text-xl { font-size: 1.125rem !important; }
+
+            /* Spacing adjustments */
+            .p-10 { padding: 1.5rem !important; }
+            .p-16 { padding: 2rem !important; }
+            .mb-24 { margin-bottom: 3rem !important; }
+            .mb-32 { margin-bottom: 4rem !important; }
+            .mb-16 { margin-bottom: 2rem !important; }
+            .gap-16 { gap: 2rem !important; }
+            .gap-12 { gap: 1.5rem !important; }
+        }
+    </style>
 </head>
 
-<body class="bg-gray-800 text-gray-200 w-full min-h-screen">
-    <main class="max-w-4xl mx-auto px-4 py-8">
-        <!-- FAQ Header -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-white mb-4">
-                <i class="fas fa-question-circle text-blue-500 mr-3"></i>
-                Frequently Asked Questions
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-200 w-full min-h-screen">
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-24">
+            <div class="floating mb-12">
+                <i class="fas fa-magic text-8xl gradient-text"></i>
+            </div>
+            <h1 class="hero-text text-8xl font-black text-white mb-8 leading-tight text-shadow">
+                <span class="gradient-text">AI IMAGES</span><br>
+                <span class="text-6xl text-outline">MADE SIMPLE</span>
             </h1>
-            <p class="text-xl text-gray-300">
-                Everything you need to know about AutoImage's powerful AI image generation platform
+            <p class="body-text text-3xl text-gray-300 max-w-4xl mx-auto leading-relaxed mb-4">
+                Generate unlimited unique images <span class="gradient-text-alt font-semibold">instantly</span>
             </p>
+            <div class="flex flex-wrap justify-center gap-8 text-2xl font-semibold tracking-wide">
+                <span class="text-blue-400 display-text">SMART VARIABLES</span>
+                <span class="text-gray-500 text-3xl">•</span>
+                <span class="text-purple-400 display-text">AUTO ENHANCEMENT</span>
+                <span class="text-gray-500 text-3xl">•</span>
+                <span class="text-green-400 display-text">BULK CREATION</span>
+            </div>
         </div>
 
-        <!-- Table of Contents -->
-        <div class="bg-gray-700 rounded-lg p-6 mb-8">
-            <h2 class="text-xl font-semibold text-white mb-4">
-                <i class="fas fa-list text-blue-400 mr-2"></i>
-                Table of Contents
-            </h2>
-            <div class="grid md:grid-cols-2 gap-4">
-                <div>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#what-is-autoimage" class="text-blue-400 hover:text-blue-300 transition-colors">What is AutoImage?</a></li>
-                        <li><a href="#auto-generation" class="text-blue-400 hover:text-blue-300 transition-colors">Auto Image Generation</a></li>
-                        <li><a href="#ai-enhancement" class="text-blue-400 hover:text-blue-300 transition-colors">AI Prompt Enhancement</a></li>
-                        <li><a href="#variable-system" class="text-blue-400 hover:text-blue-300 transition-colors">Dynamic Variable System: ${variable}</a></li>
-                    </ul>
+        <!-- Core Features Grid -->
+        <div class="grid lg:grid-cols-2 gap-16 mb-32">
+            <!-- Smart Variables -->
+            <div class="bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-3xl p-10 border border-blue-500/20 pulse-glow">
+                <div class="text-center mb-8">
+                    <i class="fas fa-code text-6xl text-blue-400 mb-6"></i>
+                    <h2 class="display-text text-5xl font-black text-white mb-6 text-shadow">
+                        <span class="gradient-text">SMART</span><br>
+                        <span class="text-outline">VARIABLES</span>
+                    </h2>
                 </div>
-                <div>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#enhancement-options" class="text-blue-400 hover:text-blue-300 transition-colors">Enhancement Options: Multiplier, Mixup, Mashup</a></li>
-                        <li><a href="#bulk-generation" class="text-blue-400 hover:text-blue-300 transition-colors">Bulk Generation with Variables</a></li>
-                        <li><a href="#model-comparison" class="text-blue-400 hover:text-blue-300 transition-colors">AI Models: Capabilities & Performance</a></li>
-                        <li><a href="#getting-started" class="text-blue-400 hover:text-blue-300 transition-colors">Getting Started</a></li>
-                    </ul>
+                <p class="body-text text-2xl text-gray-300 text-center mb-8 leading-relaxed">
+                    <span class="text-blue-400 font-bold display-text">${VARIABLES}</span> create infinite unique variations automatically
+                </p>
+                <div class="bg-black/30 rounded-2xl p-8 text-center">
+                    <code class="mono-text text-green-400 text-xl block mb-3">
+                        A ${cat} in ${style} art
+                    </code>
+                    <div class="text-gray-400 text-lg body-text">→ Endless possibilities</div>
+                </div>
+            </div>
+
+            <!-- AI Enhancement -->
+            <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-3xl p-10 border border-purple-500/20 pulse-glow">
+                <div class="text-center mb-8">
+                    <i class="fas fa-brain text-6xl text-purple-400 mb-6"></i>
+                    <h2 class="display-text text-5xl font-black text-white mb-6 text-shadow">
+                        <span class="gradient-text-alt">AI</span><br>
+                        <span class="text-outline">ENHANCEMENT</span>
+                    </h2>
+                </div>
+                <p class="body-text text-2xl text-gray-300 text-center mb-8 leading-relaxed">
+                    AI instantly transforms basic prompts into <span class="text-purple-400 font-bold display-text">PROFESSIONAL</span> descriptions
+                </p>
+                <div class="bg-black/30 rounded-2xl p-8 text-center">
+                    <div class="body-text text-gray-400 text-lg mb-3">"A cat sitting"</div>
+                    <div class="text-yellow-400 text-xl mb-3 display-text">↓</div>
+                    <div class="body-text text-green-400 text-lg">"Professional photography, soft lighting, high resolution"</div>
+                </div>
+            </div>
+
+            <!-- Bulk Generation -->
+            <div class="bg-gradient-to-br from-green-900/30 to-teal-900/30 rounded-3xl p-10 border border-green-500/20 pulse-glow">
+                <div class="text-center mb-8">
+                    <i class="fas fa-rocket text-6xl text-green-400 mb-6"></i>
+                    <h2 class="display-text text-5xl font-black text-white mb-6 text-shadow">
+                        <span class="gradient-text">BULK</span><br>
+                        <span class="text-outline">GENERATION</span>
+                    </h2>
+                </div>
+                <p class="body-text text-2xl text-gray-300 text-center mb-8 leading-relaxed">
+                    Create <span class="text-green-400 font-bold display-text">DOZENS OF UNIQUE</span> images from one prompt
+                </p>
+                <div class="bg-black/30 rounded-2xl p-8 text-center">
+                    <div class="flex justify-center space-x-3 mb-4">
+                        <div class="w-12 h-12 bg-green-500 rounded-lg"></div>
+                        <div class="w-12 h-12 bg-blue-500 rounded-lg"></div>
+                        <div class="w-12 h-12 bg-purple-500 rounded-lg"></div>
+                        <div class="w-12 h-12 bg-pink-500 rounded-lg"></div>
+                    </div>
+                    <div class="body-text text-gray-400 text-lg">All unique, all automatic</div>
+                </div>
+            </div>
+
+            <!-- Multiple Models -->
+            <div class="bg-gradient-to-br from-orange-900/30 to-red-900/30 rounded-3xl p-10 border border-orange-500/20 pulse-glow">
+                <div class="text-center mb-8">
+                    <i class="fas fa-gem text-6xl text-orange-400 mb-6"></i>
+                    <h2 class="display-text text-5xl font-black text-white mb-6 text-shadow">
+                        <span class="gradient-text-alt">PREMIUM</span><br>
+                        <span class="text-outline">MODELS</span>
+                    </h2>
+                </div>
+                <p class="body-text text-2xl text-gray-300 text-center mb-8 leading-relaxed">
+                    <span class="text-orange-400 font-bold display-text">PREMIUM MODELS</span> for maximum quality
+                </p>
+                <div class="bg-black/30 rounded-2xl p-8 text-center">
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                        <div class="bg-blue-600 rounded-lg p-3 text-sm font-semibold mono-text">DALL-E 3</div>
+                        <div class="bg-green-600 rounded-lg p-3 text-sm font-semibold mono-text">Flux</div>
+                        <div class="bg-purple-600 rounded-lg p-3 text-sm font-semibold mono-text">Imagen</div>
+                    </div>
+                    <div class="body-text text-gray-400 text-lg">Industry-leading quality</div>
                 </div>
             </div>
         </div>
 
-        <!-- FAQ Content -->
-        <div class="space-y-8">
-
-            <!-- What is AutoImage -->
-            <section id="what-is-autoimage" class="bg-gray-700 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
-                    <i class="fas fa-info-circle text-blue-400 mr-3"></i>
-                    What is AutoImage?
-                </h2>
-                <div class="text-gray-300 space-y-4">
-                    <p>
-                        AutoImage is an AI image generation platform that provides access to multiple AI models
-                        including DALL-E 3, Flux, Google Imagen 3, and various Stable Diffusion variants.
-                        The platform combines these models with automation features for bulk image generation.
-                    </p>
-                    <p>
-                        The main features are the <strong class="text-blue-400">dynamic variable system</strong> and
-                        <strong class="text-blue-400">bulk generation capabilities</strong> that allow creating multiple
-                        unique variations from a single prompt template.
-                    </p>
+        <!-- How It Works -->
+        <div class="text-center mb-32">
+            <h2 class="display-text text-6xl font-black text-white mb-16 text-shadow">
+                <span class="gradient-text">HOW IT WORKS</span>
+            </h2>
+            <div class="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+                <div class="text-center">
+                    <div class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold shadow-lg display-text">
+                        1
+                    </div>
+                    <h3 class="display-text text-3xl font-bold text-white mb-4 text-shadow">WRITE PROMPT</h3>
+                    <p class="body-text text-xl text-gray-400 leading-relaxed">Add <span class="mono-text text-blue-400">${variables}</span> for infinite variety</p>
                 </div>
-            </section>
-
-            <!-- Auto Image Feature -->
-            <section id="auto-generation" class="bg-gray-700 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
-                    <i class="fas fa-magic text-purple-400 mr-3"></i>
-                    Auto Image Generation
-                </h2>
-                <div class="text-gray-300 space-y-4">
-                    <p>
-                        The <strong class="text-purple-400">Auto Image</strong> feature automatically generates multiple images
-                        from your prompt without manual intervention. Each image uses different variable combinations to create variety.
-                    </p>
-                    <div class="bg-gray-600 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-white mb-2">How Auto Generation Works:</h3>
-                        <ul class="list-disc list-inside space-y-2">
-                            <li>Set your maximum number of images (1-10)</li>
-                            <li>Enable the "Auto" checkbox</li>
-                            <li>Click START to begin automatic generation</li>
-                            <li>Each image uses different variable combinations for variety</li>
-                        </ul>
+                <div class="text-center">
+                    <div class="w-24 h-24 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold shadow-lg display-text">
+                        2
                     </div>
+                    <h3 class="display-text text-3xl font-bold text-white mb-4 text-shadow">AI ENHANCES</h3>
+                    <p class="body-text text-xl text-gray-400 leading-relaxed">Instantly improves your prompt</p>
                 </div>
-            </section>
-
-            <!-- AI Prompt Enhancement -->
-            <section id="ai-enhancement" class="bg-gray-700 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
-                    <i class="fas fa-brain text-blue-400 mr-3"></i>
-                    AI Prompt Enhancement
-                </h2>
-                <div class="text-gray-300 space-y-4">
-                    <p>
-                        The <strong class="text-blue-400">Enhance</strong> feature uses OpenAI's GPT models to automatically
-                        improve your prompts by adding professional photography terms, artistic styles, and technical details
-                        that result in higher-quality images.
-                    </p>
-
-                    <div class="bg-gray-600 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-white mb-2">How AI Enhancement Works:</h3>
-                        <div class="space-y-3">
-                            <div>
-                                <strong class="text-blue-400">Input:</strong> "A cat sitting"<br>
-                                <strong class="text-blue-400">Enhanced:</strong> "A majestic Maine Coon cat sitting gracefully,
-                                professional photography, soft natural lighting, shallow depth of field, high resolution,
-                                detailed fur texture, warm color palette"
-                            </div>
-                        </div>
+                <div class="text-center">
+                    <div class="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold shadow-lg display-text">
+                        3
                     </div>
-
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div class="bg-gray-600 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold text-blue-400 mb-2">
-                                <i class="fas fa-camera mr-2"></i>Photogenic Enhancement
-                            </h3>
-                            <p class="text-sm mb-2">Adds professional photography terms to your prompt</p>
-                            <div class="text-xs">
-                                <strong>Adds:</strong> "professional photography, high resolution, detailed,
-                                perfect lighting, sharp focus, vibrant colors"
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-600 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold text-blue-400 mb-2">
-                                <i class="fas fa-palette mr-2"></i>Artistic Enhancement
-                            </h3>
-                            <p class="text-sm mb-2">Adds artistic and creative style terms</p>
-                            <div class="text-xs">
-                                <strong>Adds:</strong> "artistic style, creative composition,
-                                beautiful colors, aesthetic appeal, masterpiece quality"
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sample Images Display -->
-                    <div class="bg-gray-600 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-white mb-3">
-                            <i class="fas fa-images mr-2"></i>Sample Enhanced Images
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="sample-images-container">
-                            <div class="bg-gray-700 rounded-lg p-3 text-center">
-                                <div class="w-full h-32 bg-gray-600 rounded mb-2 flex items-center justify-center">
-                                    <i class="fas fa-spinner fa-spin text-gray-400"></i>
-                                </div>
-                                <p class="text-xs text-gray-400">Loading sample...</p>
-                            </div>
-                            <div class="bg-gray-700 rounded-lg p-3 text-center">
-                                <div class="w-full h-32 bg-gray-600 rounded mb-2 flex items-center justify-center">
-                                    <i class="fas fa-spinner fa-spin text-gray-400"></i>
-                                </div>
-                                <p class="text-xs text-gray-400">Loading sample...</p>
-                            </div>
-                            <div class="bg-gray-700 rounded-lg p-3 text-center">
-                                <div class="w-full h-32 bg-gray-600 rounded mb-2 flex items-center justify-center">
-                                    <i class="fas fa-spinner fa-spin text-gray-400"></i>
-                                </div>
-                                <p class="text-xs text-gray-400">Loading sample...</p>
-                            </div>
-                        </div>
-                    </div>
+                    <h3 class="display-text text-3xl font-bold text-white mb-4 text-shadow">GENERATE</h3>
+                    <p class="body-text text-xl text-gray-400 leading-relaxed">Get dozens of unique images</p>
                 </div>
-            </section>
+            </div>
+        </div>
 
-            <!-- Variable System -->
-            <section id="variable-system" class="bg-gray-700 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
-                    <i class="fas fa-code text-green-400 mr-3"></i>
-                    Dynamic Variable System: ${variable}
-                </h2>
-                <div class="text-gray-300 space-y-4">
-                    <p>
-                        The <strong class="text-green-400">${variable} system</strong> allows you to create dynamic prompts
-                        that automatically generate unique variations by replacing variables with random selections.
-                    </p>
-
-                    <div class="bg-gray-600 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-white mb-2">How Variables Work:</h3>
-                        <div class="space-y-3">
-                            <div>
-                                <strong class="text-green-400">Basic Variables:</strong>
-                                <code class="bg-gray-800 px-2 py-1 rounded text-sm">${cat}</code>
-                                → Randomly selects from: Maine Coon, Siamese Cat, Bengal Cat, etc.
-                            </div>
-                            <div>
-                                <strong class="text-green-400">Persistent Variables:</strong>
-                                <code class="bg-gray-800 px-2 py-1 rounded text-sm">$${cat}</code>
-                                → Same selection used across all images in a batch
-                            </div>
-                            <div>
-                                <strong class="text-green-400">Custom Variables:</strong>
-                                <code class="bg-gray-800 px-2 py-1 rounded text-sm">custom_color=red,blue,green</code>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-600 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-white mb-2">Example Variable Usage:</h3>
-                        <div class="space-y-2">
-                            <div>
-                                <strong>Input:</strong> <code class="bg-gray-800 px-2 py-1 rounded text-sm">A ${cat} in ${hip chill scenes} art style</code>
-                            </div>
-                            <div>
-                                <strong>Output 1:</strong> <code class="bg-gray-800 px-2 py-1 rounded text-sm">A Maine Coon in Urban rooftop party art style</code>
-                            </div>
-                            <div>
-                                <strong>Output 2:</strong> <code class="bg-gray-800 px-2 py-1 rounded text-sm">A Siamese Cat in Cozy coffee shop art style</code>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Enhancement Options -->
-            <section id="enhancement-options" class="bg-gray-700 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
-                    <i class="fas fa-cogs text-yellow-400 mr-3"></i>
-                    Enhancement Options: Multiplier, Mixup, Mashup
-                </h2>
-                <div class="text-gray-300 space-y-4">
-                    <p>
-                        These powerful options let you add variety and creativity to your image generation process:
-                    </p>
-
-                    <div class="grid md:grid-cols-3 gap-4">
-                        <div class="bg-gray-600 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold text-yellow-400 mb-2">
-                                <i class="fas fa-times mr-2"></i>Multiplier
-                            </h3>
-                            <p class="text-sm mb-2">Adds text to each prompt part</p>
-                            <div class="text-xs">
-                                <strong>Input:</strong> "A cat, A dog" + "lighting"<br>
-                                <strong>Output:</strong> "A cat, lighting, A dog, lighting"
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-600 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold text-yellow-400 mb-2">
-                                <i class="fas fa-random mr-2"></i>Mixup
-                            </h3>
-                            <p class="text-sm mb-2">Reorders comma-separated parts</p>
-                            <div class="text-xs">
-                                <strong>Input:</strong> "A cat, A dog, A bird"<br>
-                                <strong>Output:</strong> "A bird, A cat, A dog"
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-600 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold text-yellow-400 mb-2">
-                                <i class="fas fa-shuffle mr-2"></i>Mashup
-                            </h3>
-                            <p class="text-sm mb-2">Shuffles individual words</p>
-                            <div class="text-xs">
-                                <strong>Input:</strong> "A cat, A dog"<br>
-                                <strong>Output:</strong> "A dog cat A"
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Bulk Generation Benefits -->
-            <section id="bulk-generation" class="bg-gray-700 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
-                    <i class="fas fa-rocket text-red-400 mr-3"></i>
-                    Bulk Generation with Variables
-                </h2>
-                <div class="text-gray-300 space-y-4">
-                    <p>
-                        The variable system allows creating multiple unique images from a single prompt template,
-                        reducing the need to manually create individual prompts for each image.
-                    </p>
-
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-gray-600 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold text-red-400 mb-3">
-                                <i class="fas fa-chart-line mr-2"></i>Efficiency
-                            </h3>
-                            <ul class="space-y-2 text-sm">
-                                <li>• Generate multiple images from one prompt</li>
-                                <li>• AI enhancement adds consistent quality improvements</li>
-                                <li>• Each image uses different variable combinations</li>
-                                <li>• Automated batch processing</li>
-                            </ul>
-                        </div>
-
-                        <div class="bg-gray-600 rounded-lg p-4">
-                            <h3 class="text-lg font-semibold text-red-400 mb-3">
-                                <i class="fas fa-lightbulb mr-2"></i>Creative Applications
-                            </h3>
-                            <ul class="space-y-2 text-sm">
-                                <li>• Explore different combinations automatically</li>
-                                <li>• Test multiple concepts quickly</li>
-                                <li>• Create diverse content collections</li>
-                                <li>• Generate variations for inspiration</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="bg-blue-900 border border-blue-700 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-blue-300 mb-2">
-                            <i class="fas fa-star mr-2"></i>Example Use Case
-                        </h3>
-                        <p class="text-sm">
-                            Product catalog generation: Use <code class="bg-gray-800 px-2 py-1 rounded">${product} in ${setting} with ${lighting}</code>
-                            to generate multiple unique product shots with different products, backgrounds, and lighting conditions.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Model Quality & Pricing -->
-            <section id="model-comparison" class="bg-gray-700 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
-                    <i class="fas fa-gem text-indigo-400 mr-3"></i>
-                    AI Models: Capabilities & Performance Comparison
-                </h2>
-                <div class="text-gray-300 space-y-4">
-                    <p>
-                        AutoImage provides access to multiple AI models with different capabilities.
-                        Premium models offer the highest quality and fastest generation, while
-                        specialized models excel at specific artistic styles and creative applications.
-                    </p>
-
-                    <div class="bg-blue-900 border border-blue-700 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-blue-300 mb-2">
-                            <i class="fas fa-star mr-2"></i>Developer's Pick
-                        </h3>
-                        <p class="text-sm">
-                            <strong class="text-blue-400">Flux</strong> is the recommended choice for overall photo quality.
-                            It consistently produces excellent results across a wide variety of subjects and styles.
-                        </p>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full bg-gray-600 rounded-lg overflow-hidden">
-                            <thead class="bg-gray-500">
-                                <tr>
-                                    <th class="px-4 py-3 text-left">Model Category</th>
-                                    <th class="px-4 py-3 text-left">Quality</th>
-                                    <th class="px-4 py-3 text-left">Tier</th>
-                                    <th class="px-4 py-3 text-left">Speed</th>
-                                    <th class="px-4 py-3 text-left">Best For</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm">
-                                <tr class="border-t border-gray-500">
-                                    <td class="px-4 py-3">
-                                        <strong class="text-indigo-400">DALL-E 3</strong><br>
-                                        <span class="text-xs text-gray-400">OpenAI</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-yellow-400">★★★★★</span><br>
-                                        <span class="text-xs">Exceptional</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-red-400">Premium</span><br>
-                                        <span class="text-xs">Commercial grade</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-green-400">Fast</span><br>
-                                        <span class="text-xs">~10-20s</span>
-                                    </td>
-                                    <td class="px-4 py-3 text-xs">
-                                        Professional work,<br>commercial use,<br>highest quality
-                                    </td>
-                                </tr>
-                                <tr class="border-t border-gray-500">
-                                    <td class="px-4 py-3">
-                                        <strong class="text-indigo-400">Google Imagen 3</strong><br>
-                                        <span class="text-xs text-gray-400">Google</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-yellow-400">★★★★★</span><br>
-                                        <span class="text-xs">Exceptional</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-orange-400">Premium</span><br>
-                                        <span class="text-xs">Commercial grade</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-green-400">Fastest</span><br>
-                                        <span class="text-xs">~5-15s</span>
-                                    </td>
-                                    <td class="px-4 py-3 text-xs">
-                                        High-quality images,<br>photorealistic results
-                                    </td>
-                                </tr>
-                                <tr class="border-t border-gray-500">
-                                    <td class="px-4 py-3">
-                                        <strong class="text-indigo-400">Flux</strong><br>
-                                        <span class="text-xs text-gray-400">Dezgo</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-yellow-400">★★★★★</span><br>
-                                        <span class="text-xs">Exceptional</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-orange-400">Standard</span><br>
-                                        <span class="text-xs">Balanced performance</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-green-400">Fast</span><br>
-                                        <span class="text-xs">~8-18s</span>
-                                    </td>
-                                    <td class="px-4 py-3 text-xs">
-                                        <strong class="text-yellow-400">Best overall photo quality</strong>,<br>excellent results,<br>bulk creation
-                                    </td>
-                                </tr>
-                                <tr class="border-t border-gray-500">
-                                    <td class="px-4 py-3">
-                                        <strong class="text-indigo-400">SDXL Models</strong><br>
-                                        <span class="text-xs text-gray-400">Juggernaut, Dreamshaper</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-yellow-400">★★★★☆</span><br>
-                                        <span class="text-xs">Very Good</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-green-400">Specialized</span><br>
-                                        <span class="text-xs">Creative focused</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-orange-400">Medium</span><br>
-                                        <span class="text-xs">~15-25s</span>
-                                    </td>
-                                    <td class="px-4 py-3 text-xs">
-                                        Cost-effective,<br>creative styles,<br>experimentation
-                                    </td>
-                                </tr>
-                                <tr class="border-t border-gray-500">
-                                    <td class="px-4 py-3">
-                                        <strong class="text-indigo-400">SD 1/2 Models</strong><br>
-                                        <span class="text-xs text-gray-400">Various Styles</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-yellow-400">★★★☆☆</span><br>
-                                        <span class="text-xs">Good</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-green-400">Specialized</span><br>
-                                        <span class="text-xs">Style focused</span>
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="text-orange-400">Slower</span><br>
-                                        <span class="text-xs">~20-40s</span>
-                                    </td>
-                                    <td class="px-4 py-3 text-xs">
-                                        Rapid prototyping,<br>style exploration,<br>high volume
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="bg-gray-600 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-indigo-400 mb-2">
-                            <i class="fas fa-tips mr-2"></i>Model Selection Guidelines
-                        </h3>
-                        <div class="grid md:grid-cols-3 gap-4 text-sm">
-                            <div>
-                                <strong class="text-green-400">Best Overall Choice:</strong><br>
-                                Flux offers exceptional photo quality with balanced performance and fast generation.
-                            </div>
-                            <div>
-                                <strong class="text-blue-400">Speed Priority:</strong><br>
-                                Google Imagen 3 is fastest, followed by DALL-E 3 for premium quality and speed.
-                            </div>
-                            <div>
-                                <strong class="text-purple-400">Creative Specialization:</strong><br>
-                                SDXL models excel at specific artistic styles and creative applications.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Getting Started -->
-            <section id="getting-started" class="bg-gray-700 rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-white mb-4 flex items-center">
-                    <i class="fas fa-play-circle text-green-400 mr-3"></i>
-                    Getting Started
-                </h2>
-                <div class="text-gray-300">
-                    <p>
-                        To begin using AutoImage:
-                    </p>
-
-                    <div class="bg-gray-600 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-green-400 mb-3">Basic Steps:</h3>
-                        <ol class="list-decimal list-inside space-y-2 text-sm">
-                            <li>Create an account and add credits</li>
-                            <li>Select a model based on your quality and cost requirements</li>
-                            <li>Write a prompt with variables like <code class="bg-gray-800 px-2 py-1 rounded">${subject} in ${style}</code></li>
-                            <li>Enable Auto generation and set your maximum number</li>
-                            <li>Click START to begin generation</li>
-                        </ol>
-                    </div>
-
-                    <div class="text-center pt-24">
-                        <a href="/" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-                            <i class="fas fa-rocket mr-2"></i>
-                            Start Creating Images
-                        </a>
-                    </div>
-                </div>
-            </section>
-
+        <!-- Call to Action -->
+        <div class="text-center bg-gradient-to-r from-blue-900/50 to-purple-900/50 rounded-3xl p-16 border border-blue-500/20 mb-8">
+            <h2 class="display-text text-6xl font-black text-white mb-8 text-shadow">
+                <span class="gradient-text">READY TO CREATE?</span>
+            </h2>
+            <p class="body-text text-3xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+                Generate unlimited AI images with <span class="gradient-text-alt font-semibold">smart automation</span>
+            </p>
+            <a href="/" class="inline-flex items-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-6 px-12 rounded-2xl text-2xl transition-all transform hover:scale-105 pulse-glow shadow-2xl display-text tracking-wide">
+                <i class="fas fa-rocket mr-4"></i>
+                START CREATING
+            </a>
         </div>
     </main>
 
@@ -560,84 +305,23 @@
 
     <!-- FAQ-specific functionality -->
     <script>
-        // Load sample images for the FAQ page
-        async function loadSampleImages() {
-            const container = document.getElementById('sample-images-container');
-            if (!container) return;
-
-            try {
-                // Load multiple sample images
-                const imagePromises = Array.from({ length: 3 }, () =>
-                    fetch('/api/images/sample').then(response => response.json())
-                );
-
-                const responses = await Promise.all(imagePromises);
-
-                container.innerHTML = responses.map((response, index) => {
-                    if (response.success && response.data && response.data.image && response.data.image.url) {
-                        return `
-                            <div class="bg-gray-700 rounded-lg p-3 text-center">
-                                <div class="w-full h-32 bg-gray-600 rounded mb-2 overflow-hidden">
-                                    <img src="${response.data.image.url}"
-                                         alt="Sample AI generated image ${index + 1}"
-                                         class="w-full h-full object-cover"
-                                         onerror="this.parentElement.innerHTML='<div class=\\'flex items-center justify-center h-full text-gray-400\\'><i class=\\'fas fa-image\\'></i></div>'">
-                                </div>
-                                <p class="text-xs text-gray-400">Enhanced AI Image</p>
-                            </div>
-                        `;
-                    } else {
-                        return `
-                            <div class="bg-gray-700 rounded-lg p-3 text-center">
-                                <div class="w-full h-32 bg-gray-600 rounded mb-2 flex items-center justify-center">
-                                    <i class="fas fa-image text-gray-400"></i>
-                                </div>
-                                <p class="text-xs text-gray-400">Sample Image</p>
-                            </div>
-                        `;
-                    }
-                }).join('');
-            } catch (error) {
-                console.log('Could not load sample images:', error);
-                // Keep the loading spinners as fallback
-            }
-        }
-
-        // Add smooth scrolling for anchor links
-        function addSmoothScrolling() {
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                });
-            });
-        }
-
-        // Add interactive hover effects to sections
+        // Add interactive hover effects to feature cards
         function addInteractiveEffects() {
-            const sections = document.querySelectorAll('section');
-            sections.forEach(section => {
-                section.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-2px)';
-                    this.style.transition = 'transform 0.2s ease-in-out';
+            const cards = document.querySelectorAll('.pulse-glow');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                    this.style.transition = 'transform 0.3s ease-in-out';
                 });
 
-                section.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
                 });
             });
         }
 
         // Initialize FAQ functionality when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            loadSampleImages();
-            addSmoothScrolling();
             addInteractiveEffects();
         });
     </script>

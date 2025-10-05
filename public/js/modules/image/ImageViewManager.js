@@ -258,7 +258,8 @@ class ImageViewManager {
             isPublic: img.dataset.isPublic === 'true' || false,
             userId: img.dataset.userId || null,
             username: img.dataset.username || null,
-            createdAt: img.dataset.createdAt || null
+            createdAt: img.dataset.createdAt || null,
+            tags: window.TagUtils ? window.TagUtils.parseTags(img.dataset.tags) : (img.dataset.tags ? JSON.parse(img.dataset.tags) : []) // ✅ Include tags with fallback
         };
     }
 

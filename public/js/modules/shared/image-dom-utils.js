@@ -67,7 +67,7 @@ class ImageDOMUtils {
             img.dataset.createdAt = imageData.createdAt;
         }
         if (imageData.tags) {
-            img.dataset.tags = JSON.stringify(imageData.tags);
+            img.dataset.tags = window.TagUtils ? window.TagUtils.stringifyTags(imageData.tags) : JSON.stringify(imageData.tags);
         }
         if (imageData.isPublic !== undefined) {
             img.dataset.isPublic = imageData.isPublic;

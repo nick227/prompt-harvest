@@ -835,6 +835,7 @@ class ImageViewUtils {
         tagsContainer.className = 'list-tags-container';
 
         const tagsLabel = document.createElement('span');
+        tagsLabel.textContent = 'Tags:';
 
         tagsLabel.style.cssText = `
             color: #9ca3af;
@@ -915,7 +916,12 @@ class ImageViewUtils {
      * Parse tags from dataset string
      * @private
      */
-    static _parseTagsFromDataset(tagsString) {
+    static     _parseTagsFromDataset(tagsString) {
+        if (window.TagUtils) {
+            return window.TagUtils.parseTags(tagsString);
+        }
+
+        // Fallback to original implementation
         if (!tagsString) {
             return [];
         }

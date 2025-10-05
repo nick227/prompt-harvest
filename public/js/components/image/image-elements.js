@@ -328,7 +328,7 @@ class ImageElements {
         const data = {};
         const dataAttributes = [
             'id', 'url', 'imageUrl', 'prompt', 'original', 'final', 'provider', 'model',
-            'guidance', 'seed', 'steps', 'rating', 'isPublic', 'createdAt'
+            'guidance', 'seed', 'steps', 'rating', 'isPublic', 'createdAt', 'tags'
         ];
 
         dataAttributes.forEach(attr => {

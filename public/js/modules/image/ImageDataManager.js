@@ -47,7 +47,8 @@ class ImageDataManager {
             userId: this.extractUserId(imageData),
             username: this.extractUsername(imageData),
             createdAt: this.extractCreatedAt(imageData),
-            providers: this.extractProviders(imageData)
+            providers: this.extractProviders(imageData),
+            tags: this.extractTags(imageData) // ✅ Include tags field
         };
     }
 
@@ -71,7 +72,8 @@ class ImageDataManager {
             userId: null,
             username: null,
             createdAt: new Date().toISOString(),
-            providers: []
+            providers: [],
+            tags: [] // ✅ Include tags field
         };
     }
 
@@ -258,6 +260,33 @@ class ImageDataManager {
     }
 
     /**
+     * Extract tags from image data
+     * @param {Object} imageData - Image data
+     * @returns {Array} Extracted tags
+     */
+    extractTags(imageData) {
+        if (window.TagUtils) {
+            return window.TagUtils.parseTags(imageData.tags);
+        }
+
+        // Fallback to original implementation
+        if (Array.isArray(imageData.tags)) {
+            return imageData.tags;
+        }
+
+        if (typeof imageData.tags === 'string') {
+            try {
+                return JSON.parse(imageData.tags);
+            } catch (error) {
+                console.warn('Failed to parse tags JSON:', error);
+                return [];
+            }
+        }
+
+        return [];
+    }
+
+    /**
      * Extract image data from DOM element
      * @param {HTMLImageElement} img - Image element
      * @returns {Object} Extracted image data
@@ -278,7 +307,8 @@ class ImageDataManager {
             isPublic: img.dataset.isPublic,
             userId: img.dataset.userId,
             username: img.dataset.username,
-            createdAt: img.dataset.createdAt
+            createdAt: img.dataset.createdAt,
+            tags: window.TagUtils ? window.TagUtils.parseTags(img.dataset.tags) : (img.dataset.tags ? JSON.parse(img.dataset.tags) : []) // ✅ Include tags with centralized parsing
         };
 
         // Raw data extracted from element

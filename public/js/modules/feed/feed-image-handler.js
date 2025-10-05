@@ -55,7 +55,7 @@ class FeedImageHandler {
         wrapper.dataset.imageId = imageData.id;
         wrapper.dataset.userId = imageData.userId || '';
         wrapper.dataset.isPublic = (imageData.isPublic || false).toString();
-        wrapper.dataset.tags = imageData.tags ? JSON.stringify(imageData.tags) : '';
+        wrapper.dataset.tags = imageData.tags ? (window.TagUtils ? window.TagUtils.stringifyTags(imageData.tags) : JSON.stringify(imageData.tags)) : '';
         wrapper.dataset.taggedAt = imageData.taggedAt || '';
 
         if (window.imageComponent) {

@@ -1,0 +1,77 @@
+[
+    {
+        "title": "Advanced JavaScript Techniques for Modern Development",
+        "content": "JavaScript continues to evolve with new features and best practices. This comprehensive guide covers advanced techniques including async/await patterns, functional programming concepts, and performance optimization strategies that every modern developer should know.",
+        "excerpt": "Master advanced JavaScript techniques and modern development patterns with this comprehensive guide.",
+        "thumbnail": "https://example.com/javascript-thumbnail.jpg",
+        "tags": ["javascript", "programming", "web development", "tutorial"],
+        "isPublished": true,
+        "isFeatured": true,
+        "metadata": {
+            "category": "Programming",
+            "readingTime": "15 minutes",
+            "author": "Senior Developer",
+            "difficulty": "Advanced"
+        }
+    },
+    {
+        "title": "The Complete Guide to Remote Work Productivity",
+        "content": "Remote work has become the new normal for many professionals. This guide covers essential tools, productivity techniques, communication strategies, and work-life balance tips to help you thrive in a remote work environment.",
+        "excerpt": "Discover proven strategies and tools to maximize your productivity while working remotely.",
+        "thumbnail": "https://example.com/remote-work-thumbnail.jpg",
+        "tags": ["remote work", "productivity", "work-life balance", "tools"],
+        "isPublished": true,
+        "isFeatured": false,
+        "metadata": {
+            "category": "Career",
+            "readingTime": "12 minutes",
+            "author": "Remote Work Expert",
+            "difficulty": "Beginner"
+        }
+    },
+    {
+        "title": "Understanding Machine Learning Algorithms",
+        "content": "Machine learning is transforming industries across the globe. This in-depth exploration covers the fundamental algorithms, their applications, and practical implementation strategies. Perfect for both beginners and those looking to deepen their understanding.",
+        "excerpt": "Explore the world of machine learning algorithms and their real-world applications.",
+        "thumbnail": "https://example.com/ml-algorithms-thumbnail.jpg",
+        "tags": ["machine learning", "algorithms", "AI", "data science"],
+        "isPublished": false,
+        "isFeatured": true,
+        "metadata": {
+            "category": "Technology",
+            "readingTime": "20 minutes",
+            "author": "ML Engineer",
+            "difficulty": "Intermediate"
+        }
+    },
+    {
+        "title": "Sustainable Business Practices for the Modern World",
+        "content": "Sustainability is no longer optional for businesses. This comprehensive guide explores how companies can implement sustainable practices, reduce their environmental impact, and build a more responsible business model for the future.",
+        "excerpt": "Learn how to implement sustainable business practices that benefit both your company and the planet.",
+        "thumbnail": "https://example.com/sustainable-business-thumbnail.jpg",
+        "tags": ["sustainability", "business", "environment", "corporate responsibility"],
+        "isPublished": true,
+        "isFeatured": false,
+        "metadata": {
+            "category": "Business",
+            "readingTime": "18 minutes",
+            "author": "Sustainability Consultant",
+            "difficulty": "Intermediate"
+        }
+    },
+    {
+        "title": "Creative Writing Techniques for Digital Content",
+        "content": "In the digital age, content creation requires a unique blend of creativity and technical skill. This guide covers storytelling techniques, audience engagement strategies, and platform-specific writing approaches to help you create compelling digital content.",
+        "excerpt": "Master the art of creative writing for digital platforms and engage your audience effectively.",
+        "thumbnail": "https://example.com/creative-writing-thumbnail.jpg",
+        "tags": ["writing", "content creation", "digital marketing", "storytelling"],
+        "isPublished": false,
+        "isFeatured": false,
+        "metadata": {
+            "category": "Writing",
+            "readingTime": "14 minutes",
+            "author": "Content Creator",
+            "difficulty": "Beginner"
+        }
+    }
+]

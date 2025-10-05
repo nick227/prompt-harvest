@@ -322,6 +322,59 @@ export const validateBatch = (data, rules) => {
 };
 
 // ============================================================================
+// BLOG VALIDATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Validate blog post data
+ * @param {Object} data - Blog post data to validate
+ * @throws {ValidationError} If validation fails
+ */
+export const validateBlogPostData = (data) => {
+    const errors = [];
+
+    // Title validation
+    if (!data.title || typeof data.title !== 'string') {
+        errors.push('Title is required and must be a string');
+    } else if (data.title.length > 255) {
+        errors.push('Title must be 255 characters or less');
+    }
+
+    // Content validation
+    if (!data.content || typeof data.content !== 'string') {
+        errors.push('Content is required and must be a string');
+    }
+
+    // Excerpt validation (optional)
+    if (data.excerpt && typeof data.excerpt === 'string' && data.excerpt.length > 500) {
+        errors.push('Excerpt must be 500 characters or less');
+    }
+
+    // Thumbnail validation (optional)
+    if (data.thumbnail && typeof data.thumbnail === 'string' && data.thumbnail.length > 500) {
+        errors.push('Thumbnail URL must be 500 characters or less');
+    }
+
+    // Tags validation (optional)
+    if (data.tags && !Array.isArray(data.tags)) {
+        errors.push('Tags must be an array');
+    }
+
+    // Boolean validations
+    if (data.isPublished !== undefined && typeof data.isPublished !== 'boolean') {
+        errors.push('isPublished must be a boolean');
+    }
+
+    if (data.isFeatured !== undefined && typeof data.isFeatured !== 'boolean') {
+        errors.push('isFeatured must be a boolean');
+    }
+
+    if (errors.length > 0) {
+        throw new ValidationError(`Blog validation failed: ${errors.join('; ')}`);
+    }
+};
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -339,6 +392,9 @@ export default {
     validateImageGenerationParams,
     validateImageId,
     validateRating,
+
+    // Blog-specific validation
+    validateBlogPostData,
 
     // Pagination validation
     validatePaginationParams,

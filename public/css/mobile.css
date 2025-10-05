@@ -103,6 +103,7 @@
         scroll-behavior: smooth;
         position: relative;
         touch-action: pan-y;
+        padding-bottom: 100px;
     }
 
     /* Mobile info-box header should not scroll */

@@ -94,5 +94,8 @@
     "cursor.formatOnStartup": false,
     "cursor.formatOnShutdown": false,
     "cursor.formatOnReload": false,
-    "cursor.formatOnRestart": false
+    "cursor.formatOnRestart": false,
+    "[css]": {
+        "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+    }
 }

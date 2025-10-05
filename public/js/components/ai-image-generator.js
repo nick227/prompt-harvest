@@ -34,18 +34,30 @@ class AIImageGenerator {
      * Initialize the generator
      */
     init() {
+        console.log('🔍 AI-GENERATOR: Initializing AI Image Generator');
+        console.log('🔍 AI-GENERATOR: Service available:', !!window.aiImageGeneratorService);
+        console.log('🔍 AI-GENERATOR: Widget available:', !!window.AIImageGeneratorWidget);
+
         // Check authentication
         if (!window.aiImageGeneratorService || !window.aiImageGeneratorService.isAuthenticated()) {
+            console.error('🔍 AI-GENERATOR: Authentication failed');
             this.showAuthError();
-
             return;
         }
 
-        // Create widget
-        this.widget = new window.AIImageGeneratorWidget(this.containerId, this.options);
+        console.log('🔍 AI-GENERATOR: Creating widget for container:', this.containerId);
 
-        // Attach event listeners
-        this.attachEventListeners();
+        try {
+            // Create widget
+            this.widget = new window.AIImageGeneratorWidget(this.containerId, this.options);
+            console.log('🔍 AI-GENERATOR: Widget created successfully');
+
+            // Attach event listeners
+            this.attachEventListeners();
+            console.log('🔍 AI-GENERATOR: Event listeners attached');
+        } catch (error) {
+            console.error('🔍 AI-GENERATOR: Failed to create widget:', error);
+        }
     }
 
     /**

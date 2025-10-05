@@ -10,6 +10,9 @@
 /* 2. Base styles - Global styles and resets */
 @import url('./modules/base.css');
 
+/* 7. Animations - Loading spinners, processing animations, transitions */
+@import url('./modules/animations.css');
+
 /* 3. Layout styles - Grid layouts and structural elements */
 @import url('./modules/layout.css');
 
@@ -24,9 +27,6 @@
 
 /* 6. Fullscreen styles - Fullscreen modal and overlay styles */
 @import url('./modules/fullscreen.css');
-
-/* 7. Animations - Loading spinners, processing animations, transitions */
-@import url('./modules/animations.css');
 
 /* 8. Messaging styles - Admin messaging system and notifications */
 @import url('./modules/messaging.css');

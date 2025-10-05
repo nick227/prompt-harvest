@@ -3,6 +3,7 @@ import { setupAIRoutes } from './aiRoutes.js';
 import { setupConfigRoutes } from './configRoutes.js';
 import { setupLikeRoutes } from './likeRoutes.js';
 import { setupTagRoutes } from './tagRoutes.js';
+import { setupBlogRoutes } from './blogRoutes.js';
 import { setupPageRoutes } from './pageRoutes.js';
 // Removed feedRoutes.js - functionality covered by enhancedImageRoutes.js
 import { setupMonitoringRoutes } from './monitoringRoutes.js';
@@ -15,6 +16,7 @@ import { setupAIChatRoutes } from './aiChatRoutes.js';
 import setupViolationRoutes from './violationRoutes.js';
 import { setupAdminPromoRoutes } from './adminPromoRoutes.js';
 import { setupProfileRoutes } from './profileRoutes.js';
+import { setupAdminApiRoutes } from './adminApiRoutes.js';
 import creditsRouter from './credits.js';
 import packagesRouter from './packages.js';
 import providersRouter from './providers.js';
@@ -27,6 +29,7 @@ import { AIController } from '../controllers/AIController.js';
 import { ConfigController } from '../controllers/ConfigController.js';
 import { LikeController } from '../controllers/LikeController.js';
 import { TagController } from '../controllers/TagController.js';
+import { BlogController } from '../controllers/BlogController.js';
 import { TransactionController } from '../controllers/TransactionController.js';
 import { PromptController } from '../controllers/PromptController.js';
 import { ProfileController } from '../controllers/ProfileController.js';
@@ -34,6 +37,7 @@ import { EnhancedImageService } from '../services/EnhancedImageService.js';
 import { getAIPromptService } from '../services/ai/features/AIPromptServiceSingleton.js';
 import { LikeService } from '../services/LikeService.js';
 import { TagService } from '../services/TagService.js';
+import { BlogService } from '../services/BlogService.js';
 import { ImageRepository } from '../repositories/ImageRepository.js';
 import { errorHandler, notFoundHandler } from '../middleware/index.js';
 import configManager from '../config/ConfigManager.js';
@@ -64,12 +68,14 @@ export const setupRoutes = async app => {
     let enhancedImageService;
     let likeService;
     let tagService;
+    let blogService;
 
     try {
         aiService = getAIPromptService();
         enhancedImageService = new EnhancedImageService(imageRepository, aiService);
         likeService = new LikeService();
         tagService = new TagService();
+        blogService = new BlogService();
     } catch (error) {
         console.error('❌ Failed to initialize services:', error.message);
         process.exit(1);
@@ -81,6 +87,7 @@ export const setupRoutes = async app => {
     let configController;
     let likeController;
     let tagController;
+    let blogController;
     let transactionController;
     let promptController;
     let profileController;
@@ -91,6 +98,7 @@ export const setupRoutes = async app => {
         configController = new ConfigController();
         likeController = new LikeController(likeService);
         tagController = new TagController(tagService);
+        blogController = new BlogController(blogService);
         transactionController = new TransactionController();
         promptController = new PromptController();
         profileController = new ProfileController();
@@ -109,6 +117,7 @@ export const setupRoutes = async app => {
     setupConfigRoutes(app, configController);
     setupLikeRoutes(app, likeController);
     setupTagRoutes(app, tagController);
+    setupBlogRoutes(app, blogController);
     // setupImageRatingRoutes(app); // Removed - redundant with enhancedImageRoutes.js
     setupMonitoringRoutes(app); // System monitoring routes
     setupTransactionRoutes(app, transactionController); // Transaction accounting routes
@@ -117,6 +126,7 @@ export const setupRoutes = async app => {
     setupAIChatRoutes(app); // AI Chat widget routes
     app.use('/api/violations', setupViolationRoutes); // Violation tracking routes
     setupAdminPromoRoutes(app); // Admin promo code management routes
+    setupAdminApiRoutes(app, enhancedImageService, blogService); // Admin API routes (email/password auth)
     app.use('/api/credits', creditsRouter); // Credits and payment routes
     app.use('/api/packages', packagesRouter); // Package management routes
     app.use('/api/providers', providersRouter); // Provider and model management routes

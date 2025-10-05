@@ -191,6 +191,8 @@ export class DezgoProvider {
                 return new Error('Invalid API key');
             } else if (status === 429) {
                 return new Error('Rate limit exceeded');
+            } else if (status === 499) {
+                return new Error('Client disconnected - request cancelled');
             } else if (status >= 500) {
                 return new Error(`Server error: ${message}`);
             }

@@ -1,5 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { requireAdminPage } from '../middleware/PageAuthMiddleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,5 +49,25 @@ export const setupPageRoutes = app => {
     // Serve favicon
     app.get('/favicon.ico', (req, res) => {
         res.sendFile(path.join(__dirname, '../../public/images/favicon.png'));
+    });
+
+    // Blog routes with SEO-friendly URLs
+    app.get('/blog', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../public/blog/index.html'));
+    });
+
+            // Blog post creation page (client-side auth check)
+            app.get('/blog/new', (req, res) => {
+                res.sendFile(path.join(__dirname, '../../public/blog/post.html'));
+            });
+
+    // Dynamic blog post routes - must be after static routes
+    app.get('/blog/:slug', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../public/blog/post-title.html'));
+    });
+
+    // Blog post editing page (client-side auth check)
+    app.get('/blog/:slug/edit', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../public/blog/post-title-edit.html'));
     });
 };

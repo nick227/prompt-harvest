@@ -122,6 +122,9 @@ class ImageComponent {
         if (imageData.provider) {
             img.dataset.provider = imageData.provider;
         }
+        if (imageData.tags) {
+            img.dataset.tags = window.TagUtils ? window.TagUtils.stringifyTags(imageData.tags) : JSON.stringify(imageData.tags);
+        }
         if (imageData.model) {
             img.dataset.model = imageData.model;
         }

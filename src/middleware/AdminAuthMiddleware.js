@@ -37,11 +37,46 @@ export const requireAdmin = async (req, res, next) => {
         // Fall back to session authentication if JWT failed
         if (!userId && req.session?.userId) {
             userId = req.session.userId;
+            console.log('🔐 ADMIN-AUTH: Using session authentication, userId:', userId);
         }
+
+        console.log('🔐 ADMIN-AUTH: Authentication check:', {
+            path: req.path,
+            hasJWT: !!token,
+            hasSession: !!req.session?.userId,
+            userId: userId,
+            sessionData: req.session ? Object.keys(req.session) : 'no session'
+        });
 
         if (!userId) {
             // Only log authentication failures for actual admin requests, not health checks or favicon requests
             if (!req.path.includes('/favicon') && !req.path.includes('/health') && !req.path.includes('/status')) {
+            }
+
+            // Check if this is a page request (HTML) or API request (JSON)
+            const isPageRequest = req.accepts('html') && !req.accepts('json');
+
+            if (isPageRequest) {
+                return res.status(401).send(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Authentication Required - AutoImage</title>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+                    </head>
+                    <body class="bg-gray-800 text-gray-200 min-h-screen flex items-center justify-center">
+                        <div class="text-center">
+                            <h1 class="text-4xl font-bold text-red-500 mb-4">Authentication Required</h1>
+                            <p class="text-xl mb-6">Please log in to access this page.</p>
+                            <a href="/login" class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                Go to Login
+                            </a>
+                        </div>
+                    </body>
+                    </html>
+                `);
             }
 
             return res.status(401).json({
@@ -64,6 +99,31 @@ export const requireAdmin = async (req, res, next) => {
         });
 
         if (!user) {
+            // Check if this is a page request (HTML) or API request (JSON)
+            const isPageRequest = req.accepts('html') && !req.accepts('json');
+
+            if (isPageRequest) {
+                return res.status(401).send(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Invalid Session - AutoImage</title>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+                    </head>
+                    <body class="bg-gray-800 text-gray-200 min-h-screen flex items-center justify-center">
+                        <div class="text-center">
+                            <h1 class="text-4xl font-bold text-red-500 mb-4">Invalid Session</h1>
+                            <p class="text-xl mb-6">Your session is invalid. Please log in again.</p>
+                            <a href="/login" class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                Go to Login
+                            </a>
+                        </div>
+                    </body>
+                    </html>
+                `);
+            }
 
             return res.status(401).json({
                 success: false,
@@ -74,7 +134,31 @@ export const requireAdmin = async (req, res, next) => {
 
         // Check if user has admin privileges
         if (!user.isAdmin) {
-            // eslint-disable-next-line no-console
+            // Check if this is a page request (HTML) or API request (JSON)
+            const isPageRequest = req.accepts('html') && !req.accepts('json');
+
+            if (isPageRequest) {
+                return res.status(403).send(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Access Denied - AutoImage</title>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <link rel="stylesheet" href="https://cdn.tailwindcss.com">
+                    </head>
+                    <body class="bg-gray-800 text-gray-200 min-h-screen flex items-center justify-center">
+                        <div class="text-center">
+                            <h1 class="text-4xl font-bold text-red-500 mb-4">Access Denied</h1>
+                            <p class="text-xl mb-6">Only administrators can access this page.</p>
+                            <a href="/blog" class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                Return to Blog
+                            </a>
+                        </div>
+                    </body>
+                    </html>
+                `);
+            }
 
             return res.status(403).json({
                 success: false,

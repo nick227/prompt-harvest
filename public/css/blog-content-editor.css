@@ -1,0 +1,219 @@
+/**
+ * Blog Content Editor Styles
+ * Styles for contenteditable blog post editor with media rendering
+ */
+
+/* Contenteditable Editor */
+.blog-content-editor {
+    min-height: 300px;
+    padding: 1rem;
+    background: #374151;
+    border: 1px solid #4B5563;
+    border-radius: 0.5rem;
+    color: #F9FAFB;
+    font-family: inherit;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.blog-content-editor:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.blog-content-editor:empty:before {
+    content: attr(data-placeholder);
+    color: #9CA3AF;
+    pointer-events: none;
+}
+
+/* Media Elements */
+.blog-media {
+    width: 100%;
+    margin: 1rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.blog-media:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Images */
+.blog-media img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+}
+
+/* YouTube Videos */
+.blog-media iframe {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* Media Loading States */
+.blog-media-loading {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(90deg, #374151 25%, #4B5563 50%, #374151 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9CA3AF;
+    font-size: 0.875rem;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Media Error States */
+.blog-media-error {
+    width: 100%;
+    height: 200px;
+    background: #374151;
+    border: 2px dashed #6B7280;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #9CA3AF;
+    text-align: center;
+    padding: 1rem;
+}
+
+.blog-media-error .error-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.6;
+}
+
+.blog-media-error .error-message {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.blog-media-error .error-url {
+    font-size: 0.75rem;
+    color: #6B7280;
+    word-break: break-all;
+}
+
+/* Media Controls */
+.blog-media-controls {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    gap: 0.25rem;
+}
+
+.blog-media:hover .blog-media-controls {
+    opacity: 1;
+}
+
+.blog-media-controls button {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.blog-media-controls button:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .blog-content-editor {
+        min-height: 250px;
+        padding: 0.75rem;
+    }
+
+    .blog-media {
+        margin: 0.75rem 0;
+    }
+
+    .blog-media-loading,
+    .blog-media-error {
+        height: 150px;
+    }
+}
+
+/* Focus and Selection */
+.blog-content-editor:focus {
+    outline: none;
+}
+
+.blog-content-editor * {
+    outline: none;
+}
+
+/* Text Formatting */
+.blog-content-editor strong {
+    font-weight: 600;
+}
+
+.blog-content-editor em {
+    font-style: italic;
+}
+
+.blog-content-editor u {
+    text-decoration: underline;
+}
+
+/* Link Styling */
+.blog-content-editor a {
+    color: #60A5FA;
+    text-decoration: underline;
+}
+
+.blog-content-editor a:hover {
+    color: #93C5FD;
+}
+
+/* List Styling */
+.blog-content-editor ul,
+.blog-content-editor ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.blog-content-editor li {
+    margin: 0.25rem 0;
+}
+
+/* Paragraph Spacing */
+.blog-content-editor p {
+    margin: 0.5rem 0;
+}
+
+.blog-content-editor p:first-child {
+    margin-top: 0;
+}
+
+.blog-content-editor p:last-child {
+    margin-bottom: 0;
+}

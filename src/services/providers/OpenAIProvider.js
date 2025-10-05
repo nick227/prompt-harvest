@@ -61,6 +61,8 @@ export class OpenAIProvider {
                     throw new Error('Content policy violation: Prompt contains inappropriate content');
                 }
                 throw new Error(`OpenAI API error: ${error.message}`);
+            } else if (error.status === 499) {
+                throw new Error('Client disconnected - request cancelled');
             }
             throw error;
         }

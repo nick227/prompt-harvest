@@ -51,7 +51,10 @@ class ApiService {
                 console.log('🔑 API: Adding auth header with token:', `${token.substring(0, 20)}...`);
             }
         } else {
-            console.log('🔑 API: No auth token found in storage');
+            // Only log auth token status in debug mode
+            if (window.location.search.includes('debug')) {
+                console.log('🔑 API: No auth token found in storage');
+            }
         }
 
         return headers;
@@ -174,6 +177,17 @@ class ApiService {
         }
 
         let url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+
+        // Debug blog post requests
+        if (endpoint.includes('/api/blog/posts')) {
+            console.log('🔍 API-SERVICE: Blog post request:', {
+                method,
+                endpoint,
+                url,
+                data,
+                headers: this.getAuthHeaders()
+            });
+        }
 
         // For GET requests, append query parameters from options
         if (method === 'GET' && options && Object.keys(options).length > 0) {

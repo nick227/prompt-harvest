@@ -6,17 +6,20 @@ class HeaderComponent {
     }
 
     init() {
+        console.log('🔍 HEADER-COMPONENT: Init called');
         // Wait for body to be available
         if (!document.body) {
+            console.log('🔍 HEADER-COMPONENT: Body not ready, retrying...');
             setTimeout(() => this.init(), 10);
-
             return;
         }
 
+        console.log('🔍 HEADER-COMPONENT: Body ready, creating header');
         try {
             this.createHeader();
+            console.log('🔍 HEADER-COMPONENT: Header created, setting up user system');
             this.setupUserSystemIntegration();
-
+            console.log('🔍 HEADER-COMPONENT: Initialization complete');
         } catch (error) {
             console.error('Error initializing header component:', error);
         }
@@ -34,12 +37,17 @@ class HeaderComponent {
         const header = document.createElement('header');
         const headerClass = window.location.pathname.includes('admin.html') ? 'px-12' : 'max-w-[1080px] mx-auto';
 
+        console.log('🔍 HEADER: Creating header with class:', headerClass);
+
         // Check if this is the billing page and apply fixed positioning
         const isBillingPage = window.location.pathname.includes('billing.html');
 
         header.className = isBillingPage
             ? 'bg-gray-900 border-b border-gray-700 fixed top-0 left-0 right-0 z-50'
             : 'bg-gray-900 border-b border-gray-700 mb-2';
+
+        // Remove debug styling
+        console.log('🔍 HEADER: Header styling applied');
 
         if (isBillingPage) {
             header.style.height = 'var(--top-bar-height)';
@@ -103,7 +111,14 @@ class HeaderComponent {
         `;
 
         // Insert header at the beginning of the body
+        console.log('🔍 HEADER: Inserting header into DOM');
         document.body.insertBefore(header, document.body.firstChild);
+        console.log('🔍 HEADER: Header inserted, checking visibility:', {
+            headerExists: !!document.querySelector('header'),
+            headerVisible: document.querySelector('header')?.offsetHeight > 0,
+            headerDisplay: document.querySelector('header')?.style.display,
+            headerClasses: document.querySelector('header')?.className
+        });
 
         // Initialize components after header is created with a small delay
         // to ensure all component classes are loaded
@@ -113,7 +128,7 @@ class HeaderComponent {
     }
 
     initializeComponents() {
-        // Initialize credit balance widget
+        // Initialize credit balance widget (only if available)
         if (window.CreditBalanceWidget) {
             try {
                 const creditContainer = document.getElementById('creditBalance');
@@ -121,17 +136,13 @@ class HeaderComponent {
                 if (creditContainer) {
                     window.creditWidget = new window.CreditBalanceWidget('creditBalance');
                     console.log('✅ HEADER: Credit balance widget initialized');
-                } else {
-                    console.warn('⚠️ HEADER: Credit balance container not found');
                 }
             } catch (error) {
                 console.warn('⚠️ HEADER: Failed to initialize credit balance widget:', error);
             }
-        } else {
-            console.warn('⚠️ HEADER: CreditBalanceWidget class not available');
         }
 
-        // Initialize transaction stats component
+        // Initialize transaction stats component (only if available)
         if (window.TransactionStatsComponent) {
             try {
                 const statsContainer = document.getElementById('transaction-stats');
@@ -139,32 +150,48 @@ class HeaderComponent {
                 if (statsContainer) {
                     window.transactionStatsComponent = new window.TransactionStatsComponent('transaction-stats');
                     console.log('✅ HEADER: Transaction stats component initialized');
-                } else {
-                    console.warn('⚠️ HEADER: Transaction stats container not found');
                 }
             } catch (error) {
                 console.warn('⚠️ HEADER: Failed to initialize transaction stats component:', error);
             }
-        } else {
-            console.warn('⚠️ HEADER: TransactionStatsComponent class not available');
         }
     }
 
     setupUserSystemIntegration() {
-        // Wait for user system to be available
+        console.log('🔍 HEADER-COMPONENT: Setting up user system integration');
+        // Wait for user system to be available (check both userSystem and authService)
         const checkUserSystem = () => {
-            if (window.userSystem) {
+            console.log('🔍 HEADER-COMPONENT: Checking user system availability:', {
+                userSystem: !!window.userSystem,
+                authService: !!window.authService
+            });
+
+            if (window.userSystem || window.authService) {
+                console.log('🔍 HEADER-COMPONENT: User system available, updating header');
                 this.updateHeaderForUser();
                 this.setupEventListeners();
                 // Prevent user system from creating duplicate auth containers
                 this.preventDuplicateAuthContainers();
 
+                // Force another update after a short delay to ensure auth state is settled
+                setTimeout(() => {
+                    console.log('🔍 HEADER-COMPONENT: Delayed header update');
+                    this.updateHeaderForUser();
+                }, 500);
+
             } else {
+                console.log('🔍 HEADER-COMPONENT: User system not available, retrying...');
                 setTimeout(checkUserSystem, 100);
             }
         };
 
         checkUserSystem();
+
+        // Also set up a periodic check as a fallback
+        setTimeout(() => {
+            console.log('🔍 HEADER-COMPONENT: Fallback header update');
+            this.updateHeaderForUser();
+        }, 2000);
     }
 
     preventDuplicateAuthContainers() {
@@ -181,13 +208,47 @@ class HeaderComponent {
     }
 
     updateHeaderForUser() {
-        if (!window.userSystem) {
-
+        console.log('🔍 HEADER: updateHeaderForUser called');
+        // Check both userSystem and authService
+        const authSystem = window.userSystem || window.authService;
+        if (!authSystem) {
+            console.log('🔍 HEADER: No auth system available');
             return;
         }
 
-        const isAuthenticated = window.userSystem.isAuthenticated();
-        const user = window.userSystem.getUser();
+        console.log('🔍 HEADER: Auth system found:', authSystem.constructor.name);
+        const isAuthenticated = authSystem.isAuthenticated();
+        const user = authSystem.getUser ? authSystem.getUser() : authSystem.currentUser;
+
+        console.log('🔍 HEADER: Auth state:', {
+            isAuthenticated,
+            user: user ? { id: user.id, email: user.email, isAdmin: user.isAdmin } : null,
+            hasToken: !!localStorage.getItem('authToken')
+        });
+
+        // Debug logging
+        if (window.location.search.includes('debug')) {
+            console.log('🔍 HEADER: Auth state update', {
+                authSystem: authSystem.constructor.name,
+                isAuthenticated,
+                user: user ? { id: user.id, email: user.email, isAdmin: user.isAdmin } : null,
+                token: localStorage.getItem('authToken') ? 'present' : 'missing'
+            });
+        }
+
+        // Additional check: if we have a token but auth system says not authenticated,
+        // try to force a re-check
+        const hasToken = localStorage.getItem('authToken');
+        if (hasToken && !isAuthenticated) {
+            console.log('🔍 HEADER: Token present but not authenticated, forcing re-check');
+            // Try to trigger auth state refresh
+            if (authSystem.checkAuthState) {
+                authSystem.checkAuthState();
+            }
+            // Wait a bit and try again
+            setTimeout(() => this.updateHeaderForUser(), 500);
+            return;
+        }
 
         // Check if state has actually changed to avoid unnecessary updates
         const currentState = { isAuthenticated, userEmail: user?.email };
@@ -204,30 +265,47 @@ class HeaderComponent {
         const userInfo = document.getElementById('user-info');
         const userEmail = userInfo?.querySelector('span');
 
+        console.log('🔍 HEADER: UI elements found:', {
+            authLinks: !!authLinks,
+            userInfo: !!userInfo,
+            userEmail: !!userEmail
+        });
+
         if (isAuthenticated && user) {
+            console.log('🔍 HEADER: User is authenticated, showing user info');
             // User is logged in
             if (authLinks) {
                 authLinks.style.display = 'none';
+                authLinks.classList.add('hidden');
+                console.log('🔍 HEADER: Hiding auth links');
             }
 
             if (userInfo) {
                 userInfo.style.display = 'flex';
+                userInfo.classList.remove('hidden');
+                console.log('🔍 HEADER: Showing user info');
 
                 if (userEmail) {
                     userEmail.textContent = user.email || 'User';
+                    console.log('🔍 HEADER: Set user email to:', user.email);
                 }
 
                 // Add admin link if user is admin
                 this.addAdminLinkIfNeeded(user);
             }
         } else {
+            console.log('🔍 HEADER: User not authenticated, showing auth links');
             // User is not logged in
             if (authLinks) {
                 authLinks.style.display = 'flex';
+                authLinks.classList.remove('hidden');
+                console.log('🔍 HEADER: Showing auth links');
             }
 
             if (userInfo) {
                 userInfo.style.display = 'none';
+                userInfo.classList.add('hidden');
+                console.log('🔍 HEADER: Hiding user info');
             }
 
             // Remove admin link when not authenticated
@@ -298,22 +376,32 @@ class HeaderComponent {
         });
 
         // Listen for user system updates with proper error handling
-        if (window.userSystem) {
-            const originalSetUser = window.userSystem.setUser.bind(window.userSystem);
+        const authSystem = window.userSystem || window.authService;
+        if (authSystem) {
+            if (authSystem.setUser) {
+                const originalSetUser = authSystem.setUser.bind(authSystem);
+                authSystem.setUser = user => {
+                    originalSetUser(user);
+                    // Small delay to ensure user system state is fully updated
+                    setTimeout(() => this.updateHeaderForUser(), 10);
+                };
+            }
 
-            window.userSystem.setUser = user => {
-                originalSetUser(user);
-                // Small delay to ensure user system state is fully updated
-                setTimeout(() => this.updateHeaderForUser(), 10);
-            };
+            // Also listen for auth state changes from AuthService
+            if (authSystem.addEventListener) {
+                authSystem.addEventListener('authStateChanged', () => {
+                    this.updateHeaderForUser();
+                });
+            }
         }
 
         // Add a fallback check for authentication state changes
         // This ensures the header stays in sync even if events are missed
         setInterval(() => {
-            if (window.userSystem && window.userSystem.isInitialized) {
-                const currentAuthState = window.userSystem.isAuthenticated();
-                const currentUser = window.userSystem.getUser();
+            const authSystem = window.userSystem || window.authService;
+            if (authSystem) {
+                const currentAuthState = authSystem.isAuthenticated();
+                const currentUser = authSystem.getUser ? authSystem.getUser() : authSystem.currentUser;
 
                 // Only update if there's a meaningful change
                 if (this.lastKnownAuthState !== currentAuthState ||
@@ -328,18 +416,33 @@ class HeaderComponent {
 
     async handleLogout() {
         try {
-            if (window.userSystem) {
-                await window.userSystem.logout();
+            const authSystem = window.userSystem || window.authService;
+            if (authSystem) {
+                if (authSystem.logout) {
+                    await authSystem.logout();
+                } else if (authSystem.logoutUser) {
+                    await authSystem.logoutUser();
+                }
                 this.updateHeaderForUser();
             }
         } catch (error) {
             console.error('Error during logout:', error);
         }
     }
+
+    // Public method to force header update (can be called externally)
+    forceUpdate() {
+        this.updateHeaderForUser();
+    }
 }
 
-// Initialize header component
-
+// Initialize header component immediately
 const headerComponent = new HeaderComponent();
-
 window.headerComponent = headerComponent;
+
+// Also try to initialize after a delay to catch any timing issues
+setTimeout(() => {
+    if (!window.headerComponent) {
+        window.headerComponent = new HeaderComponent();
+    }
+}, 1000);

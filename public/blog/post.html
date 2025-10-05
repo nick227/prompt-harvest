@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Blog Post - AutoImage</title>
+    <link rel="stylesheet" href="../css/optimized.css" />
+    <link rel="stylesheet" href="../css/mobile.css" />
+    <link rel="stylesheet" href="../css/credits-modal.css" />
+    <link rel="stylesheet" href="../css/ai-image-generator-widget.css" />
+    <link rel="stylesheet" href="../css/blog-content-editor.css" />
+    <link rel="stylesheet" href="../css/media-selection.css" />
+    <link rel="icon" href="../images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Compact MediaSelector styles for content images */
+        .media-selector-compact {
+            background: transparent;
+        }
+
+        .method-tabs-compact {
+            margin-bottom: 0.5rem;
+        }
+
+        .method-tabs-compact .flex {
+            gap: 0.5rem;
+        }
+
+        .tab-btn-compact {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .method-tabs-compact .tab-btn-compact {
+            border-radius: 0.375rem;
+        }
+
+        .media-selector-compact .upload-area {
+            padding: 1rem;
+            min-height: 120px;
+        }
+
+        .media-selector-compact .upload-area i {
+            font-size: 1.5rem;
+        }
+    </style>
+    <script src="../js/config/tailwind-config.js"></script>
+    <script src="../js/utils/input-helpers.js"></script>
+    <script>
+        // Ensure header component is created as early as possible
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if header exists
+            const existingHeader = document.querySelector('header');
+            if (!existingHeader) {
+                console.log('🔧 POST.HTML: No header found, will create one when script loads');
+            }
+        });
+    </script>
+</head>
+
+<body class="bg-gray-800 text-gray-200 w-full min-h-screen">
+    <!-- Unified Header Component loads automatically via header-component.js -->
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">Create New Post</h1>
+                    <p class="text-gray-400">Share your thoughts with the AutoImage community</p>
+                </div>
+                <a href="/blog" class="flex items-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back to Blog
+                </a>
+            </div>
+        </div>
+
+        <!-- Admin Only Notice -->
+        <div id="admin-only-notice" class="hidden mb-6 p-4 bg-yellow-900 border border-yellow-700 rounded-lg">
+            <div class="flex items-center">
+                <i class="fas fa-lock text-yellow-500 mr-3"></i>
+                <p class="text-yellow-200">Only administrators can create blog posts.</p>
+            </div>
+        </div>
+
+        <!-- Post Form -->
+        <form id="post-form" class="space-y-8">
+            <!-- Basic Information -->
+            <div class="bg-gray-700/30 rounded-lg p-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Basic Information</h2>
+
+                <!-- Title -->
+                <div class="mb-6">
+                    <label for="title" class="block text-sm font-medium text-gray-300 mb-2">Title *</label>
+                    <input type="text" id="title" name="title" required
+                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter a compelling title for your post..." />
+                </div>
+
+                <!-- Excerpt -->
+                <div>
+                    <label for="excerpt" class="block text-sm font-medium text-gray-300 mb-2">Excerpt</label>
+                    <textarea id="excerpt" name="excerpt" rows="3"
+                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Brief description that will appear in blog listings..."></textarea>
+                </div>
+            </div>
+
+            <!-- Media -->
+            <div class="bg-gray-700/30 rounded-lg p-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Media</h2>
+
+                <!-- Thumbnail -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-3">
+                        <i class="fas fa-image mr-2"></i>Featured Image
+                    </label>
+                    <input type="hidden" id="thumbnail" name="thumbnail" />
+                    <div id="thumbnail-selector-container"></div>
+                    <p class="mt-2 text-sm text-gray-400">Choose a thumbnail that represents your post</p>
+                </div>
+
+            </div>
+
+            <!-- Content -->
+            <div class="bg-gray-700/30 rounded-lg p-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Content</h2>
+                <div>
+                    <label for="content" class="block text-sm font-medium text-gray-300 mb-2">Post Content *</label>
+                    <div id="content" name="content" contenteditable="true" required
+                        class="w-full min-h-[300px] px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        data-placeholder="Write your post content here. Paste image URLs or YouTube links to embed media..."
+                        style="white-space: pre-wrap;"></div>
+                    <input type="hidden" id="content-text" name="content" />
+
+                    <!-- Content Image Inserter -->
+                    <div class="mt-4 p-4 bg-gray-800/50 border border-gray-600 rounded-lg">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="text-sm font-medium text-gray-300">
+                                <i class="fas fa-plus-circle mr-2 text-green-400"></i>Insert Images
+                            </label>
+                            <span class="text-xs text-gray-500">Images will be inserted at cursor position</span>
+                        </div>
+                        <div id="content-media-selector"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="bg-gray-700/30 rounded-lg p-6">
+                <h2 class="text-xl font-semibold text-white mb-4">Settings</h2>
+
+                <!-- Tags -->
+                <div class="mb-6">
+                    <label for="tags" class="block text-sm font-medium text-gray-300 mb-2">Tags</label>
+                    <input type="text" id="tags" name="tags"
+                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="news, updates, features (separate with commas)" />
+                </div>
+
+                <!-- Options -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="isPublished" name="isPublished"
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-700" />
+                        <label for="isPublished" class="ml-3 text-sm text-gray-300">Publish immediately</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="isFeatured" name="isFeatured"
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-700" />
+                        <label for="isFeatured" class="ml-3 text-sm text-gray-300">Featured post</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-600">
+                <div class="flex items-center text-sm text-gray-400">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <span>Draft posts are saved privately until published</span>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="/blog" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </a>
+                    <button type="submit" id="save-draft-btn" class="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors">
+                        <i class="fas fa-save mr-2"></i>Save Draft
+                    </button>
+                    <button type="submit" id="publish-btn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                        <i class="fas fa-paper-plane mr-2"></i>Publish
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-lg p-8 max-w-sm mx-4 text-center">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
+                <h3 class="text-lg font-semibold text-white mb-2">Saving Post</h3>
+                <p class="text-gray-400">Please wait while we save your post...</p>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="hidden fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            <div class="flex items-center">
+                <i class="fas fa-check-circle mr-3"></i>
+                <span>Post saved successfully!</span>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="hidden fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-3"></i>
+                <span>Failed to save post. Please try again.</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // Client-side authentication and admin check
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is authenticated
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                console.log('🔐 BLOG-POST: No auth token found, redirecting to login');
+                window.location.href = '/login';
+                return;
+            }
+
+            // Wait for auth services to be available
+            let authService = null;
+            let attempts = 0;
+            while (!authService && attempts < 50) {
+                authService = window.authService || window.userSystem;
+                if (!authService) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+            }
+
+            // Additional wait to ensure all services are fully initialized
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            if (!authService) {
+                console.error('🔐 BLOG-POST: Auth service not available');
+                window.location.href = '/login';
+                return;
+            }
+
+            // Check if user is admin
+            try {
+                console.log('🔍 BLOG-POST: Auth service details:', {
+                    authService: !!authService,
+                    hasIsAdmin: !!authService?.isAdmin,
+                    authServiceType: typeof authService,
+                    authServiceKeys: authService ? Object.keys(authService) : 'none'
+                });
+
+                // Try multiple ways to check admin status
+                let isAdmin = false;
+
+                if (authService.isAdmin) {
+                    isAdmin = authService.isAdmin();
+                    console.log('🔍 BLOG-POST: authService.isAdmin() result:', isAdmin);
+                } else if (authService.isAuthenticated && authService.getUser) {
+                    const user = authService.getUser();
+                    isAdmin = user?.isAdmin || false;
+                    console.log('🔍 BLOG-POST: authService.getUser() result:', { user, isAdmin });
+                } else if (window.userSystem) {
+                    isAdmin = window.userSystem.isAdmin ? window.userSystem.isAdmin() : false;
+                    console.log('🔍 BLOG-POST: userSystem.isAdmin() result:', isAdmin);
+                } else if (window.blogService) {
+                    isAdmin = window.blogService.isAdmin ? window.blogService.isAdmin() : false;
+                    console.log('🔍 BLOG-POST: blogService.isAdmin() result:', isAdmin);
+                }
+
+                // Fallback: Check JWT token directly
+                if (!isAdmin) {
+                    try {
+                        const token = localStorage.getItem('authToken');
+                        if (token) {
+                            const payload = JSON.parse(atob(token.split('.')[1]));
+                            isAdmin = payload.isAdmin === true;
+                            console.log('🔍 BLOG-POST: JWT token payload check:', { payload, isAdmin });
+                        }
+                    } catch (e) {
+                        console.log('🔍 BLOG-POST: JWT token parsing failed:', e.message);
+                    }
+                }
+
+                console.log('🔍 BLOG-POST: Final admin check result:', isAdmin);
+
+                if (!isAdmin) {
+                    console.log('🔐 BLOG-POST: User is not admin, redirecting to blog');
+                    alert('Access denied. Only administrators can create blog posts.');
+                    window.location.href = '/blog';
+                    return;
+                }
+                console.log('✅ BLOG-POST: Admin access confirmed');
+            } catch (error) {
+                console.error('🔐 BLOG-POST: Error checking admin status:', error);
+                window.location.href = '/login';
+                return;
+            }
+
+            // Set up automatic token inclusion for future requests
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                const token = localStorage.getItem('authToken');
+                if (token) {
+                    options.headers = {
+                        ...options.headers,
+                        'Authorization': `Bearer ${token}`
+                    };
+                }
+                return originalFetch(url, options);
+            };
+
+            // Initialize header component
+            if (!window.headerComponent && window.HeaderComponent) {
+                console.log('🔧 BLOG-POST: Creating header component after admin check');
+                window.headerComponent = new window.HeaderComponent();
+
+                // Force header update after a short delay
+                setTimeout(() => {
+                    if (window.headerComponent) {
+                        window.headerComponent.forceUpdate();
+                    }
+                }, 1000);
+            }
+        });
+    </script>
+    <script src="../js/modules/admin/auth/admin-auth-utils.js"></script>
+    <script src="../js/core/auth-service.js"></script>
+    <script src="../js/core/api-service.js"></script>
+    <script src="../js/services/blog-service.js"></script>
+    <script src="../js/components/header-component.js"></script>
+    <script src="../js/services/ai-image-generator-service.js"></script>
+    <script src="../js/components/ai-image-generator-widget.js"></script>
+    <script src="../js/components/ai-image-generator.js"></script>
+    <script src="../js/utils/PerformanceUtils.js"></script>
+    <script src="../js/utils/ErrorHandler.js"></script>
+    <script src="../js/utils/ContentEditor.js"></script>
+            <script src="../js/components/FormValidator.js"></script>
+            <script src="../js/components/ThumbnailSelector.js"></script>
+            <script src="../js/components/MediaSelector.js"></script>
+            <script src="../js/components/UIController.js"></script>
+            <script src="../js/pages/blog-post-refactored.js"></script>
+</body>
+
+</html>

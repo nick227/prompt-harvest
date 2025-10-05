@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog - AutoImage</title>
+    <link rel="stylesheet" href="../css/optimized.css" />
+    <link rel="stylesheet" href="../css/mobile.css" />
+    <link rel="stylesheet" href="../css/credits-modal.css" />
+    <link rel="icon" href="../images/favicon.png" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../js/config/tailwind-config.js"></script>
+    <script src="../js/utils/input-helpers.js"></script>
+</head>
+
+<body class="bg-gray-800 text-gray-200 w-full min-h-screen">
+    <!-- Unified Header Component loads automatically via header-component.js -->
+
+    <!-- Main Content -->
+    <main class="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-white mb-4">Blog</h1>
+            <p class="text-gray-400 text-lg">Latest news, updates, and insights from AutoImage</p>
+        </div>
+
+        <!-- Admin Actions (only visible to admins) -->
+        <div id="admin-actions" class="mb-8 hidden">
+            <a href="/blog/new" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                <i class="fas fa-plus mr-2"></i>
+                New Post
+            </a>
+        </div>
+
+        <!-- All Posts Section -->
+        <section>
+            <div id="posts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Posts will be loaded here -->
+            </div>
+
+
+            <!-- Pagination -->
+            <div id="pagination" class="mt-8 flex justify-center">
+                <!-- Pagination will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Draft Posts Section (Admin Only) -->
+        <section id="draft-posts" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-white mb-4">
+                    <i class="fas fa-edit mr-2"></i>
+                    Draft Posts
+                </h2>
+                <p class="text-gray-400">Posts that are not yet published</p>
+            </div>
+            <div id="draft-posts-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Draft posts will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p class="mt-4 text-gray-400">Loading posts...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="hidden text-center py-12">
+            <div class="text-red-500 mb-4">
+                <i class="fas fa-exclamation-triangle text-4xl"></i>
+            </div>
+            <p class="text-gray-400">Failed to load blog posts. Please try again later.</p>
+            <button id="retry-btn" class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                Retry
+            </button>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../js/components/header-component.js"></script>
+    <script src="../js/utils/ThumbnailFallback.js"></script>
+    <script src="../js/utils/BlogAdminUtils.js"></script>
+    <script src="../js/core/auth-service.js"></script>
+    <script src="../js/core/api-service.js"></script>
+    <script src="../js/services/blog-service.js"></script>
+    <script src="../js/pages/blog-index.js"></script>
+</body>
+
+</html>

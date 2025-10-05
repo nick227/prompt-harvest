@@ -20,7 +20,7 @@ export class TaggingService {
         });
 
         if (!process.env.OPENAI_API_KEY) {
-            console.warn('⚠️ OPENAI_API_KEY not found. Tagging service will use fallback method.');
+            console.warn('⚠️ OPENAI_API_KEY not found. Tagging service will not function.');
         }
     }
 
@@ -69,11 +69,7 @@ export class TaggingService {
             prompt: prompt ? `${prompt.substring(0, 50)}...` : 'undefined'
         });
 
-        const lastError = await this._tryOpenAITagging(imageId, prompt, metadata);
-
-        if (lastError) {
-            await this._tryFallbackTagging(imageId, prompt, metadata, lastError);
-        }
+        await this._tryOpenAITagging(imageId, prompt, metadata);
     }
 
     /**
@@ -95,7 +91,7 @@ export class TaggingService {
 
                 console.log('✅ Image tagged successfully with OpenAI:', { imageId, tags, attempt });
 
-                return null; // Success
+                return; // Success
             } catch (error) {
                 lastError = error;
                 console.warn(`⚠️ OpenAI tagging attempt ${attempt} failed:`, {
@@ -110,43 +106,18 @@ export class TaggingService {
             }
         }
 
-        return lastError;
+        // If all attempts failed, throw the last error
+        throw lastError;
     }
 
-    /**
-     * Try fallback tagging method
-     * @private
-     */
-    async _tryFallbackTagging(imageId, prompt, metadata, lastError) {
-        try {
-            console.log('🔄 OpenAI failed, trying fallback tagging method:', { imageId });
-            const fallbackTags = await this._generateFallbackTags(prompt);
-
-            await this._updateImageWithTags(imageId, fallbackTags, {
-                metadata,
-                attempt: 'fallback',
-                service: 'fallback',
-                openaiError: lastError
-            });
-
-            console.log('✅ Image tagged with fallback method:', { imageId, tags: fallbackTags });
-        } catch (fallbackError) {
-            console.error('❌ Both OpenAI and fallback tagging failed:', {
-                imageId,
-                openaiError: lastError?.message,
-                fallbackError: fallbackError.message
-            });
-            throw fallbackError;
-        }
-    }
 
     /**
      * Update image with tags in database
      * @private
      */
     async _updateImageWithTags(imageId, tags, options) {
-        const { metadata, attempt, service, openaiError } = options;
-        const taggingMetadata = this._buildTaggingMetadata(metadata, attempt, service, openaiError);
+        const { metadata, attempt, service } = options;
+        const taggingMetadata = this._buildTaggingMetadata(metadata, attempt, service);
 
         await this.prisma.image.update({
             where: { id: imageId },
@@ -162,18 +133,14 @@ export class TaggingService {
      * Build tagging metadata object
      * @private
      */
-    _buildTaggingMetadata(metadata, attempt, service, openaiError) {
+    _buildTaggingMetadata(metadata, attempt, service) {
         const taggingMetadata = {
             ...metadata,
             timestamp: new Date().toISOString(),
             attempt,
             service: `image-harvest-${service}`,
-            method: service === 'openai' ? 'function-calling' : 'text-processing'
+            method: 'function-calling'
         };
-
-        if (openaiError) {
-            taggingMetadata.openaiError = openaiError.message;
-        }
 
         return taggingMetadata;
     }
@@ -303,135 +270,6 @@ export class TaggingService {
         return cleanTags;
     }
 
-    /**
-     * Fallback tag generation using simple text processing
-     * @private
-     */
-    async _generateFallbackTags(prompt) {
-        if (!prompt) {
-            return [];
-        }
-
-        try {
-            // Simple tag extraction as fallback
-            const words = prompt.toLowerCase()
-                .replace(/[^\w\s]/g, ' ') // Remove punctuation
-                .split(/\s+/)
-                .filter(word => word.length > 2);
-
-            // Common words to filter out
-            const stopWords = new Set([
-                'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-                'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
-                'before', 'after', 'above', 'below', 'between', 'among', 'is', 'are',
-                'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does',
-                'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can'
-            ]);
-
-            // Extract meaningful tags
-            const tags = words
-                .filter(word => !stopWords.has(word))
-                .slice(0, 8); // Limit to 8 tags for fallback
-
-            // Add some contextual tags
-            const contextualTags = this._extractContextualTags(prompt);
-            const allTags = [...new Set([...tags, ...contextualTags])];
-
-            return allTags.slice(0, 10); // Ensure max 10 tags
-
-        } catch (error) {
-            console.error('Fallback tagging error:', error);
-
-            return [];
-        }
-    }
-
-    /**
-     * Extract contextual tags based on prompt patterns (fallback method)
-     * @private
-     */
-    _extractContextualTags(prompt) {
-        const contextualTags = [];
-        const lowerPrompt = prompt.toLowerCase();
-
-        contextualTags.push(...this._extractArtStyleTags(lowerPrompt));
-        contextualTags.push(...this._extractSubjectTags(lowerPrompt));
-        contextualTags.push(...this._extractMoodTags(lowerPrompt));
-
-        return contextualTags;
-    }
-
-    /**
-     * Extract art style tags
-     * @private
-     */
-    _extractArtStyleTags(lowerPrompt) {
-        const artStyleTags = [];
-
-        if (lowerPrompt.includes('painting')) {
-            artStyleTags.push('painting');
-        }
-        if (lowerPrompt.includes('photograph') || lowerPrompt.includes('photo')) {
-            artStyleTags.push('photography');
-        }
-        if (lowerPrompt.includes('digital art')) {
-            artStyleTags.push('digital-art');
-        }
-        if (lowerPrompt.includes('sketch')) {
-            artStyleTags.push('sketch');
-        }
-        if (lowerPrompt.includes('watercolor')) {
-            artStyleTags.push('watercolor');
-        }
-
-        return artStyleTags;
-    }
-
-    /**
-     * Extract subject tags
-     * @private
-     */
-    _extractSubjectTags(lowerPrompt) {
-        const subjectTags = [];
-
-        if (lowerPrompt.includes('portrait')) {
-            subjectTags.push('portrait');
-        }
-        if (lowerPrompt.includes('landscape')) {
-            subjectTags.push('landscape');
-        }
-        if (lowerPrompt.includes('animal')) {
-            subjectTags.push('animal');
-        }
-        if (lowerPrompt.includes('building') || lowerPrompt.includes('architecture')) {
-            subjectTags.push('architecture');
-        }
-
-        return subjectTags;
-    }
-
-    /**
-     * Extract mood/atmosphere tags
-     * @private
-     */
-    _extractMoodTags(lowerPrompt) {
-        const moodTags = [];
-
-        if (lowerPrompt.includes('dark') || lowerPrompt.includes('gloomy')) {
-            moodTags.push('dark');
-        }
-        if (lowerPrompt.includes('bright') || lowerPrompt.includes('vibrant')) {
-            moodTags.push('bright');
-        }
-        if (lowerPrompt.includes('peaceful') || lowerPrompt.includes('calm')) {
-            moodTags.push('peaceful');
-        }
-        if (lowerPrompt.includes('dramatic')) {
-            moodTags.push('dramatic');
-        }
-
-        return moodTags;
-    }
 
     /**
      * Simple delay utility

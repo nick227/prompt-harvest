@@ -135,7 +135,10 @@ class SimpleDrawer {
                         <a href="/billing.html">Account</a>
                     </div>
                     <div class="space-y-2 mt-4">
-                        <a href="/faq.html">About</a>
+                        <a href="/faq.html">FAQ</a>
+                    </div>
+                    <div class="space-y-2 mt-4">
+                        <a href="/blog/">Blog</a>
                     </div>
                 </div>
             </div>
