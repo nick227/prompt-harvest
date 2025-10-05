@@ -179,6 +179,8 @@ class UnifiedInfoBox {
 
         const content = this.createElement('div', config);
 
+        this.setupVerticalDragScroll(content);
+
         const thumbnail = this.createThumbnail(imageData, config);
 
         thumbnail.classList.add('info-box-thumbnail');
@@ -199,6 +201,92 @@ class UnifiedInfoBox {
 
         return content;
     }
+
+    /**
+     * Setup vertical drag scroll for both touch and mouse events
+     * @param {HTMLElement} content - Content element to enable drag scrolling
+     */
+    setupVerticalDragScroll(content) {
+        if (!content || !content.addEventListener) {
+            console.warn('setupVerticalDragScroll: Invalid content element provided');
+
+            return;
+        }
+
+        let dragging = false;
+        let startY = 0;
+        let startTop = 0;
+
+        const handleStart = e => {
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            dragging = true;
+            startY = clientY;
+            startTop = content.scrollTop;
+
+            // Prevent default to avoid conflicts with page scrolling
+            e.preventDefault();
+        };
+
+        const handleMove = e => {
+            if (!dragging) { return; }
+
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const deltaY = clientY - startY;
+            const newScrollTop = startTop - deltaY;
+
+            // Apply bounds checking
+            const maxScroll = content.scrollHeight - content.clientHeight;
+
+            content.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
+
+            e.preventDefault();
+        };
+
+        const handleStop = () => {
+            dragging = false;
+        };
+
+        // Touch events
+        content.addEventListener('touchstart', handleStart, { passive: false });
+        content.addEventListener('touchmove', handleMove, { passive: false });
+        content.addEventListener('touchend', handleStop);
+
+        // Mouse events for desktop
+        content.addEventListener('mousedown', handleStart);
+        content.addEventListener('mousemove', handleMove);
+        content.addEventListener('mouseup', handleStop);
+        content.addEventListener('mouseleave', handleStop); // Handle mouse leaving element
+
+        // Store cleanup function for potential future use
+        content._dragScrollCleanup = () => {
+            content.removeEventListener('touchstart', handleStart);
+            content.removeEventListener('touchmove', handleMove);
+            content.removeEventListener('touchend', handleStop);
+            content.removeEventListener('mousedown', handleStart);
+            content.removeEventListener('mousemove', handleMove);
+            content.removeEventListener('mouseup', handleStop);
+            content.removeEventListener('mouseleave', handleStop);
+            delete content._dragScrollCleanup;
+        };
+    }
+
+    /**
+     * Handle touch start
+     * @param {TouchEvent} e - Touch event
+     */
+    handleTouchStart(e) {
+        e.preventDefault();
+    }
+
+    handleTouchMove(e) {
+        e.preventDefault();
+    }
+
+    handleTouchEnd(e) {
+        e.preventDefault();
+    }
+
 
     /**
      * Create thumbnail element
