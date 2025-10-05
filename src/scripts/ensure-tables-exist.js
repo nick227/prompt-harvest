@@ -101,6 +101,16 @@ export async function ensureTablesExist() {
 
         console.log('✅ Tables created successfully!');
 
+        // Force Prisma client regeneration to recognize new tables
+        console.log('🔄 Regenerating Prisma client...');
+        const { execSync } = await import('child_process');
+        try {
+            execSync('npx prisma generate', { stdio: 'inherit' });
+            console.log('✅ Prisma client regenerated successfully');
+        } catch (error) {
+            console.log('⚠️ Prisma client regeneration failed, but tables exist:', error.message);
+        }
+
     } catch (error) {
         console.error('❌ Error ensuring tables exist:', error);
         throw error;
