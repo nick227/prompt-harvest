@@ -216,49 +216,96 @@ class UnifiedInfoBox {
         let dragging = false;
         let startY = 0;
         let startTop = 0;
+        let startX = 0;
+        const dragThreshold = 10; // Minimum pixels to move before drag starts
+        let hasMoved = false;
+
+        const isInteractiveElement = target => {
+            // Check if the target or its parents are interactive elements
+            const interactiveTags = ['button', 'a', 'input', 'select', 'textarea'];
+            const interactiveRoles = ['button', 'link', 'tab', 'menuitem'];
+
+            let element = target;
+
+            while (element && element !== content) {
+                if (interactiveTags.includes(element.tagName?.toLowerCase()) ||
+                    interactiveRoles.includes(element.getAttribute?.('role')) ||
+                    element.onclick ||
+                    element.getAttribute?.('onclick')) {
+                    return true;
+                }
+                element = element.parentElement;
+            }
+
+            return false;
+        };
 
         const handleStart = e => {
+            const { target } = e;
+
+            // Don't start drag if touching interactive elements
+            if (isInteractiveElement(target)) {
+                return;
+            }
+
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
 
-            dragging = true;
             startY = clientY;
+            startX = clientX;
             startTop = content.scrollTop;
-
-            // Prevent default to avoid conflicts with page scrolling
-            e.preventDefault();
+            hasMoved = false;
+            dragging = false; // Will be set to true only after threshold
         };
 
         const handleMove = e => {
-            if (!dragging) { return; }
+            if (!startY && !startX) { return; } // No start event captured
 
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const deltaY = clientY - startY;
-            const newScrollTop = startTop - deltaY;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const deltaY = Math.abs(clientY - startY);
+            const deltaX = Math.abs(clientX - startX);
 
-            // Apply bounds checking
-            const maxScroll = content.scrollHeight - content.clientHeight;
+            // Only start dragging if moved enough vertically and not too much horizontally
+            if (!dragging && deltaY > dragThreshold && deltaY > deltaX) {
+                dragging = true;
+                hasMoved = true;
+                e.preventDefault();
+            }
 
-            content.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
+            if (dragging) {
+                const newScrollTop = startTop - (clientY - startY);
+                const maxScroll = content.scrollHeight - content.clientHeight;
 
-            e.preventDefault();
+                content.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
+                e.preventDefault();
+            }
         };
 
-        const handleStop = () => {
+        const handleStop = e => {
+            // If we were dragging, prevent click events on the target
+            if (dragging && hasMoved) {
+                e.preventDefault();
+            }
+
             dragging = false;
+            startY = 0;
+            startX = 0;
+            hasMoved = false;
         };
 
         // Touch events
-        content.addEventListener('touchstart', handleStart, { passive: false });
+        content.addEventListener('touchstart', handleStart, { passive: true });
         content.addEventListener('touchmove', handleMove, { passive: false });
-        content.addEventListener('touchend', handleStop);
+        content.addEventListener('touchend', handleStop, { passive: false });
 
-        // Mouse events for desktop
+        // Mouse events for desktop (less aggressive)
         content.addEventListener('mousedown', handleStart);
         content.addEventListener('mousemove', handleMove);
         content.addEventListener('mouseup', handleStop);
-        content.addEventListener('mouseleave', handleStop); // Handle mouse leaving element
+        content.addEventListener('mouseleave', handleStop);
 
-        // Store cleanup function for potential future use
+        // Store cleanup function
         content._dragScrollCleanup = () => {
             content.removeEventListener('touchstart', handleStart);
             content.removeEventListener('touchmove', handleMove);
