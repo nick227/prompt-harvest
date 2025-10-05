@@ -2,7 +2,7 @@
 
 /**
  * Execute Railway Migration Script
- * 
+ *
  * This script executes the blog_posts and api_requests migration on Railway production.
  */
 
@@ -21,15 +21,15 @@ class RailwayMigrationExecutor {
 
     async checkExistingTables() {
         console.log('🔍 Checking for existing tables...');
-        
+
         try {
             const result = await this.prisma.$queryRaw`
-                SELECT TABLE_NAME 
-                FROM INFORMATION_SCHEMA.TABLES 
-                WHERE TABLE_SCHEMA = DATABASE() 
+                SELECT TABLE_NAME
+                FROM INFORMATION_SCHEMA.TABLES
+                WHERE TABLE_SCHEMA = DATABASE()
                 AND TABLE_NAME IN ('blog_posts', 'api_requests')
             `;
-            
+
             console.log('📊 Existing tables:', result);
             return result.length > 0;
         } catch (error) {
@@ -40,7 +40,7 @@ class RailwayMigrationExecutor {
 
     async executeMigration() {
         console.log('🚀 Executing migration on Railway...');
-        
+
         try {
             // Create blog_posts table
             await this.prisma.$executeRaw`
@@ -122,19 +122,19 @@ class RailwayMigrationExecutor {
 
     async verifyMigration() {
         console.log('🔍 Verifying migration...');
-        
+
         try {
             const result = await this.prisma.$queryRaw`
-                SELECT 
+                SELECT
                     TABLE_NAME,
                     TABLE_ROWS,
                     CREATE_TIME
-                FROM INFORMATION_SCHEMA.TABLES 
-                WHERE TABLE_SCHEMA = DATABASE() 
+                FROM INFORMATION_SCHEMA.TABLES
+                WHERE TABLE_SCHEMA = DATABASE()
                 AND TABLE_NAME IN ('blog_posts', 'api_requests')
                 ORDER BY TABLE_NAME
             `;
-            
+
             console.log('📊 Migration verification:', result);
             return result.length === 2;
         } catch (error) {
@@ -145,7 +145,7 @@ class RailwayMigrationExecutor {
 
     async execute() {
         console.log('🚀 Starting Railway migration execution...\n');
-        
+
         try {
             // Step 1: Check existing tables
             const tablesExist = await this.checkExistingTables();
@@ -153,24 +153,24 @@ class RailwayMigrationExecutor {
                 console.log('⚠️ Tables already exist in Railway. Migration may not be needed.');
             }
             console.log('');
-            
+
             // Step 2: Execute migration
             const migrationSuccess = await this.executeMigration();
             if (!migrationSuccess) {
                 throw new Error('Migration execution failed');
             }
             console.log('');
-            
+
             // Step 3: Verify migration
             const verificationSuccess = await this.verifyMigration();
             if (!verificationSuccess) {
                 throw new Error('Migration verification failed');
             }
             console.log('');
-            
+
             console.log('✨ Migration execution completed successfully!');
             console.log('📊 New tables created: blog_posts, api_requests');
-            
+
         } catch (error) {
             console.error('💥 Migration execution failed:', error);
             throw error;
@@ -183,7 +183,7 @@ class RailwayMigrationExecutor {
 // Main execution
 async function main() {
     const executor = new RailwayMigrationExecutor();
-    
+
     try {
         await executor.execute();
         process.exit(0);

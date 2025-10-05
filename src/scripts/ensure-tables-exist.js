@@ -7,20 +7,20 @@ import databaseClient from '../database/PrismaClient.js';
 
 export async function ensureTablesExist() {
     console.log('🔍 Checking if blog_posts and api_requests tables exist...');
-    
+
     try {
         const prisma = databaseClient.getClient();
-        
+
         // Check if tables exist
         const existingTables = await prisma.$queryRaw`
-            SELECT TABLE_NAME 
-            FROM INFORMATION_SCHEMA.TABLES 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            SELECT TABLE_NAME
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
             AND TABLE_NAME IN ('blog_posts', 'api_requests')
         `;
-        
+
         console.log('📊 Existing tables:', existingTables);
-        
+
         if (existingTables.length >= 2) {
             console.log('✅ Tables already exist, no migration needed');
             return;

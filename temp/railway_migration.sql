@@ -3,9 +3,9 @@
 
 -- Check if tables already exist
 SELECT 'Checking existing tables...' as status;
-SELECT TABLE_NAME 
-FROM INFORMATION_SCHEMA.TABLES 
-WHERE TABLE_SCHEMA = DATABASE() 
+SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = DATABASE()
 AND TABLE_NAME IN ('blog_posts', 'api_requests');
 
 -- CreateTable

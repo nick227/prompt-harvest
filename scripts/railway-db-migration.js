@@ -12,19 +12,19 @@ const prisma = new PrismaClient();
 
 async function createTables() {
     console.log('🚀 Creating missing tables on Railway...');
-    
+
     try {
         // Check if tables exist first
         console.log('🔍 Checking existing tables...');
         const existingTables = await prisma.$queryRaw`
-            SELECT TABLE_NAME 
-            FROM INFORMATION_SCHEMA.TABLES 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            SELECT TABLE_NAME
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
             AND TABLE_NAME IN ('blog_posts', 'api_requests')
         `;
-        
+
         console.log('📊 Existing tables:', existingTables);
-        
+
         if (existingTables.length >= 2) {
             console.log('✅ Tables already exist, skipping creation');
             return;
@@ -112,12 +112,12 @@ async function createTables() {
         console.log('🔍 Verifying tables...');
         const tables = await prisma.$queryRaw`
             SELECT TABLE_NAME, TABLE_ROWS, CREATE_TIME
-            FROM INFORMATION_SCHEMA.TABLES 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
             AND TABLE_NAME IN ('blog_posts', 'api_requests')
             ORDER BY TABLE_NAME
         `;
-        
+
         console.log('📊 Tables created:', tables);
         console.log('✨ Migration completed successfully!');
 

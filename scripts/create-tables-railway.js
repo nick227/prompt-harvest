@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 
 async function createTables() {
     console.log('🚀 Creating tables on Railway...');
-    
+
     try {
         // Create blog_posts table
         console.log('Creating blog_posts table...');
@@ -76,12 +76,12 @@ async function createTables() {
         // Verify tables
         console.log('Verifying tables...');
         const tables = await prisma.$queryRaw`
-            SELECT TABLE_NAME 
-            FROM INFORMATION_SCHEMA.TABLES 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            SELECT TABLE_NAME
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
             AND TABLE_NAME IN ('blog_posts', 'api_requests')
         `;
-        
+
         console.log('📊 Tables found:', tables);
         console.log('✨ Migration completed successfully!');
 
