@@ -64,25 +64,20 @@
 
     .info-box {
         width: calc(100vw - 20px);
-        max-width: 100%;
-        max-height: 90vh;
         top: 10px;
         right: 10px;
         left: 10px;
-        overflow: hidden;
         background: rgba(0, 0, 0, 0.25);
         display: flex;
         flex-direction: column;
     }
 
+    .info-box-content.expanded {
+        height: 80vh;
+    }
+
     .info-box-container {
         background: transparent;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        touch-action: pan-y;
-        overscroll-behavior: contain;
-        scroll-behavior: smooth;
-        position: relative;
     }
 
     .info-box-meta {
@@ -102,32 +97,17 @@
     /* Mobile touch scrolling improvements for info box content */
     .info-box-content {
         -webkit-overflow-scrolling: touch;
-        touch-action: pan-y;
         overscroll-behavior: contain;
-        max-height: 100vh;
+        height: 70vh;
         overflow-y: auto;
-    }
-
-    /* Ensure prompt values are scrollable on mobile */
-    .info-box-prompt-value {
-        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        position: relative;
         touch-action: pan-y;
-        max-height: 200px;
-        overflow-y: auto;
-        overscroll-behavior: contain;
     }
 
     /* Mobile info-box header should not scroll */
     .info-box-header {
         flex-shrink: 0;
-    }
-
-    /* Mobile info-box content should be scrollable */
-    .info-box-content {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
     }
 
     .info-box-thumbnail {
