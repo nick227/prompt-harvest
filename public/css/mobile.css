@@ -98,7 +98,7 @@
     .info-box-content {
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
-        height: 70dvh;
+        height: calc(100dvh - 120px);
         overflow-y: auto;
         scroll-behavior: smooth;
         position: relative;
