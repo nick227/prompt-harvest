@@ -2,7 +2,7 @@
    IMAGE STYLES - Image display, wrappers, and image-related components
    ========================================================================== */
 
-img {
+.image-wrapper img {
     opacity: 0;
     transition: opacity 0.2s ease;
     animation: fadeIn 0.1s ease;
