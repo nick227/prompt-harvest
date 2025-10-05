@@ -349,6 +349,10 @@ class ImageDOMUtils {
             .image-loaded {
                 opacity: 1;
                 transition: opacity 0.3s ease;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
             }
             .image-loading-spinner {
                 position: absolute;

@@ -1,6 +1,6 @@
 // Suppress punycode deprecation warning (coming from dependencies)
 process.removeAllListeners('warning');
-process.on('warning', (warning) => {
+process.on('warning', warning => {
     if (warning.name === 'DeprecationWarning' && warning.message.includes('punycode')) {
         // Suppress punycode deprecation warnings from dependencies
         return;

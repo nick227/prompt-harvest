@@ -53,10 +53,6 @@
         display: none !important;
     }
 
-    header {
-        height: 150px;
-    }
-
     main.main-container {
         margin-top: var(--top-mobile-margin-height);
         padding: 1rem !important;
