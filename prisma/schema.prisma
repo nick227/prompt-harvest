@@ -23,6 +23,10 @@ model User {
   name            String?  @db.VarChar(100)
   picture         String?  @db.VarChar(500)
 
+  // Relations
+  blogPosts       BlogPost[]
+  apiRequests     ApiRequest[]
+
   @@map("users")
 }
 
@@ -419,6 +423,9 @@ model BlogPost {
   updatedAt   DateTime  @updatedAt
   thumbnail   String?   @db.VarChar(500)
 
+  // Relations
+  author      User      @relation(fields: [authorId], references: [id])
+
   @@index([authorId])
   @@index([isPublished])
   @@index([isFeatured])
@@ -440,6 +447,9 @@ model ApiRequest {
   ipAddress    String?  @db.VarChar(45)
   userAgent    String?  @db.Text
   createdAt    DateTime @default(now())
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([endpoint])
