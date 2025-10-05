@@ -19,6 +19,7 @@ import { authenticateToken } from './src/middleware/authMiddleware.js';
 import databaseClient from './src/database/PrismaClient.js';
 import PrismaSessionStore from './src/config/PrismaSessionStore.js';
 import { autoPopulateWordTypes } from './src/scripts/auto-populate-word-types.js';
+import { ensureTablesExist } from './src/scripts/ensure-tables-exist.js';
 
 dotenv.config(); // Nodemon restart trigger
 
@@ -62,6 +63,9 @@ const initializeDatabase = async () => {
 
         // Auto-populate word_types on Railway if table is empty
         await autoPopulateWordTypes();
+
+        // Ensure blog_posts and api_requests tables exist
+        await ensureTablesExist();
 
         return true;
     } catch (error) {
