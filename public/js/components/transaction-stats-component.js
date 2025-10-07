@@ -206,14 +206,8 @@ class TransactionStatsComponent {
         // Ensure the container is visible when showing stats
         this.container.style.display = 'block';
 
-        const { generationCount } = this.stats;
-
         this.container.innerHTML = `
             <div class="flex items-center space-x-3 text-sm">
-                <div class="flex items-center space-x-1">
-                    <i class="fas fa-images text-blue-400"></i>
-                    <span class="text-gray-300">${generationCount}</span>
-                </div>
                 <button
                 id="add-credits-btn"
                         class="add-credits-btn bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs

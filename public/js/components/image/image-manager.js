@@ -706,20 +706,21 @@ class ImageManager {
 
     // Scroll Management Methods
     disableInfiniteScroll() {
-        if (window.feedManager?.intersectionObserver) {
-            window.feedManager.intersectionObserver.disconnect();
+        if (window.feedManager && window.feedManager.uiManager) {
+            // Disconnect the intersection observer for infinite scroll
+            if (window.feedManager.uiManager.disconnectIntersectionObserver) {
+                window.feedManager.uiManager.disconnectIntersectionObserver();
+            }
         }
     }
 
     enableInfiniteScroll() {
-        if (window.feedManager) {
+        if (window.feedManager && window.feedManager.uiManager) {
             // Use requestAnimationFrame instead of setTimeout
             requestAnimationFrame(() => {
-                if (window.feedManager.setupLazyLoading) {
-                    window.feedManager.setupLazyLoading();
-                }
-                if (window.feedManager.updateLazyLoadingTarget) {
-                    window.feedManager.updateLazyLoadingTarget();
+                // Reconnect the intersection observer for infinite scroll
+                if (window.feedManager.uiManager.reconnectIntersectionObserver) {
+                    window.feedManager.uiManager.reconnectIntersectionObserver();
                 }
             });
         }

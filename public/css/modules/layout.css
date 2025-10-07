@@ -231,6 +231,10 @@
     gap: 8px;
 }
 
+.compact-view.loading-content {
+    margin-top: 22%;
+}
+
 .list-header {
     display: flex;
     justify-content: space-between;

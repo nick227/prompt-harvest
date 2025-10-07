@@ -2,6 +2,11 @@
    COMPONENT STYLES - UI components like buttons, forms, checkboxes, etc.
    ========================================================================== */
 
+.btn-magic {
+    height: 34px;
+    width: 68px;
+}
+
 /* Matches Items - Rounded Minimal Buttons */
 #matches {
     display: flex;

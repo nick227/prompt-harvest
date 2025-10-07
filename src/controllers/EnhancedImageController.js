@@ -691,6 +691,22 @@ export class EnhancedImageController {
                 throw new Error('Image not found');
             }
 
+            // Fetch username for the userId (same logic as in getImages method)
+            let username = 'Anonymous';
+            if (image.userId) {
+                try {
+                    const user = await databaseClient.getClient().user.findUnique({
+                        where: { id: image.userId },
+                        select: { username: true, email: true }
+                    });
+                    username = user?.username || (user?.email ? user.email : 'Unknown User');
+
+                } catch (error) {
+                    console.error('❌ Failed to fetch username for userId:', image.userId, error);
+                    username = 'Unknown User';
+                }
+            }
+
             return {
                 id: image.id,
                 prompt: image.prompt,
@@ -702,6 +718,7 @@ export class EnhancedImageController {
                 rating: image.rating,
                 isPublic: image.isPublic,
                 userId: image.userId,
+                username, // ✅ Include username in response
                 tags: image.tags || [],
                 taggedAt: image.taggedAt,
                 taggingMetadata: image.taggingMetadata,

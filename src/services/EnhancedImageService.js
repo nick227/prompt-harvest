@@ -149,7 +149,7 @@ export class EnhancedImageService {
         );
 
 
-        return this.extractImageResult(imageData, processedData.prompt, processedData.original, guidance, userId);
+        return await this.extractImageResult(imageData, processedData.prompt, processedData.original, guidance, userId);
     }
 
     // eslint-disable-next-line max-lines-per-function, max-statements
@@ -376,7 +376,7 @@ export class EnhancedImageService {
     }
 
 
-    extractImageResult(imageData, prompt, original, guidance, userId) {
+    async extractImageResult(imageData, prompt, original, guidance, userId) {
         const firstResult = imageData.results && imageData.results.length > 0 ? imageData.results[0] : null;
         const actualImageId = firstResult?.imageId;
         const actualProvider = firstResult?.provider;
@@ -385,7 +385,26 @@ export class EnhancedImageService {
         // Check if the generation was actually successful
         const generationSuccessful = firstResult && firstResult.success && actualImageUrl;
 
-        return {
+        // Use username from processed result if available, otherwise fetch it
+        let username = 'Anonymous';
+        if (firstResult?.username) {
+            // Username already included from GenerationResultProcessor
+            username = firstResult.username;
+        } else if (userId) {
+            // Fallback: fetch username from database
+            try {
+                const user = await this.prisma.user.findUnique({
+                    where: { id: userId },
+                    select: { username: true, email: true }
+                });
+                username = user?.username || (user?.email ? user.email : 'Unknown User');
+            } catch (error) {
+                console.error('❌ Failed to fetch username for userId:', userId, error);
+                username = 'Unknown User';
+            }
+        }
+
+        const response = {
             id: actualImageId,
             imageUrl: actualImageUrl,
             prompt,
@@ -394,10 +413,14 @@ export class EnhancedImageService {
             guidance,
             rating: 0,
             userId,
+            username, // ✅ Include username in response
             createdAt: new Date().toISOString(),
             success: generationSuccessful,
             results: imageData.results
         };
+
+
+        return response;
     }
 
     async logTransactionIfNeeded(userId, provider) {

@@ -67,7 +67,23 @@ export class GenerationResultProcessor {
         // Step 3: Fetch tags for the saved image
         const imageWithTags = await this.fetchImageWithTags(savedImage._id);
 
-        // Step 4: Trigger async tagging (fire-and-forget)
+        // Step 4: Fetch username for the userId (same logic as in getImages method)
+        let username = 'Anonymous';
+        if (userId) {
+            try {
+                const user = await DatabaseService.getClient().user.findUnique({
+                    where: { id: userId },
+                    select: { username: true, email: true }
+                });
+                username = user?.username || (user?.email ? user.email : 'Unknown User');
+
+            } catch (error) {
+                console.error('❌ Failed to fetch username for userId:', userId, error);
+                username = 'Unknown User';
+            }
+        }
+
+        // Step 5: Trigger async tagging (fire-and-forget)
         this.triggerAsyncTagging(savedImage._id, prompt, {
             provider: result.provider,
             userId: DatabaseService.getUserId(req),
@@ -83,7 +99,8 @@ export class GenerationResultProcessor {
             imageData: result.data,
             tags: imageWithTags.tags || [],
             taggedAt: imageWithTags.taggedAt,
-            taggingMetadata: imageWithTags.taggingMetadata
+            taggingMetadata: imageWithTags.taggingMetadata,
+            username // ✅ Include username in response
         };
     }
 

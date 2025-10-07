@@ -11,6 +11,7 @@ class HeaderComponent {
         if (!document.body) {
             console.log('🔍 HEADER-COMPONENT: Body not ready, retrying...');
             setTimeout(() => this.init(), 10);
+
             return;
         }
 
@@ -101,9 +102,6 @@ class HeaderComponent {
                         </div>
                         <div id="user-info" class="hidden flex items-center space-x-4">
                             <a href="/billing.html"><span class="text-sm text-gray-300"></span></a>
-                            <a class="logout-btn link">
-                                Logout
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -207,13 +205,14 @@ class HeaderComponent {
         // Legacy user system UI override is no longer needed
     }
 
-    updateHeaderForUser() {
-        console.log('🔍 HEADER: updateHeaderForUser called');
+    getAuthState() {
         // Check both userSystem and authService
         const authSystem = window.userSystem || window.authService;
+
         if (!authSystem) {
             console.log('🔍 HEADER: No auth system available');
-            return;
+
+            return null;
         }
 
         console.log('🔍 HEADER: Auth system found:', authSystem.constructor.name);
@@ -239,6 +238,7 @@ class HeaderComponent {
         // Additional check: if we have a token but auth system says not authenticated,
         // try to force a re-check
         const hasToken = localStorage.getItem('authToken');
+
         if (hasToken && !isAuthenticated) {
             console.log('🔍 HEADER: Token present but not authenticated, forcing re-check');
             // Try to trigger auth state refresh
@@ -247,69 +247,89 @@ class HeaderComponent {
             }
             // Wait a bit and try again
             setTimeout(() => this.updateHeaderForUser(), 500);
-            return;
+
+            return null;
         }
 
-        // Check if state has actually changed to avoid unnecessary updates
-        const currentState = { isAuthenticated, userEmail: user?.email };
+        return { isAuthenticated, user };
+    }
+
+    updateHeaderForUser() {
+        console.log('🔍 HEADER: updateHeaderForUser called');
+
+        const authState = this.getAuthState();
+
+        if (!authState) { return; }
+
+        const { isAuthenticated, user } = authState;
+
+        if (!this.shouldUpdateHeader(isAuthenticated, user?.email)) { return; }
+
+        this.lastAuthState = { isAuthenticated, userEmail: user?.email };
+
+        if (isAuthenticated && user) {
+            this.showAuthenticatedUser(user);
+        } else {
+            this.showUnauthenticatedUser();
+        }
+    }
+
+    shouldUpdateHeader(isAuthenticated, userEmail) {
+        const currentState = { isAuthenticated, userEmail };
 
         if (this.lastAuthState &&
             this.lastAuthState.isAuthenticated === currentState.isAuthenticated &&
             this.lastAuthState.userEmail === currentState.userEmail) {
-            return; // No change, skip update
+            return false; // No change, skip update
         }
 
-        this.lastAuthState = currentState;
+        return true;
+    }
 
+    showAuthenticatedUser(user) {
+        console.log('🔍 HEADER: User is authenticated, showing user info');
+
+        this.toggleAuthElements(false);
+        this.updateUserInfo(user);
+        this.addAdminLinkIfNeeded(user);
+    }
+
+    showUnauthenticatedUser() {
+        console.log('🔍 HEADER: User not authenticated, showing auth links');
+
+        this.toggleAuthElements(true);
+        this.removeAdminLink();
+    }
+
+    toggleAuthElements(showAuthLinks) {
         const authLinks = document.getElementById('auth-links');
         const userInfo = document.getElementById('user-info');
-        const userEmail = userInfo?.querySelector('span');
 
-        console.log('🔍 HEADER: UI elements found:', {
-            authLinks: !!authLinks,
-            userInfo: !!userInfo,
-            userEmail: !!userEmail
-        });
+        if (authLinks) {
+            authLinks.style.display = showAuthLinks ? 'flex' : 'none';
+            showAuthLinks ? authLinks.classList.remove('hidden') : authLinks.classList.add('hidden');
+            console.log('🔍 HEADER:', showAuthLinks ? 'Showing' : 'Hiding', 'auth links');
+        }
 
-        if (isAuthenticated && user) {
-            console.log('🔍 HEADER: User is authenticated, showing user info');
-            // User is logged in
-            if (authLinks) {
-                authLinks.style.display = 'none';
-                authLinks.classList.add('hidden');
-                console.log('🔍 HEADER: Hiding auth links');
-            }
+        if (userInfo) {
+            userInfo.style.display = showAuthLinks ? 'none' : 'flex';
+            showAuthLinks ? userInfo.classList.add('hidden') : userInfo.classList.remove('hidden');
+            console.log('🔍 HEADER:', showAuthLinks ? 'Hiding' : 'Showing', 'user info');
+        }
+    }
 
-            if (userInfo) {
-                userInfo.style.display = 'flex';
-                userInfo.classList.remove('hidden');
-                console.log('🔍 HEADER: Showing user info');
+    updateUserInfo(user) {
+        console.log('user info', user);
+        const userInfo = document.getElementById('user-info');
+        const userElement = userInfo?.querySelector('span');
 
-                if (userEmail) {
-                    userEmail.textContent = user.email || 'User';
-                    console.log('🔍 HEADER: Set user email to:', user.email);
-                }
-
-                // Add admin link if user is admin
-                this.addAdminLinkIfNeeded(user);
-            }
-        } else {
-            console.log('🔍 HEADER: User not authenticated, showing auth links');
-            // User is not logged in
-            if (authLinks) {
-                authLinks.style.display = 'flex';
-                authLinks.classList.remove('hidden');
-                console.log('🔍 HEADER: Showing auth links');
-            }
-
-            if (userInfo) {
-                userInfo.style.display = 'none';
-                userInfo.classList.add('hidden');
-                console.log('🔍 HEADER: Hiding user info');
-            }
-
-            // Remove admin link when not authenticated
-            this.removeAdminLink();
+        if (userElement) {
+            userElement.innerHTML = user.picture ? `
+                <img src="${user.picture}" alt="User Picture" class="w-8 h-8 rounded-full">
+            ` : `
+                <span>${user.username}</span>
+            `;
+            console.log('🔍 HEADER: Set user info to:', userElement.innerHTML);
         }
     }
 
@@ -377,9 +397,11 @@ class HeaderComponent {
 
         // Listen for user system updates with proper error handling
         const authSystem = window.userSystem || window.authService;
+
         if (authSystem) {
             if (authSystem.setUser) {
                 const originalSetUser = authSystem.setUser.bind(authSystem);
+
                 authSystem.setUser = user => {
                     originalSetUser(user);
                     // Small delay to ensure user system state is fully updated
@@ -399,6 +421,7 @@ class HeaderComponent {
         // This ensures the header stays in sync even if events are missed
         setInterval(() => {
             const authSystem = window.userSystem || window.authService;
+
             if (authSystem) {
                 const currentAuthState = authSystem.isAuthenticated();
                 const currentUser = authSystem.getUser ? authSystem.getUser() : authSystem.currentUser;
@@ -417,6 +440,7 @@ class HeaderComponent {
     async handleLogout() {
         try {
             const authSystem = window.userSystem || window.authService;
+
             if (authSystem) {
                 if (authSystem.logout) {
                     await authSystem.logout();
@@ -438,6 +462,7 @@ class HeaderComponent {
 
 // Initialize header component immediately
 const headerComponent = new HeaderComponent();
+
 window.headerComponent = headerComponent;
 
 // Also try to initialize after a delay to catch any timing issues

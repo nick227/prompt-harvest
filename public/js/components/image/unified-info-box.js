@@ -213,109 +213,218 @@ class UnifiedInfoBox {
             return;
         }
 
-        let dragging = false;
-        let startY = 0;
-        let startTop = 0;
-        let startX = 0;
-        const dragThreshold = 10; // Minimum pixels to move before drag starts
-        let hasMoved = false;
+        const dragConfig = this.createDragConfig(content);
+        const handlers = this.createDragHandlers(content, dragConfig);
 
-        const isInteractiveElement = target => {
-            // Check if the target or its parents are interactive elements
-            const interactiveTags = ['button', 'a', 'input', 'select', 'textarea'];
-            const interactiveRoles = ['button', 'link', 'tab', 'menuitem'];
+        this.attachDragListeners(content, handlers);
+        this.setupDragCleanup(content, dragConfig, handlers);
+    }
 
-            let element = target;
+    /**
+     * Create drag configuration object
+     * @param {HTMLElement} content - Content element
+     * @returns {Object} Drag configuration
+     */
+    createDragConfig(content) {
+        return {
+            dragging: false,
+            startY: 0,
+            startX: 0,
+            lastY: 0,
+            velocity: 0,
+            lastTime: 0,
+            momentumAnimationId: null,
+            hasMoved: false,
+            dragThreshold: 4,
+            scrollMultiplier: 4,
+            maxVelocity: 175,
+            friction: 0.8,
+            content
+        };
+    }
 
-            while (element && element !== content) {
-                if (interactiveTags.includes(element.tagName?.toLowerCase()) ||
-                    interactiveRoles.includes(element.getAttribute?.('role')) ||
-                    element.onclick ||
-                    element.getAttribute?.('onclick')) {
-                    return true;
-                }
-                element = element.parentElement;
-            }
-
-            return false;
+    /**
+     * Create drag event handlers
+     * @param {HTMLElement} content - Content element
+     * @param {Object} config - Drag configuration
+     * @returns {Object} Event handlers
+     */
+    createDragHandlers(content, config) {
+        const isInteractiveElement = target => this.isInteractiveElement(target, content);
+        const applyScroll = deltaY => this.applyScroll(deltaY, content, config.scrollMultiplier);
+        const applyMomentum = () => {
+            this.applyMomentum(config, applyScroll);
         };
 
-        const handleStart = e => {
-            const { target } = e;
-
-            // Don't start drag if touching interactive elements
-            if (isInteractiveElement(target)) {
-                return;
-            }
-
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-
-            startY = clientY;
-            startX = clientX;
-            startTop = content.scrollTop;
-            hasMoved = false;
-            dragging = false; // Will be set to true only after threshold
+        return {
+            start: e => this.handleDragStart(e, content, config, isInteractiveElement),
+            move: e => this.handleDragMove(e, content, config, applyScroll),
+            stop: e => this.handleDragStop(e, content, config, applyMomentum)
         };
+    }
 
-        const handleMove = e => {
-            if (!startY && !startX) { return; } // No start event captured
+    /**
+     * Attach drag listeners to content
+     * @param {HTMLElement} content - Content element
+     * @param {Object} handlers - Event handlers
+     */
+    attachDragListeners(content, handlers) {
+        content.addEventListener('touchstart', handlers.start, { passive: true });
+        content.addEventListener('touchmove', handlers.move, { passive: false });
+        content.addEventListener('touchend', handlers.stop, { passive: false });
+        content.addEventListener('mousedown', handlers.start);
+        content.addEventListener('mousemove', handlers.move);
+        content.addEventListener('mouseup', handlers.stop);
+        content.addEventListener('mouseleave', handlers.stop);
+    }
 
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const deltaY = Math.abs(clientY - startY);
-            const deltaX = Math.abs(clientX - startX);
-
-            // Only start dragging if moved enough vertically and not too much horizontally
-            if (!dragging && deltaY > dragThreshold && deltaY > deltaX) {
-                dragging = true;
-                hasMoved = true;
-                e.preventDefault();
-            }
-
-            if (dragging) {
-                const newScrollTop = startTop - (clientY - startY);
-                const maxScroll = content.scrollHeight - content.clientHeight;
-
-                content.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
-                e.preventDefault();
-            }
-        };
-
-        const handleStop = e => {
-            // If we were dragging, prevent click events on the target
-            if (dragging && hasMoved) {
-                e.preventDefault();
-            }
-
-            dragging = false;
-            startY = 0;
-            startX = 0;
-            hasMoved = false;
-        };
-
-        // Touch events
-        content.addEventListener('touchstart', handleStart, { passive: true });
-        content.addEventListener('touchmove', handleMove, { passive: false });
-        content.addEventListener('touchend', handleStop, { passive: false });
-
-        // Mouse events for desktop (less aggressive)
-        content.addEventListener('mousedown', handleStart);
-        content.addEventListener('mousemove', handleMove);
-        content.addEventListener('mouseup', handleStop);
-        content.addEventListener('mouseleave', handleStop);
-
-        // Store cleanup function
+    /**
+     * Setup cleanup function for drag scroll
+     * @param {HTMLElement} content - Content element
+     * @param {Object} config - Drag configuration
+     * @param {Object} handlers - Event handlers
+     */
+    setupDragCleanup(content, config, handlers) {
         content._dragScrollCleanup = () => {
-            content.removeEventListener('touchstart', handleStart);
-            content.removeEventListener('touchmove', handleMove);
-            content.removeEventListener('touchend', handleStop);
-            content.removeEventListener('mousedown', handleStart);
-            content.removeEventListener('mousemove', handleMove);
-            content.removeEventListener('mouseup', handleStop);
-            content.removeEventListener('mouseleave', handleStop);
+            if (config.momentumAnimationId) {
+                cancelAnimationFrame(config.momentumAnimationId);
+            }
+            content.removeEventListener('touchstart', handlers.start);
+            content.removeEventListener('touchmove', handlers.move);
+            content.removeEventListener('touchend', handlers.stop);
+            content.removeEventListener('mousedown', handlers.start);
+            content.removeEventListener('mousemove', handlers.move);
+            content.removeEventListener('mouseup', handlers.stop);
+            content.removeEventListener('mouseleave', handlers.stop);
             delete content._dragScrollCleanup;
         };
+    }
+
+    /**
+     * Handle drag start event
+     * @param {Event} e - Event object
+     * @param {HTMLElement} content - Content element
+     * @param {Object} config - Drag configuration
+     * @param {Function} isInteractiveElement - Interactive element checker
+     */
+    handleDragStart(e, content, config, isInteractiveElement) {
+        const { target } = e;
+
+        if (isInteractiveElement(target)) {
+            return;
+        }
+
+        if (config.momentumAnimationId) {
+            cancelAnimationFrame(config.momentumAnimationId);
+            config.momentumAnimationId = null;
+        }
+
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+
+        config.startY = clientY;
+        config.startX = clientX;
+        config.lastY = clientY;
+        config.lastTime = Date.now();
+        config.velocity = 0;
+        config.hasMoved = false;
+        config.dragging = false;
+    }
+
+    /**
+     * Handle drag move event
+     * @param {Event} e - Event object
+     * @param {HTMLElement} content - Content element
+     * @param {Object} config - Drag configuration
+     * @param {Function} applyScroll - Scroll function
+     */
+    handleDragMove(e, content, config, applyScroll) {
+        if (!config.startY && !config.startX) {
+            return;
+        }
+
+        const { clientY, deltaY, deltaX } = this.getDragCoordinates(e, config);
+
+        this.checkDragStart(config, deltaY, deltaX, e);
+
+        if (config.dragging) {
+            this.processDragMovement(e, config, clientY, applyScroll);
+        }
+    }
+
+    /**
+     * Get drag coordinates from event
+     * @param {Event} e - Event object
+     * @param {Object} config - Drag configuration
+     * @returns {Object} Coordinates and deltas
+     */
+    getDragCoordinates(e, config) {
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const deltaY = Math.abs(clientY - config.startY);
+        const deltaX = Math.abs(clientX - config.startX);
+
+        return { clientY, clientX, deltaY, deltaX };
+    }
+
+    /**
+     * Check if drag should start
+     * @param {Object} config - Drag configuration
+     * @param {number} deltaY - Y delta
+     * @param {number} deltaX - X delta
+     * @param {Event} e - Event object
+     */
+    checkDragStart(config, deltaY, deltaX, e) {
+        if (!config.dragging && deltaY > config.dragThreshold && deltaY > deltaX) {
+            config.dragging = true;
+            config.hasMoved = true;
+            e.preventDefault();
+        }
+    }
+
+    /**
+     * Process drag movement
+     * @param {Event} e - Event object
+     * @param {Object} config - Drag configuration
+     * @param {number} clientY - Y coordinate
+     * @param {Function} applyScroll - Scroll function
+     */
+    processDragMovement(e, config, clientY, applyScroll) {
+        const currentTime = Date.now();
+        const timeDelta = currentTime - config.lastTime;
+
+        if (timeDelta > 0) {
+            const moveDelta = clientY - config.lastY;
+
+            config.velocity = moveDelta / timeDelta;
+            config.velocity = Math.max(-config.maxVelocity, Math.min(config.maxVelocity, config.velocity));
+            applyScroll(moveDelta);
+        }
+
+        config.lastY = clientY;
+        config.lastTime = currentTime;
+        e.preventDefault();
+    }
+
+    /**
+     * Handle drag stop event
+     * @param {Event} e - Event object
+     * @param {HTMLElement} content - Content element
+     * @param {Object} config - Drag configuration
+     * @param {Function} applyMomentum - Momentum function
+     */
+    handleDragStop(e, content, config, applyMomentum) {
+        if (config.dragging && config.hasMoved) {
+            e.preventDefault();
+            if (Math.abs(config.velocity) > 0.5) {
+                config.momentumAnimationId = requestAnimationFrame(applyMomentum);
+            }
+        }
+
+        config.dragging = false;
+        config.startY = 0;
+        config.startX = 0;
+        config.hasMoved = false;
     }
 
     /**
@@ -734,7 +843,7 @@ class UnifiedInfoBox {
         const { username } = imageData;
 
 
-        const date = imageData.createdAt;
+        const _date = imageData.createdAt;
 
         // Create hyperlink for username
         const usernameLink = `<a href="/u/${encodeURIComponent(username)}" ` +
@@ -877,6 +986,64 @@ class UnifiedInfoBox {
                 imageWrapper.remove();
             }
         }
+    }
+
+    /**
+     * Check if element is interactive for drag scroll
+     * @param {HTMLElement} target - Target element
+     * @param {HTMLElement} content - Content element
+     * @returns {boolean} Is interactive
+     */
+    isInteractiveElement(target, content) {
+        const interactiveTags = ['button', 'a', 'input', 'select', 'textarea'];
+        const interactiveRoles = ['button', 'link', 'tab', 'menuitem'];
+
+        let element = target;
+
+        while (element && element !== content) {
+            if (interactiveTags.includes(element.tagName?.toLowerCase()) ||
+                interactiveRoles.includes(element.getAttribute?.('role')) ||
+                element.onclick ||
+                element.getAttribute?.('onclick')) {
+                return true;
+            }
+
+            element = element.parentElement;
+        }
+
+        return false;
+    }
+
+    /**
+     * Apply scroll with multiplier
+     * @param {number} deltaY - Y delta
+     * @param {HTMLElement} content - Content element
+     * @param {number} scrollMultiplier - Scroll speed multiplier
+     */
+    applyScroll(deltaY, content, scrollMultiplier) {
+        const maxScroll = content.scrollHeight - content.clientHeight;
+        const newScrollTop = content.scrollTop - (deltaY * scrollMultiplier);
+
+        content.scrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
+    }
+
+    /**
+     * Apply momentum scrolling
+     * @param {Object} config - Drag configuration object
+     * @param {Function} applyScroll - Scroll function
+     */
+    applyMomentum(config, applyScroll) {
+        if (Math.abs(config.velocity) < 0.1) {
+            config.momentumAnimationId = null;
+
+            return;
+        }
+
+        applyScroll(config.velocity);
+        config.velocity *= config.friction;
+        config.momentumAnimationId = requestAnimationFrame(() => {
+            this.applyMomentum(config, applyScroll);
+        });
     }
 }
 

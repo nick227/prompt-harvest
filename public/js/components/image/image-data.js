@@ -40,6 +40,7 @@ class ImageData {
             return null;
         }
 
+
         // Generate title from first 8 characters of prompt
         const generateTitle = (prompt) => {
             if (!prompt) return 'Generated Image';
