@@ -80,7 +80,9 @@ export class BaseAIService {
             maxTokens = this.maxTokens,
             temperature = this.temperature,
             tools = null,
-            toolChoice = 'auto'
+            toolChoice = 'auto',
+            signal = null,
+            timeout = 30000
         } = options;
 
         try {
@@ -96,14 +98,30 @@ export class BaseAIService {
                 requestConfig.tool_choice = toolChoice;
             }
 
-            const response = await this.openai.chat.completions.create(requestConfig);
+            // Create abort controller with timeout if no signal provided
+            const controller = signal ? null : new AbortController();
+            const timeoutId = controller ? setTimeout(() => controller.abort(), timeout) : null;
 
-            return {
-                success: true,
-                response: response.choices[0]?.message,
-                usage: response.usage,
-                model: response.model
-            };
+            try {
+                const response = await this.openai.chat.completions.create(requestConfig, {
+                    signal: signal || controller?.signal
+                });
+
+                if (timeoutId) clearTimeout(timeoutId);
+
+                return {
+                    success: true,
+                    response: response.choices[0]?.message,
+                    usage: response.usage,
+                    model: response.model
+                };
+            } catch (abortError) {
+                if (timeoutId) clearTimeout(timeoutId);
+                if (abortError.name === 'AbortError') {
+                    throw new Error('Request timed out or was aborted');
+                }
+                throw abortError;
+            }
         } catch (error) {
             console.error('❌ BaseAIService OpenAI request failed:', error);
 

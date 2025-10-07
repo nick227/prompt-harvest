@@ -87,7 +87,7 @@ class SimpleDrawer {
 
     getDrawerContent() {
         return `
-            <div class="flex items-center justify-end p-4 border-b border-gray-700 mt-4">
+            <div class="p-6">
                 <button id="desktop-drawer-close-btn"
                     class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,8 +95,6 @@ class SimpleDrawer {
                               d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
-            </div>
-            <div class="p-6">
                 ${this.getFaqSection()}
                 ${this.getProvidersSection()}
                 ${this.getSettingsSection()}
@@ -122,8 +120,8 @@ class SimpleDrawer {
     getFaqSection() {
         return `
             <div class="mb-8" data-section="faq">
-                <div class="flex items-center gap-2 mb-4">
-                    <h3 class="text-lg font-semibold text-yellow-400">Pages</h3>
+                <div class="flex items-center gap-2">
+                    <h3 class="text-lg font-semibold text-yellow-400">AutoImage Pages</h3>
                 </div>
                 <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
                     <div class="space-y-2">
@@ -146,8 +144,8 @@ class SimpleDrawer {
     getProvidersSection() {
         return `
             <div class="mb-8" data-section="providers">
-                <div class="flex items-center gap-2 mb-4">
-                    <h3 class="text-lg font-semibold text-green-400">Models</h3>
+                <div class="flex items-center gap-2">
+                    <h3 class="text-lg font-semibold text-green-400">Image Models</h3>
                 </div>
                 <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
                     <div id="provider-list" class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
@@ -161,8 +159,8 @@ class SimpleDrawer {
     getSettingsSection() {
         return `
             <div class="mb-8" data-section="settings">
-                <div class="flex items-center gap-2 mb-4">
-                    <h3 class="text-lg font-semibold text-blue-400">Helpers</h3>
+                <div class="flex items-center gap-2">
+                    <h3 class="text-lg font-semibold text-blue-400">Site Tools</h3>
                 </div>
                 <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
                     <div class="space-y-4">
@@ -193,7 +191,7 @@ class SimpleDrawer {
     getThemeSection() {
         return `
             <div class="mb-8" data-section="theme">
-                <div class="flex items-center gap-2 mb-4">
+                <div class="flex items-center gap-2">
                     <h3 class="text-lg font-semibold text-purple-400">Theme</h3>
                 </div>
                 <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">

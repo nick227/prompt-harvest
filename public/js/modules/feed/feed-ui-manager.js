@@ -9,14 +9,15 @@ class FeedUIManager {
             debounceMs: 100,
             resizeThrottleMs: 200,
             transitionDuration: 300,
+            eventTarget: null, // Optional global event target (e.g., window)
             ...config
         };
 
-        // Coerce config numbers to ensure proper types
-        this.config.threshold = Number(this.config.threshold) || 0.1;
-        this.config.debounceMs = Number(this.config.debounceMs) || 100;
-        this.config.resizeThrottleMs = Number(this.config.resizeThrottleMs) || 200;
-        this.config.transitionDuration = Number(this.config.transitionDuration) || 300;
+        // Coerce config numbers to ensure proper types (allow 0 and arrays)
+        this.config.threshold = this.coerceThreshold(this.config.threshold, 0.1);
+        this.config.debounceMs = this.coerceNumber(this.config.debounceMs, 100);
+        this.config.resizeThrottleMs = this.coerceNumber(this.config.resizeThrottleMs, 200);
+        this.config.transitionDuration = this.coerceNumber(this.config.transitionDuration, 300);
         this.isLoading = false;
         this.isSetupComplete = false;
         this.intersectionObserver = null;
@@ -24,14 +25,16 @@ class FeedUIManager {
         this.debounceTimer = null;
         this.abortController = null;
         this.resizeObserver = null; // For container size changes
-        this.scrollFallbackActive = false; // Initialize fallback flag
         this.scrollFallbackController = null; // Initialize fallback controller
+        this.scrollFallbackHandlers = null; // Store fallback listeners for cleanup
+        this.windowListenerHandlers = null; // Store window listeners for cleanup without signal
         this.resizeThrottleTimer = null; // For resize throttling
         this.lastEmittedEl = null; // Track last emitted element for de-duplication
         this.isPaused = false; // Pause state for heavy DOM operations
 
         // Instance tracking
-        this.instanceId = `FeedUIManager_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        this.instanceId = `FeedUIManager_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+        this.isDestroyed = false; // Flag to prevent late timers after cleanup
         FeedUIManager.instances = FeedUIManager.instances || new Set();
         FeedUIManager.instances.add(this);
 
@@ -58,6 +61,9 @@ class FeedUIManager {
             return;
         }
 
+        // Revive instance after cleanup
+        this.isDestroyed = false;
+
         this.setupIntersectionObserver();
         this.setupResizeObserver();
         this.setupTagOverlays();
@@ -76,6 +82,9 @@ class FeedUIManager {
         }
 
         if ('IntersectionObserver' in window) {
+            // Ensure root is a valid Element or null (viewport)
+            const observerRoot = this.getValidObserverRoot(this.scrollRoot);
+
             this.intersectionObserver = new IntersectionObserver(
                 entries => {
                     entries.forEach(entry => {
@@ -86,9 +95,9 @@ class FeedUIManager {
                     });
                 },
                 {
-                    root: this.scrollRoot, // Use custom scroll container
+                    root: observerRoot, // Use custom scroll container (Element or null)
                     rootMargin: this.config.rootMargin,
-                    threshold: this.config.threshold
+                    threshold: this.normalizeThreshold(this.config.threshold)
                 }
             );
         } else {
@@ -105,22 +114,44 @@ class FeedUIManager {
             this.scrollFallbackController = null;
         }
 
-        // Setup is guarded by controller cleanup above
-        this.scrollFallbackActive = true;
+        // Manual cleanup for fallback handlers without signal support
+        if (this.scrollFallbackHandlers) {
+            const { scrollContainer, handleScroll } = this.scrollFallbackHandlers;
+
+            scrollContainer.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+            this.scrollFallbackHandlers = null;
+        }
 
         // Create AbortController for fallback cleanup
         this.scrollFallbackController = new AbortController();
 
+        // rAF-throttle for scroll fallback to reduce layout thrash
+        let rafPending = false;
         const handleScroll = () => {
             if (this.isLoading || this.isPaused) {
                 return;
             }
 
-            const lastImage = this.domManager?.getLastImageElement();
-
-            if (lastImage && this.isElementInViewport(lastImage)) {
-                this.handleLastImageVisible();
+            if (rafPending) {
+                return;
             }
+
+            rafPending = true;
+            requestAnimationFrame(() => {
+                rafPending = false;
+
+                // Guard against late timers after cleanup
+                if (this.isDestroyed) {
+                    return;
+                }
+
+                const lastImage = this.domManager?.getLastImageElement();
+
+                if (lastImage && this.isElementInViewport(lastImage)) {
+                    this.handleLastImageVisible();
+                }
+            });
         };
 
         const scrollContainer = this.scrollRoot || window;
@@ -131,6 +162,8 @@ class FeedUIManager {
             window.addEventListener('resize', handleScroll, { passive: true, signal: this.scrollFallbackController.signal });
         } catch (error) {
             // Fallback for browsers without AbortController support
+            // Store listeners for manual cleanup
+            this.scrollFallbackHandlers = { scrollContainer, handleScroll };
             scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
             window.addEventListener('resize', handleScroll, { passive: true });
         }
@@ -153,6 +186,11 @@ class FeedUIManager {
                     }
 
                     this.resizeThrottleTimer = setTimeout(() => {
+                        // Guard against late timers after cleanup
+                        if (this.isDestroyed) {
+                            return;
+                        }
+
                         // Trigger pagination check on container size changes
                         if (!this.isLoading) {
                             const lastImage = this.domManager?.getLastImageElement();
@@ -174,8 +212,10 @@ class FeedUIManager {
                     target = document.documentElement;
                 }
 
-                // Skip if target is detached from DOM
-                if (target.isConnected !== false) {
+                // Skip if target is detached from DOM (guard isConnected access)
+                const isConnected = typeof target.isConnected === 'undefined' ? true : target.isConnected;
+
+                if (isConnected) {
                     this.resizeObserver.observe(target);
                 }
             }
@@ -198,6 +238,11 @@ class FeedUIManager {
 
             // Debounce to prevent double-firing during slow loads
             this.debounceTimer = setTimeout(() => {
+                // Guard against late timers after cleanup
+                if (this.isDestroyed) {
+                    return;
+                }
+
                 const lastImage = this.domManager?.getLastImageElement();
 
                 if (lastImage) {
@@ -215,12 +260,26 @@ class FeedUIManager {
                         }
                     }
 
-                    // Dispatch event for infinite scroll
+                    // Dispatch event for infinite scroll (Shadow DOM friendly)
                     const event = new CustomEvent('lastImageVisible', {
-                        detail: { element: lastImage }
+                        detail: {
+                            element: lastImage,
+                            manager: this,
+                            timestamp: Date.now()
+                        },
+                        bubbles: true,
+                        composed: true // Crosses Shadow DOM boundaries
                     });
 
-                    window.dispatchEvent(event);
+                    // Dispatch on element's root node (Shadow DOM aware)
+                    const elementRoot = lastImage.getRootNode?.() || window;
+
+                    elementRoot.dispatchEvent(event);
+
+                    // Also dispatch on configured global target if specified
+                    if (this.config.eventTarget && this.config.eventTarget !== elementRoot) {
+                        this.config.eventTarget.dispatchEvent(event);
+                    }
 
                     // Track last emitted element and null observedTarget
                     this.lastEmittedEl = lastImage;
@@ -228,6 +287,11 @@ class FeedUIManager {
 
                     // Re-arm on next frame if loading didn't start (prevents race with slow loads)
                     requestAnimationFrame(() => {
+                        // Guard against late timers after cleanup
+                        if (this.isDestroyed) {
+                            return;
+                        }
+
                         if (!this.isLoading) {
                             this.updateIntersectionObserver();
                         }
@@ -368,11 +432,12 @@ class FeedUIManager {
                 return;
             }
 
-            // Use config duration as fallback if FEED_CONSTANTS not available
-            const rawDuration = duration || this.config.transitionDuration;
+            // Use config duration as fallback if FEED_CONSTANTS not available (allow 0)
+            const rawDuration = duration ?? this.config.transitionDuration;
 
             // Coerce to number once (handles strings, NaN, etc.)
-            const safeDuration = Number(rawDuration) || this.config.transitionDuration;
+            const numericDuration = Number(rawDuration);
+            const safeDuration = Number.isFinite(numericDuration) ? numericDuration : this.config.transitionDuration;
 
             // Early resolve when duration <= 0
             if (safeDuration <= 0) {
@@ -484,7 +549,7 @@ class FeedUIManager {
 
     // Update intersection observer - fix observer churn
     updateIntersectionObserver() {
-        if (!this.intersectionObserver) {
+        if (!this.intersectionObserver || this.isPaused) {
             return;
         }
 
@@ -551,34 +616,148 @@ class FeedUIManager {
 
         const rect = element.getBoundingClientRect();
 
-        // Parse rootMargin to get vertical margin (e.g., '300px 0px' -> 300)
-        const marginMatch = this.config.rootMargin.match(/^(\d+)px/);
-        const margin = marginMatch ? parseInt(marginMatch[1], 10) : 0;
-
         if (this.scrollRoot) {
             // Use custom scroll container bounds with margin
             const containerRect = this.scrollRoot.getBoundingClientRect();
+            const containerSize = { width: containerRect.width, height: containerRect.height };
+            const margin = this.parseRootMargin(this.config.rootMargin, containerSize);
 
             return (
-                rect.top <= containerRect.bottom + margin &&
-                rect.bottom >= containerRect.top - margin &&
-                rect.right >= containerRect.left &&
-                rect.left <= containerRect.right
+                rect.top <= containerRect.bottom + margin.bottom &&
+                rect.bottom >= containerRect.top - margin.top &&
+                rect.right >= containerRect.left - margin.left &&
+                rect.left <= containerRect.right + margin.right
             );
         }
 
         // Use window bounds with margin
         const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+        const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+        const containerSize = { width: windowWidth, height: windowHeight };
+        const margin = this.parseRootMargin(this.config.rootMargin, containerSize);
 
         return (
-            rect.top <= windowHeight + margin &&
-            rect.bottom >= -margin
+            rect.top <= windowHeight + margin.bottom &&
+            rect.bottom >= -margin.top &&
+            rect.right >= -margin.left &&
+            rect.left <= windowWidth + margin.right
         );
     }
 
     // Get last image element (proxy to domManager for convenience)
     getLastImageElement() {
         return this.domManager?.getLastImageElement?.();
+    }
+
+    // Parse rootMargin CSS-like syntax (1/2/3/4 values, negatives, decimals, percentages)
+    parseRootMargin(marginStr, containerSize = null) {
+        if (!marginStr) {
+            return { top: 0, right: 0, bottom: 0, left: 0 };
+        }
+
+        // Extract values with units (e.g., '300px', '10%', '-50px')
+        const parts = marginStr.match(/-?\d+(\.\d+)?(px|%)?/g);
+
+        if (!parts || parts.length === 0) {
+            return { top: 0, right: 0, bottom: 0, left: 0 };
+        }
+
+        // Parse each value, handling percentages
+        const parseValue = (valueStr, dimension) => {
+            const num = parseFloat(valueStr);
+
+            if (valueStr.includes('%') && containerSize) {
+                // Convert percentage to pixels based on container dimension
+                return (num / 100) * (dimension === 'vertical' ? containerSize.height : containerSize.width);
+            }
+
+            return num;
+        };
+
+        // CSS margin syntax: 1 value = all, 2 values = v/h, 3 values = t/h/b, 4 values = t/r/b/l
+        let top;
+        let right;
+        let bottom;
+        let left;
+
+        if (parts.length === 1) {
+            top = parseValue(parts[0], 'vertical');
+            right = parseValue(parts[0], 'horizontal');
+            bottom = top;
+            left = right;
+        } else if (parts.length === 2) {
+            top = parseValue(parts[0], 'vertical');
+            right = parseValue(parts[1], 'horizontal');
+            bottom = top;
+            left = right;
+        } else if (parts.length === 3) {
+            top = parseValue(parts[0], 'vertical');
+            right = parseValue(parts[1], 'horizontal');
+            bottom = parseValue(parts[2], 'vertical');
+            left = right;
+        } else {
+            top = parseValue(parts[0], 'vertical');
+            right = parseValue(parts[1], 'horizontal');
+            bottom = parseValue(parts[2], 'vertical');
+            left = parseValue(parts[3], 'horizontal');
+        }
+
+        return { top, right, bottom, left };
+    }
+
+    // Coerce number config value (allows 0, rejects NaN)
+    coerceNumber(value, fallback) {
+        const num = Number(value);
+
+        return Number.isFinite(num) ? num : fallback;
+    }
+
+    // Coerce threshold (allows 0, arrays, rejects NaN)
+    coerceThreshold(value, fallback) {
+        if (Array.isArray(value)) {
+            // Clone array to avoid external mutations affecting change detection
+            return [...value];
+        }
+        const num = Number(value);
+
+        return Number.isFinite(num) ? num : fallback;
+    }
+
+    // Normalize threshold for IntersectionObserver (clamp, sort, dedupe)
+    normalizeThreshold(threshold) {
+        if (Array.isArray(threshold)) {
+            // Filter out invalid values, then clamp to [0, 1], sort, and dedupe
+            const valid = threshold
+                .map(v => Number(v))
+                .filter(v => Number.isFinite(v))
+                .map(v => Math.max(0, Math.min(1, v)));
+            const sorted = [...new Set(valid)].sort((a, b) => a - b);
+
+            // Return valid array or fallback to [0]
+            return sorted.length > 0 ? sorted : [0];
+        }
+
+        // Clamp single value to [0, 1], or fallback to 0
+        const num = Number(threshold);
+
+        return Number.isFinite(num) ? Math.max(0, Math.min(1, num)) : 0;
+    }
+
+    // Ensure valid IO root (Element or null for viewport)
+    getValidObserverRoot(root) {
+        if (!root) {
+            return null; // Use viewport
+        }
+
+        // Reject window, document, and non-Elements
+        if (root === window ||
+            root === document ||
+            !root.nodeType ||
+            root.nodeType !== 1) { // 1 = ELEMENT_NODE
+            return null; // Use viewport
+        }
+
+        return root;
     }
 
     // Set scroll root at runtime (allows switching containers)
@@ -599,15 +778,34 @@ class FeedUIManager {
             this.scrollFallbackController = null;
         }
 
-        // Reset fallback flags
-        this.scrollFallbackActive = false;
+        // Manual cleanup for fallback handlers without signal support
+        if (this.scrollFallbackHandlers) {
+            const { scrollContainer, handleScroll } = this.scrollFallbackHandlers;
+
+            scrollContainer.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+            this.scrollFallbackHandlers = null;
+        }
+
+        // Manual cleanup for window listeners without signal support
+        if (this.windowListenerHandlers) {
+            const { resizeHandler, visibilityHandler } = this.windowListenerHandlers;
+
+            window.removeEventListener('resize', resizeHandler);
+            document.removeEventListener('visibilitychange', visibilityHandler);
+            this.windowListenerHandlers = null;
+        }
 
         // Update scroll root
         this.scrollRoot = newScrollRoot;
 
+        // Revive instance if it was cleaned up
+        this.isDestroyed = false;
+
         // Recreate observers with new root
         this.setupIntersectionObserver();
         this.setupResizeObserver();
+        this.setupWindowListeners(); // Reattach window listeners
         // Note: setupScrollFallback() is only called by setupIntersectionObserver() if IO is unavailable
 
         // Update intersection observer to new last image
@@ -674,43 +872,52 @@ class FeedUIManager {
             this.abortController.abort();
         }
 
+        // Manual cleanup for window listeners without signal support
+        if (this.windowListenerHandlers) {
+            const { resizeHandler, visibilityHandler } = this.windowListenerHandlers;
+
+            window.removeEventListener('resize', resizeHandler);
+            document.removeEventListener('visibilitychange', visibilityHandler);
+            this.windowListenerHandlers = null;
+        }
+
         this.abortController = new AbortController();
         const { signal } = this.abortController;
 
+        const resizeHandler = () => {
+            this.handleWindowResize();
+        };
+
+        const visibilityHandler = () => {
+            if (document.hidden) {
+                this.pause();
+            } else {
+                this.resume();
+            }
+        };
+
         // Try to use signal for cleanup, fall back if not supported
         try {
-            window.addEventListener('resize', () => {
-                this.handleWindowResize();
-            }, { passive: true, signal });
-
-            // Suspend work when tab is hidden for performance
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    this.pause();
-                } else {
-                    this.resume();
-                }
-            }, { signal });
+            window.addEventListener('resize', resizeHandler, { passive: true, signal });
+            document.addEventListener('visibilitychange', visibilityHandler, { signal });
         } catch (error) {
             // Fallback for browsers without AbortController support
-            window.addEventListener('resize', () => {
-                this.handleWindowResize();
-            }, { passive: true });
-
-            // Visibility handling without signal
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    this.pause();
-                } else {
-                    this.resume();
-                }
-            });
+            // Store handlers for manual cleanup
+            this.windowListenerHandlers = { resizeHandler, visibilityHandler };
+            window.addEventListener('resize', resizeHandler, { passive: true });
+            document.addEventListener('visibilitychange', visibilityHandler);
         }
 
     }
 
     // Cleanup
     cleanup() {
+        // Flip pause state to short-circuit any stray work
+        this.isPaused = true;
+
+        // Clear last emitted element so fresh load can re-emit
+        this.lastEmittedEl = null;
+
         // Clear debounce timer
         if (this.debounceTimer) {
             clearTimeout(this.debounceTimer);
@@ -729,6 +936,15 @@ class FeedUIManager {
             this.scrollFallbackController = null;
         }
 
+        // Manual cleanup for fallback handlers without signal support
+        if (this.scrollFallbackHandlers) {
+            const { scrollContainer, handleScroll } = this.scrollFallbackHandlers;
+
+            scrollContainer.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+            this.scrollFallbackHandlers = null;
+        }
+
         // Cleanup ResizeObserver
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
@@ -741,16 +957,23 @@ class FeedUIManager {
             this.resizeThrottleTimer = null;
         }
 
+        // Manual cleanup for window listeners without signal support
+        if (this.windowListenerHandlers) {
+            const { resizeHandler, visibilityHandler } = this.windowListenerHandlers;
+
+            window.removeEventListener('resize', resizeHandler);
+            document.removeEventListener('visibilitychange', visibilityHandler);
+            this.windowListenerHandlers = null;
+        }
+
         // Remove from instance tracking
         if (FeedUIManager.instances) {
             FeedUIManager.instances.delete(this);
         }
 
-        // Reset fallback flags
-        this.scrollFallbackActive = false;
-
         this.disconnectIntersectionObserver();
         this.isSetupComplete = false;
+        this.isDestroyed = true; // Mark as destroyed to prevent late timers
     }
 
     // Static method to get all instances
@@ -770,17 +993,38 @@ class FeedUIManager {
 
     // Update configuration and rebuild observers
     updateConfig(newConfig) {
-        // Merge new config with existing
+        // Cache previous IO-relevant options
+        const prevRootMargin = this.config.rootMargin;
+        const prevThreshold = this.config.threshold;
+
+        // Merge new config with existing (including scrollRoot if provided)
         this.config = {
             ...this.config,
             ...newConfig
         };
 
-        // Coerce config numbers to ensure proper types
-        this.config.threshold = Number(this.config.threshold) || 0.1;
-        this.config.debounceMs = Number(this.config.debounceMs) || 100;
-        this.config.resizeThrottleMs = Number(this.config.resizeThrottleMs) || 200;
-        this.config.transitionDuration = Number(this.config.transitionDuration) || 300;
+        // Update scrollRoot if provided
+        if ('scrollRoot' in newConfig) {
+            this.scrollRoot = newConfig.scrollRoot;
+        }
+
+        // Coerce config numbers to ensure proper types (allow 0 and arrays)
+        this.config.threshold = this.coerceThreshold(this.config.threshold, 0.1);
+        this.config.debounceMs = this.coerceNumber(this.config.debounceMs, 100);
+        this.config.resizeThrottleMs = this.coerceNumber(this.config.resizeThrottleMs, 200);
+        this.config.transitionDuration = this.coerceNumber(this.config.transitionDuration, 300);
+
+        // Skip rebuild if IO-relevant options didn't change
+        // Deep compare threshold for array mutations
+        const thresholdChanged = Array.isArray(prevThreshold) || Array.isArray(this.config.threshold)
+            ? JSON.stringify(prevThreshold) !== JSON.stringify(this.config.threshold)
+            : prevThreshold !== this.config.threshold;
+
+        if (prevRootMargin === this.config.rootMargin &&
+            !thresholdChanged &&
+            !('scrollRoot' in newConfig)) {
+            return; // No observer churn needed
+        }
 
         // Clean up existing observers/listeners first to guarantee single set
         this.disconnectIntersectionObserver();
@@ -795,11 +1039,31 @@ class FeedUIManager {
             this.scrollFallbackController = null;
         }
 
-        this.scrollFallbackActive = false;
+        // Manual cleanup for fallback handlers without signal support
+        if (this.scrollFallbackHandlers) {
+            const { scrollContainer, handleScroll } = this.scrollFallbackHandlers;
+
+            scrollContainer.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+            this.scrollFallbackHandlers = null;
+        }
+
+        // Manual cleanup for window listeners without signal support
+        if (this.windowListenerHandlers) {
+            const { resizeHandler, visibilityHandler } = this.windowListenerHandlers;
+
+            window.removeEventListener('resize', resizeHandler);
+            document.removeEventListener('visibilitychange', visibilityHandler);
+            this.windowListenerHandlers = null;
+        }
+
+        // Revive instance if it was cleaned up
+        this.isDestroyed = false;
 
         // Rebuild observers with new config
         this.setupIntersectionObserver();
         this.setupResizeObserver();
+        this.setupWindowListeners(); // Reattach window listeners
         // Note: setupScrollFallback() is only called by setupIntersectionObserver() if IO is unavailable
 
         // Update intersection observer to current last image
@@ -818,6 +1082,11 @@ class FeedUIManager {
         // Check if we should trigger after resume (double rAF for layout settling)
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
+                // Guard against late timers after cleanup
+                if (this.isDestroyed) {
+                    return;
+                }
+
                 if (!this.isLoading) {
                     const lastImage = this.domManager?.getLastImageElement();
 

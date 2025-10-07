@@ -12,7 +12,7 @@ export class AIPromptService extends BaseAIService {
     constructor() {
         super();
         this.wordTypeService = new AIWordTypeService();
-
+        this.generateModule = null;
     }
 
     /**
@@ -20,11 +20,12 @@ export class AIPromptService extends BaseAIService {
      */
     async processPrompt(prompt, multiplier = false, mixup = false, mashup = false, customVariables = '', promptHelpers = {}, req = null) {
         try {
-            // This will be implemented when we extract the prompt service
-            // For now, we'll import the generate module directly
-            const generate = await import('../../../generate.js');
+            // Cache the generate module import
+            if (!this.generateModule) {
+                this.generateModule = await import('../../../generate.js');
+            }
 
-            return await generate.default.buildPrompt(
+            return await this.generateModule.default.buildPrompt(
                 prompt,
                 {
                     multiplier,
@@ -41,30 +42,61 @@ export class AIPromptService extends BaseAIService {
     }
 
     /**
+     * Get system prompt based on expand option
+     */
+    getOrganizeSystemPrompt(expandPrompt) {
+        return expandPrompt
+            ? 'Organize this AI image generation prompt into clear sections: Subject, Style, Details, Keywords. Preserve all information while making it structured and readable. Expand on the prompt to make the imagery more detailed and descriptive.'
+            : 'Organize this AI image generation prompt into clear sections: Subject, Style, Details, Keywords. Preserve all information while making it structured and readable. Do not add new details, only reorganize what is already present.';
+    }
+
+    /**
+     * Handle organize prompt errors
+     */
+    handleOrganizeError(error) {
+        console.error('❌ Error organizing prompt:', error);
+
+        if (error.message.includes('API key')) {
+            throw new Error('OpenAI API key not configured');
+        } else if (error.message.includes('rate limit')) {
+            throw new Error('OpenAI rate limit exceeded');
+        } else if (error.message.includes('quota')) {
+            throw new Error('OpenAI quota exceeded');
+        } else if (error.message.includes('timed out') || error.message.includes('aborted')) {
+            throw new Error('Request timed out');
+        } else {
+            throw new Error(`OpenAI error: ${error.message}`);
+        }
+    }
+
+    /**
      * Organize prompt using AI
      */
-    async organizePrompt(prompt, userId) {
+    async organizePrompt(prompt, userId, options = {}) {
+        const { expandPrompt = true, signal = null, timeout = 30000 } = options;
+
         try {
-            // Validate inputs
             if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
                 throw new Error('Invalid prompt provided');
             }
 
             console.log('🤖 Organizing prompt with OpenAI:', {
                 promptLength: prompt.length,
-                userId
+                userId,
+                expand: expandPrompt
             });
 
-            const systemPrompt = 'Organize this prompt into clear sections: Subject, Style, Details, Keywords. Preserve all information while making it structured and readable.';
-
+            const systemPrompt = this.getOrganizeSystemPrompt(expandPrompt);
             const messages = [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: prompt }
             ];
 
             const result = await this.makeRequest(messages, {
-                model: this.model, // Use GPT-3.5-turbo instead of GPT-4 for simple organization
-                maxTokens: 200
+                model: this.model,
+                maxTokens: 1200,
+                signal,
+                timeout
             });
 
             if (!result.success) {
@@ -83,20 +115,8 @@ export class AIPromptService extends BaseAIService {
             });
 
             return organizedPrompt;
-
         } catch (error) {
-            console.error('❌ Error organizing prompt:', error);
-
-            // Re-throw with more specific error messages
-            if (error.message.includes('API key')) {
-                throw new Error('OpenAI API key not configured');
-            } else if (error.message.includes('rate limit')) {
-                throw new Error('OpenAI rate limit exceeded');
-            } else if (error.message.includes('quota')) {
-                throw new Error('OpenAI quota exceeded');
-            } else {
-                throw new Error(`OpenAI error: ${error.message}`);
-            }
+            this.handleOrganizeError(error);
         }
     }
 

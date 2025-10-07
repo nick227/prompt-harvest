@@ -213,3 +213,43 @@ input#maxNum {
     font-weight: var(--font-weight-bold);
     color: var(--color-text-primary);
 }
+
+/* ===== DESKTOP DRAWER TOGGLE BUTTON ===== */
+
+#desktop-drawer-toggle {
+    background-color: var(--color-surface-secondary) !important;
+    border-color: var(--color-border-primary) !important;
+    color: var(--color-text-primary) !important;
+    transition: all 0.2s ease-in-out !important;
+    transform: translateX(-100%) !important;
+  }
+
+  #desktop-drawer-close-btn {
+    border-radius: 50% !important;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--color-text-primary) !important;
+    transition: all 0.2s ease-in-out !important;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+  }
+
+  #desktop-drawer-close-btn:hover {
+      background-color: rgba(0, 0, 0, 1);
+  }
+
+  #desktop-drawer-toggle:hover {
+    background-color: var(--color-surface-tertiary) !important;
+    border-color: var(--color-border-secondary) !important;
+    box-shadow: var(--shadow-dark-md) !important;
+  }
+
+  #desktop-drawer-toggle:active {
+    box-shadow: var(--shadow-dark-sm) !important;
+  }
+
+  #desktop-drawer-toggle svg {
+    color: var(--color-text-primary) !important;
+    transition: color 0.2s ease-in-out !important;
+  }
