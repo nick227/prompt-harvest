@@ -87,8 +87,7 @@ class SimpleDrawer {
 
     getDrawerContent() {
         return `
-            <div class="flex items-center justify-between p-4 border-b border-gray-700 mt-4">
-                <h2 class="text-xl font-semibold text-white">Controls</h2>
+            <div class="flex items-center justify-end p-4 border-b border-gray-700 mt-4">
                 <button id="desktop-drawer-close-btn"
                     class="p-2 rounded-lg hover:bg-gray-700 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,7 +97,6 @@ class SimpleDrawer {
                 </button>
             </div>
             <div class="p-6">
-                ${this.getSearchSection()}
                 ${this.getFaqSection()}
                 ${this.getProvidersSection()}
                 ${this.getSettingsSection()}

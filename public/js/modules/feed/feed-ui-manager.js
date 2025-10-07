@@ -53,6 +53,11 @@ class FeedUIManager {
             return;
         }
 
+        // Idempotent guard - prevent duplicate initialization
+        if (this.isSetupComplete) {
+            return;
+        }
+
         this.setupIntersectionObserver();
         this.setupResizeObserver();
         this.setupTagOverlays();
@@ -100,30 +105,34 @@ class FeedUIManager {
             this.scrollFallbackController = null;
         }
 
-        // Reset fallback flag to ensure clean setup
-        this.scrollFallbackActive = false;
-        if (!this.scrollFallbackActive) {
-            this.scrollFallbackActive = true;
+        // Setup is guarded by controller cleanup above
+        this.scrollFallbackActive = true;
 
-            // Create AbortController for fallback cleanup
-            this.scrollFallbackController = new AbortController();
+        // Create AbortController for fallback cleanup
+        this.scrollFallbackController = new AbortController();
 
-            const handleScroll = () => {
-                if (this.isLoading || this.isPaused) {
-                    return;
-                }
+        const handleScroll = () => {
+            if (this.isLoading || this.isPaused) {
+                return;
+            }
 
-                const lastImage = this.domManager?.getLastImageElement();
+            const lastImage = this.domManager?.getLastImageElement();
 
-                if (lastImage && this.isElementInViewport(lastImage)) {
-                    this.handleLastImageVisible();
-                }
-            };
+            if (lastImage && this.isElementInViewport(lastImage)) {
+                this.handleLastImageVisible();
+            }
+        };
 
-            const scrollContainer = this.scrollRoot || window;
+        const scrollContainer = this.scrollRoot || window;
 
+        // Try to use signal for cleanup, fall back if not supported
+        try {
             scrollContainer.addEventListener('scroll', handleScroll, { passive: true, signal: this.scrollFallbackController.signal });
             window.addEventListener('resize', handleScroll, { passive: true, signal: this.scrollFallbackController.signal });
+        } catch (error) {
+            // Fallback for browsers without AbortController support
+            scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+            window.addEventListener('resize', handleScroll, { passive: true });
         }
     }
 
@@ -156,11 +165,19 @@ class FeedUIManager {
                 });
 
                 // Observe the element that actually resizes (prefer domManager > scrollRoot > fallback)
-                const target = this.domManager?.getScrollContainer?.() ||
+                let target = this.domManager?.getScrollContainer?.() ||
                           this.scrollRoot ||
                           document.documentElement;
 
-                this.resizeObserver.observe(target);
+                // Ensure target is a valid DOM element (not window)
+                if (target === window || !target || !target.nodeType) {
+                    target = document.documentElement;
+                }
+
+                // Skip if target is detached from DOM
+                if (target.isConnected !== false) {
+                    this.resizeObserver.observe(target);
+                }
             }
         } catch (error) {
             console.error('❌ FEED UI MANAGER: Failed to setup ResizeObserver:', error);
@@ -208,6 +225,13 @@ class FeedUIManager {
                     // Track last emitted element and null observedTarget
                     this.lastEmittedEl = lastImage;
                     this.observedTarget = null;
+
+                    // Re-arm on next frame if loading didn't start (prevents race with slow loads)
+                    requestAnimationFrame(() => {
+                        if (!this.isLoading) {
+                            this.updateIntersectionObserver();
+                        }
+                    });
                 }
             }, this.config.debounceMs); // Configurable debounce
         } catch (error) {
@@ -345,7 +369,10 @@ class FeedUIManager {
             }
 
             // Use config duration as fallback if FEED_CONSTANTS not available
-            const safeDuration = duration || this.config.transitionDuration;
+            const rawDuration = duration || this.config.transitionDuration;
+
+            // Coerce to number once (handles strings, NaN, etc.)
+            const safeDuration = Number(rawDuration) || this.config.transitionDuration;
 
             // Early resolve when duration <= 0
             if (safeDuration <= 0) {
@@ -355,10 +382,7 @@ class FeedUIManager {
             }
 
             if (!element) {
-                // Coerce duration to number to avoid 0ms surprise
-                const numericDuration = Number(safeDuration) || 0;
-
-                setTimeout(resolve, numericDuration);
+                setTimeout(resolve, safeDuration);
 
                 return;
             }
@@ -527,28 +551,32 @@ class FeedUIManager {
 
         const rect = element.getBoundingClientRect();
 
+        // Parse rootMargin to get vertical margin (e.g., '300px 0px' -> 300)
+        const marginMatch = this.config.rootMargin.match(/^(\d+)px/);
+        const margin = marginMatch ? parseInt(marginMatch[1], 10) : 0;
+
         if (this.scrollRoot) {
-            // Use custom scroll container bounds
+            // Use custom scroll container bounds with margin
             const containerRect = this.scrollRoot.getBoundingClientRect();
 
             return (
-                rect.top <= containerRect.bottom &&
-                rect.bottom >= containerRect.top &&
+                rect.top <= containerRect.bottom + margin &&
+                rect.bottom >= containerRect.top - margin &&
                 rect.right >= containerRect.left &&
                 rect.left <= containerRect.right
             );
         }
 
-        // Use window bounds
+        // Use window bounds with margin
         const windowHeight = window.innerHeight || document.documentElement.clientHeight;
 
         return (
-            rect.top <= windowHeight &&
-            rect.bottom >= 0
+            rect.top <= windowHeight + margin &&
+            rect.bottom >= -margin
         );
     }
 
-    // Get last image element
+    // Get last image element (proxy to domManager for convenience)
     getLastImageElement() {
         return this.domManager?.getLastImageElement?.();
     }
@@ -580,7 +608,7 @@ class FeedUIManager {
         // Recreate observers with new root
         this.setupIntersectionObserver();
         this.setupResizeObserver();
-        this.setupScrollFallback();
+        // Note: setupScrollFallback() is only called by setupIntersectionObserver() if IO is unavailable
 
         // Update intersection observer to new last image
         this.updateIntersectionObserver();
@@ -649,9 +677,35 @@ class FeedUIManager {
         this.abortController = new AbortController();
         const { signal } = this.abortController;
 
-        window.addEventListener('resize', () => {
-            this.handleWindowResize();
-        }, { passive: true, signal });
+        // Try to use signal for cleanup, fall back if not supported
+        try {
+            window.addEventListener('resize', () => {
+                this.handleWindowResize();
+            }, { passive: true, signal });
+
+            // Suspend work when tab is hidden for performance
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.pause();
+                } else {
+                    this.resume();
+                }
+            }, { signal });
+        } catch (error) {
+            // Fallback for browsers without AbortController support
+            window.addEventListener('resize', () => {
+                this.handleWindowResize();
+            }, { passive: true });
+
+            // Visibility handling without signal
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.pause();
+                } else {
+                    this.resume();
+                }
+            });
+        }
 
     }
 
@@ -746,7 +800,7 @@ class FeedUIManager {
         // Rebuild observers with new config
         this.setupIntersectionObserver();
         this.setupResizeObserver();
-        this.setupScrollFallback();
+        // Note: setupScrollFallback() is only called by setupIntersectionObserver() if IO is unavailable
 
         // Update intersection observer to current last image
         this.updateIntersectionObserver();
@@ -761,20 +815,22 @@ class FeedUIManager {
     resume() {
         this.isPaused = false;
 
-        // Check if we should trigger after resume
-        this.scheduleMicrotask(() => {
-            if (!this.isLoading) {
-                const lastImage = this.domManager?.getLastImageElement();
+        // Check if we should trigger after resume (double rAF for layout settling)
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (!this.isLoading) {
+                    const lastImage = this.domManager?.getLastImageElement();
 
-                if (lastImage && this.isElementInViewport(lastImage)) {
-                    this.handleLastImageVisible();
-                }
+                    if (lastImage && this.isElementInViewport(lastImage)) {
+                        this.handleLastImageVisible();
+                    }
 
-                // Re-arm observer immediately if observedTarget is null
-                if (!this.observedTarget) {
-                    this.updateIntersectionObserver();
+                    // Re-arm observer immediately if observedTarget is null
+                    if (!this.observedTarget) {
+                        this.updateIntersectionObserver();
+                    }
                 }
-            }
+            });
         });
     }
 
@@ -910,20 +966,15 @@ class FeedUIManager {
 
     // Remove a specific tag from the active filter
     removeTag(tagToRemove) {
-        // Removing tag
-
         // Get current active tags from tag router
         if (window.tagRouter) {
             const currentTags = window.tagRouter.getActiveTags();
             const updatedTags = currentTags.filter(tag => tag !== tagToRemove);
 
-            // Updated tags
-
             // Update tag router with remaining tags
             window.tagRouter.setActiveTags(updatedTags);
-        } else {
-            console.error('❌ TAG FILTER: Tag router not available');
         }
+        // Silent no-op if tagRouter not available (production-safe)
     }
 }
 

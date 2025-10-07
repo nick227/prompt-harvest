@@ -238,7 +238,7 @@ class UnifiedInfoBox {
             dragThreshold: 4,
             scrollMultiplier: 4,
             maxVelocity: 175,
-            friction: 0.8,
+            friction: 10,
             content
         };
     }
