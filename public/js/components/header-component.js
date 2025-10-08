@@ -6,21 +6,16 @@ class HeaderComponent {
     }
 
     init() {
-        console.log('🔍 HEADER-COMPONENT: Init called');
         // Wait for body to be available
         if (!document.body) {
-            console.log('🔍 HEADER-COMPONENT: Body not ready, retrying...');
             setTimeout(() => this.init(), 10);
 
             return;
         }
 
-        console.log('🔍 HEADER-COMPONENT: Body ready, creating header');
         try {
             this.createHeader();
-            console.log('🔍 HEADER-COMPONENT: Header created, setting up user system');
             this.setupUserSystemIntegration();
-            console.log('🔍 HEADER-COMPONENT: Initialization complete');
         } catch (error) {
             console.error('Error initializing header component:', error);
         }
@@ -38,7 +33,6 @@ class HeaderComponent {
         const header = document.createElement('header');
         const headerClass = window.location.pathname.includes('admin.html') ? 'px-12' : 'max-w-[1080px] mx-auto';
 
-        console.log('🔍 HEADER: Creating header with class:', headerClass);
 
         // Check if this is the billing page and apply fixed positioning
         const isBillingPage = window.location.pathname.includes('billing.html');
@@ -46,9 +40,6 @@ class HeaderComponent {
         header.className = isBillingPage
             ? 'bg-gray-900 border-b border-gray-700 fixed top-0 left-0 right-0 z-50'
             : 'bg-gray-900 border-b border-gray-700 mb-2';
-
-        // Remove debug styling
-        console.log('🔍 HEADER: Header styling applied');
 
         if (isBillingPage) {
             header.style.height = 'var(--top-bar-height)';
@@ -109,7 +100,6 @@ class HeaderComponent {
         `;
 
         // Insert header at the beginning of the body
-        console.log('🔍 HEADER: Inserting header into DOM');
         document.body.insertBefore(header, document.body.firstChild);
         console.log('🔍 HEADER: Header inserted, checking visibility:', {
             headerExists: !!document.querySelector('header'),
@@ -133,7 +123,6 @@ class HeaderComponent {
 
                 if (creditContainer) {
                     window.creditWidget = new window.CreditBalanceWidget('creditBalance');
-                    console.log('✅ HEADER: Credit balance widget initialized');
                 }
             } catch (error) {
                 console.warn('⚠️ HEADER: Failed to initialize credit balance widget:', error);
@@ -147,7 +136,6 @@ class HeaderComponent {
 
                 if (statsContainer) {
                     window.transactionStatsComponent = new window.TransactionStatsComponent('transaction-stats');
-                    console.log('✅ HEADER: Transaction stats component initialized');
                 }
             } catch (error) {
                 console.warn('⚠️ HEADER: Failed to initialize transaction stats component:', error);
@@ -156,7 +144,6 @@ class HeaderComponent {
     }
 
     setupUserSystemIntegration() {
-        console.log('🔍 HEADER-COMPONENT: Setting up user system integration');
         // Wait for user system to be available (check both userSystem and authService)
         const checkUserSystem = () => {
             console.log('🔍 HEADER-COMPONENT: Checking user system availability:', {
@@ -165,7 +152,6 @@ class HeaderComponent {
             });
 
             if (window.userSystem || window.authService) {
-                console.log('🔍 HEADER-COMPONENT: User system available, updating header');
                 this.updateHeaderForUser();
                 this.setupEventListeners();
                 // Prevent user system from creating duplicate auth containers
@@ -173,12 +159,10 @@ class HeaderComponent {
 
                 // Force another update after a short delay to ensure auth state is settled
                 setTimeout(() => {
-                    console.log('🔍 HEADER-COMPONENT: Delayed header update');
                     this.updateHeaderForUser();
                 }, 500);
 
             } else {
-                console.log('🔍 HEADER-COMPONENT: User system not available, retrying...');
                 setTimeout(checkUserSystem, 100);
             }
         };
@@ -187,7 +171,6 @@ class HeaderComponent {
 
         // Also set up a periodic check as a fallback
         setTimeout(() => {
-            console.log('🔍 HEADER-COMPONENT: Fallback header update');
             this.updateHeaderForUser();
         }, 2000);
     }
@@ -210,12 +193,10 @@ class HeaderComponent {
         const authSystem = window.userSystem || window.authService;
 
         if (!authSystem) {
-            console.log('🔍 HEADER: No auth system available');
 
             return null;
         }
 
-        console.log('🔍 HEADER: Auth system found:', authSystem.constructor.name);
         const isAuthenticated = authSystem.isAuthenticated();
         const user = authSystem.getUser ? authSystem.getUser() : authSystem.currentUser;
 
@@ -240,7 +221,6 @@ class HeaderComponent {
         const hasToken = localStorage.getItem('authToken');
 
         if (hasToken && !isAuthenticated) {
-            console.log('🔍 HEADER: Token present but not authenticated, forcing re-check');
             // Try to trigger auth state refresh
             if (authSystem.checkAuthState) {
                 authSystem.checkAuthState();
@@ -255,7 +235,6 @@ class HeaderComponent {
     }
 
     updateHeaderForUser() {
-        console.log('🔍 HEADER: updateHeaderForUser called');
 
         const authState = this.getAuthState();
 
@@ -287,7 +266,6 @@ class HeaderComponent {
     }
 
     showAuthenticatedUser(user) {
-        console.log('🔍 HEADER: User is authenticated, showing user info');
 
         this.toggleAuthElements(false);
         this.updateUserInfo(user);
@@ -295,7 +273,6 @@ class HeaderComponent {
     }
 
     showUnauthenticatedUser() {
-        console.log('🔍 HEADER: User not authenticated, showing auth links');
 
         this.toggleAuthElements(true);
         this.removeAdminLink();
@@ -308,18 +285,15 @@ class HeaderComponent {
         if (authLinks) {
             authLinks.style.display = showAuthLinks ? 'flex' : 'none';
             showAuthLinks ? authLinks.classList.remove('hidden') : authLinks.classList.add('hidden');
-            console.log('🔍 HEADER:', showAuthLinks ? 'Showing' : 'Hiding', 'auth links');
         }
 
         if (userInfo) {
             userInfo.style.display = showAuthLinks ? 'none' : 'flex';
             showAuthLinks ? userInfo.classList.add('hidden') : userInfo.classList.remove('hidden');
-            console.log('🔍 HEADER:', showAuthLinks ? 'Hiding' : 'Showing', 'user info');
         }
     }
 
     updateUserInfo(user) {
-        console.log('user info', user);
         const userInfo = document.getElementById('user-info');
         const userElement = userInfo?.querySelector('span');
 
@@ -329,7 +303,6 @@ class HeaderComponent {
             ` : `
                 <span>${user.username}</span>
             `;
-            console.log('🔍 HEADER: Set user info to:', userElement.innerHTML);
         }
     }
 

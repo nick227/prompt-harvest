@@ -18,7 +18,7 @@ import { moderateBadWordFilter } from './src/middleware/badWordFilter.js';
 import { authenticateToken } from './src/middleware/authMiddleware.js';
 import databaseClient from './src/database/PrismaClient.js';
 import PrismaSessionStore from './src/config/PrismaSessionStore.js';
-import { autoPopulateWordTypes } from './src/scripts/auto-populate-word-types.js';
+// import { autoPopulateWordTypes } from './src/scripts/auto-populate-word-types.js';
 
 dotenv.config(); // Nodemon restart trigger
 
@@ -61,7 +61,7 @@ const initializeDatabase = async () => {
         }));
 
         // Auto-populate word_types on Railway if table is empty
-        await autoPopulateWordTypes();
+        // await autoPopulateWordTypes();
 
         return true;
     } catch (error) {

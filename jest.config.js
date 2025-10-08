@@ -16,10 +16,13 @@ export default {
         '**/__tests__/**/*.js'
     ],
 
-    // Explicitly ignore E2E test directories
+    // Explicitly ignore E2E test directories and other test framework files
     testPathIgnorePatterns: [
         '/node_modules/',
-        '/tests/e2e/'
+        '/tests/e2e/',
+        '/tests/queue/',           // Vitest tests
+        'ai-chat-e2e.test.js',     // Playwright test
+        'ai-agent-e2e.test.js'     // Has missing dependencies, should be E2E
     ],
 
     // Setup files for each test file

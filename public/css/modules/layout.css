@@ -232,7 +232,8 @@
 }
 
 .compact-view.loading-content {
-    margin-top: 22%;
+    margin-top: 25%;
+    transform: scale(0.4);
 }
 
 .list-header {

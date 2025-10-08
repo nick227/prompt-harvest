@@ -2,13 +2,43 @@
 // NAVIGATION CONTROLS - Navigation and Control Elements
 // ============================================================================
 
+// Import UIConfig for ES6 module support
+let UIConfigClass;
+if (typeof window !== 'undefined' && window.UIConfig) {
+    UIConfigClass = window.UIConfig;
+}
+
 /**
  * NavigationControls - Handles creation of navigation and control elements
  * Creates buttons, toggles, rating displays, and other interactive controls
  */
 class NavigationControls {
     constructor(uiConfig = null) {
-        this.uiConfig = uiConfig || new window.UIConfig();
+        if (uiConfig) {
+            this.uiConfig = uiConfig;
+        } else if (UIConfigClass) {
+            this.uiConfig = new UIConfigClass();
+        } else if (typeof window !== 'undefined' && window.UIConfig) {
+            this.uiConfig = new window.UIConfig();
+        } else {
+            // Fallback minimal config for testing
+            this.uiConfig = {
+                createElement: (tag, className = '') => {
+                    const element = document.createElement(tag);
+                    if (className) element.className = className;
+                    return element;
+                },
+                getClasses: () => ({
+                    navigationControls: 'nav-controls',
+                    toggleButton: 'toggle-btn',
+                    publicStatusToggle: 'public-toggle',
+                    navigationSpacer: 'nav-spacer'
+                }),
+                getSelectors: () => ({
+                    fullscreenContainer: '.fullscreen-container'
+                })
+            };
+        }
     }
 
     // ============================================================================
@@ -155,6 +185,30 @@ class NavigationControls {
     // RATING DISPLAY
     // ============================================================================
 
+    /**
+     * Create rating display element
+     * @param {number|string} rating - Rating value or '-' for no rating
+     * @returns {HTMLElement} Rating display element
+     */
+    createRatingDisplay(rating) {
+        const ratingDiv = this.uiConfig.createElement('div');
+
+        ratingDiv.className = 'rating-display';
+        ratingDiv.textContent = rating || '-';
+        ratingDiv.setAttribute('aria-label', `Rating: ${rating || 'Not rated'}`);
+
+        // Apply styling
+        Object.assign(ratingDiv.style, {
+            background: 'rgba(0, 0, 0, 0.8)',
+            color: 'rgb(255, 215, 0)',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            fontSize: '14px',
+            fontWeight: 'bold'
+        });
+
+        return ratingDiv;
+    }
 
     // ============================================================================
     // NAVIGATION SPACER
@@ -252,4 +306,12 @@ class NavigationControls {
 // ============================================================================
 
 // Make class available globally
-window.NavigationControls = NavigationControls;
+if (typeof window !== 'undefined') {
+    window.NavigationControls = NavigationControls;
+}
+
+// Export for CommonJS
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { NavigationControls };
+}
+

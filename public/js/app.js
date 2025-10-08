@@ -8,9 +8,6 @@ class AppLoader {
     constructor() {
         this.modules = new Map();
         this.initialized = false;
-        this.autoGenerationCounter = 0;
-        this.autoGenerationMax = 1;
-        this.isAutoGenerating = false;
     }
 
     async init() {
@@ -309,74 +306,6 @@ class AppLoader {
         // console.log('✅ AUTO-GENERATE: Setup completed - maxNum input disabled by default');
     }
 
-    stopAutoGeneration() {
-        if (this.isAutoGenerating) {
-            this.isAutoGenerating = false;
-            this.autoGenerationCounter = 0;
-
-        }
-    }
-
-    checkAutoGenerationContinue() {
-        const _autoGenerateCheckbox = document.querySelector('input[name="auto-generate"]');
-        const maxNumInput = document.querySelector('input[name="maxNum"]');
-
-        if (!_autoGenerateCheckbox || !_autoGenerateCheckbox.checked) {
-            return;
-        }
-
-        const maxValue = maxNumInput ? parseInt(maxNumInput.value) : 1;
-        const maxNum = Math.max(1, Math.min(10, maxValue || 1));
-
-        if (!this.isAutoGenerating) {
-            this.autoGenerationCounter = 0;
-            this.autoGenerationMax = maxNum;
-            this.isAutoGenerating = true;
-
-        }
-
-        this.autoGenerationCounter++;
-        if (this.autoGenerationCounter < this.autoGenerationMax) {
-            setTimeout(() => this.generateNextImage(), 1000);
-        } else {
-
-            this.stopAutoGeneration();
-        }
-    }
-
-    generateNextImage() {
-        const validation = validateImageGeneration();
-
-        if (!validation.valid) {
-
-            this.stopAutoGeneration();
-
-            return;
-        }
-
-        const promptObj = {
-            prompt: validation.prompt,
-            promptId: Date.now().toString(),
-            original: validation.prompt,
-            ...validation // Include all validation options
-        };
-
-        if (typeof window.generateImage === 'function') {
-            window.generateImage(promptObj.prompt, validation.providers, promptObj)
-                .then(_result => {
-
-                    this.checkAutoGenerationContinue();
-                })
-                .catch(error => {
-                    console.error('Auto-generation error:', error);
-                    this.stopAutoGeneration();
-                });
-        } else {
-            console.error('generateImage function not available');
-            this.stopAutoGeneration();
-        }
-    }
-
     getStatus() {
         const status = {};
 
@@ -390,114 +319,6 @@ class AppLoader {
         return status;
     }
 }
-
-// Calculate guidance value from top and bottom guidance inputs
-const calculateGuidance = (topValue, bottomValue) => {
-    const top = parseInt(topValue) || 0;
-    const bottom = parseInt(bottomValue) || 0;
-
-    // If both values are provided, use the average
-    if (top > 0 && bottom > 0) {
-        return { guidance: Math.round((top + bottom) / 2) };
-    }
-
-    // If only one value is provided, use that
-    if (top > 0) {
-        return { guidance: top };
-    }
-
-    if (bottom > 0) {
-        return { guidance: bottom };
-    }
-
-    // Default to 10 if no values provided
-    return { guidance: 10 };
-};
-
-// Shared validation function for image generation
-const validateImageGeneration = () => {
-    const textArea = document.querySelector('#prompt-textarea');
-    const selectedProviders = (window.providerManager && window.providerManager.getSelectedProviders)
-        ? window.providerManager.getSelectedProviders()
-        : [];
-
-    if (!textArea?.value.trim()) {
-        console.warn('Please enter a prompt');
-
-        return { valid: false };
-    }
-
-    if (selectedProviders.length === 0) {
-        console.warn('Please select at least one provider');
-
-        return { valid: false };
-    }
-
-    // Get all form data including autoEnhance, mixup, etc.
-    const formData = {};
-
-    // Get form values from the unified drawer component
-    if (window.unifiedDrawerComponent) {
-        const drawerValues = window.unifiedDrawerComponent.getFormValues('desktop');
-        Object.assign(formData, drawerValues);
-    }
-
-    // Also get values directly from form elements as fallback
-    const autoEnhanceCheckbox = document.querySelector('input[name="auto-enhance"]');
-    const mixupCheckbox = document.querySelector('input[name="mixup"]');
-    const mashupCheckbox = document.querySelector('input[name="mashup"]');
-    const autoPublicCheckbox = document.querySelector('input[name="autoPublic"]');
-    const multiplierInput = document.querySelector('#multiplier');
-    const guidanceTop = document.querySelector('select[name="guidance-top"]');
-    const guidanceBottom = document.querySelector('select[name="guidance-bottom"]');
-
-    // Get prompt helpers using centralized system
-    const promptHelpers = PromptHelpersForm.getFormValues();
-
-    // Debug autoPublic specifically
-    console.log('🔍 APP DEBUG: autoPublic checkbox found:', !!autoPublicCheckbox);
-    if (autoPublicCheckbox) {
-        console.log('🔍 APP DEBUG: autoPublic checkbox checked:', autoPublicCheckbox.checked);
-    } else {
-        console.log('🔍 APP DEBUG: autoPublic checkbox not found, checking localStorage...');
-        const storedAutoPublic = localStorage.getItem('autoPublic');
-        console.log('🔍 APP DEBUG: localStorage autoPublic value:', storedAutoPublic);
-        console.log('🔍 APP DEBUG: localStorage autoPublic type:', typeof storedAutoPublic);
-    }
-
-    // Calculate guidance
-    const guidanceData = calculateGuidance(guidanceTop?.value, guidanceBottom?.value);
-
-    const result = {
-        valid: true,
-        prompt: textArea.value.trim(),
-        providers: selectedProviders,
-        autoEnhance: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : false,
-        mixup: mixupCheckbox ? mixupCheckbox.checked : false,
-        mashup: mashupCheckbox ? mashupCheckbox.checked : false,
-        promptHelpers,
-        autoPublic: autoPublicCheckbox ? autoPublicCheckbox.checked : (localStorage.getItem('autoPublic') === 'true'),
-        multiplier: multiplierInput ? multiplierInput.value.trim() : '',
-        guidance: guidanceData.guidance,
-        original: textArea.value.trim(),
-        formData: formData
-    };
-
-    console.log('🔍 FRONTEND DEBUG: validateImageGeneration result:', {
-        autoEnhance: result.autoEnhance,
-        autoEnhanceCheckbox: autoEnhanceCheckbox,
-        checkboxChecked: autoEnhanceCheckbox ? autoEnhanceCheckbox.checked : 'checkbox not found',
-        mixup: result.mixup,
-        mashup: result.mashup,
-        promptHelpers: result.promptHelpers,
-        autoPublic: result.autoPublic,
-        autoPublicCheckbox: autoPublicCheckbox,
-        autoPublicChecked: autoPublicCheckbox ? autoPublicCheckbox.checked : 'checkbox not found',
-        autoPublicFromStorage: localStorage.getItem('autoPublic')
-    });
-
-    return result;
-};
 
 // Initialize application when DOM is ready
 document.addEventListener('DOMContentLoaded', async() => {
@@ -531,16 +352,15 @@ document.addEventListener('DOMContentLoaded', async() => {
         }, 100);
     }
 
-    // Verify generation component is available
-    if (!window.generationComponent) {
-        console.warn('⚠️ Generation component not found, button may not work');
+    // Verify images manager is available
+    if (!window.imagesManager) {
+        console.warn('⚠️ Images manager not found, button may not work');
     }
 
     // Debug functions for testing
     window.testAutoGeneration = () => {
-
-        if (window.app) {
-            window.app.checkAutoGenerationContinue();
+        if (window.imagesManager) {
+            window.imagesManager.checkAutoGenerationContinue();
         }
     };
 

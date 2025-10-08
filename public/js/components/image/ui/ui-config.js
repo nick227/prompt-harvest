@@ -42,3 +42,13 @@ class UIConfig {
         return this.config.selectors;
     }
 }
+
+// Export for CommonJS and global scope
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { UIConfig };
+}
+
+// Make class available globally
+if (typeof window !== 'undefined') {
+    window.UIConfig = UIConfig;
+}

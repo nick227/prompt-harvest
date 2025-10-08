@@ -66,11 +66,9 @@ class ErrorHandler {
     }
 
     static showUserError(message) {
-        // Use existing notification system if available
-        if (window.GenerationUI) {
-            const ui = new window.GenerationUI();
-
-            ui.showError(message);
+        // Use notification service if available
+        if (window.notificationService) {
+            window.notificationService.show(message, 'error');
         } else {
             // Fallback notification
             this.createErrorNotification(message);

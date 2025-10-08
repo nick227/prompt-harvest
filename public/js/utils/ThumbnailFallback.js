@@ -37,6 +37,10 @@ class ThumbnailFallback {
             '💡', '🔍', '📚', '📖', '📗', '📘', '📙', '📕', '📓', '📔',
             '🎯', '🚀', '⭐', '💫', '✨', '🌟', '🔥', '💎', '🎨', '🎭'
         ];
+
+        // Aliases for backwards compatibility with tests
+        this.palettes = this.colorPalettes;
+        this.icons = this.iconSets;
     }
 
     /**
@@ -166,7 +170,35 @@ class ThumbnailFallback {
             </svg>
         `;
     }
+
+    /**
+     * Get fallback gradient for a post (test compatibility method)
+     * @param {Object} post - Blog post object
+     * @returns {string} CSS gradient string
+     */
+    getFallbackGradient(post) {
+        const seed = this.generateSeed(post);
+        const palette = this.getPalette(seed);
+
+        return this.createGradient(palette);
+    }
+
+    /**
+     * Get fallback icon for a post (test compatibility method)
+     * @param {Object} post - Blog post object
+     * @returns {string} Icon emoji
+     */
+    getFallbackIcon(post) {
+        const seed = this.generateSeed(post);
+
+        return this.getIcon(seed);
+    }
 }
 
 // Export for use in other modules
 window.ThumbnailFallback = ThumbnailFallback;
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { ThumbnailFallback };
+}

@@ -446,16 +446,10 @@ class ProviderManager {
     }
 
     updateButtonState() {
-        // Notify the generation manager to update the button state
-        // Use a small delay to ensure the generation manager is ready
+        // Notify the images manager to update the button state
+        // Use a small delay to ensure the images manager is ready
         setTimeout(() => {
-            if (window.generationComponent && window.generationComponent.manager) {
-                window.generationComponent.manager.updateProviderStatus();
-            } else if (window.generationManager) {
-                window.generationManager.updateProviderStatus();
-            }
-
-            // Also trigger ImageUIState button update if available
+            // Trigger ImageUIState button update if available
             if (window.imagesManager && window.imagesManager.ui && window.imagesManager.ui.updateButtonState) {
                 window.imagesManager.ui.updateButtonState();
             }
@@ -463,10 +457,14 @@ class ProviderManager {
     }
 }
 
-// ES6 module export
-
-
 // Global export for browser compatibility
 if (typeof window !== 'undefined') {
     window.ProviderManager = ProviderManager;
+}
+
+// Export for testing (using both names for backward compatibility)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ProviderManager;
+    // Also export as ProviderComponent for tests expecting that name
+    module.exports.ProviderComponent = ProviderManager;
 }

@@ -76,4 +76,6 @@ class DatabaseClient {
 // Create singleton instance
 const databaseClient = new DatabaseClient();
 
+// Export both default and named exports for better compatibility
 export default databaseClient;
+export { databaseClient, DatabaseClient };

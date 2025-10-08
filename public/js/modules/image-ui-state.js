@@ -332,7 +332,7 @@ class ImageUIState {
 
             // Only retry a limited number of times to prevent infinite loops
             this.retryCount = (this.retryCount || 0) + 1;
-            if (this.retryCount < 5) {
+            if (this.retryCount < 1) {
                 setTimeout(() => {
                     this.setupEventListeners(handleGenerateClick);
                 }, 1000);

@@ -4,10 +4,18 @@
  */
 
 class BlogService {
-    constructor() {
-        this.apiService = window.apiService;
-        this.authService = window.authService;
+    constructor(apiService = null, authService = null) {
+        // Support dependency injection for testing
+        this.apiService = apiService || window.apiService;
+        this.authService = authService || window.authService;
         this.baseUrl = '/api/blog';
+    }
+
+    /**
+     * Get all published blog posts (alias for getPublishedPosts for test compatibility)
+     */
+    async getAllPosts(page = 1, limit = 10) {
+        return this.getPublishedPosts(page, limit);
     }
 
     /**
@@ -153,6 +161,12 @@ class BlogService {
      * Check if current user is admin
      */
     isAdmin() {
+        // Check authService.getCurrentUser() first
+        const currentUser = this.authService?.getCurrentUser?.();
+        if (currentUser?.isAdmin) {
+            return true;
+        }
+
         // Check multiple sources for admin status
         if (this.authService?.currentUser?.isAdmin) {
             return true;
@@ -207,10 +221,20 @@ class BlogService {
      * Format post for display
      */
     formatPostForDisplay(post) {
+        // Parse tags if they're stored as JSON string
+        let tags = post.tags || [];
+        if (typeof tags === 'string') {
+            try {
+                tags = JSON.parse(tags);
+            } catch (e) {
+                tags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+            }
+        }
+
         return {
             ...post,
             formattedDate: this.formatDate(post.publishedAt || post.createdAt),
-            formattedTags: post.tags || [],
+            formattedTags: tags,
             excerpt: post.excerpt || this.generateExcerpt(post.content)
         };
     }
@@ -222,10 +246,14 @@ class BlogService {
         if (!content) {
             return '';
         }
-        const plainText = content.replace(/<[^>]*>/g, '');
+        const plainText = content.replace(/<[^>]*>/g, '').trim();
+
+        if (plainText.length === 0) {
+            return '';
+        }
 
         return plainText.length > maxLength
-            ? `${plainText.substring(0, maxLength)}...`
+            ? `${plainText.substring(0, maxLength).trim()}...`
             : plainText;
     }
 
@@ -268,3 +296,8 @@ class BlogService {
 document.addEventListener('DOMContentLoaded', () => {
     window.blogService = new BlogService();
 });
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { BlogService };
+}

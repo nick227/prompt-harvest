@@ -162,14 +162,18 @@ class BlogIndexPage {
     }
 
     createPostCard(post, isFeatured = false) {
-        const formattedPost = this.blogService.formatPostForDisplay(post);
+        const formattedPost = this.blogService?.formatPostForDisplay?.(post) || {
+            formattedDate: post.publishedAt || post.createdAt || '',
+            formattedTags: post.tags || [],
+            excerpt: post.excerpt || ''
+        };
         const featuredClass = isFeatured ? 'border-blue-500 bg-gray-800' : 'border-gray-700';
 
         // Create thumbnail HTML with fallback
         const thumbnailHtml = this.createThumbnailHTML(post, isFeatured);
 
         // Create tags HTML
-        const tagsHtml = formattedPost.formattedTags.map(tag => `<span class="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">${tag}</span>`
+        const tagsHtml = (formattedPost.formattedTags || []).map(tag => `<span class="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">${tag}</span>`
         ).join('');
 
         // Admin controls for all posts
@@ -587,9 +591,82 @@ class BlogIndexPage {
             error.classList.remove('hidden');
         }
     }
+
+    /**
+     * Render featured posts (test compatibility method)
+     */
+    renderFeaturedPosts(posts) {
+        const container = document.getElementById('featured-posts');
+
+        if (!container) {
+            return;
+        }
+
+        if (!posts || posts.length === 0) {
+            container.innerHTML = '';
+
+            return;
+        }
+
+        container.innerHTML = posts.map(post => this.createPostCard(post, true)).join('');
+    }
+
+    /**
+     * Check admin status and update UI (test compatibility method)
+     */
+    checkAdminStatus() {
+        this.updateAdminStatus();
+    }
+
+    /**
+     * Generate seed for fallback (test compatibility method)
+     */
+    generateSeed(input) {
+        let hash = 0;
+        const str = String(input || '');
+
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+
+        return Math.abs(hash);
+    }
+
+    /**
+     * Get fallback gradient (test compatibility method)
+     */
+    getFallbackGradient(post) {
+        if (window.ThumbnailFallback) {
+            const fallback = new window.ThumbnailFallback();
+
+            return fallback.getFallbackGradient(post);
+        }
+
+        return 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 50%, #1E40AF 100%)';
+    }
+
+    /**
+     * Get fallback icon (test compatibility method)
+     */
+    getFallbackIcon(post) {
+        if (window.ThumbnailFallback) {
+            const fallback = new window.ThumbnailFallback();
+
+            return fallback.getFallbackIcon(post);
+        }
+
+        return '📝';
+    }
 }
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.blogIndexPage = new BlogIndexPage();
 });
+
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { BlogIndexPage };
+}
