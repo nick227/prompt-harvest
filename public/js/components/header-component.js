@@ -46,6 +46,7 @@ class HeaderComponent {
         }
         header.innerHTML = `
             <div class="${headerClass}">
+                ${this.getFontHtml()}
                 <div class="flex justify-between items-center py-4 header-container">
                     <!-- Left Section: Logo and Title -->
                     <div class="flex items-center space-x-3 group logo-container">
@@ -101,18 +102,20 @@ class HeaderComponent {
 
         // Insert header at the beginning of the body
         document.body.insertBefore(header, document.body.firstChild);
-        console.log('🔍 HEADER: Header inserted, checking visibility:', {
-            headerExists: !!document.querySelector('header'),
-            headerVisible: document.querySelector('header')?.offsetHeight > 0,
-            headerDisplay: document.querySelector('header')?.style.display,
-            headerClasses: document.querySelector('header')?.className
-        });
 
         // Initialize components after header is created with a small delay
         // to ensure all component classes are loaded
         setTimeout(() => {
             this.initializeComponents();
         }, 50);
+    }
+
+    getFontHtml() {
+        return `
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+        `;
     }
 
     initializeComponents() {
@@ -146,10 +149,6 @@ class HeaderComponent {
     setupUserSystemIntegration() {
         // Wait for user system to be available (check both userSystem and authService)
         const checkUserSystem = () => {
-            console.log('🔍 HEADER-COMPONENT: Checking user system availability:', {
-                userSystem: !!window.userSystem,
-                authService: !!window.authService
-            });
 
             if (window.userSystem || window.authService) {
                 this.updateHeaderForUser();
@@ -199,22 +198,6 @@ class HeaderComponent {
 
         const isAuthenticated = authSystem.isAuthenticated();
         const user = authSystem.getUser ? authSystem.getUser() : authSystem.currentUser;
-
-        console.log('🔍 HEADER: Auth state:', {
-            isAuthenticated,
-            user: user ? { id: user.id, email: user.email, isAdmin: user.isAdmin } : null,
-            hasToken: !!localStorage.getItem('authToken')
-        });
-
-        // Debug logging
-        if (window.location.search.includes('debug')) {
-            console.log('🔍 HEADER: Auth state update', {
-                authSystem: authSystem.constructor.name,
-                isAuthenticated,
-                user: user ? { id: user.id, email: user.email, isAdmin: user.isAdmin } : null,
-                token: localStorage.getItem('authToken') ? 'present' : 'missing'
-            });
-        }
 
         // Additional check: if we have a token but auth system says not authenticated,
         // try to force a re-check
@@ -298,9 +281,11 @@ class HeaderComponent {
         const userElement = userInfo?.querySelector('span');
 
         if (userElement) {
-            userElement.innerHTML = user.picture ? `
+            userElement.innerHTML = user.picture
+                ? `
                 <img src="${user.picture}" alt="User Picture" class="w-8 h-8 rounded-full">
-            ` : `
+            `
+                : `
                 <span>${user.username}</span>
             `;
         }
@@ -328,7 +313,6 @@ class HeaderComponent {
                 adminLink.className = 'admin-link text-gray-300 hover:text-yellow-400 transition-colors duration-200 flex items-center space-x-1';
                 adminLink.innerHTML = `
                     <i class="fas fa-cog"></i>
-                    <span class="text-sm">Admin</span>
                 `;
                 adminLink.title = 'Admin Dashboard';
 

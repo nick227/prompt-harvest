@@ -20,7 +20,6 @@ class AdminPackageManager {
      * Initialize package handler
      */
     async init() {
-        console.log('📦 ADMIN-PACKAGES: Initializing package handler...');
 
         // Check authentication before initializing
         if (!window.AdminAuthUtils?.hasValidToken()) {
@@ -38,83 +37,61 @@ class AdminPackageManager {
         // Load initial packages (but don't render table yet - wait for tab to be rendered)
         await this.loadPackagesData();
 
-        console.log('✅ ADMIN-PACKAGES: Package handler initialized');
     }
 
     /**
      * Setup event listeners for package management
      */
     setupEventListeners() {
-        console.log('📦 ADMIN-PACKAGES: Setting up event listeners');
 
         // Listen for admin table actions using AdminEventBus
         if (this.eventBus && !this.eventBusListenerSet) {
-            console.log('📦 ADMIN-PACKAGES: Setting up AdminEventBus listeners');
-            console.log('📦 ADMIN-PACKAGES: AdminEventBus available:', !!this.eventBus);
             this.eventBusListenerSet = true; // Prevent duplicate registrations
 
             // Listen for delete actions
-            console.log('📦 ADMIN-PACKAGES: Registering AdminEventBus listener for table-action.delete');
             this.eventBus.on('table-action', 'delete', eventData => {
-                console.log('📦 ADMIN-PACKAGES: AdminEventBus table-action.delete event received:', eventData);
-                console.log('📦 ADMIN-PACKAGES: Event data type:', eventData.dataType);
-                console.log('📦 ADMIN-PACKAGES: Event ID:', eventData.id);
                 if (eventData.dataType === 'packages') {
-                    console.log('📦 ADMIN-PACKAGES: AdminEventBus delete received for packages');
                     const packageData = this.currentPackages.find(pkg => pkg.id === eventData.id);
 
                     if (packageData) {
-                        console.log('📦 ADMIN-PACKAGES: Package data found, showing confirmation');
                         this.showDeletePackageConfirmation(packageData);
                     } else {
                         console.error('📦 ADMIN-PACKAGES: Package not found for delete action:', eventData.id);
-                        console.log('📦 ADMIN-PACKAGES: Available packages:', this.currentPackages.map(p => p.id));
                     }
                 } else {
-                    console.log('📦 ADMIN-PACKAGES: Event not for packages, dataType:', eventData.dataType);
                 }
             });
 
             // Debug: Check what listeners are registered
-            console.log('📦 ADMIN-PACKAGES: AdminEventBus listeners after registration:', this.eventBus.getListeners());
         } else if (this.eventBusListenerSet) {
-            console.log('📦 ADMIN-PACKAGES: AdminEventBus listeners already set up, skipping');
         }
 
         // Fallback: Listen for old DOM events
-        console.log('📦 ADMIN-PACKAGES: Setting up fallback DOM event listener');
         document.addEventListener('admin-table-action', event => {
-            console.log('📦 ADMIN-PACKAGES: admin-table-action event received:', event.detail);
             const { action, data, dataType, id } = event.detail;
 
             // Only handle package-related actions
             if (dataType !== 'packages') {
-                console.log('📦 ADMIN-PACKAGES: Ignoring non-package action:', dataType);
 
                 return;
             }
 
-            console.log('📦 ADMIN-PACKAGES: Processing package action:', action);
             switch (action) {
                 case 'create':
                 case 'create-package':
-                    console.log('📦 ADMIN-PACKAGES: admin-table-action create-package received');
                     this.showCreatePackageForm();
                     break;
                 case 'edit':
                     this.showEditPackageForm(data);
                     break;
                 case 'delete': {
-                    console.log('📦 ADMIN-PACKAGES: Fallback DOM listener handling delete action for ID:', id);
                     // Find the package data by ID
                     const packageData = this.currentPackages.find(pkg => pkg.id === id);
 
                     if (packageData) {
-                        console.log('📦 ADMIN-PACKAGES: Package data found in fallback, showing confirmation');
                         this.showDeletePackageConfirmation(packageData);
                     } else {
                         console.error('📦 ADMIN-PACKAGES: Package not found for delete action:', id);
-                        console.log('📦 ADMIN-PACKAGES: Available packages in fallback:', this.currentPackages.map(p => p.id));
                     }
                     break;
                 }
@@ -133,9 +110,6 @@ class AdminPackageManager {
         // Listen for package-specific button clicks
         document.addEventListener('click', event => {
             if (event.target.matches('[data-action="create-package"]')) {
-                console.log('📦 ADMIN-PACKAGES: Add Package button clicked');
-                console.log('📦 ADMIN-PACKAGES: Event target:', event.target);
-                console.log('📦 ADMIN-PACKAGES: Event target text:', event.target.textContent);
                 event.preventDefault();
                 this.showCreatePackageForm();
             } else if (event.target.matches('[data-action="edit"]') && event.target.closest('table[data-type="packages"]')) {
@@ -165,7 +139,6 @@ class AdminPackageManager {
         try {
             this.isLoading = true;
 
-            console.log('📦 ADMIN-PACKAGES: Starting to load packages data...');
 
             // Check authentication first
             if (!window.AdminAuthUtils?.hasValidToken()) {
@@ -177,20 +150,16 @@ class AdminPackageManager {
 
             // Use AdminAPIService for proper authentication
             if (window.adminApiService) {
-                console.log('🔑 ADMIN-PACKAGES: Using AdminAPIService for authenticated request');
                 const result = await window.adminApiService.request('GET', '/packages');
 
-                console.log('📦 ADMIN-PACKAGES: AdminAPIService result:', result);
 
                 if (result.success) {
                     this.currentPackages = result.data;
-                    console.log('✅ ADMIN-PACKAGES: Packages data loaded successfully via AdminAPIService');
                 } else {
                     throw new Error(result.message || 'Failed to load packages');
                 }
             } else {
                 // Fallback to direct fetch with auth headers
-                console.log('🔑 ADMIN-PACKAGES: Using direct fetch with auth headers');
 
                 const headers = window.AdminAuthUtils.getAuthHeaders();
 
@@ -207,7 +176,6 @@ class AdminPackageManager {
 
                 if (result.success) {
                     this.currentPackages = result.data;
-                    console.log('✅ ADMIN-PACKAGES: Packages data loaded successfully via fallback');
                 } else {
                     throw new Error(result.message || 'Failed to load packages');
                 }
@@ -227,27 +195,20 @@ class AdminPackageManager {
         try {
             this.isLoading = true;
 
-            console.log('📦 ADMIN-PACKAGES: Starting to load packages...');
-            console.log('📦 ADMIN-PACKAGES: AdminAPIService available:', !!window.adminApiService);
-            console.log('📦 ADMIN-PACKAGES: window.adminApiService:', window.adminApiService);
 
             // Use AdminAPIService for proper authentication
             if (window.adminApiService) {
-                console.log('🔑 ADMIN-PACKAGES: Using AdminAPIService for authenticated request');
                 const result = await window.adminApiService.request('GET', '/packages');
 
-                console.log('📦 ADMIN-PACKAGES: AdminAPIService result (loadPackages):', result);
 
                 if (result.success) {
                     this.currentPackages = result.data;
                     this.renderPackagesTable();
-                    console.log('✅ ADMIN-PACKAGES: Packages loaded successfully via AdminAPIService');
                 } else {
                     throw new Error(result.message || 'Failed to load packages');
                 }
             } else {
                 // Fallback to direct fetch with auth headers
-                console.log('🔑 ADMIN-PACKAGES: Using direct fetch with auth headers');
 
                 const headers = window.AdminAuthUtils.getAuthHeaders();
 
@@ -263,13 +224,10 @@ class AdminPackageManager {
 
                 const result = await response.json();
 
-                console.log('📦 ADMIN-PACKAGES: API response:', result);
 
                 if (result.success) {
                     this.currentPackages = result.data;
-                    console.log('📦 ADMIN-PACKAGES: Current packages set to:', this.currentPackages);
                     this.renderPackagesTable();
-                    console.log('✅ ADMIN-PACKAGES: Packages loaded successfully via fallback');
                 } else {
                     throw new Error(result.message || 'Failed to load packages');
                 }
@@ -304,11 +262,9 @@ class AdminPackageManager {
      * Show create package form
      */
     showCreatePackageForm() {
-        console.log('📦 ADMIN-PACKAGES: showCreatePackageForm called');
 
         // Global flag to prevent multiple modal opens
         if (window.adminModalOpen) {
-            console.log('📦 ADMIN-PACKAGES: Modal already open, ignoring duplicate call');
 
             return;
         }
@@ -323,7 +279,6 @@ class AdminPackageManager {
             popular: false
         };
 
-        console.log('📦 ADMIN-PACKAGES: Calling showPackageForm with data:', formData);
         this.showPackageForm('Create Package', formData);
     }
 
@@ -343,25 +298,18 @@ class AdminPackageManager {
      * Show package form modal
      */
     showPackageForm(title, formData) {
-        console.log('📦 ADMIN-PACKAGES: showPackageForm called with title:', title);
-        console.log('📦 ADMIN-PACKAGES: window.showModal available:', !!window.showModal);
-        console.log('📦 ADMIN-PACKAGES: window.adminModal available:', !!window.adminModal);
 
         const modalContent = this.generatePackageForm(formData);
 
-        console.log('📦 ADMIN-PACKAGES: Generated modal content length:', modalContent.length);
 
         // Show modal using the admin modal system
         if (window.showModal) {
-            console.log('📦 ADMIN-PACKAGES: Using window.showModal');
             try {
                 window.showModal(title, modalContent);
-                console.log('📦 ADMIN-PACKAGES: showModal called successfully');
             } catch (error) {
                 console.error('📦 ADMIN-PACKAGES: Error calling showModal:', error);
             }
         } else {
-            console.log('📦 ADMIN-PACKAGES: Using fallback createModal');
             // Fallback: create modal manually
             this.createModal(title, modalContent);
         }
@@ -607,7 +555,6 @@ class AdminPackageManager {
             description: rawDescription,
             popular: rawPopular
         });
-        console.log('📦 ADMIN-PACKAGES: Converted package data:', packageData);
         console.log('📦 ADMIN-PACKAGES: Data types after conversion:', {
             name: typeof packageData.name,
             credits: typeof packageData.credits,
@@ -634,12 +581,9 @@ class AdminPackageManager {
             const isEdit = packageData.id && this.currentPackages.find(pkg => pkg.id === packageData.id);
 
             // Check if AdminAPIService is available
-            console.log('📦 ADMIN-PACKAGES: AdminAPIService available:', !!window.adminApiService);
-            console.log('📦 ADMIN-PACKAGES: Auth token available:', !!localStorage.getItem('authToken'));
 
             // Use AdminAPIService for proper authentication
             if (window.adminApiService) {
-                console.log('📦 ADMIN-PACKAGES: Using AdminAPIService');
                 let result;
 
                 if (isEdit) {
@@ -657,7 +601,6 @@ class AdminPackageManager {
                 }
             } else {
                 // Fallback to direct fetch with auth headers
-                console.log('📦 ADMIN-PACKAGES: Using fallback fetch method');
                 const url = isEdit ? `${this.apiBaseUrl}/packages/${packageData.id}` : `${this.apiBaseUrl}/packages`;
                 const method = isEdit ? 'PUT' : 'POST';
 
@@ -1151,7 +1094,6 @@ class AdminPackageManager {
      * Render packages table
      */
     renderPackagesTable() {
-        console.log('📦 ADMIN-PACKAGES: renderPackagesTable called');
 
         // Wait for DOM to be ready with multiple attempts
         this.waitForPackagesContainer();
@@ -1162,7 +1104,6 @@ class AdminPackageManager {
         const tableContainer = document.getElementById('packages-table-container');
 
         if (tableContainer) {
-            console.log('✅ ADMIN-PACKAGES: packages-table-container found');
             this.doRenderPackagesTable(tableContainer);
 
             return;
@@ -1178,14 +1119,11 @@ class AdminPackageManager {
             return;
         }
 
-        console.log(`🔍 ADMIN-PACKAGES: Waiting for packages-table-container (attempt ${attempts + 1}/${maxAttempts})`);
         setTimeout(() => this.waitForPackagesContainer(attempts + 1), 100);
     }
 
     doRenderPackagesTable(tableContainer) {
-        console.log('📦 ADMIN-PACKAGES: doRenderPackagesTable called');
 
-        console.log('📦 ADMIN-PACKAGES: Current packages for rendering:', this.currentPackages);
 
         // Prepare data for the table generator
         const tableData = this.currentPackages.map(pkg => {
@@ -1204,10 +1142,8 @@ class AdminPackageManager {
             };
         });
 
-        console.log('📦 ADMIN-PACKAGES: Processed table data:', tableData);
 
         // Use the shared table component with standardized header
-        console.log('📦 ADMIN-PACKAGES: Shared table available:', !!this.sharedTable);
         if (this.sharedTable) {
             console.log('📦 ADMIN-PACKAGES: Calling sharedTable.render with:', {
                 tableType: 'packages',
@@ -1215,7 +1151,6 @@ class AdminPackageManager {
                 container: tableContainer
             });
 
-            console.log('📦 ADMIN-PACKAGES: About to render shared table for packages');
             this.sharedTable.render('packages', tableData, tableContainer, {
                 addButton: {
                     action: 'create-package',
@@ -1223,13 +1158,11 @@ class AdminPackageManager {
                     title: 'Create a new credit package'
                 }
             });
-            console.log('📦 ADMIN-PACKAGES: Shared table render completed');
 
             // Add profit margin summary after the table is rendered
             const profitMarginHTML = this.generateProfitMarginSummary();
 
             tableContainer.insertAdjacentHTML('afterbegin', profitMarginHTML);
-            console.log('📦 ADMIN-PACKAGES: Table generation completed');
         } else {
             console.error('❌ ADMIN-PACKAGE: Shared table not available');
             tableContainer.innerHTML = '<div class="error-message">Shared table not available</div>';
@@ -1412,7 +1345,6 @@ class AdminPackageManager {
         if (this.sharedTable) {
             this.sharedTable.destroy();
         }
-        console.log('🗑️ ADMIN-PACKAGES: Package manager destroyed');
     }
 }
 

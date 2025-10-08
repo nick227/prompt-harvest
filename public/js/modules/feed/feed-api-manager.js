@@ -101,10 +101,14 @@ class FeedAPIManager {
                 images = [];
             }
 
+            // Extract hasMore from multiple possible locations
+            const hasMore = data.hasMore ?? data.data?.hasMore ?? data.pagination?.hasMore;
+
             // Return in consistent format
             const result = {
                 images: images,
                 pagination: data.pagination || data.data?.pagination,
+                hasMore: hasMore, // Include hasMore in result
                 success: data.success !== false
             };
 

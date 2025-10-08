@@ -17,6 +17,11 @@ class ImageDOMUtils {
         img.alt = imageData.prompt || '';
         img.title = imageData.prompt || '';
 
+        // Enable browser caching optimizations
+        img.loading = 'lazy'; // Native lazy loading for better performance
+        img.decoding = 'async'; // Async image decoding to prevent blocking
+        img.fetchPriority = 'auto'; // Let browser decide priority
+
         // Add essential styling and classes
         img.style.width = '100%';
         img.style.height = '150px';

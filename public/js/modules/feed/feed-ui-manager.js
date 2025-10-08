@@ -35,24 +35,6 @@ class FeedUIManager {
      * @param {boolean} [config.disconnectOnPause=false] - Disconnect IO during pause (for bulk DOM virtualization/masonry reflows). Trades tiny re-arm cost for zero observer activity during heavy ops.
      */
     constructor(domManager, scrollRoot = null, config = {}) {
-        // Assert helper availability early (developer-friendly error)
-        if (typeof FeedUIHelpers === 'undefined') {
-            throw new Error('FeedUIHelpers is not loaded. Please load feed-ui-helpers.js before feed-ui-manager.js');
-        }
-        if (typeof FeedUIEventFactory === 'undefined') {
-            throw new Error('FeedUIEventFactory is not loaded. Please load feed-ui-event-factory.js before feed-ui-manager.js');
-        }
-        if (typeof FeedTransitionManager === 'undefined') {
-            throw new Error('FeedTransitionManager is not loaded. Please load feed-transition-manager.js before feed-ui-manager.js');
-        }
-        if (typeof FeedTagUI === 'undefined') {
-            throw new Error('FeedTagUI is not loaded. Please load feed-tag-ui.js before feed-ui-manager.js');
-        }
-
-        // Ensure domManager has the critical method we need
-        if (!domManager || typeof domManager.getLastImageElement !== 'function') {
-            throw new Error('FeedUIManager requires a domManager with getLastImageElement() method');
-        }
 
         this.domManager = domManager;
         this.scrollRoot = scrollRoot; // Custom scroll container support
@@ -66,6 +48,7 @@ class FeedUIManager {
             eventTarget: typeof window !== 'undefined' ? window : null, // Default to window for global listeners
             debug: false, // Per-instance debug flag
             disconnectOnPause: false, // IO-off mode for extreme DOM work
+            forceCheckOnMutation: false, // Option to force-check after notifyFeedChanged (masonry/virtualized layouts)
             ...config
         };
 
@@ -167,6 +150,15 @@ class FeedUIManager {
         this.setupTagOverlays();
         this.setupWindowListeners();
         this.isSetupComplete = true;
+
+        this.debug('Init complete', {
+            hasObserver: !!this.intersectionObserver,
+            config: {
+                rootMargin: this.config.rootMargin,
+                threshold: this.config.threshold,
+                debounceMs: this.config.debounceMs
+            }
+        });
 
         // Observe initial last image if it exists
         this.updateIntersectionObserver();
@@ -339,10 +331,16 @@ class FeedUIManager {
 
     // Handle when last image becomes visible
     handleLastImageVisible() {
-        this.debug('handleLastImageVisible called', { isLoading: this.isLoading, isPaused: this.isPaused });
+        this.debug('handleLastImageVisible triggered', {
+            isLoading: this.isLoading,
+            isPaused: this.isPaused,
+            observedTarget: this.observedTarget?.id || 'none'
+        });
 
         try {
             if (this.isLoading || this.isPaused) {
+                this.debug('Blocked: isLoading or isPaused');
+
                 return;
             }
 
@@ -426,6 +424,8 @@ class FeedUIManager {
      * @param {boolean} loading - True to show loading, false to hide
      */
     setLoading(loading) {
+        this.debug('setLoading:', loading);
+
         // No-op fast path after destroy (public API safety)
         if (this.isDestroyed) {
             return;
@@ -443,6 +443,13 @@ class FeedUIManager {
             this.raf(() => {
                 if (!this.isDestroyed) {
                     this.updateIntersectionObserver();
+
+                    // Proactive fire if already at bottom (instant pagination)
+                    const lastImage = this.domManager?.getLastImageElement();
+
+                    if (lastImage && this.isElementInViewport(lastImage)) {
+                        this.handleLastImageVisible();
+                    }
                 }
             });
         }
@@ -455,16 +462,25 @@ class FeedUIManager {
 
     /**
      * Get current observer state (for tests/assertions)
-     * @returns {Object} Observer state
+     * Returns frozen copy to prevent accidental mutation
+     * @returns {Object} Observer state (read-only)
      */
     getObserverState() {
-        return {
+        return Object.freeze({
             hasObserver: !!this.intersectionObserver,
             observedTarget: this.observedTarget,
             isPaused: this.isPaused,
             isLoading: this.isLoading,
             isDestroyed: this.isDestroyed
-        };
+        });
+    }
+
+    /**
+     * Check if instance is destroyed (for tests/guards)
+     * @returns {boolean} True if destroyed
+     */
+    isInstanceDestroyed() {
+        return this.isDestroyed;
     }
 
     // Show loading spinner
@@ -641,10 +657,18 @@ class FeedUIManager {
 
     // Update intersection observer - fix observer churn
     updateIntersectionObserver() {
+        this.debug('updateIntersectionObserver called', {
+            hasObserver: !!this.intersectionObserver,
+            isPaused: this.isPaused,
+            currentTarget: this.observedTarget?.id || 'none'
+        });
+
         // Auto-clear dedupe ref if the node was removed (prevents GC pinning)
         this.sanitizeLastEmittedElement();
 
         if (!this.intersectionObserver || this.isPaused) {
+            this.debug('Early exit: no observer or paused');
+
             return;
         }
 
@@ -661,18 +685,33 @@ class FeedUIManager {
 
         const lastImage = this.domManager?.getLastImageElement();
 
+        this.debug('Last image element', {
+            exists: !!lastImage,
+            id: lastImage?.id || 'no-id',
+            className: lastImage?.className || 'no-class',
+            isConnected: lastImage?.isConnected
+        });
+
         // Ensure getLastImageElement() returns an Element
         if (!lastImage || lastImage.nodeType !== 1) {
+            this.debug('No valid last image element');
+
             return;
         }
 
         // Guard: don't observe a node not in DOM
         if (!lastImage.isConnected) {
+            this.debug('Last image not connected to DOM');
+
             return;
         }
 
         // Only update if we have a new last image
         if (lastImage !== this.observedTarget) {
+            this.debug('New last image detected, updating observer', {
+                oldTarget: this.observedTarget?.id || 'none',
+                newTarget: lastImage.id || 'no-id'
+            });
             // Unobserve previous element instead of disconnecting
             if (this.observedTarget) {
                 try {
@@ -686,13 +725,19 @@ class FeedUIManager {
             try {
                 this.intersectionObserver.observe(lastImage);
                 this.observedTarget = lastImage;
-                this.debug('Observing new last image', { element: lastImage, isConnected: lastImage.isConnected });
+                this.debug('Now observing', {
+                    id: lastImage.id || 'no-id',
+                    rect: lastImage.getBoundingClientRect(),
+                    isInViewport: this.isElementInViewport(lastImage)
+                });
             } catch (error) {
                 // Element might have been detached between check and observe()
                 // Silently handle and clear observedTarget
                 this.observedTarget = null;
                 this.debug('Failed to observe (element likely detached)', error);
             }
+        } else {
+            this.debug('Already observing this element');
         }
     }
 
@@ -819,8 +864,11 @@ class FeedUIManager {
         this.scheduleMicrotask(() => {
             this.updateIntersectionObserver();
 
-            // Manual poke if IO is missing (fallback immediate check)
-            if (!this.intersectionObserver) {
+            // Option to force-check after mutation (masonry/virtualized layouts that swap nodes)
+            if (this.config.forceCheckOnMutation) {
+                this.checkNow(true); // Force check even with IO
+            } else if (!this.intersectionObserver) {
+                // Fallback-only check for IO-less browsers
                 this.checkNow();
             }
         });

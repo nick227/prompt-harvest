@@ -99,11 +99,21 @@ class FeedDOMOperations {
         }
     }
 
-    // Get last image element
+    // Get last image element (returns the actual image, not wrapper)
     getLastImageElement() {
         const wrappers = this.getImageWrappers();
 
-        return wrappers.length > 0 ? wrappers[wrappers.length - 1] : null;
+        if (wrappers.length === 0) {
+            return null;
+        }
+
+        // Get the last wrapper
+        const lastWrapper = wrappers[wrappers.length - 1];
+
+        // Return the actual image element inside the wrapper for IntersectionObserver
+        const actualImage = lastWrapper.querySelector('.generated-image');
+
+        return actualImage || lastWrapper; // Fallback to wrapper if no image found
     }
 
     // Show login prompt

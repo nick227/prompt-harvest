@@ -8,6 +8,12 @@ class FeedManager {
         this.initialLoadPromise = null;
         this.isLoadingMore = false;
 
+        // Rate limiting to prevent abuse (pause 3s every 6 pages)
+        this.pagesLoadedInSession = 0;
+        this.isRateLimited = false;
+        this.RATE_LIMIT_PAGES = 6; // Pages before throttle kicks in
+        this.RATE_LIMIT_DELAY = 3000; // 3 second pause
+
         // Initialize sub-managers (defer until needed)
         this.cacheManager = null;
         this.apiManager = null;
@@ -130,11 +136,15 @@ class FeedManager {
 
     // Setup event listeners
     setupEventListeners() {
-        // Listen for filter changes
-        window.addEventListener(FEED_CONSTANTS.EVENTS.FILTER_CHANGED, this.handleFilterChanged);
+        // Bind event handlers to preserve 'this' context
+        this.boundHandleFilterChanged = this.handleFilterChanged.bind(this);
+        this.boundHandleLastImageVisible = this.handleLastImageVisible.bind(this);
 
-        // Listen for last image visible (infinite scroll)
-        window.addEventListener('lastImageVisible', this.handleLastImageVisible);
+        // Listen for filter changes
+        window.addEventListener(FEED_CONSTANTS.EVENTS.FILTER_CHANGED, this.boundHandleFilterChanged);
+
+        // Listen for last image visible (infinite scroll) - CRITICAL: must be bound!
+        window.addEventListener('lastImageVisible', this.boundHandleLastImageVisible);
 
         // Setup window listeners
         this.uiManager.setupWindowListeners();
@@ -143,6 +153,10 @@ class FeedManager {
     // Handle filter changed event
     async handleFilterChanged(event) {
         const { filter } = event.detail;
+
+        // Reset rate limiting when changing filters (each filter gets fresh limit)
+        this.pagesLoadedInSession = 0;
+        this.isRateLimited = false;
 
         await this.loadFilterImages(filter);
     }
@@ -154,6 +168,11 @@ class FeedManager {
 
         // Prevent multiple simultaneous calls
         if (this.isLoadingMore) {
+            return;
+        }
+
+        // Rate limiting check - pause every 6 pages for 3 seconds
+        if (this.isRateLimited) {
             return;
         }
 
@@ -277,10 +296,14 @@ class FeedManager {
             // Load images from API with tag filtering
             const result = await this.apiManager.loadFeedImages(filter, 0, activeTags);
 
+            // Extract hasMore from multiple possible locations in API response
+            // Priority: result.hasMore > result.data.hasMore > result.pagination.hasMore > default true
+            const hasMore = result.hasMore ?? result.data?.hasMore ?? result.pagination?.hasMore ?? true;
+
             // Update cache with tags
             this.cacheManager.setCache(filter, {
                 images: result.images,
-                hasMore: result.hasMore,
+                hasMore: hasMore,
                 currentPage: 0,
                 isLoaded: true
             }, activeTags);
@@ -352,14 +375,40 @@ class FeedManager {
 
             const result = await this.apiManager.loadMoreImages(filter, nextPage, activeTags);
 
+            // Extract hasMore from multiple possible locations in API response
+            // Priority: result.hasMore > result.data.hasMore > result.pagination.hasMore > default false
+            const hasMore = result.hasMore ?? result.data?.hasMore ?? result.pagination?.hasMore ?? false;
+
             // Add new images to cache
             this.cacheManager.addImagesToCache(filter, result.images, activeTags);
-            this.cacheManager.updatePagination(filter, nextPage, result.hasMore, activeTags);
+            this.cacheManager.updatePagination(filter, nextPage, hasMore, activeTags);
 
             // Add new images to DOM
             result.images.forEach(image => {
                 this.imageHandler.addImageToFeed(image, filter);
             });
+
+            // Increment page counter and check rate limit
+            this.pagesLoadedInSession++;
+
+            // Apply rate limiting every 6 pages (3-second cooldown)
+            if (this.pagesLoadedInSession % this.RATE_LIMIT_PAGES === 0) {
+                this.isRateLimited = true;
+
+                // Keep showing the loading spinner during cooldown
+                this.uiManager.showLoading();
+
+                setTimeout(() => {
+                    this.isRateLimited = false;
+                    this.uiManager.hideLoading();
+
+                    // Trigger a re-check in case user scrolled during cooldown
+                    const lastImage = this.uiManager.getLastImageElement();
+                    if (lastImage && this.uiManager.isElementInViewport(lastImage)) {
+                        this.handleLastImageVisible();
+                    }
+                }, this.RATE_LIMIT_DELAY);
+            }
 
             // Reapply view after new images are loaded
             if (this.viewManager && this.viewManager.forceReapplyView) {

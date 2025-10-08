@@ -114,10 +114,6 @@ class FeedCacheManager {
 
             // Add only new images to cache
             this.cache[key].images = [...this.cache[key].images, ...newImages];
-
-            if (newImages.length > 0) {
-                console.log(`✅ CACHE: Added ${newImages.length} new images to ${key} cache`);
-            }
         }
     }
 
@@ -161,13 +157,6 @@ class FeedCacheManager {
     updatePagination(filter, page, hasMore, tags = []) {
         const key = this.getCacheKey(filter, tags);
         if (this.cache[key]) {
-            console.log(`📊 CACHE: Updating pagination for ${key}:`, {
-                oldPage: this.cache[key].currentPage,
-                newPage: page,
-                oldHasMore: this.cache[key].hasMore,
-                newHasMore: hasMore
-            });
-
             this.cache[key].currentPage = page;
             this.cache[key].hasMore = hasMore;
         }

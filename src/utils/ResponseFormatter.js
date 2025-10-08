@@ -42,21 +42,32 @@ export const formatSuccessResponse = (data, requestId, duration, message = 'Succ
  * @param {number} duration - Request duration in milliseconds
  * @returns {Object} Formatted success response with pagination
  */
-export const formatPaginatedResponse = (items, pagination, requestId, duration) => ({
-    success: true,
-    requestId,
-    data: {
-        items,
-        pagination: {
-            limit: pagination.limit,
-            page: pagination.page,
-            count: items.length,
-            total: pagination.total || items.length
-        }
-    },
-    duration,
-    timestamp: new Date().toISOString()
-});
+export const formatPaginatedResponse = (items, pagination, requestId, duration) => {
+    const limit = pagination.limit;
+    const page = pagination.page;
+    const total = pagination.total || items.length;
+    const count = items.length;
+
+    // Calculate hasMore: there are more items if we haven't reached the total yet
+    const hasMore = (page + 1) * limit < total;
+
+    return {
+        success: true,
+        requestId,
+        data: {
+            items,
+            pagination: {
+                limit,
+                page,
+                count,
+                total
+            },
+            hasMore // Add hasMore at the data level for easy access
+        },
+        duration,
+        timestamp: new Date().toISOString()
+    };
+};
 
 // ============================================================================
 // ERROR RESPONSE FORMATTING

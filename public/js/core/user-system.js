@@ -87,7 +87,6 @@ class UserSystem {
         try {
             // Wait for userApi to be available
             if (!window.userApi) {
-                console.log('🔐 USER-SYSTEM: userApi not available, cannot check auth state');
 
                 this.setUser(null);
 
@@ -105,7 +104,6 @@ class UserSystem {
             // Check if we have a valid token before making API call
             const token = window.userApi.getAuthToken();
             if (!token) {
-                console.log('🔐 USER-SYSTEM: No auth token available, skipping API call');
                 this.setUser(null);
                 return false;
             }
@@ -115,12 +113,10 @@ class UserSystem {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const now = Math.floor(Date.now() / 1000);
                 if (payload.exp && payload.exp < now) {
-                    console.log('🔐 USER-SYSTEM: Token expired, skipping API call');
                     this.setUser(null);
                     return false;
                 }
             } catch (tokenError) {
-                console.log('🔐 USER-SYSTEM: Invalid token format, skipping API call');
                 this.setUser(null);
                 return false;
             }
@@ -145,7 +141,6 @@ class UserSystem {
 
             // Clear any invalid tokens
             if (window.userApi) {
-                console.log('🔐 USER-SYSTEM: Clearing auth token due to error');
                 window.userApi.clearAuthToken();
             }
 
@@ -159,11 +154,9 @@ class UserSystem {
      * Get authentication state (compatibility method for auth-state-manager)
      */
     async getAuthState(forceRefresh = false) {
-        console.log('🔐 USER-SYSTEM: getAuthState called', { forceRefresh, hasCached: !!this.currentUser });
 
         // Return cached state if available and not forcing refresh
         if (!forceRefresh && this.currentUser !== null) {
-            console.log('🔐 USER-SYSTEM: Returning cached state');
 
             return {
                 isAuthenticated: this.isAuthenticated(),
@@ -172,7 +165,6 @@ class UserSystem {
         }
 
         // Perform fresh auth check
-        console.log('🔐 USER-SYSTEM: Starting fresh auth check');
         const isAuthenticated = await this.checkAuthState();
 
         const result = {
@@ -228,7 +220,6 @@ class UserSystem {
 
             const response = await window.userApi.login(email, password);
 
-            console.log('🔐 USER-SYSTEM: Raw login response:', response);
 
             // Check if login was successful (no error field means success)
             if (!response.error && !response.message?.includes('failed')) {
@@ -394,7 +385,6 @@ class UserSystem {
     setupUI() {
         // Check if header component is managing auth UI
         if (window.headerComponent) {
-            console.log('🔒 USER-SYSTEM: Header component detected, skipping UI setup');
 
             return;
         }
@@ -409,7 +399,6 @@ class UserSystem {
     createAuthContainer() {
         // Check if header component is managing auth UI
         if (window.headerComponent) {
-            console.log('🔒 USER-SYSTEM: Header component detected, skipping auth container creation');
 
             return null;
         }
@@ -438,7 +427,6 @@ class UserSystem {
     createUserDisplay() {
         // Check if header component is managing auth UI
         if (window.headerComponent) {
-            console.log('🔒 USER-SYSTEM: Header component detected, skipping user display creation');
 
             return null;
         }
@@ -564,7 +552,6 @@ class UserSystem {
             window.notificationService.show(message, type);
         } else {
             // Final fallback to console logging
-            console.log(`Message: ${message}`);
         }
     }
 

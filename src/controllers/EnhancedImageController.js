@@ -533,6 +533,10 @@ export class EnhancedImageController {
                 userId: userId || 'anonymous'
             });
 
+            // Set cache headers for feed responses (short cache to allow updates)
+            res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate'); // 1 minute cache
+            res.setHeader('Vary', 'Authorization'); // Cache per user (public vs private feeds)
+
             res.json(response);
 
         } catch (error) {

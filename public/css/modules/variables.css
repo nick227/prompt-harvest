@@ -155,4 +155,7 @@
     /* List View Variables */
     --list-view-image-width: 50%;
     --list-view-content-width: 50%;
+
+    /* Font Families */
+    --font-family-primary: 'Ubuntu', sans-serif;
 }

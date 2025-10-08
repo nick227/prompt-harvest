@@ -12,6 +12,7 @@ import express from 'express';
 import { setupRoutes } from './src/routes/index.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import compression from 'compression';
 import session from 'express-session';
 import passport from './src/config/passport.js';
 import { moderateBadWordFilter } from './src/middleware/badWordFilter.js';
@@ -23,6 +24,19 @@ import PrismaSessionStore from './src/config/PrismaSessionStore.js';
 dotenv.config(); // Nodemon restart trigger
 
 const app = express();
+
+// Enable gzip compression for all responses
+app.use(compression({
+    filter: (req, res) => {
+        // Compress everything except images (they're already compressed)
+        if (req.headers['x-no-compression']) {
+            return false;
+        }
+        return compression.filter(req, res);
+    },
+    level: 6, // Default compression level (0-9, 6 is good balance)
+    threshold: 1024 // Only compress responses larger than 1KB
+}));
 
 // Enable CORS for all routes
 app.use(cors({
@@ -120,8 +134,28 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Bad word filter - apply early to catch violations before processing
 app.use('/api', moderateBadWordFilter);
 
-// Serve static files BEFORE setting up routes (excluding uploads for security)
-app.use(express.static('public'));
+// Serve static files with proper cache headers
+app.use(express.static('public', {
+    maxAge: process.env.NODE_ENV === 'production' ? '7d' : '0', // 7 days in production, no cache in dev
+    etag: true, // Enable ETags for conditional requests
+    lastModified: true, // Include Last-Modified header
+    setHeaders: (res, path) => {
+        // Set cache control based on file type
+        if (path.endsWith('.html')) {
+            // HTML: short cache (1 hour) to allow updates
+            res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
+        } else if (path.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i)) {
+            // Images: long cache (30 days) - they're immutable
+            res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+        } else if (path.match(/\.(js|css)$/i)) {
+            // JS/CSS: medium cache (7 days) with revalidation
+            res.setHeader('Cache-Control', 'public, max-age=604800, must-revalidate');
+        } else if (path.match(/\.(woff|woff2|ttf|eot)$/i)) {
+            // Fonts: very long cache (1 year) - they never change
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        }
+    }
+}));
 
 // Protected image serving route - must be after static files but before API routes
 app.get('/uploads/:filename', authenticateToken, async (req, res) => {

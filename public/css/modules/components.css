@@ -209,9 +209,10 @@ input#maxNum {
 /* ===== LOGO COMPONENTS ===== */
 
 .logo-main-text {
-    font-size: 25px;
+    font-size: 20px;
     font-weight: var(--font-weight-bold);
     color: var(--color-text-primary);
+    font-family: var(--font-family-primary);
 }
 
 /* ===== DESKTOP DRAWER TOGGLE BUTTON ===== */

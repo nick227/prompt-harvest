@@ -208,13 +208,12 @@ class TransactionStatsComponent {
 
         this.container.innerHTML = `
             <div class="flex items-center space-x-3 text-sm">
-                <button
+                <a
                 id="add-credits-btn"
-                        class="add-credits-btn bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs
-                               transition-colors duration-200"
+                        class="add-credits-btn link"
                         title="Add Credits">
                     <i class="fas fa-plus"></i>
-                </button>
+                </a>
             </div>
         `;
 
