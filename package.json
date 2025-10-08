@@ -80,7 +80,7 @@
     "lint:format": "prettier --write public/js/**/*.js",
     "lint:check": "prettier --check public/js/**/*.js",
     "quality": "npm run lint:strict && npm run test:coverage",
-    "start": "npm run db:deploy && node server.js",
+    "start": "sh start.sh",
     "dev": "nodemon server.js",
     "build": "npm run db:generate",
     "postinstall": "npm run db:generate",
