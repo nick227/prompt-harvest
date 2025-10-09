@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE `blog_posts` (
+CREATE TABLE IF NOT EXISTS `blog_posts` (
     `id` VARCHAR(25) NOT NULL,
     `title` VARCHAR(255) NOT NULL,
     `slug` VARCHAR(100) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE `blog_posts` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `api_requests` (
+CREATE TABLE IF NOT EXISTS `api_requests` (
     `id` VARCHAR(25) NOT NULL,
     `userId` VARCHAR(25) NOT NULL,
     `endpoint` VARCHAR(100) NOT NULL,
@@ -49,7 +49,40 @@ CREATE TABLE `api_requests` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `blog_posts` ADD CONSTRAINT `blog_posts_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+-- Check if constraint exists before adding
+SET @constraint_exists = (
+    SELECT COUNT(*)
+    FROM information_schema.TABLE_CONSTRAINTS
+    WHERE CONSTRAINT_NAME = 'blog_posts_authorId_fkey'
+    AND TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'blog_posts'
+);
+
+SET @sql = IF(@constraint_exists = 0,
+    'ALTER TABLE `blog_posts` ADD CONSTRAINT `blog_posts_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE',
+    'SELECT "Constraint blog_posts_authorId_fkey already exists" AS message'
+);
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- AddForeignKey
-ALTER TABLE `api_requests` ADD CONSTRAINT `api_requests_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+-- Check if constraint exists before adding
+SET @constraint_exists = (
+    SELECT COUNT(*)
+    FROM information_schema.TABLE_CONSTRAINTS
+    WHERE CONSTRAINT_NAME = 'api_requests_userId_fkey'
+    AND TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'api_requests'
+);
+
+SET @sql = IF(@constraint_exists = 0,
+    'ALTER TABLE `api_requests` ADD CONSTRAINT `api_requests_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE',
+    'SELECT "Constraint api_requests_userId_fkey already exists" AS message'
+);
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
