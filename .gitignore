@@ -5,14 +5,7 @@ migrate.js
 transfer.js
 storage/uploads
 data/*.backup
-data/images.db
-data/prompts.db
-data/users.db
-data/likes.db
-data/tags.db
-data/transactions.db
-data/prompt-clauses.db
-data/multipliers.db
+data/*.db
 /src/generated/prisma
 test-results/
 docs/
@@ -26,3 +19,11 @@ playwright-report
 public/
 .cursor/
 .vscode/
+dist/
+temp/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+prisma/archive/
+scripts/archive/
