@@ -35,6 +35,7 @@ class AdminPromoManager {
     static viewPromoStats(promoId) {
         if (!promoId) {
             console.error('Promo ID required for stats view');
+
             return;
         }
 
@@ -70,10 +71,10 @@ class AdminPromoManager {
                     <div class="promo-info">
                         <code class="promo-code-large">${stats.promoCode.code}</code>
                         <span class="promo-status badge badge-${
-            stats.promoCode.status === 'active'
-                ? 'success'
-                : 'warning'
-        }">
+    stats.promoCode.status === 'active'
+        ? 'success'
+        : 'warning'
+}">
                             ${stats.promoCode.status}
                         </span>
                     </div>
@@ -99,7 +100,7 @@ class AdminPromoManager {
                 </div>
 
                 ${stats.recentRedemptions.length > 0
-            ? `
+        ? `
                         <div class="recent-redemptions">
                             <h4>Recent Redemptions</h4>
                             <div class="redemptions-list">
@@ -117,8 +118,8 @@ class AdminPromoManager {
                             </div>
                         </div>
                     `
-            : ''
-        }
+        : ''
+}
             </div>
         `;
 
@@ -132,6 +133,7 @@ class AdminPromoManager {
     static editPromoCode(promoId) {
         if (!promoId) {
             console.error('Promo ID required for edit');
+
             return;
         }
 
@@ -164,6 +166,7 @@ class AdminPromoManager {
     static deletePromoCode(promoId, promoCode) {
         if (!promoId) {
             console.error('Promo ID required for deletion');
+
             return;
         }
 

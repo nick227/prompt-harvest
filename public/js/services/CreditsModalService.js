@@ -13,7 +13,6 @@ class CreditsModalService {
      * @param {Object} errorData - Error data from 402 response
      */
     showCreditsModal(errorData) {
-        console.log('💳 CREDITS: Showing credits modal with error data:', errorData);
 
         const required = errorData?.required || 1;
         const current = errorData?.current || 0;
@@ -33,7 +32,6 @@ class CreditsModalService {
      * @param {number} shortfall - Number of credits needed
      */
     displayModal(shortfall = 1) {
-        console.log('🎨 CREDITS: Displaying modal with shortfall:', shortfall);
 
         // Create the modal if it doesn't exist
         let modal = document.getElementById('credits-modal');
@@ -41,15 +39,12 @@ class CreditsModalService {
         if (!modal) {
             modal = this.createModal(shortfall);
             document.body.appendChild(modal);
-            console.log('🎨 CREDITS: Modal created and appended to body');
-        } else {
-            console.log('🎨 CREDITS: Using existing modal');
         }
+        // Modal already exists - reuse it
 
         // Show the modal
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
-        console.log('🎨 CREDITS: Modal should now be visible');
 
         // Load packages and sample image
         this.loadPackagesForModal();
@@ -62,7 +57,6 @@ class CreditsModalService {
      * @returns {HTMLElement} Modal element
      */
     createModal(shortfall = 1) {
-        console.log('🎨 CREDITS: Creating modal HTML with shortfall:', shortfall);
         const modal = document.createElement('div');
 
         modal.id = 'credits-modal';
@@ -146,22 +140,18 @@ class CreditsModalService {
                 return;
             }
 
-            console.log('🎨 CREDITS: Loading sample image...');
 
             // Try to get a sample image from your images API
             const response = await fetch('/api/images/sample');
 
-            console.log('🎨 CREDITS: Sample image response status:', response.status);
 
             if (response.ok) {
                 const data = await response.json();
 
-                console.log('🎨 CREDITS: Sample image data:', data);
 
                 if (data.success && data.data && data.data.image && data.data.image.url) {
                     const imageUrl = data.data.image.url;
 
-                    console.log('🎨 CREDITS: Loading image from URL:', imageUrl);
 
                     sampleImageDiv.innerHTML = `
                         <img src="${imageUrl}" alt="Sample AI generated image"
@@ -171,11 +161,10 @@ class CreditsModalService {
 
                     return;
                 }
-            } else {
-                console.log('🎨 CREDITS: Sample image API failed with status:', response.status);
             }
+            // All images loaded successfully
         } catch (error) {
-            console.log('🎨 CREDITS: Could not load sample image:', error);
+            // Failed to load sample image - will use fallback
         }
 
         // Fallback: show a simple placeholder with better styling
@@ -271,7 +260,6 @@ class CreditsModalService {
      */
     async purchasePackage(packageId) {
         try {
-            console.log('💳 CREDITS: Purchasing package:', packageId);
 
             // Use UnifiedCreditService (the working system)
             if (window.UnifiedCreditService) {

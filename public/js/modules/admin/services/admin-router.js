@@ -13,12 +13,12 @@ class AdminRouter {
 
     init() {
         // Listen for tab switch events to update URL
-        window.addEventListener('admin-tab-switch', (e) => {
+        window.addEventListener('admin-tab-switch', e => {
             this.updateURL(e.detail.tab);
         });
 
         // Listen for browser back/forward navigation
-        window.addEventListener('popstate', (e) => {
+        window.addEventListener('popstate', e => {
             this.handlePopState(e);
         });
 
@@ -90,6 +90,7 @@ class AdminRouter {
         this.currentTab = tabName;
 
         const url = new URL(window.location);
+
         url.searchParams.set('v', tabName);
 
         // Update URL without triggering page reload
@@ -105,6 +106,7 @@ class AdminRouter {
     switchToTab(tabName) {
         if (!this.validTabs.includes(tabName)) {
             console.warn(`Invalid tab name: ${tabName}`);
+
             return;
         }
 
@@ -113,6 +115,7 @@ class AdminRouter {
             btn.classList.remove('active');
         });
         const tabButton = document.querySelector(`[data-tab="${tabName}"]`);
+
         if (tabButton) {
             tabButton.classList.add('active');
         }
@@ -122,6 +125,7 @@ class AdminRouter {
             panel.classList.remove('active');
         });
         const tabPanel = document.getElementById(`${tabName}-tab`);
+
         if (tabPanel) {
             tabPanel.classList.add('active');
         }
@@ -149,10 +153,8 @@ class AdminRouter {
             const tabButtons = document.querySelectorAll('.tab-btn');
 
             if (adminDashboard && adminDashboard.style.display !== 'none' && tabButtons.length > 0) {
-                console.log('🔗 ADMIN-ROUTER: Admin dashboard ready, executing callback');
                 callback();
             } else if (attempts < maxAttempts) {
-                console.log(`🔗 ADMIN-ROUTER: Waiting for admin dashboard (attempt ${attempts}/${maxAttempts})`);
                 setTimeout(checkReady, 100); // Check again in 100ms
             } else {
                 console.warn('⚠️ ADMIN-ROUTER: Admin dashboard not ready after maximum attempts');
@@ -184,6 +186,7 @@ class AdminRouter {
     navigateTo(tabName) {
         if (!this.validTabs.includes(tabName)) {
             console.warn(`Invalid tab name: ${tabName}`);
+
             return;
         }
 
@@ -221,7 +224,9 @@ class AdminRouter {
         }
 
         const url = new URL(window.location);
+
         url.searchParams.set('v', tabName);
+
         return url.toString();
     }
 
@@ -230,6 +235,7 @@ class AdminRouter {
      */
     clearTabParameter() {
         const url = new URL(window.location);
+
         url.searchParams.delete('v');
         window.history.pushState({}, '', url);
         this.currentTab = this.defaultTab;
@@ -254,6 +260,7 @@ class AdminRouter {
     showURLIndicator(tabName) {
         // Create indicator if it doesn't exist
         let indicator = document.getElementById('url-param-indicator');
+
         if (!indicator) {
             indicator = document.createElement('div');
             indicator.id = 'url-param-indicator';
@@ -282,6 +289,7 @@ class AdminRouter {
 
         // Add URL param class to current tab
         const currentTabBtn = document.querySelector(`[data-tab="${tabName}"]`);
+
         if (currentTabBtn) {
             currentTabBtn.classList.add('has-url-param');
         }
@@ -293,10 +301,8 @@ class AdminRouter {
     connectToAdminEventBus() {
         // Check if AdminEventBus is available
         if (window.AdminEventBus) {
-            console.log('🔗 ADMIN-ROUTER: Connecting to AdminEventBus');
             // Listen for tab switch events from AdminEventBus
-            window.AdminEventBus.on('tab-switch', 'switch', (eventData) => {
-                console.log('🔗 ADMIN-ROUTER: AdminEventBus tab-switch event received:', eventData);
+            window.AdminEventBus.on('tab-switch', 'switch', eventData => {
                 this.updateURL(eventData.tab);
             });
         } else {
@@ -304,7 +310,6 @@ class AdminRouter {
             const checkInterval = setInterval(() => {
                 if (window.AdminEventBus) {
                     clearInterval(checkInterval);
-                    console.log('🔗 ADMIN-ROUTER: AdminEventBus now available, connecting...');
                     this.connectToAdminEventBus();
                 }
             }, 100);

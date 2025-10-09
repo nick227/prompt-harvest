@@ -46,14 +46,14 @@ class ErrorHandler {
 
     setupGlobalErrorHandling() {
         // Handle unhandled promise rejections
-        window.addEventListener('unhandledrejection', (event) => {
+        window.addEventListener('unhandledrejection', event => {
             console.error('Unhandled promise rejection:', event.reason);
             this.handleError(event.reason, 'UNKNOWN_ERROR');
             event.preventDefault();
         });
 
         // Handle global JavaScript errors
-        window.addEventListener('error', (event) => {
+        window.addEventListener('error', event => {
             console.error('Global error:', event.error);
             this.handleError(event.error, 'UNKNOWN_ERROR');
         });
@@ -114,6 +114,7 @@ class ErrorHandler {
 
     showUserFriendlyError(type) {
         const errorInfo = this.errorTypes.get(type);
+
         if (errorInfo && errorInfo.action) {
             errorInfo.action();
         } else {

@@ -34,27 +34,22 @@ class AIImageGenerator {
      * Initialize the generator
      */
     init() {
-        console.log('🔍 AI-GENERATOR: Initializing AI Image Generator');
-        console.log('🔍 AI-GENERATOR: Service available:', !!window.aiImageGeneratorService);
-        console.log('🔍 AI-GENERATOR: Widget available:', !!window.AIImageGeneratorWidget);
 
         // Check authentication
         if (!window.aiImageGeneratorService || !window.aiImageGeneratorService.isAuthenticated()) {
             console.error('🔍 AI-GENERATOR: Authentication failed');
             this.showAuthError();
+
             return;
         }
 
-        console.log('🔍 AI-GENERATOR: Creating widget for container:', this.containerId);
 
         try {
             // Create widget
             this.widget = new window.AIImageGeneratorWidget(this.containerId, this.options);
-            console.log('🔍 AI-GENERATOR: Widget created successfully');
 
             // Attach event listeners
             this.attachEventListeners();
-            console.log('🔍 AI-GENERATOR: Event listeners attached');
         } catch (error) {
             console.error('🔍 AI-GENERATOR: Failed to create widget:', error);
         }
@@ -69,12 +64,12 @@ class AIImageGenerator {
         }
 
         // Handle generation start
-        this.widget.on('generateStart', async (data) => {
+        this.widget.on('generateStart', async data => {
             await this.handleGenerateStart(data);
         });
 
         // Handle use image
-        this.widget.on('useImage', (data) => {
+        this.widget.on('useImage', data => {
             this.handleUseImage(data);
         });
 
@@ -84,7 +79,7 @@ class AIImageGenerator {
         });
 
         // Handle errors
-        this.widget.on('error', (data) => {
+        this.widget.on('error', data => {
             this.handleError(data);
         });
     }
@@ -97,8 +92,10 @@ class AIImageGenerator {
 
         // Validate prompt
         const validation = aiImageGeneratorService.validatePrompt(prompt);
+
         if (!validation.valid) {
             this.widget.showError(validation.message);
+
             return;
         }
 
@@ -166,7 +163,8 @@ class AIImageGenerator {
      */
     showAuthError() {
         const container = document.getElementById(this.containerId);
-        if (!container) return;
+
+        if (!container) { return; }
 
         container.innerHTML = `
             <div class="ai-generator-auth-error">
@@ -229,7 +227,7 @@ class AIImageGenerator {
         return new AIImageGenerator(containerId, {
             placeholder: 'Describe your avatar (e.g., professional headshot, friendly smile, business attire)',
             useProfileEndpoint: true,
-            onUseImage: onUseImage,
+            onUseImage,
             theme: 'default'
         });
     }
@@ -238,7 +236,7 @@ class AIImageGenerator {
         return new AIImageGenerator(containerId, {
             placeholder: 'Describe the image you want to create...',
             useProfileEndpoint: false,
-            onUseImage: onUseImage,
+            onUseImage,
             theme: 'default'
         });
     }
@@ -247,7 +245,7 @@ class AIImageGenerator {
         return new AIImageGenerator(containerId, {
             placeholder: 'Describe your image...',
             useProfileEndpoint: false,
-            onUseImage: onUseImage,
+            onUseImage,
             theme: 'compact',
             showCost: false
         });
@@ -257,7 +255,7 @@ class AIImageGenerator {
         return new AIImageGenerator(containerId, {
             placeholder: 'Describe your image...',
             useProfileEndpoint: false,
-            onUseImage: onUseImage,
+            onUseImage,
             theme: 'minimal',
             showCost: false,
             allowRetry: false

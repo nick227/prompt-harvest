@@ -33,6 +33,7 @@ class PromptOrganizerService {
         // Check if AI chat is processing
         if (window.aiChatWidget && window.aiChatWidget.isLoading) {
             this.showNotification('AI chat is currently processing. Please wait.', 'warning');
+
             return;
         }
 
@@ -41,6 +42,7 @@ class PromptOrganizerService {
 
         if (!textarea || !startButton) {
             console.error('Required elements not found');
+
             return;
         }
 
@@ -48,6 +50,7 @@ class PromptOrganizerService {
 
         if (!currentPrompt) {
             this.showNotification('Please enter a prompt to organize', 'warning');
+
             return;
         }
 
@@ -97,7 +100,7 @@ class PromptOrganizerService {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getAuthToken()}`
+                    Authorization: `Bearer ${this.getAuthToken()}`
                 },
                 body: JSON.stringify({
                     prompt,
@@ -110,6 +113,7 @@ class PromptOrganizerService {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
+
                 throw new Error(errorData.error || `API error: ${response.status}`);
             }
 
@@ -193,14 +197,19 @@ class PromptOrganizerService {
         } else {
             // Fallback to custom notification
             const existingNotifications = document.querySelectorAll('.prompt-organizer-notification');
+
             existingNotifications.forEach(notification => notification.remove());
 
             const notification = document.createElement('div');
+
             notification.className = `prompt-organizer-notification fixed top-4 right-4 p-3 rounded-lg shadow-lg z-50 ${
-                type === 'success' ? 'bg-green-500 text-white' :
-                type === 'error' ? 'bg-red-500 text-white' :
-                type === 'warning' ? 'bg-yellow-500 text-white' :
-                'bg-blue-500 text-white'
+                type === 'success'
+                    ? 'bg-green-500 text-white' :
+                    type === 'error'
+                        ? 'bg-red-500 text-white' :
+                        type === 'warning'
+                            ? 'bg-yellow-500 text-white' :
+                            'bg-blue-500 text-white'
             }`;
 
             notification.textContent = message;

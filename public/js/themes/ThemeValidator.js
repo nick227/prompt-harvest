@@ -13,7 +13,6 @@ class ThemeValidator {
      * Validate the entire theme system
      */
     validateThemeSystem() {
-        console.log('🔍 ThemeValidator: Starting theme system validation...');
 
         this.resetResults();
         this.validateThemeService();
@@ -23,6 +22,7 @@ class ThemeValidator {
         this.validateTailwindConfig();
 
         this.reportResults();
+
         return {
             issues: this.issues,
             warnings: this.warnings,
@@ -46,10 +46,12 @@ class ThemeValidator {
     validateThemeService() {
         if (!window.themeService) {
             this.issues.push('Theme service not found on window object');
+
             return;
         }
 
         const stats = window.themeService.getThemeStats?.();
+
         if (!stats) {
             this.warnings.push('Theme service missing getThemeStats method');
         } else if (!stats.isHealthy) {
@@ -57,16 +59,17 @@ class ThemeValidator {
         }
 
         const currentTheme = window.themeService.getCurrentTheme();
+
         if (!currentTheme) {
             this.issues.push('No current theme set');
         }
 
-        const themes = window.themeService.themes;
+        const { themes } = window.themeService;
+
         if (!themes || themes.size === 0) {
             this.issues.push('No themes loaded');
-        } else {
-            console.log(`✅ Theme service: ${themes.size} themes loaded`);
         }
+        // Themes validated successfully
     }
 
     /**
@@ -75,6 +78,7 @@ class ThemeValidator {
     validatePaletteManager() {
         if (!window.ColorPaletteManager) {
             this.warnings.push('ColorPaletteManager not found on window object');
+
             return;
         }
 
@@ -84,12 +88,12 @@ class ThemeValidator {
 
             if (stats.totalPalettes === 0) {
                 this.issues.push('No palettes loaded in ColorPaletteManager');
-            } else {
-                console.log(`✅ ColorPaletteManager: ${stats.totalPalettes} palettes loaded`);
             }
+            // Palettes validated successfully
 
             // Check for required palette categories
             const requiredCategories = ['background', 'text', 'accent', 'status'];
+
             requiredCategories.forEach(category => {
                 if (stats.categories[category] === 0) {
                     this.issues.push(`Missing palettes for category: ${category}`);
@@ -106,6 +110,7 @@ class ThemeValidator {
     validateThemeComposer() {
         if (!window.ThemeComposer) {
             this.warnings.push('ThemeComposer not found on window object');
+
             return;
         }
 
@@ -115,9 +120,8 @@ class ThemeValidator {
 
             if (stats.themeDefinitions === 0) {
                 this.issues.push('No theme definitions in ThemeComposer');
-            } else {
-                console.log(`✅ ThemeComposer: ${stats.themeDefinitions} theme definitions`);
             }
+            // Theme composer validated successfully
         } catch (error) {
             this.issues.push(`ThemeComposer error: ${error.message}`);
         }
@@ -141,6 +145,7 @@ class ThemeValidator {
 
         // Check theme styles element
         const themeStyles = document.getElementById('theme-styles');
+
         if (!themeStyles) {
             this.warnings.push('Theme styles element not found in DOM');
         }
@@ -151,9 +156,8 @@ class ThemeValidator {
 
         if (!hasThemeVars) {
             this.issues.push('CSS theme variables not applied to :root');
-        } else {
-            console.log('✅ Theme variables applied to :root');
         }
+        // CSS theme variables validated successfully
     }
 
     /**
@@ -162,21 +166,22 @@ class ThemeValidator {
     validateTailwindConfig() {
         if (!window.tailwind?.config) {
             this.warnings.push('Tailwind config not found');
+
             return;
         }
 
-        const config = window.tailwind.config;
+        const { config } = window.tailwind;
         const themeColors = config.theme?.extend?.colors;
 
         if (!themeColors) {
             this.warnings.push('Tailwind theme colors not extended');
         } else {
             const hasThemeColors = Object.keys(themeColors).some(key => key.startsWith('theme-'));
+
             if (!hasThemeColors) {
                 this.suggestions.push('Consider adding theme-aware Tailwind colors');
-            } else {
-                console.log('✅ Tailwind configured with theme colors');
             }
+            // Tailwind theme colors validated successfully
         }
     }
 
@@ -184,7 +189,6 @@ class ThemeValidator {
      * Report validation results
      */
     reportResults() {
-        console.log('📊 ThemeValidator: Validation Results');
 
         if (this.issues.length > 0) {
             console.error('❌ Issues found:', this.issues);
@@ -199,7 +203,7 @@ class ThemeValidator {
         }
 
         if (this.issues.length === 0 && this.warnings.length === 0) {
-            console.log('✅ Theme system is healthy!');
+            console.log('✅ All theme validations passed successfully');
         }
     }
 
@@ -230,6 +234,7 @@ if (window.location.search.includes('debug=true') || window.location.hash.includ
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             const validator = new ThemeValidator();
+
             validator.validateThemeSystem();
         }, 1000);
     });

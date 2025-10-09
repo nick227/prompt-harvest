@@ -15,6 +15,7 @@ class MessageComponent {
      */
     renderMessage(message, isAdmin = false) {
         const messageEl = document.createElement('div');
+
         messageEl.className = `message ${message.isFromUser ? 'user-message' : 'admin-message'} ${!message.isRead && !message.isFromUser ? 'unread' : ''}`;
         messageEl.dataset.messageId = message.id;
 
@@ -31,19 +32,23 @@ class MessageComponent {
             </div>
             <div class="message-content">${this.escapeHtml(message.message)}</div>
             <div class="message-actions">
-                ${isAdmin && message.isFromUser ? `
+                ${isAdmin && message.isFromUser
+        ? `
                     <button class="btn-reply" data-message-id="${message.id}" title="Reply">
                         <i class="fas fa-reply"></i>
                     </button>
-                ` : ''}
-                ${(isAdmin || message.isFromUser) ? `
+                `
+        : ''}
+                ${(isAdmin || message.isFromUser)
+        ? `
                     <button class="btn-edit" data-message-id="${message.id}" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn-delete" data-message-id="${message.id}" title="Delete">
                         <i class="fas fa-trash"></i>
                     </button>
-                ` : ''}
+                `
+        : ''}
             </div>
         `;
 
@@ -61,15 +66,16 @@ class MessageComponent {
      */
     renderConversation(messages, isAdmin = false) {
         const conversationEl = document.createElement('div');
+
         conversationEl.className = 'conversation-thread';
 
         // Sort messages by creation time (oldest first for conversation flow)
-        const sortedMessages = [...messages].sort((a, b) =>
-            new Date(a.createdAt) - new Date(b.createdAt)
+        const sortedMessages = [...messages].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );
 
         sortedMessages.forEach(message => {
             const messageEl = this.renderMessage(message, isAdmin);
+
             conversationEl.appendChild(messageEl);
         });
 
@@ -83,13 +89,14 @@ class MessageComponent {
      */
     renderAdminConversationItem(conversation) {
         const itemEl = document.createElement('div');
+
         itemEl.className = `conversation-item ${conversation.unreadCount > 0 ? 'has-unread' : ''}`;
         itemEl.dataset.userId = conversation.user.id;
 
         const lastMessage = conversation.messages[0]; // Messages are sorted desc
         const lastMessageTime = new Date(lastMessage.createdAt).toLocaleString();
         const preview = lastMessage.message.length > 100
-            ? lastMessage.message.substring(0, 100) + '...'
+            ? `${lastMessage.message.substring(0, 100)}...`
             : lastMessage.message;
 
         itemEl.innerHTML = `
@@ -119,16 +126,19 @@ class MessageComponent {
      */
     updateReadStatus(messageId, isRead) {
         const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
+
         if (messageEl) {
             if (isRead) {
                 messageEl.classList.remove('unread');
                 const unreadIndicator = messageEl.querySelector('.unread-indicator');
+
                 if (unreadIndicator) {
                     unreadIndicator.remove();
                 }
             } else {
                 messageEl.classList.add('unread');
                 const header = messageEl.querySelector('.message-header');
+
                 if (header && !header.querySelector('.unread-indicator')) {
                     header.insertAdjacentHTML('beforeend', '<span class="unread-indicator">●</span>');
                 }
@@ -137,6 +147,7 @@ class MessageComponent {
 
         // Update cache
         const message = this.messageCache.get(messageId);
+
         if (message) {
             message.isRead = isRead;
         }
@@ -150,6 +161,7 @@ class MessageComponent {
      */
     addMessage(message, isAdmin, container) {
         const messageEl = this.renderMessage(message, isAdmin);
+
         container.appendChild(messageEl);
 
         // Scroll to bottom
@@ -163,8 +175,10 @@ class MessageComponent {
      */
     updateMessage(messageId, newContent) {
         const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
+
         if (messageEl) {
             const contentEl = messageEl.querySelector('.message-content');
+
             if (contentEl) {
                 contentEl.textContent = newContent;
             }
@@ -172,6 +186,7 @@ class MessageComponent {
 
         // Update cache
         const message = this.messageCache.get(messageId);
+
         if (message) {
             message.message = newContent;
             message.updatedAt = new Date();
@@ -184,6 +199,7 @@ class MessageComponent {
      */
     removeMessage(messageId) {
         const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
+
         if (messageEl) {
             messageEl.remove();
         }
@@ -199,7 +215,9 @@ class MessageComponent {
      */
     escapeHtml(text) {
         const div = document.createElement('div');
+
         div.textContent = text;
+
         return div.innerHTML;
     }
 
@@ -217,9 +235,9 @@ class MessageComponent {
         if (diffDays === 0) {
             return date.toLocaleTimeString();
         } else if (diffDays === 1) {
-            return 'Yesterday ' + date.toLocaleTimeString();
+            return `Yesterday ${date.toLocaleTimeString()}`;
         } else if (diffDays < 7) {
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
         } else {
             return date.toLocaleString();
         }

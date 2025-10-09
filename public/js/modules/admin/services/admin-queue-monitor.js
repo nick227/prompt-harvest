@@ -42,7 +42,6 @@ class AdminQueueMonitor {
      * Initialize the queue monitoring dashboard
      */
     init() {
-        console.log('🚀 ADMIN-QUEUE: Initializing enterprise queue monitoring...');
         this.createQueueDashboard();
         this.startRealTimeMonitoring();
         this.setupEventHandlers();
@@ -53,7 +52,6 @@ class AdminQueueMonitor {
      * Initialize when tab becomes active
      */
     initWhenActive() {
-        console.log('🚀 ADMIN-QUEUE: Initializing queue monitoring for active tab...');
 
         // Stop any existing monitoring
         this.stopRealTimeMonitoring();
@@ -65,7 +63,6 @@ class AdminQueueMonitor {
 
         // Listen for Chart.js loaded event
         window.addEventListener('chartjs-loaded', () => {
-            console.log('📊 ADMIN-QUEUE: Chart.js loaded event received, reinitializing charts...');
             // Reset retry count when Chart.js is loaded
             this.chartRetryCount = 0;
             // Wait a bit for Chart to be fully available
@@ -76,7 +73,6 @@ class AdminQueueMonitor {
 
         // Check if Chart.js is already loaded
         if (typeof Chart !== 'undefined') {
-            console.log('📊 ADMIN-QUEUE: Chart.js already available, initializing charts immediately...');
             this.initializeCharts();
         } else {
             // Start polling for Chart.js availability
@@ -88,14 +84,12 @@ class AdminQueueMonitor {
      * Start polling for Chart.js availability
      */
     startChartJSPolling() {
-        console.log('🔄 ADMIN-QUEUE: Starting Chart.js polling...');
         let pollCount = 0;
 
         this.chartPollingTimer = setInterval(() => {
             pollCount++;
 
             if (typeof Chart !== 'undefined') {
-                console.log('📊 ADMIN-QUEUE: Chart.js detected via polling, initializing charts...');
                 clearInterval(this.chartPollingTimer);
                 this.chartPollingTimer = null;
                 this.initializeCharts();
@@ -111,7 +105,6 @@ class AdminQueueMonitor {
      * Destroy existing charts to prevent canvas reuse errors
      */
     destroyExistingCharts() {
-        console.log('🧹 ADMIN-QUEUE: Destroying existing charts...');
 
         // Destroy all existing charts
         Object.values(this.charts).forEach(chart => {
@@ -474,7 +467,6 @@ class AdminQueueMonitor {
             }
         }
 
-        console.log('✅ ADMIN-QUEUE: Chart.js is available, initializing charts...');
 
         // Stop any existing retry timers
         if (this.chartRetryTimer) {
@@ -857,7 +849,6 @@ class AdminQueueMonitor {
      * Show temporary alert with visual feedback
      */
     showAlert(message, type = 'info') {
-        console.log(`ALERT [${type.toUpperCase()}]: ${message}`);
 
         // Create visual alert if alert container exists
         const alertContainer = document.getElementById('queue-alerts');

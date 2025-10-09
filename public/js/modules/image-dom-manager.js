@@ -121,7 +121,6 @@ class ImageDOMManager {
                     // Clean up object URL
                     URL.revokeObjectURL(objectUrl);
 
-                    console.log('📥 DOWNLOAD: Blob download triggered for:', fileName);
                 } catch (error) {
                     console.error('❌ DOWNLOAD: Blob download failed, trying fallback:', error);
 
@@ -135,7 +134,6 @@ class ImageDOMManager {
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
-                        console.log('📥 DOWNLOAD: Fallback download triggered');
                     } catch (fallbackError) {
                         console.error('❌ DOWNLOAD: All download methods failed:', fallbackError);
                     }
@@ -223,7 +221,6 @@ class ImageDOMManager {
      * @returns {Object|null} Added image data or null
      */
     addImageToOutput(imageData, download = false) {
-        console.log('🖼️ DOM INSERT: addImageToOutput called', { imageData, download });
 
         try {
             return this.processImageOutput(imageData, download);
@@ -304,13 +301,11 @@ class ImageDOMManager {
      * @private
      */
     addViaFeedManager(imageData) {
-        console.log('🖼️ DOM INSERT: Using feed manager rendering system');
 
         const currentFilter = this.dataManager.getCurrentFilter();
         const wasAdded = window.feedManager.uiManager.addImageToFeed(imageData, currentFilter);
 
         if (wasAdded) {
-            console.log('✅ DOM INSERT: Image added via feed manager');
 
             // Handle auto download for feed manager path
             this.handleAutoDownloadForFeedManager(imageData);
@@ -322,12 +317,10 @@ class ImageDOMManager {
         const existingImage = document.querySelector(`[data-image-id="${imageData.id}"]`);
 
         if (existingImage) {
-            console.log('✅ DOM INSERT: Image already exists in DOM, skipping fallback');
 
             return imageData;
         }
 
-        console.log('⚠️ DOM INSERT: Feed manager failed to add image, falling back to simple method');
 
         return this.addViaSimpleMethod(imageData);
     }
@@ -339,11 +332,9 @@ class ImageDOMManager {
      * @private
      */
     addViaSimpleMethod(imageData) {
-        console.log('🖼️ DOM INSERT: Using fallback simple rendering');
 
         const img = this.elementFactory.createImageElement(imageData);
 
-        console.log('🖼️ DOM INSERT: Image element created', !!img);
 
         // Handle auto download after image element is created
         this.handleAutoDownload(img, imageData, false);
@@ -352,9 +343,6 @@ class ImageDOMManager {
         const loadingPlaceholders = document.querySelectorAll('.loading-placeholder');
         const loadingPlaceholder = loadingPlaceholders.length > 0 ? loadingPlaceholders[0] : null;
 
-        console.log('🖼️ DOM INSERT: Container found:', !!container);
-        console.log('🖼️ DOM INSERT: Loading placeholders found:', loadingPlaceholders.length);
-        console.log('🖼️ DOM INSERT: Using placeholder:', loadingPlaceholder);
 
         if (container) {
             this.viewManager.insertImageIntoContainer(img, imageData, container, loadingPlaceholder);
@@ -385,11 +373,9 @@ class ImageDOMManager {
         });
 
         if (autoDownload) {
-            console.log('📥 AUTO DOWNLOAD: Triggering download for image:', imageData.url || imageData.imageUrl);
             this.downloadImageFile(imageData.url || imageData.imageUrl);
-        } else {
-            console.log('📥 AUTO DOWNLOAD: Checkbox not found or not checked, skipping download');
         }
+        // Manual download - no auto action needed
     }
 
     /**
@@ -408,11 +394,9 @@ class ImageDOMManager {
         });
 
         if (autoDownload) {
-            console.log('📥 AUTO DOWNLOAD: Triggering download for feed manager image:', imageData.url || imageData.imageUrl);
             this.downloadImageFile(imageData.url || imageData.imageUrl);
-        } else {
-            console.log('📥 AUTO DOWNLOAD FEED MANAGER: Checkbox not found or not checked, skipping download');
         }
+        // Manual download - no auto action needed
     }
 
     /**
@@ -440,7 +424,6 @@ class ImageDOMManager {
                 a.click();
                 document.body.removeChild(a);
 
-                console.log('📥 AUTO DOWNLOAD: Fallback download triggered for:', fileName);
             } catch (fallbackError) {
                 console.error('❌ AUTO DOWNLOAD: All download methods failed:', fallbackError);
             }
@@ -454,7 +437,6 @@ class ImageDOMManager {
      */
     async downloadImageAsBlob(imageUrl) {
         try {
-            console.log('📥 AUTO DOWNLOAD: Fetching image as blob for download...');
 
             // Fetch the image as a blob
             const response = await fetch(imageUrl);
@@ -482,7 +464,6 @@ class ImageDOMManager {
             // Clean up object URL
             URL.revokeObjectURL(objectUrl);
 
-            console.log('📥 AUTO DOWNLOAD: Blob download triggered for:', fileName);
         } catch (error) {
             console.error('❌ AUTO DOWNLOAD: Blob download failed:', error);
             throw error; // Re-throw to trigger fallback

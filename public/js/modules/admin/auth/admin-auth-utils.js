@@ -10,6 +10,7 @@ class AdminAuthUtils {
      */
     static hasValidToken() {
         const token = this.getAuthToken();
+
         if (!token) {
             return false;
         }
@@ -17,6 +18,7 @@ class AdminAuthUtils {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const now = Math.floor(Date.now() / 1000);
+
             return !(payload.exp && payload.exp < now);
         } catch (error) {
             return false;
@@ -56,8 +58,10 @@ class AdminAuthUtils {
     static validateAuthBeforeRequest(endpoint) {
         if (!this.hasValidToken()) {
             console.warn(`🔐 ADMIN-AUTH-UTILS: No valid token for ${endpoint}, skipping request`);
+
             return false;
         }
+
         return true;
     }
 

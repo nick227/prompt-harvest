@@ -13,10 +13,10 @@ class ImageDataManager {
      */
     initializeValidators() {
         return {
-            hasValidUrl: (data) => data && data.url && data.url.trim() !== '',
-            hasValidId: (data) => data && data.id && data.id.trim() !== '',
-            hasValidPrompt: (data) => data && (data.prompt || data.final || data.original),
-            isComplete: (data) => this.dataValidators.hasValidUrl(data) &&
+            hasValidUrl: data => data && data.url && data.url.trim() !== '',
+            hasValidId: data => data && data.id && data.id.trim() !== '',
+            hasValidPrompt: data => data && (data.prompt || data.final || data.original),
+            isComplete: data => this.dataValidators.hasValidUrl(data) &&
                                   this.dataValidators.hasValidId(data) &&
                                   this.dataValidators.hasValidPrompt(data)
         };
@@ -109,6 +109,7 @@ class ImageDataManager {
     extractTitle(imageData) {
         // Use first 8 characters of prompt as title
         const prompt = imageData.prompt || imageData.original || '';
+
         if (prompt) {
             return prompt.substring(0, 8);
         }
@@ -188,6 +189,7 @@ class ImageDataManager {
                       imageData.score ||
                       imageData.likes ||
                       0;
+
         return parseInt(rating) || 0;
     }
 
@@ -279,6 +281,7 @@ class ImageDataManager {
                 return JSON.parse(imageData.tags);
             } catch (error) {
                 console.warn('Failed to parse tags JSON:', error);
+
                 return [];
             }
         }
@@ -358,6 +361,7 @@ class ImageDataManager {
      */
     getCurrentFilter() {
         const currentUser = this.getCurrentUser();
+
         return currentUser ? 'user' : 'site';
     }
 

@@ -77,18 +77,21 @@ class AdminMessaging {
     setupEventListeners() {
         // Refresh button
         const refreshBtn = document.getElementById('refresh-messages-btn');
+
         if (refreshBtn) {
             refreshBtn.addEventListener('click', () => this.loadConversations());
         }
 
         // Mark all read button
         const markAllReadBtn = document.getElementById('mark-all-read-btn');
+
         if (markAllReadBtn) {
             markAllReadBtn.addEventListener('click', () => this.markAllAsRead());
         }
 
         // Reply form
         const replyForm = document.getElementById('admin-reply-form');
+
         if (replyForm) {
             replyForm.addEventListener('submit', this.handleReplySubmit.bind(this));
         }
@@ -127,6 +130,7 @@ class AdminMessaging {
             }
 
             const data = await this.messagingService.getAdminMessages();
+
             this.conversations = data.conversations;
             this.renderConversations();
             this.updateUnreadBadge(data.totalUnread);
@@ -157,12 +161,14 @@ class AdminMessaging {
                     <p>User messages will appear here when they contact support.</p>
                 </div>
             `;
+
             return;
         }
 
         conversationsContainer.innerHTML = '';
         this.conversations.forEach(conversation => {
             const conversationEl = this.messageComponent.renderAdminConversationItem(conversation);
+
             conversationsContainer.appendChild(conversationEl);
         });
     }
@@ -173,6 +179,7 @@ class AdminMessaging {
      */
     async handleConversationClick(event) {
         const conversationItem = event.target.closest('.conversation-item');
+
         if (!conversationItem) {
             return;
         }
@@ -225,6 +232,7 @@ class AdminMessaging {
 
         // Render messages
         const conversationEl = this.messageComponent.renderConversation(conversation.messages, true);
+
         messagesContainer.innerHTML = '';
         messagesContainer.appendChild(conversationEl);
 
@@ -267,6 +275,7 @@ class AdminMessaging {
 
         if (!this.currentConversation) {
             this.showError('No conversation selected');
+
             return;
         }
 
@@ -276,13 +285,16 @@ class AdminMessaging {
 
         if (!message) {
             this.showError('Please enter a reply message');
+
             return;
         }
 
         // Validate message
         const validation = this.messagingService.validateMessage(message);
+
         if (!validation.isValid) {
             this.showError(validation.errors[0]);
+
             return;
         }
 
@@ -322,18 +334,22 @@ class AdminMessaging {
      */
     async handleMessageActions(event) {
         const target = event.target.closest('button');
+
         if (!target) {
             return;
         }
 
         const { messageId } = target.dataset;
+
         if (!messageId) {
             return;
         }
 
-        const action = target.classList.contains('btn-edit') ? 'edit' :
-                      target.classList.contains('btn-delete') ? 'delete' :
-                      target.classList.contains('btn-mark-read') ? 'mark-read' : null;
+        const action = target.classList.contains('btn-edit')
+            ? 'edit' :
+            target.classList.contains('btn-delete')
+                ? 'delete' :
+                target.classList.contains('btn-mark-read') ? 'mark-read' : null;
 
         if (!action) {
             return;
@@ -360,11 +376,13 @@ class AdminMessaging {
      */
     async handleEditMessage(messageId) {
         const message = this.findMessageById(messageId);
+
         if (!message) {
             return;
         }
 
         const newContent = prompt('Edit message:', message.message);
+
         if (newContent === null || newContent.trim() === message.message) {
             return;
         }
@@ -374,8 +392,10 @@ class AdminMessaging {
 
             // Update message in current conversation
             const conversation = this.currentConversation;
+
             if (conversation) {
                 const index = conversation.messages.findIndex(m => m.id === messageId);
+
                 if (index !== -1) {
                     conversation.messages[index] = updatedMessage;
                     await this.loadConversationMessages(conversation);
@@ -403,6 +423,7 @@ class AdminMessaging {
 
             // Remove message from current conversation
             const conversation = this.currentConversation;
+
             if (conversation) {
                 conversation.messages = conversation.messages.filter(m => m.id !== messageId);
                 await this.loadConversationMessages(conversation);
@@ -457,6 +478,7 @@ class AdminMessaging {
 
         // Hide mark all read button
         const markAllReadBtn = document.getElementById('mark-all-read-btn');
+
         if (markAllReadBtn) {
             markAllReadBtn.style.display = 'none';
         }
@@ -473,6 +495,7 @@ class AdminMessaging {
         if (!this.currentConversation) {
             return null;
         }
+
         return this.currentConversation.messages.find(m => m.id === messageId);
     }
 
@@ -483,16 +506,19 @@ class AdminMessaging {
      */
     updateConversationUnreadCount(userId, count) {
         const conversationItem = document.querySelector(`[data-user-id="${userId}"]`);
+
         if (!conversationItem) {
             return;
         }
 
         const unreadBadge = conversationItem.querySelector('.unread-badge');
+
         if (count > 0) {
             if (unreadBadge) {
                 unreadBadge.textContent = count;
             } else {
                 const meta = conversationItem.querySelector('.conversation-meta');
+
                 if (meta) {
                     meta.insertAdjacentHTML('beforeend', `<span class="unread-badge">${count}</span>`);
                 }
@@ -577,6 +603,7 @@ class AdminMessaging {
     showNotification(message, type = 'info') {
         // Create notification element
         const notification = document.createElement('div');
+
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
 

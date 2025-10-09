@@ -220,6 +220,7 @@ if (typeof window !== 'undefined') {
         if (window.feedManager && window.feedManager.tabService) {
             window.feedManager.tabService.debugFiltering();
         } else {
+            console.warn('Feed manager or tab service not available');
         }
     };
 
@@ -227,6 +228,7 @@ if (typeof window !== 'undefined') {
         if (window.feedManager && window.feedManager.tabService) {
             window.feedManager.tabService.switchToFilter('user');
         } else {
+            console.warn('Feed manager or tab service not available');
         }
     };
 }

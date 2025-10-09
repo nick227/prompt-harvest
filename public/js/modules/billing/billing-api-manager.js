@@ -208,6 +208,7 @@ class BillingAPIManager {
             return response.redemptions || [];
         } catch (error) {
             console.error('❌ BILLING API: Failed to get promo redemptions:', error);
+
             // Return empty array instead of throwing to prevent breaking payment history
             return [];
         }
@@ -221,13 +222,10 @@ class BillingAPIManager {
      */
     async getImageHistory(limit = 20, page = 0) {
         try {
-            console.log('🔄 BILLING API: Fetching image history from:', `${this.config.ENDPOINTS.IMAGE_HISTORY}?limit=${limit}&page=${page}`);
 
-            const response = await this.retryOperation(() =>
-                apiService.get(`${this.config.ENDPOINTS.IMAGE_HISTORY}?limit=${limit}&page=${page}`)
+            const response = await this.retryOperation(() => apiService.get(`${this.config.ENDPOINTS.IMAGE_HISTORY}?limit=${limit}&page=${page}`)
             );
 
-            console.log('✅ BILLING API: Image history response:', response);
 
             // Check both possible response structures
             const images = response.images || response.data?.images || [];

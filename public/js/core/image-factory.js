@@ -6,8 +6,9 @@
 class ImageFactory {
     static createImageData(result) {
         // Generate title from first 8 characters of prompt
-        const generateTitle = (prompt) => {
-            if (!prompt) return 'Generated Image';
+        const generateTitle = prompt => {
+            if (!prompt) { return 'Generated Image'; }
+
             return prompt.substring(0, 8);
         };
 

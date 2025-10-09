@@ -35,6 +35,7 @@ class TagRouter {
             if (tagParam) {
                 // Parse multiple tags from comma-separated string
                 const tags = tagParam.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+
                 this.setActiveTags(tags);
                 // Notify listeners about initial tag state
                 this.notifyListeners();
@@ -84,6 +85,7 @@ class TagRouter {
      */
     removeTag(tag) {
         const index = this.currentTags.indexOf(tag);
+
         if (index > -1) {
             this.currentTags.splice(index, 1);
             this.updateURL();
@@ -164,7 +166,6 @@ class TagRouter {
      */
     unsubscribe(listenerId) {
         this.listeners.delete(listenerId);
-        // console.log(`🏷️ TAG ROUTER: Unsubscribed listener ${listenerId}, total listeners: ${this.listeners.size}`);
     }
 
     /**
@@ -193,8 +194,10 @@ class TagRouter {
 
         // Update list view tag chips
         const listTagChips = document.querySelectorAll('.list-tags-container span');
+
         listTagChips.forEach(chip => {
             const tagText = chip.textContent.trim();
+
             if (activeTags.includes(tagText)) {
                 chip.classList.add('tag-chip-active');
                 chip.style.background = 'rgba(34, 197, 94, 0.3)';
@@ -210,8 +213,10 @@ class TagRouter {
 
         // Update info box tag chips
         const infoBoxTagChips = document.querySelectorAll('.info-box-tag-chip');
+
         infoBoxTagChips.forEach(chip => {
             const tagText = chip.textContent.trim();
+
             if (activeTags.includes(tagText)) {
                 chip.classList.add('tag-chip-active');
                 chip.style.background = 'rgba(34, 197, 94, 0.3)';

@@ -603,13 +603,11 @@ class ImageManager {
         this.updateImageRating(this.currentFullscreenImage.id, rating);
 
         // Show simple feedback
-        console.log(`✅ Rating updated to ${rating}/5`);
 
         // Try to call the rating API (but don't let it block the UI update)
         try {
             if (typeof window.imageApi !== 'undefined' && window.imageApi.rateImage) {
                 await window.imageApi.rateImage(this.currentFullscreenImage.id, rating);
-                console.log('✅ Rating saved to server');
             } else {
                 console.warn('imageApi not available, skipping rating update');
             }
@@ -633,7 +631,6 @@ class ImageManager {
     // Download image as blob to force Save As dialog
     async downloadImageAsBlob(imageUrl, title = 'image') {
         try {
-            console.log('📥 DOWNLOAD: Fetching image as blob for download...');
 
             // Fetch the image as a blob
             const response = await fetch(imageUrl);
@@ -661,7 +658,6 @@ class ImageManager {
             // Clean up object URL
             URL.revokeObjectURL(objectUrl);
 
-            console.log('📥 DOWNLOAD: Blob download triggered for:', fileName);
         } catch (error) {
             console.error('❌ DOWNLOAD: Blob download failed, trying fallback:', error);
 
@@ -675,7 +671,6 @@ class ImageManager {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                console.log('📥 DOWNLOAD: Fallback download triggered');
             } catch (fallbackError) {
                 console.error('❌ DOWNLOAD: All download methods failed:', fallbackError);
             }

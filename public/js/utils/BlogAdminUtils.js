@@ -37,12 +37,12 @@ class BlogAdminUtils {
         if (adminActions && isAdmin) {
             adminActions.classList.remove('hidden');
             if (this.debugMode) {
-                console.log('✅ BLOG-ADMIN: Admin actions shown');
+                console.log('[BlogAdminUtils] Showing admin actions');
             }
         } else if (adminActions) {
             adminActions.classList.add('hidden');
             if (this.debugMode) {
-                console.log('❌ BLOG-ADMIN: Admin actions hidden');
+                console.log('[BlogAdminUtils] Hiding admin actions');
             }
         }
 
@@ -75,6 +75,7 @@ class BlogAdminUtils {
 
         if (!isAdmin) {
             this.showError(`Only administrators can ${operation}.`);
+
             return false;
         }
 
@@ -97,7 +98,8 @@ class BlogAdminUtils {
         window.addEventListener('authStateChanged', () => {
             setTimeout(() => {
                 const isAdmin = this.updateAdminActions();
-                if (callback) callback(isAdmin);
+
+                if (callback) { callback(isAdmin); }
             }, 100);
         });
 

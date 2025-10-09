@@ -23,13 +23,13 @@ class UnifiedEventService {
     setupGlobalEventListeners() {
         // Listen for authentication state changes
         if (window.UnifiedAuthUtils) {
-            window.UnifiedAuthUtils.addAuthListener((isAuthenticated) => {
+            window.UnifiedAuthUtils.addAuthListener(isAuthenticated => {
                 this.emit('user:authenticated', { isAuthenticated });
             });
         }
 
         // Listen for storage changes (cross-tab communication)
-        window.addEventListener('storage', (e) => {
+        window.addEventListener('storage', e => {
             if (e.key === 'authToken') {
                 this.emit('user:auth-changed', { token: e.newValue });
             }
@@ -43,6 +43,7 @@ class UnifiedEventService {
      */
     emit(eventName, detail = {}) {
         const event = new CustomEvent(eventName, { detail });
+
         window.dispatchEvent(event);
 
         // Also trigger legacy events for backward compatibility
@@ -65,6 +66,7 @@ class UnifiedEventService {
         };
 
         const legacyEvents = legacyMap[eventName] || [];
+
         legacyEvents.forEach(legacyEvent => {
             window.dispatchEvent(new CustomEvent(legacyEvent, { detail }));
         });
@@ -77,7 +79,7 @@ class UnifiedEventService {
      * @returns {Function} Unsubscribe function
      */
     subscribe(eventName, callback) {
-        const listener = (event) => {
+        const listener = event => {
             try {
                 callback(event.detail);
             } catch (error) {
@@ -103,6 +105,7 @@ class UnifiedEventService {
      */
     unsubscribe(eventName, callback) {
         const listeners = this.eventMap.get(eventName);
+
         if (listeners) {
             for (const listener of listeners) {
                 if (listener.callback === callback) {
@@ -121,8 +124,7 @@ class UnifiedEventService {
      * @returns {Function} Unsubscribe function
      */
     subscribeMultiple(events, callback) {
-        const unsubscribers = events.map(eventName =>
-            this.subscribe(eventName, callback)
+        const unsubscribers = events.map(eventName => this.subscribe(eventName, callback)
         );
 
         return () => unsubscribers.forEach(unsub => unsub());
@@ -135,6 +137,7 @@ class UnifiedEventService {
      */
     addGlobalListener(callback) {
         this.globalListeners.add(callback);
+
         return () => this.globalListeners.delete(callback);
     }
 
@@ -144,6 +147,7 @@ class UnifiedEventService {
      */
     removeAllListeners(eventName) {
         const listeners = this.eventMap.get(eventName);
+
         if (listeners) {
             listeners.forEach(listener => {
                 window.removeEventListener(eventName, listener.listener);
@@ -158,9 +162,11 @@ class UnifiedEventService {
      */
     getStats() {
         const stats = {};
+
         for (const [eventName, listeners] of this.eventMap) {
             stats[eventName] = listeners.size;
         }
+
         return stats;
     }
 

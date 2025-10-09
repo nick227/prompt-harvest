@@ -84,15 +84,12 @@ class BlogService {
      * Create a new blog post (admin only)
      */
     async createPost(postData, isPublish = false) {
-        console.log('🔍 BLOG-SERVICE: Creating post with data:', postData);
-        console.log('🔍 BLOG-SERVICE: Is publish:', isPublish);
 
         // Add publish status to post data
         postData.isPublished = isPublish;
 
         const response = await this.apiService.post(`${this.baseUrl}/posts`, postData);
 
-        console.log('🔍 BLOG-SERVICE: API response:', response);
 
         return response.data;
     }
@@ -163,6 +160,7 @@ class BlogService {
     isAdmin() {
         // Check authService.getCurrentUser() first
         const currentUser = this.authService?.getCurrentUser?.();
+
         if (currentUser?.isAdmin) {
             return true;
         }
@@ -223,6 +221,7 @@ class BlogService {
     formatPostForDisplay(post) {
         // Parse tags if they're stored as JSON string
         let tags = post.tags || [];
+
         if (typeof tags === 'string') {
             try {
                 tags = JSON.parse(tags);

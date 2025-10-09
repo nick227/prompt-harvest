@@ -42,8 +42,9 @@ class ImageData {
 
 
         // Generate title from first 8 characters of prompt
-        const generateTitle = (prompt) => {
-            if (!prompt) return 'Generated Image';
+        const generateTitle = prompt => {
+            if (!prompt) { return 'Generated Image'; }
+
             return prompt.substring(0, 8);
         };
 
@@ -90,8 +91,9 @@ class ImageData {
 
 
         // Generate title from first 8 characters of prompt
-        const generateTitle = (prompt) => {
-            if (!prompt) return 'Generated Image';
+        const generateTitle = prompt => {
+            if (!prompt) { return 'Generated Image'; }
+
             return prompt.substring(0, 8);
         };
 
@@ -101,7 +103,7 @@ class ImageData {
             id: img.dataset.id || img.dataset.imageId || 'unknown',
             url: img.src,
             title: generateTitle(prompt),
-            prompt: prompt,
+            prompt,
             original: img.dataset.original || '',
             final: img.dataset.final || img.dataset.prompt || '', // ✅ Include final field
             provider: img.dataset.provider || '',
@@ -126,7 +128,6 @@ class ImageData {
         });
 
         if (!this.validateImageData(imageData)) {
-            console.log('❌ CACHE: Image data validation failed');
 
             return false;
         }
@@ -140,14 +141,12 @@ class ImageData {
         });
 
         this.imageCache.set(normalizedData.id, normalizedData);
-        console.log('✅ CACHE: Successfully cached image:', normalizedData.id);
 
         return true;
     }
 
     getCachedImage(imageId) {
         if (!this.validateImageId(imageId)) {
-            console.log('❌ CACHE: Invalid imageId for getCachedImage:', imageId);
 
             return null;
         }
@@ -225,7 +224,6 @@ class ImageData {
                     // });
                 } else {
                     images.push(imageData);
-                    // console.log('⚠️ No cached data found for navigation:', imageData.id);
                 }
             }
         });

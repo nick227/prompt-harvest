@@ -119,12 +119,14 @@ class TermsManager {
     async addTerm(termWord) {
         try {
             const validatedTerm = this.validateAndCheckDuplicate(termWord);
+
             if (!validatedTerm) {
                 return;
             }
 
             this.prepareForAddOperation(validatedTerm);
             const addedTerm = await this.addTermViaAPI(validatedTerm);
+
             this.updateCacheAndSearch(addedTerm);
             this.updateUIAfterAdd(validatedTerm);
         } catch (error) {
@@ -143,14 +145,13 @@ class TermsManager {
         // Step 1: Validate term
         this.uiManager.updateProgressMessage(`Validating "${termWord}"...`);
         const validatedTerm = this.apiManager.validateTermWord(termWord);
-        console.log('✅ MANAGER: Term validated:', validatedTerm);
 
         // Step 2: Check for duplicates
         this.uiManager.updateProgressMessage('Checking for duplicates...');
         if (this.cacheManager.termExists(validatedTerm)) {
-            console.log('⚠️ MANAGER: Duplicate term detected:', validatedTerm);
             this.uiManager.completeProcessingError(`Term "${validatedTerm}" already exists`);
             this.dispatchEvent(window.TERMS_CONSTANTS.EVENTS.DUPLICATE_DETECTED, { term: validatedTerm });
+
             return null;
         }
 
@@ -163,7 +164,6 @@ class TermsManager {
      */
     prepareForAddOperation(validatedTerm) {
         this.uiManager.updateProgressMessage(`Preparing to add "${validatedTerm}"...`);
-        console.log('🔄 MANAGER: Setting loading state...');
         this.cacheManager.setLoading(true);
         this.uiManager.showLoading();
     }
@@ -175,9 +175,8 @@ class TermsManager {
      */
     async addTermViaAPI(validatedTerm) {
         this.uiManager.updateProgressMessage(`Adding "${validatedTerm}" to database...`);
-        console.log('📡 MANAGER: Calling API to add term...');
         const addedTerm = await this.apiManager.addTerm(validatedTerm);
-        console.log('✅ MANAGER: Term added successfully:', addedTerm);
+
         return addedTerm;
     }
 
@@ -334,18 +333,15 @@ class TermsManager {
         const terms = this.cacheManager.getTerms();
 
         if (terms.length === 0) {
-            console.log('📭 MANAGER: No terms, showing empty state');
             this.domManager.showEmptyState();
 
             return;
         }
 
-        console.log('🔄 MANAGER: Updating display with', terms.length, 'terms');
         this.domManager.hideEmptyState();
         this.domManager.clearTermsList();
 
         // Add skeleton rows for progressive loading
-        console.log('🔄 MANAGER: Adding skeleton rows');
         this.domManager.addSkeletonRows();
 
         // Add terms progressively
@@ -353,7 +349,6 @@ class TermsManager {
             setTimeout(() => {
                 // Remove skeleton rows only once for the first term
                 if (index === 0) {
-                    console.log('🔄 MANAGER: Removing skeleton rows');
                     this.domManager.removeSkeletonRows();
                 }
                 this.domManager.addTermToList(term, index);

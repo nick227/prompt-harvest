@@ -36,6 +36,7 @@ class ErrorHandler {
 
             // Show insufficient credits notification with purchase button
             this.showInsufficientCreditsNotification(userMessage, shortfall);
+
             return { handled: true, userMessage, showPurchase: true };
         } else if (error.status === 429) {
             userMessage = 'Too many requests. Please wait a moment.';
@@ -82,6 +83,7 @@ class ErrorHandler {
         } else if (window.notificationService) {
             // Fallback to notification service if available
             const notification = document.createElement('div');
+
             notification.className = 'fixed top-4 right-4 bg-orange-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-md';
 
             notification.innerHTML = `
@@ -138,6 +140,7 @@ class ErrorHandler {
         } else {
             // On main page, try to open billing section if available
             const billingSection = document.querySelector('#billing-section, .billing-section');
+
             if (billingSection) {
                 billingSection.scrollIntoView({ behavior: 'smooth' });
             } else {

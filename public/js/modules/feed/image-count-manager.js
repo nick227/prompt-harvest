@@ -65,7 +65,7 @@ class ImageCountManager {
      * @returns {Promise<number>} Image count
      */
     async waitForCurrentRequest(filter) {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             const checkInterval = setInterval(() => {
                 if (!this.isLoading && this.counts[filter] !== null) {
                     clearInterval(checkInterval);
@@ -139,11 +139,12 @@ class ImageCountManager {
         try {
             // Use the site feed endpoint to get total count of public images
             const headers = {
-                'Accept': 'application/json'
+                Accept: 'application/json'
             };
 
             // Add auth token if available
             const token = window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -195,12 +196,13 @@ class ImageCountManager {
         try {
             // Prepare headers with authentication if available
             const headers = {
-                'Accept': 'application/json'
+                Accept: 'application/json'
             };
 
             // Add authentication header if user is logged in
             if (window.userApi && window.userApi.isAuthenticated()) {
                 const token = window.userApi.getAuthToken();
+
                 if (token) {
                     headers['Authorization'] = `Bearer ${token}`;
                 }
@@ -229,6 +231,7 @@ class ImageCountManager {
                     return totalCount;
                 } else {
                     console.error('📊 COUNT: total is not a number:', totalCount, 'type:', typeof totalCount);
+
                     return 0;
                 }
             } else {
@@ -239,10 +242,12 @@ class ImageCountManager {
                     dataKeys: data.data ? Object.keys(data.data) : 'no data',
                     fullResponse: data
                 });
+
                 return 0;
             }
         } catch (error) {
             console.error('📊 COUNT: Failed to fetch user image count:', error);
+
             return 0;
         }
     }
@@ -267,6 +272,7 @@ class ImageCountManager {
     async updateDisplayForFilter(filter) {
         try {
             const count = await this.getImageCount(filter);
+
             this.updateDisplay(filter, count);
         } catch (error) {
             console.error(`📊 COUNT: Failed to update display for ${filter}:`, error);

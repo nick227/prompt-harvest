@@ -4,11 +4,9 @@
  */
 class ThemeComposer {
     constructor() {
-        // console.log('🎨 ThemeComposer: Initializing...');
         this.paletteManager = new ColorPaletteManager();
         this.themeDefinitions = new Map();
         this.initializeThemeDefinitions();
-        // console.log(`✅ ThemeComposer: Initialized with ${this.themeDefinitions.size} theme definitions`);
     }
 
     /**
@@ -73,7 +71,6 @@ class ThemeComposer {
      */
     registerThemeDefinition(name, definition) {
         this.themeDefinitions.set(name, definition);
-        // console.log(`✅ Theme definition registered: ${name}`);
     }
 
     /**
@@ -81,11 +78,11 @@ class ThemeComposer {
      */
     buildTheme(themeName) {
         const definition = this.themeDefinitions.get(themeName);
+
         if (!definition) {
             throw new Error(`Theme definition '${themeName}' not found`);
         }
 
-        // console.log(`🏗️ Building theme: ${themeName}`);
 
         // Get the comprehensive theme palette
         const themePalette = this.paletteManager.getPalette('theme', definition.palettes.theme);
@@ -109,7 +106,6 @@ class ThemeComposer {
             }
         };
 
-        // console.log(`✅ Theme built: ${theme.name} with ${Object.keys(themePalette).length} color variables`);
         return theme;
     }
 
@@ -125,6 +121,7 @@ class ThemeComposer {
         };
 
         this.registerThemeDefinition(name, definition);
+
         return this.buildTheme(name);
     }
 
@@ -133,6 +130,7 @@ class ThemeComposer {
      */
     modifyTheme(themeName, newPaletteCombination) {
         const definition = this.themeDefinitions.get(themeName);
+
         if (!definition) {
             throw new Error(`Theme '${themeName}' not found for modification`);
         }
@@ -140,7 +138,6 @@ class ThemeComposer {
         // Update palette combination
         definition.palettes = { ...definition.palettes, ...newPaletteCombination };
 
-        console.log(`🔄 Modified theme: ${themeName}`);
         return this.buildTheme(themeName);
     }
 
@@ -149,9 +146,11 @@ class ThemeComposer {
      */
     getThemeDefinitions() {
         const definitions = {};
+
         this.themeDefinitions.forEach((definition, name) => {
             definitions[name] = definition;
         });
+
         return definitions;
     }
 
@@ -172,6 +171,7 @@ class ThemeComposer {
      */
     previewTheme(themeName) {
         const theme = this.buildTheme(themeName);
+
         return {
             name: theme.name,
             description: theme.description,
@@ -188,6 +188,7 @@ class ThemeComposer {
      */
     getStats() {
         const paletteStats = this.paletteManager.getStats();
+
         return {
             themeDefinitions: this.themeDefinitions.size,
             paletteStats,

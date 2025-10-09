@@ -504,7 +504,6 @@ class AdminSummaryRenderer {
         if (window.adminApp && window.adminApp.showNotification) {
             window.adminApp.showNotification(message, type);
         } else {
-            console.log(`🔔 ADMIN: ${message}`);
         }
     }
 }

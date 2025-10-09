@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Minified files
+**/*.min.js
+
+# Third-party libraries
+public/js/lib/
+
+# Test output
+test-output*.txt
+lint-results.json
+
+# Compiled/generated files
+*.bundle.js
+*.chunk.js
+

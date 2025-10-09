@@ -240,7 +240,7 @@ class FeedManager {
             await this.loadFilterImages(currentFilter);
         } catch (error) {
             console.error('❌ Failed to load initial feed:', error);
-            this.uiManager.showErrorMessage();
+            this.domOperations.showErrorMessage();
         }
     }
 
@@ -282,7 +282,7 @@ class FeedManager {
         try {
             // Check if user can access user filter
             if (filter === FEED_CONSTANTS.FILTERS.USER && !this.apiManager.isUserAuthenticated()) {
-                this.uiManager.showLoginPrompt();
+                this.domOperations.showLoginPrompt();
 
                 return;
             }
@@ -303,7 +303,7 @@ class FeedManager {
             // Update cache with tags
             this.cacheManager.setCache(filter, {
                 images: result.images,
-                hasMore: hasMore,
+                hasMore,
                 currentPage: 0,
                 isLoaded: true
             }, activeTags);
@@ -323,11 +323,11 @@ class FeedManager {
 
                 // Show appropriate message if no images (use filtered count)
                 if (filteredImages.length === 0) {
-                    this.uiManager.showNoImagesMessage();
+                    this.domOperations.showNoImagesMessage();
                 }
             } else {
                 console.error('❌ FEED MANAGER: result.images is not an array:', result.images);
-                this.uiManager.showNoImagesMessage();
+                this.domOperations.showNoImagesMessage();
             }
 
             // Refresh rating dropdown to include all loaded images' ratings
@@ -358,16 +358,16 @@ class FeedManager {
                 await this.uiManager.completeSmoothTransition(promptOutput);
             }
 
-            this.uiManager.showErrorMessage();
+            this.domOperations.showErrorMessage();
         } finally {
-            this.uiManager.hideLoading();
+            this.uiManager.setLoading(false);
         }
     }
 
     // Load more images (pagination)
     async loadMoreImages(filter) {
         try {
-            this.uiManager.showLoading();
+            this.uiManager.setLoading(true);
 
             const activeTags = this.tagRouter ? this.tagRouter.getActiveTags() : [];
             const cache = this.cacheManager.getCache(filter, activeTags);
@@ -396,14 +396,15 @@ class FeedManager {
                 this.isRateLimited = true;
 
                 // Keep showing the loading spinner during cooldown
-                this.uiManager.showLoading();
+                this.uiManager.setLoading(true);
 
                 setTimeout(() => {
                     this.isRateLimited = false;
-                    this.uiManager.hideLoading();
+                    this.uiManager.setLoading(false);
 
                     // Trigger a re-check in case user scrolled during cooldown
-                    const lastImage = this.uiManager.getLastImageElement();
+                    const lastImage = this.domOperations.getLastImageElement();
+
                     if (lastImage && this.uiManager.isElementInViewport(lastImage)) {
                         this.handleLastImageVisible();
                     }
@@ -423,7 +424,7 @@ class FeedManager {
         } catch (error) {
             console.error(`❌ Failed to load more ${filter} images:`, error);
         } finally {
-            this.uiManager.hideLoading();
+            this.uiManager.setLoading(false);
         }
     }
 
@@ -435,7 +436,7 @@ class FeedManager {
             await this.loadFilterImages(currentFilter);
         } catch (error) {
             console.error('❌ Failed to refresh feed:', error);
-            this.uiManager.showErrorMessage();
+            this.domOperations.showErrorMessage();
         }
     }
 
@@ -479,11 +480,9 @@ class FeedManager {
     async loadImagesForContext(context, options = {}) {
         if (context === 'profile') {
             // For profile pages, only load public images
-            console.log('🔒 FEED MANAGER: Loading public images for profile context');
             return await this.apiManager.loadFeedImages('site', options.page || 0, options.tags || [], options.customEndpoint);
         } else if (context === 'home') {
             // For home page, load user's own images (public and private)
-            console.log('🔒 FEED MANAGER: Loading user images for home context');
             return await this.apiManager.loadFeedImages('user', options.page || 0, options.tags || []);
         } else {
             console.error(`❌ FEED MANAGER: Unknown context: ${context}`);
@@ -572,7 +571,6 @@ const initFeedManager = async() => {
                              window.location.pathname.includes('/profile');
 
         if (isProfilePage) {
-            console.log('🔒 FEED MANAGER: Profile page detected - skipping auto-initialization to prevent private image loading');
             // Initialize sub-managers but don't load initial feed
             await feedManager.initializeSubManagers();
             feedManager.setupEventListeners();

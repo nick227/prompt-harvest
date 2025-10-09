@@ -28,7 +28,6 @@ class ThumbnailSelector {
         this.createInterface();
         this.setupEventListeners();
         this.isInitialized = true;
-        console.log('🔍 THUMBNAIL-SELECTOR: Initialized successfully');
     }
 
     createInterface() {
@@ -122,10 +121,10 @@ class ThumbnailSelector {
         const uploadBtn = this.container.querySelector('.upload-btn');
 
         uploadBtn?.addEventListener('click', () => fileInput.click());
-        fileInput?.addEventListener('change', (e) => this.handleFileUpload(e));
+        fileInput?.addEventListener('change', e => this.handleFileUpload(e));
 
         // Drag and drop
-        uploadArea?.addEventListener('dragover', (e) => {
+        uploadArea?.addEventListener('dragover', e => {
             e.preventDefault();
             uploadArea.classList.add('border-blue-500');
         });
@@ -134,10 +133,11 @@ class ThumbnailSelector {
             uploadArea.classList.remove('border-blue-500');
         });
 
-        uploadArea?.addEventListener('drop', (e) => {
+        uploadArea?.addEventListener('drop', e => {
             e.preventDefault();
             uploadArea.classList.remove('border-blue-500');
-            const files = e.dataTransfer.files;
+            const { files } = e.dataTransfer;
+
             if (files.length > 0) {
                 this.handleFile(files[0]);
             }
@@ -192,16 +192,17 @@ class ThumbnailSelector {
 
     initializeUpload() {
         // Upload method is ready by default
-        console.log('🔍 THUMBNAIL-SELECTOR: Upload method initialized');
     }
 
     async initializeExisting() {
         const container = this.container.querySelector('.existing-images-container');
-        if (!container) return;
+
+        if (!container) { return; }
 
         try {
             this.showStatus('Loading your images...', 'info');
             const images = await this.loadExistingImages();
+
             this.displayExistingImages(images, container);
         } catch (error) {
             console.error('Failed to load existing images:', error);
@@ -220,7 +221,8 @@ class ThumbnailSelector {
 
     async initializeAI() {
         const container = this.container.querySelector('.ai-generator-container');
-        if (!container) return;
+
+        if (!container) { return; }
 
         try {
             // Wait for AI generator to be available
@@ -230,7 +232,8 @@ class ThumbnailSelector {
 
             // Create AI generator container
             const aiContainer = document.createElement('div');
-            const containerId = 'ai-generator-' + Date.now();
+            const containerId = `ai-generator-${Date.now()}`;
+
             aiContainer.id = containerId;
             container.innerHTML = '';
             container.appendChild(aiContainer);
@@ -240,10 +243,9 @@ class ThumbnailSelector {
                 placeholder: this.options.placeholder,
                 theme: this.options.theme,
                 showCost: this.options.showCost,
-                onUseImage: (imageData) => this.handleThumbnailSelection(imageData, 'AI Generated')
+                onUseImage: imageData => this.handleThumbnailSelection(imageData, 'AI Generated')
             });
 
-            console.log('🔍 THUMBNAIL-SELECTOR: AI generator initialized');
         } catch (error) {
             console.error('Failed to initialize AI generator:', error);
             container.innerHTML = `
@@ -261,7 +263,7 @@ class ThumbnailSelector {
     async loadExistingImages() {
         const response = await fetch('/api/profile/user-images?limit=20&page=1', {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                Authorization: `Bearer ${localStorage.getItem('authToken')}`
             }
         });
 
@@ -283,6 +285,7 @@ class ThumbnailSelector {
                     <p class="text-sm text-gray-500">Upload some images first to use them as thumbnails</p>
                 </div>
             `;
+
             return;
         }
 
@@ -307,7 +310,8 @@ class ThumbnailSelector {
         // Add click listeners to images
         container.querySelectorAll('.existing-image-item').forEach(item => {
             item.addEventListener('click', () => {
-                const imageUrl = item.dataset.imageUrl;
+                const { imageUrl } = item.dataset;
+
                 this.handleThumbnailSelection({ url: imageUrl }, 'Existing Image');
             });
         });
@@ -315,6 +319,7 @@ class ThumbnailSelector {
 
     handleFileUpload(event) {
         const file = event.target.files[0];
+
         if (file) {
             this.handleFile(file);
         }
@@ -323,11 +328,13 @@ class ThumbnailSelector {
     async handleFile(file) {
         if (!file.type.startsWith('image/')) {
             this.showStatus('Only image files are allowed.', 'error');
+
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) { // 5MB limit
             this.showStatus('File size must be less than 5MB.', 'error');
+
             return;
         }
 
@@ -335,9 +342,11 @@ class ThumbnailSelector {
 
         try {
             const reader = new FileReader();
-            reader.onload = async (e) => {
+
+            reader.onload = async e => {
                 const fileData = e.target.result;
                 const thumbnailUrl = await this.uploadThumbnail(fileData, file.name, file.type);
+
                 this.handleThumbnailSelection({ url: thumbnailUrl }, 'Uploaded Image');
             };
             reader.readAsDataURL(file);
@@ -352,7 +361,7 @@ class ThumbnailSelector {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                Authorization: `Bearer ${localStorage.getItem('authToken')}`
             },
             body: JSON.stringify({
                 fileData,
@@ -430,6 +439,7 @@ class ThumbnailSelector {
 
     updateHiddenInput() {
         const hiddenInput = document.getElementById('thumbnail');
+
         if (hiddenInput) {
             hiddenInput.value = this.thumbnailUrl || '';
         }
@@ -437,14 +447,18 @@ class ThumbnailSelector {
 
     showStatus(message, type) {
         const statusEl = document.getElementById('status-message');
-        if (!statusEl) return;
+
+        if (!statusEl) { return; }
 
         statusEl.textContent = message;
         statusEl.className = `mt-4 p-3 rounded-lg text-sm ${
-            type === 'error' ? 'bg-red-900 text-red-200' :
-            type === 'success' ? 'bg-green-900 text-green-200' :
-            type === 'info' ? 'bg-blue-900 text-blue-200' :
-            'bg-gray-800 text-gray-200'
+            type === 'error'
+                ? 'bg-red-900 text-red-200' :
+                type === 'success'
+                    ? 'bg-green-900 text-green-200' :
+                    type === 'info'
+                        ? 'bg-blue-900 text-blue-200' :
+                        'bg-gray-800 text-gray-200'
         }`;
         statusEl.classList.remove('hidden');
 

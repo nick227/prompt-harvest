@@ -37,7 +37,6 @@ class DualViewLoadingManager {
         this.loadingStates.set(imageId, loadingState);
         this.setupLoadingUI(loadingState);
 
-        console.log(`🔄 LOADING: Initialized loading state for image ${imageId}`);
 
         return loadingState;
     }
@@ -104,9 +103,11 @@ class DualViewLoadingManager {
 
         // Update status in metadata if it exists
         const statusRow = listView.querySelector('.metadata-row');
+
         if (statusRow) {
             const statusLabel = statusRow.querySelector('.metadata-label');
             const statusValue = statusRow.querySelector('.metadata-value');
+
             if (statusLabel && statusLabel.textContent === 'Status' && statusValue) {
                 statusValue.textContent = 'Generating...';
                 statusValue.style.color = '#10b981';
@@ -209,7 +210,6 @@ class DualViewLoadingManager {
         // Add image loading event listeners
         this.setupImageEventListeners(loadingState, imgElement);
 
-        console.log(`🔄 LOADING: Image loading started for ${imageId}`);
     }
 
     /**
@@ -249,7 +249,6 @@ class DualViewLoadingManager {
         loadingState.isImageLoaded = true;
         this.updateLoadingUI(loadingState, 'loaded');
 
-        console.log(`✅ LOADING: Image loaded successfully for ${imageId}`);
     }
 
     /**
@@ -265,7 +264,6 @@ class DualViewLoadingManager {
 
         this.updateLoadingUI(loadingState, 'error');
 
-        console.log(`❌ LOADING: Image failed to load for ${imageId}`);
     }
 
     /**
@@ -292,7 +290,6 @@ class DualViewLoadingManager {
         // Check if fully loaded
         this.checkFullyLoaded(loadingState);
 
-        console.log(`🔄 LOADING: Placeholder replaced for ${imageId}`);
     }
 
     /**
@@ -352,7 +349,6 @@ class DualViewLoadingManager {
 
         // Only update list view if we're actually in list mode
         if (currentView !== 'list') {
-            console.log('🔄 LOADING: Skipping list view update - not in list mode');
             return;
         }
 
@@ -405,9 +401,11 @@ class DualViewLoadingManager {
 
         // Ensure the wrapper has the correct view class and view is applied
         const { wrapper } = loadingState;
+
         if (wrapper && window.feedManager && window.feedManager.viewManager) {
             const { viewManager } = window.feedManager;
             const { currentView } = viewManager;
+
             if (currentView === 'list') {
                 wrapper.classList.add('list');
                 wrapper.classList.remove('compact');
@@ -509,7 +507,6 @@ class DualViewLoadingManager {
 
         window.dispatchEvent(event);
 
-        console.log(`✅ LOADING: Image ${imageId} fully loaded in ${loadTime}ms`);
     }
 
     /**
@@ -556,7 +553,6 @@ class DualViewLoadingManager {
         this.cleanupEventListeners(imageId);
         this.loadingStates.delete(imageId);
 
-        console.log(`🧹 LOADING: Cleaned up loading state for ${imageId}`);
     }
 
     /**
@@ -575,7 +571,6 @@ class DualViewLoadingManager {
             this.removeLoadingState(imageId);
         }
 
-        console.log('🧹 LOADING: Cleaned up all loading states');
     }
 }
 

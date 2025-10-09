@@ -9,7 +9,7 @@ class AdminPricingCalculator {
         this.costCache = new Map();
         this.lastCacheUpdate = 0;
         this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
-        
+
         // Initialize the unified interface
         this.initModelInterface();
     }
@@ -21,8 +21,8 @@ class AdminPricingCalculator {
         try {
             // Import the unified interface
             const { default: modelInterface } = await import('/js/services/ModelInterface.js');
+
             this.modelInterface = modelInterface;
-            console.log('✅ Admin Pricing Calculator: Unified interface initialized');
         } catch (error) {
             console.error('❌ Admin Pricing Calculator: Failed to initialize unified interface:', error);
             // Fallback to static costs if interface fails
@@ -44,7 +44,6 @@ class AdminPricingCalculator {
             dalle3: 0.0200,
             nanoBanana: 0.0171 // Estimated Google cost
         };
-        console.log('⚠️ Admin Pricing Calculator: Using static cost fallback');
     }
 
     /**
@@ -63,7 +62,9 @@ class AdminPricingCalculator {
                 // Get cost from unified interface
                 const costPerImage = await this.modelInterface.getCreditCost(modelName);
                 const usdCost = costPerImage * 0.0228; // Flux baseline conversion
+
                 this.costCache.set(modelName, usdCost);
+
                 return usdCost;
             } else {
                 // Use static fallback
@@ -71,6 +72,7 @@ class AdminPricingCalculator {
             }
         } catch (error) {
             console.warn(`⚠️ Admin Pricing Calculator: Failed to get cost for ${modelName}, using fallback`);
+
             return this.staticCosts[modelName] || 0.0228;
         }
     }
@@ -81,10 +83,11 @@ class AdminPricingCalculator {
      */
     async getAllModelCosts() {
         const costs = {};
-        
+
         try {
             if (this.modelInterface) {
                 const models = await this.modelInterface.getAllModels();
+
                 for (const model of models) {
                     costs[model.name] = await this.getModelCost(model.name);
                 }
@@ -171,10 +174,11 @@ class AdminPricingCalculator {
      * @returns {string} Category name
      */
     getModelCategory(modelName) {
-        if (modelName.includes('dalle')) return 'OpenAI';
-        if (modelName.includes('nano')) return 'Google';
-        if (['flux'].includes(modelName)) return 'Flux';
-        if (['juggernaut', 'dreamshaper', 'bluepencil', 'tshirt'].includes(modelName)) return 'SDXL';
+        if (modelName.includes('dalle')) { return 'OpenAI'; }
+        if (modelName.includes('nano')) { return 'Google'; }
+        if (['flux'].includes(modelName)) { return 'Flux'; }
+        if (['juggernaut', 'dreamshaper', 'bluepencil', 'tshirt'].includes(modelName)) { return 'SDXL'; }
+
         return 'SD 1/2';
     }
 }

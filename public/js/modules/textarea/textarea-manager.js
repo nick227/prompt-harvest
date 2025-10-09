@@ -366,7 +366,6 @@ class TextAreaManager {
         const success = this.bindEvents();
 
         if (success && !this.destroyed) {
-            console.log('✅ Events successfully bound after DOM ready');
             const resizeDelays = [100, 500, 1000, 2000];
 
             resizeDelays.forEach(delay => {

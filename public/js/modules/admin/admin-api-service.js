@@ -34,12 +34,11 @@ class AdminAPIService {
 
         // Add JWT token if available
         const token = this.getAuthToken();
+
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
-            console.log('🔑 ADMIN-API: Adding auth header with token:', `${token.substring(0, 20)}...`);
-        } else {
-            console.log('🔑 ADMIN-API: No auth token found in storage');
         }
+        // No token available - continue without auth header
 
         return headers;
     }
@@ -47,6 +46,7 @@ class AdminAPIService {
     async request(method, endpoint, data = null, options = {}) {
         // Check authentication before making request
         const token = this.getAuthToken();
+
         if (!token) {
             console.warn('🔐 ADMIN-API: No auth token available, skipping request to', endpoint);
             throw new Error('Authentication required');
@@ -56,6 +56,7 @@ class AdminAPIService {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const now = Math.floor(Date.now() / 1000);
+
             if (payload.exp && payload.exp < now) {
                 console.warn('🔐 ADMIN-API: Token expired, skipping request to', endpoint);
                 throw new Error('Authentication token expired');
@@ -96,38 +97,30 @@ class AdminAPIService {
         try {
             const response = await fetch(url, config);
 
-            console.log('🔑 ADMIN-API: Response status:', response.status, response.statusText);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.log('🔑 ADMIN-API: Error response body:', errorText);
-                console.log('🔑 ADMIN-API: Error response headers:', Object.fromEntries(response.headers.entries()));
+
                 throw new Error(`API request failed: ${response.status} ${response.statusText}`);
             }
 
             const result = await response.json();
-            console.log('🔑 ADMIN-API: Response data:', result);
+
             return result;
         } catch (error) {
             console.error(`🚨 ADMIN-API: Request failed for ${endpoint}:`, error);
 
             // Handle authentication errors gracefully - fall back to demo data if available
             if (error.message && (error.message.includes('401') || error.message.includes('403'))) {
-                console.log('🔐 ADMIN-API: Authentication error - user may not be authenticated as admin');
                 if (this.useDemoData) {
-                    console.log('📊 ADMIN-API: Falling back to demo data for development');
                     return this.getDemoDataForEndpoint(endpoint);
                 }
             }
 
             // Handle 400 errors - might be authentication or request format issues
             if (error.message && error.message.includes('400')) {
-                console.log('🔐 ADMIN-API: 400 Bad Request - checking authentication status');
-                console.log('🔐 ADMIN-API: Auth token available:', !!this.getAuthToken());
-                console.log('🔐 ADMIN-API: Token valid:', window.AdminAuthUtils?.hasValidToken());
 
                 if (this.useDemoData) {
-                    console.log('📊 ADMIN-API: Falling back to demo data for development');
                     return this.getDemoDataForEndpoint(endpoint);
                 }
             }
@@ -359,6 +352,7 @@ class AdminAPIService {
         }
 
         const params = permanent ? { permanent: 'true' } : {};
+
         return await this.request('DELETE', `/images/${id}`, null, params);
     }
 
@@ -481,6 +475,7 @@ class AdminAPIService {
 
     async getPromoCodeStats(id = null) {
         const endpoint = id ? `/promo-codes/${id}/stats` : '/promo-codes/stats';
+
         return await this.get(endpoint);
     }
 
@@ -527,12 +522,10 @@ class AdminAPIService {
         } else {
             this.cache.clear();
         }
-        console.log('🧹 ADMIN-API: Cache cleared');
     }
 
     destroy() {
         this.clearCache();
-        console.log('🗑️ ADMIN-API: API service destroyed');
     }
 }
 

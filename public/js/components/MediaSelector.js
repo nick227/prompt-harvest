@@ -5,9 +5,7 @@
  */
 class MediaSelector {
     constructor(containerId, options = {}) {
-        console.log('🔍 MEDIA-SELECTOR: Constructor called with containerId:', containerId);
         this.container = document.getElementById(containerId);
-        console.log('🔍 MEDIA-SELECTOR: Container found:', !!this.container);
 
         // Check if already initialized
         if (this.container && this.container.dataset.mediaSelectorInitialized === 'true') {
@@ -39,7 +37,6 @@ class MediaSelector {
             return;
         }
 
-        console.log('🔍 MEDIA-SELECTOR: Starting initialization...');
         this.init();
     }
 
@@ -52,7 +49,6 @@ class MediaSelector {
             // Mark as initialized to prevent duplicates
             this.container.dataset.mediaSelectorInitialized = 'true';
 
-            console.log('🔍 MEDIA-SELECTOR: Initialized successfully');
 
             // Debug CSS and visibility
             setTimeout(() => {
@@ -76,13 +72,10 @@ class MediaSelector {
     }
 
     createInterface() {
-        console.log('🔍 MEDIA-SELECTOR: Creating interface...');
         const uploadText = this.options.multiple ? 'Drag & drop your files here' : 'Drag & drop your file here';
         const chooseText = this.options.multiple ? 'Choose Files' : 'Choose File';
         const sizeText = `${Math.round(this.options.maxSize / (1024 * 1024))}MB`;
 
-        console.log('🔍 MEDIA-SELECTOR: Options:', this.options);
-        console.log('🔍 MEDIA-SELECTOR: Container before:', this.container.innerHTML);
 
         // Different styles for different purposes
         const isContentStyle = this.options.purpose === 'content';
@@ -169,7 +162,6 @@ class MediaSelector {
             </div>
         `;
 
-        console.log('🔍 MEDIA-SELECTOR: Interface created, container after:', this.container.innerHTML.length, 'characters');
     }
 
     getFileTypeText() {
@@ -266,7 +258,6 @@ class MediaSelector {
     }
 
     initializeUpload() {
-        console.log('🔍 MEDIA-SELECTOR: Upload method initialized');
     }
 
     async initializeExisting() {
@@ -292,7 +283,6 @@ class MediaSelector {
                     }
                 });
 
-                console.log('🔍 MEDIA-SELECTOR: AI generator initialized');
             } else {
                 container.innerHTML = `
                     <div class="text-center py-8">

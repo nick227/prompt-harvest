@@ -194,7 +194,6 @@ class AppLoader {
     }
 
 
-
     async setupFeed() {
         // Setup feed to load initial images with retry logic
         const maxRetries = 3;
@@ -208,7 +207,6 @@ class AppLoader {
                         const siteCache = window.feedManager.cacheManager.getCache('site');
 
                         if (siteCache && siteCache.isLoaded) {
-                            // console.log('✅ APP: Feed already loaded, skipping setup');
 
                             return true;
                         }
@@ -217,11 +215,9 @@ class AppLoader {
                     // Check if setupFeed method exists
                     if (window.feedManager.setupFeed) {
                         await window.feedManager.setupFeed();
-                        // console.log('✅ APP: Feed setup completed successfully');
 
                         return true;
                     } else {
-                        // console.log('✅ APP: Feed manager available but no setupFeed method needed');
 
                         return true;
                     }
@@ -248,7 +244,6 @@ class AppLoader {
 
             retries++;
             if (retries < maxRetries) {
-                // console.log('🔄 APP: Retrying feed setup in 500ms...');
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
         }
@@ -261,9 +256,7 @@ class AppLoader {
 
         if (window.feedManager && window.feedManager.forceFreshFeedLoad) {
             try {
-                console.log('🔍 APP: Calling feedManager.forceFreshFeedLoad()...');
                 await window.feedManager.forceFreshFeedLoad();
-                console.log('✅ APP: Manual feed load completed');
             } catch (error) {
                 console.error('❌ APP: Manual feed load failed:', error);
             }
@@ -303,7 +296,6 @@ class AppLoader {
         // Add event listener for checkbox changes
         autoGenerateCheckbox.addEventListener('change', updateMaxNumState);
 
-        // console.log('✅ AUTO-GENERATE: Setup completed - maxNum input disabled by default');
     }
 
     getStatus() {
@@ -346,7 +338,6 @@ document.addEventListener('DOMContentLoaded', async() => {
         // Notify listeners after connection to ensure initial tag state is processed
         setTimeout(() => {
             if (window.tagRouter.getActiveTags().length > 0) {
-                console.log('🏷️ TAG ROUTER: Notifying listeners of initial tag state');
                 window.tagRouter.notifyListeners();
             }
         }, 100);

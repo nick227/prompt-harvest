@@ -60,12 +60,12 @@ class BlogPostPage {
                 if (window.headerComponent) {
                     window.headerComponent.forceUpdate();
                 }
+
                 return;
             }
 
             // If header component is not available, try to create it
             if (!window.headerComponent && window.HeaderComponent) {
-                console.log('🔧 BLOG-POST: Creating header component manually');
                 window.headerComponent = new window.HeaderComponent();
             }
 
@@ -77,7 +77,6 @@ class BlogPostPage {
 
         // Try to create header component one more time
         if (!window.headerComponent && window.HeaderComponent) {
-            console.log('🔧 BLOG-POST: Final attempt to create header component');
             window.headerComponent = new window.HeaderComponent();
         }
     }
@@ -96,25 +95,23 @@ class BlogPostPage {
         // Initialize UI controller
         this.uiController = new UIController();
 
-            // Initialize content editor
-            this.contentEditor = new ContentEditor('content');
+        // Initialize content editor
+        this.contentEditor = new ContentEditor('content');
 
         // Initialize streamlined thumbnail selector
         this.thumbnailSelector = new ThumbnailSelector('thumbnail-selector-container', {
-            onThumbnailSelected: (imageData) => {
-                console.log('🔍 BLOG-POST: Thumbnail selected:', imageData);
+            onThumbnailSelected: imageData => {
             }
         });
 
         // Initialize content media selector
-        console.log('🔍 BLOG-POST: Initializing content media selector...');
         const contentContainer = document.getElementById('content-media-selector');
-        console.log('🔍 BLOG-POST: Content container found:', !!contentContainer);
 
         if (contentContainer) {
             // Check if already initialized
             if (contentContainer.dataset.mediaSelectorInitialized === 'true') {
                 console.warn('🔍 BLOG-POST: Content media selector already initialized, skipping...');
+
                 return;
             }
 
@@ -123,16 +120,15 @@ class BlogPostPage {
                 multiple: true,
                 maxSize: 10 * 1024 * 1024, // 10MB for content images
                 style: 'compact',
-                onMediaSelected: (mediaData) => {
-                    console.log('🔍 BLOG-POST: Content media selected:', mediaData);
+                onMediaSelected: mediaData => {
                     // Insert image into content editor
                     if (this.contentEditor && mediaData.url) {
                         const imageMarkdown = `![${mediaData.filename || 'image'}](${mediaData.url})`;
+
                         this.contentEditor.insertContent(imageMarkdown);
                     }
                 }
             });
-            console.log('🔍 BLOG-POST: Content media selector initialized:', !!this.contentMediaSelector);
         } else {
             console.error('🔍 BLOG-POST: Content media selector container not found!');
         }
@@ -163,8 +159,8 @@ class BlogPostPage {
             setTimeout(() => {
                 // Check if header exists, if not, create it
                 const existingHeader = document.querySelector('header');
+
                 if (!existingHeader && window.HeaderComponent) {
-                    console.log('🔧 BLOG-POST: No header found, creating one');
                     window.headerComponent = new window.HeaderComponent();
                 }
 
@@ -177,8 +173,9 @@ class BlogPostPage {
 
     setupErrorHandling() {
         // Listen for error notifications
-        window.addEventListener('errorNotification', (e) => {
+        window.addEventListener('errorNotification', e => {
             const { message, type, duration } = e.detail;
+
             if (type === 'error') {
                 this.uiController.showError(message);
             } else {
@@ -189,24 +186,27 @@ class BlogPostPage {
 
     setupFormValidation() {
         // Add validators for required fields
-        this.formValidator.addValidator('title', (value) => value.trim().length > 0, (isValid, field) => {
+        this.formValidator.addValidator('title', value => value.trim().length > 0, (isValid, field) => {
             this.updateFieldValidation(field, isValid);
         });
 
-        this.formValidator.addValidator('content', (value) => {
+        this.formValidator.addValidator('content', value => {
             // For contenteditable, check if there's actual content
             const contentDiv = document.getElementById('content');
+
             if (contentDiv) {
                 const content = contentDiv.textContent || contentDiv.innerText || '';
+
                 return content.trim().length > 0;
             }
+
             return value.trim().length > 0;
         }, (isValid, field) => {
             this.updateFieldValidation(field, isValid);
         });
 
         // Listen for form state changes
-        this.formValidator.form.addEventListener('formStateChange', (e) => {
+        this.formValidator.form.addEventListener('formStateChange', e => {
             this.handleFormStateChange(e.detail.isValid);
         });
     }
@@ -233,7 +233,7 @@ class BlogPostPage {
         });
 
         // Listen for form submission
-        this.formValidator.form.addEventListener('submit', (e) => {
+        this.formValidator.form.addEventListener('submit', e => {
             e.preventDefault();
             this.handleFormSubmit(e);
         });
@@ -242,6 +242,7 @@ class BlogPostPage {
     async checkAdminStatus() {
         try {
             const isAdmin = this.blogService?.isAdmin() || false;
+
             this.uiController.updateAdminStatus(isAdmin);
 
             if (isAdmin) {
@@ -268,6 +269,7 @@ class BlogPostPage {
 
         if (!this.formValidator.validate()) {
             this.uiController.showError('Please fill in all required fields');
+
             return;
         }
 
@@ -286,17 +288,11 @@ class BlogPostPage {
             const formData = this.uiController.getFormData();
             const postData = this.blogService.formatPostData(formData, isPublish);
 
-            console.log('🔍 BLOG-POST: Form data:', formData);
-            console.log('🔍 BLOG-POST: Post data:', postData);
 
             // Simple API call without retry mechanism
             const result = await this.blogService.createPost(postData, isPublish);
 
             // Debug the result object to see its structure
-            console.log('🔍 BLOG-POST: Result object:', result);
-            console.log('🔍 BLOG-POST: Result type:', typeof result);
-            console.log('🔍 BLOG-POST: Result keys:', Object.keys(result));
-            console.log('🔍 BLOG-POST: Result.success:', result.success);
 
             // The result is the blog post data itself (not the API response wrapper)
             // If we have a result with an ID, the post was created successfully

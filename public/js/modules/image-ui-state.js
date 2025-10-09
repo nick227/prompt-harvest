@@ -212,7 +212,6 @@ class ImageUIState {
     }
 
     showProviderSelectionAlert() {
-        console.log('🔒 PROVIDER: Showing provider selection alert');
 
         // Show prominent alert for provider selection
         if (window.ErrorHandler) {
@@ -238,7 +237,6 @@ class ImageUIState {
     }
 
     showAuthRequiredMessage() {
-        console.log('🔒 AUTH: Showing authentication required message');
 
         // Show authentication required message
         if (window.ErrorHandler) {
@@ -254,7 +252,6 @@ class ImageUIState {
     }
 
     showGenerationSuccess(_imageData) {
-        console.log('✅ Generation completed successfully');
 
         // Could show success notification here
         if (window.ErrorHandler) {

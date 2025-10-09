@@ -3,7 +3,7 @@
  * Single Responsibility: Manage system settings UI and API interactions
  */
 
-/* global AdminAPIService, AdminUtils */
+// Globals: AdminAPIService, AdminUtils (defined in .eslintrc.json)
 
 class SystemSettingsManager {
     constructor() {
@@ -13,17 +13,16 @@ class SystemSettingsManager {
     }
 
     init() {
-        console.log('⚙️ SYSTEM-SETTINGS: Initializing system settings manager...');
 
         // Check authentication before initializing
         if (!window.AdminAuthUtils?.hasValidToken()) {
             console.warn('🔐 SYSTEM-SETTINGS: No valid token, skipping system settings manager initialization');
+
             return;
         }
 
         this.setupEventListeners();
         this.loadSettings();
-        console.log('✅ SYSTEM-SETTINGS: System settings manager initialized');
     }
 
     setupEventListeners() {
@@ -390,7 +389,6 @@ class SystemSettingsManager {
         if (window.adminApp && window.adminApp.showNotification) {
             window.adminApp.showNotification(message, type);
         } else {
-            console.log(`🔔 SYSTEM-SETTINGS: ${message}`);
         }
     }
 }

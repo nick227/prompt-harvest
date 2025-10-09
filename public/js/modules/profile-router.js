@@ -23,6 +23,7 @@ class ProfileRouter {
 
         // Handle back to home button
         const backButton = document.getElementById('back-to-home');
+
         if (backButton) {
             backButton.addEventListener('click', () => {
                 window.location.href = '/';
@@ -46,14 +47,12 @@ class ProfileRouter {
             if (this.isValidUsername(extractedUsername)) {
                 this.currentUsername = extractedUsername;
                 this.updatePageTitle();
-                console.log(`🔍 PROFILE ROUTER: Extracted username: ${this.currentUsername}`);
             } else {
                 console.error(`❌ PROFILE ROUTER: Invalid username format: ${extractedUsername}`);
                 this.currentUsername = null;
             }
         } else {
             this.currentUsername = null;
-            console.log('🔍 PROFILE ROUTER: No username found in URL');
         }
     }
 
@@ -66,7 +65,7 @@ class ProfileRouter {
         }
 
         // Username should be 3-50 characters, alphanumeric, underscore, or hyphen
-        return /^[a-zA-Z0-9_-]{3,50}$/.test(username);
+        return (/^[a-zA-Z0-9_-]{3,50}$/).test(username);
     }
 
     /**
@@ -74,6 +73,7 @@ class ProfileRouter {
      */
     updatePageTitle() {
         const titleElement = document.getElementById('profile-title');
+
         if (titleElement && this.currentUsername) {
             titleElement.textContent = `${this.currentUsername} - AutoImage`;
         }
@@ -84,11 +84,9 @@ class ProfileRouter {
      */
     async loadProfileData(page = 1) {
         if (!this.currentUsername || this.isLoading) {
-            console.log(`🔍 PROFILE ROUTER: Skipping load - username: ${this.currentUsername}, isLoading: ${this.isLoading}`);
             return;
         }
 
-        console.log(`🔍 PROFILE ROUTER: Loading profile data for: ${this.currentUsername}`);
 
         this.isLoading = true;
         this.currentPage = page;
@@ -101,7 +99,6 @@ class ProfileRouter {
 
             // Initialize profile feed manager
             if (!window.profileFeedManagerInstance) {
-                console.log('🔍 PROFILE ROUTER: Creating new ProfileFeedManager instance');
                 window.profileFeedManagerInstance = new ProfileFeedManager(this.currentUsername);
                 await window.profileFeedManagerInstance.init();
             }
@@ -122,7 +119,7 @@ class ProfileRouter {
      * Wait for profile feed components to be available
      */
     async waitForFeedSystem() {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             const checkFeedSystem = () => {
                 const requiredComponents = [
                     'FeedManager',
@@ -132,13 +129,12 @@ class ProfileRouter {
                 const missingComponents = requiredComponents.filter(comp => !window[comp]);
 
                 if (missingComponents.length === 0) {
-                    console.log('✅ PROFILE ROUTER: All feed components available');
                     resolve();
                 } else {
-                    console.log(`⏳ PROFILE ROUTER: Waiting for components: ${missingComponents.join(', ')}`);
                     setTimeout(checkFeedSystem, 100);
                 }
             };
+
             checkFeedSystem();
         });
     }
@@ -149,7 +145,6 @@ class ProfileRouter {
     displayProfileData(data) {
         // This method is now handled by the ProfileFeedManager
         // which reuses the existing feed system
-        console.log('Profile data display handled by ProfileFeedManager');
     }
 
     /**
@@ -157,6 +152,7 @@ class ProfileRouter {
      */
     showLoadingState() {
         const loadingElement = document.getElementById('profile-loading');
+
         if (loadingElement) {
             loadingElement.classList.remove('hidden');
         }
@@ -167,6 +163,7 @@ class ProfileRouter {
      */
     hideLoadingState() {
         const loadingElement = document.getElementById('profile-loading');
+
         if (loadingElement) {
             loadingElement.classList.add('hidden');
         }
@@ -177,6 +174,7 @@ class ProfileRouter {
      */
     showUserNotFound() {
         const container = document.getElementById('image-container-main');
+
         if (container) {
             container.innerHTML = `
                 <div class="w-full text-center py-12">
@@ -194,6 +192,7 @@ class ProfileRouter {
      */
     showError(message) {
         const container = document.getElementById('image-container-main');
+
         if (container) {
             container.innerHTML = `
                 <div class="w-full text-center py-12">
@@ -223,31 +222,26 @@ class ProfileRouter {
 
 // Initialize profile router when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🔍 PROFILE ROUTER: DOM loaded, initializing...');
 
     // Wait for ProfileFeedManager to be available
     await new Promise(resolve => {
         const checkComponents = () => {
             if (window.ProfileFeedManager) {
-                console.log('✅ PROFILE ROUTER: ProfileFeedManager available');
                 resolve();
             } else {
-                console.log('⏳ PROFILE ROUTER: Waiting for ProfileFeedManager...');
                 setTimeout(checkComponents, 100);
             }
         };
+
         checkComponents();
     });
 
-    console.log('🔍 PROFILE ROUTER: Creating ProfileRouter instance');
     window.profileRouter = new ProfileRouter();
 
     // Load initial profile data
     const username = window.profileRouter.getCurrentUsername();
-    console.log(`🔍 PROFILE ROUTER: Current username: ${username}`);
 
     if (username) {
-        console.log('🔍 PROFILE ROUTER: Starting profile data load...');
         window.profileRouter.loadProfileData();
     } else {
         console.error('❌ PROFILE ROUTER: No username found, cannot load profile data');

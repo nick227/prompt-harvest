@@ -132,7 +132,6 @@ class ImageDOMUtils {
     static addLoadingSpinner(img) {
         // Skip spinner if image doesn't have a parent yet
         if (!img.parentElement) {
-            console.log('🔄 DOM UTILS: Skipping spinner - image not in DOM yet');
 
             return;
         }
@@ -153,7 +152,6 @@ class ImageDOMUtils {
         // Add spinner to wrapper
         if (wrapper) {
             wrapper.appendChild(spinner);
-            console.log('🔄 DOM UTILS: Spinner added for image:', img.src);
         }
     }
 
@@ -210,8 +208,9 @@ class ImageDOMUtils {
         }
 
         // Generate title from first 8 characters of prompt
-        const generateTitle = (prompt) => {
-            if (!prompt) return 'Generated Image';
+        const generateTitle = prompt => {
+            if (!prompt) { return 'Generated Image'; }
+
             return prompt.substring(0, 8);
         };
 
@@ -283,7 +282,6 @@ class ImageDOMUtils {
      * @param {Object} imageData - Image data object
      */
     static createImagePlaceholder(img, imageData) {
-        console.log('🖼️ DOM UTILS: Creating placeholder for:', imageData);
 
         // Remove the failed src and create a stylish placeholder
         img.removeAttribute('src');
@@ -311,7 +309,6 @@ class ImageDOMUtils {
         // Add CSS for the placeholder if not already added
         this.addPlaceholderStyles();
 
-        console.log('✅ DOM UTILS: Placeholder created successfully');
     }
 
     /**
@@ -322,7 +319,6 @@ class ImageDOMUtils {
             return;
         }
 
-        console.log('📝 DOM UTILS: Adding placeholder styles...');
         const style = document.createElement('style');
 
         style.id = 'image-placeholder-styles';
@@ -415,7 +411,6 @@ class ImageDOMUtils {
             // Remove deferred src
             delete img.dataset.deferredSrc;
 
-            console.log('✅ Image loaded successfully:', src);
         };
 
         preloadImg.onerror = () => {
@@ -440,6 +435,7 @@ class ImageDOMUtils {
      */
     static loadAllDeferredImages(container) {
         const deferredImages = container.querySelectorAll('img[data-deferred-src]');
+
         deferredImages.forEach(img => {
             this.loadDeferredImage(img);
         });

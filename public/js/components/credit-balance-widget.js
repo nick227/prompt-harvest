@@ -67,7 +67,6 @@ class CreditBalanceWidget {
         } else {
             // Fallback to legacy event system
             window.addEventListener('promoCodeRedeemed', event => {
-                console.log('🎫 CREDIT-WIDGET: Promo code redeemed event received:', event.detail);
                 // Small delay to ensure backend has processed the redemption
                 setTimeout(() => {
                     this.loadBalance();
@@ -285,7 +284,6 @@ class CreditBalanceWidget {
                         this.loadBalance(true);
                     },
                     onCancel: () => {
-                        console.log('Credit purchase cancelled');
                     }
                 });
             } else {

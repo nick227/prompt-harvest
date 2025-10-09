@@ -23,21 +23,21 @@ tailwind.config = {
                 'theme-status-info': 'var(--color-status-info)',
                 'theme-rating': 'var(--color-rating)',
                 // Legacy compatibility
-                custom: '#123456',
+                custom: '#123456'
             },
             backgroundColor: {
                 'theme-primary': 'var(--color-background-primary)',
                 'theme-secondary': 'var(--color-background-secondary)',
-                'theme-surface': 'var(--color-surface-primary)',
+                'theme-surface': 'var(--color-surface-primary)'
             },
             textColor: {
                 'theme-primary': 'var(--color-text-primary)',
-                'theme-secondary': 'var(--color-text-secondary)',
+                'theme-secondary': 'var(--color-text-secondary)'
             },
             borderColor: {
                 'theme-primary': 'var(--color-border-primary)',
-                'theme-secondary': 'var(--color-border-secondary)',
+                'theme-secondary': 'var(--color-border-secondary)'
             }
-        },
-    },
-}
+        }
+    }
+};

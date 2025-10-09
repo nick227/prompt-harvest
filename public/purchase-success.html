@@ -191,7 +191,6 @@
             }
 
             async init() {
-                console.log('✅ SUCCESS: Initializing purchase success page...');
 
                 // Initialize header component
                 this.initializeHeader();
@@ -221,7 +220,6 @@
                         if (headerContainer) {
                             const headerComponent = new window.HeaderComponent();
                             headerComponent.init();
-                            console.log('✅ SUCCESS: Header component initialized');
                         }
                     }
                 } catch (error) {
@@ -231,7 +229,6 @@
 
             async verifyPayment() {
                 try {
-                    console.log('🔍 SUCCESS: Verifying payment session:', this.sessionId);
 
                     if (!window.apiService) {
                         console.warn('⚠️ SUCCESS: API service not available, showing fallback display');
@@ -255,7 +252,6 @@
             }
 
             displaySuccess(payment) {
-                console.log('✅ SUCCESS: Payment verified:', payment);
 
                 // Update credits display
                 const creditsElement = document.getElementById('credits-added');
@@ -276,7 +272,6 @@
             }
 
             displayFallback() {
-                console.log('📋 SUCCESS: Displaying fallback success message');
 
                 // Update credits display with fallback message
                 const creditsElement = document.getElementById('credits-added');

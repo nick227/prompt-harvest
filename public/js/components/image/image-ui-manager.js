@@ -380,7 +380,6 @@ class ImageUI {
      * Log component status to console
      */
     logComponentStatus() {
-        console.log('ImageUI Component Status:', this.getComponentStatus());
     }
 }
 

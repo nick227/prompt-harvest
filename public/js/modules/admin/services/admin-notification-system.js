@@ -19,13 +19,11 @@ class AdminNotificationSystem {
             return;
         }
 
-        console.log('🔔 ADMIN-NOTIFICATION: Initializing notification system...');
 
         // Make showNotification globally available
         window.showNotification = this.showNotification.bind(this);
 
         this.isInitialized = true;
-        console.log('✅ ADMIN-NOTIFICATION: Notification system initialized');
     }
 
     /**
@@ -77,7 +75,6 @@ class AdminNotificationSystem {
         // Store reference for manual removal
         this.notifications.push(notification);
 
-        console.log(`🔔 ADMIN-NOTIFICATION: ${type.toUpperCase()} - ${message}`);
     }
 
     /**
@@ -126,7 +123,6 @@ class AdminNotificationSystem {
         this.clearAllNotifications();
         delete window.showNotification;
         this.isInitialized = false;
-        console.log('🧹 ADMIN-NOTIFICATION: Notification system cleaned up');
     }
 }
 

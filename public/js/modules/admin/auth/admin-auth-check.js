@@ -13,9 +13,8 @@ class AdminAuthCheck {
      * Initialize admin authentication check
      */
     async init() {
-        if (this.isInitialized) return;
+        if (this.isInitialized) { return; }
 
-        console.log('🔐 ADMIN-AUTH: Initializing authentication check...');
 
         try {
             // Check authentication status
@@ -23,11 +22,13 @@ class AdminAuthCheck {
 
             if (!authStatus.isAuthenticated) {
                 this.showLoginRequired();
+
                 return;
             }
 
             if (!authStatus.isAdmin) {
                 this.showAdminRequired();
+
                 return;
             }
 
@@ -50,8 +51,8 @@ class AdminAuthCheck {
         try {
             // Check if we have a valid token before making the request
             const token = this.getAuthToken();
+
             if (!token) {
-                console.log('🔐 ADMIN-AUTH: No auth token available, skipping auth check');
                 return {
                     isAuthenticated: false,
                     isAdmin: false,
@@ -63,8 +64,8 @@ class AdminAuthCheck {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const now = Math.floor(Date.now() / 1000);
+
                 if (payload.exp && payload.exp < now) {
-                    console.log('🔐 ADMIN-AUTH: Token expired, skipping auth check');
                     return {
                         isAuthenticated: false,
                         isAdmin: false,
@@ -72,7 +73,6 @@ class AdminAuthCheck {
                     };
                 }
             } catch (tokenError) {
-                console.log('🔐 ADMIN-AUTH: Invalid token format, skipping auth check');
                 return {
                     isAuthenticated: false,
                     isAdmin: false,
@@ -83,13 +83,14 @@ class AdminAuthCheck {
             const response = await fetch('/api/admin/auth/verify', {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
 
             if (response.ok) {
                 const data = await response.json();
+
                 return data;
             } else {
                 return {
@@ -100,6 +101,7 @@ class AdminAuthCheck {
             }
         } catch (error) {
             console.error('❌ ADMIN-AUTH: Auth check request failed:', error);
+
             return {
                 isAuthenticated: false,
                 isAdmin: false,
@@ -120,7 +122,8 @@ class AdminAuthCheck {
      */
     showLoginRequired() {
         const content = document.getElementById('admin-section-content');
-        if (!content) return;
+
+        if (!content) { return; }
 
         content.innerHTML = `
             <div class="min-h-screen flex items-center justify-center bg-gray-50">
@@ -165,7 +168,8 @@ class AdminAuthCheck {
      */
     showAdminRequired() {
         const content = document.getElementById('admin-section-content');
-        if (!content) return;
+
+        if (!content) { return; }
 
         content.innerHTML = `
             <div class="min-h-screen flex items-center justify-center bg-gray-50">
@@ -208,13 +212,15 @@ class AdminAuthCheck {
      */
     showAdminWelcome(user) {
         const content = document.getElementById('admin-section-content');
-        if (!content) return;
+
+        if (!content) { return; }
 
         // Don't overwrite if there's already content
-        if (content.children.length > 0) return;
+        if (content.children.length > 0) { return; }
 
         // Create a small welcome banner
         const welcomeBanner = document.createElement('div');
+
         welcomeBanner.className = 'bg-green-50 border border-green-200 rounded-md p-3 mb-4';
         welcomeBanner.innerHTML = `
             <div class="flex items-center">
@@ -238,7 +244,8 @@ class AdminAuthCheck {
      */
     showAuthError(error) {
         const content = document.getElementById('admin-section-content');
-        if (!content) return;
+
+        if (!content) { return; }
 
         content.innerHTML = `
             <div class="min-h-screen flex items-center justify-center bg-gray-50">
@@ -282,8 +289,8 @@ class AdminAuthCheck {
         this.authCheckInterval = setInterval(async () => {
             try {
                 const authStatus = await this.checkAuthStatus();
+
                 if (!authStatus.isAuthenticated || !authStatus.isAdmin) {
-                    console.log('🔐 ADMIN-AUTH: Authentication lost, reloading page...');
                     location.reload();
                 }
             } catch (error) {

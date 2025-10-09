@@ -12,6 +12,7 @@ class FeedImageHandler {
 
         if (!promptOutput) {
             console.error('❌ IMAGE HANDLER: promptOutput element not found');
+
             return false;
         }
 
@@ -88,6 +89,7 @@ class FeedImageHandler {
         const tryEnhance = () => {
             if (this.viewManager) {
                 this.viewManager.enhanceNewImageWrapper(wrapper);
+
                 return;
             }
 
@@ -113,6 +115,7 @@ class FeedImageHandler {
 
             if (!loadingWrapper) {
                 console.error('❌ IMAGE HANDLER: No loading wrapper found in placeholder');
+
                 return false;
             }
 
@@ -121,6 +124,7 @@ class FeedImageHandler {
 
             if (wrapper) {
                 const container = loadingPlaceholder.parentElement;
+
                 if (container) {
                     container.replaceChild(wrapper, loadingPlaceholder);
                 }
@@ -134,6 +138,7 @@ class FeedImageHandler {
             return true;
         } catch (error) {
             console.error('❌ IMAGE HANDLER: Failed to replace loading placeholder:', error);
+
             return false;
         }
     }

@@ -4,10 +4,8 @@
  */
 class ColorPaletteManager {
     constructor() {
-        // console.log('🎨 ColorPaletteManager: Initializing color palettes...');
         this.palettes = new Map();
         this.initializePalettes();
-        // console.log(`✅ ColorPaletteManager: Initialized with ${this.palettes.size} palettes`);
     }
 
     /**
@@ -41,7 +39,6 @@ class ColorPaletteManager {
             name,
             ...palette
         });
-        // console.log(`✅ Palette registered: ${key}`);
     }
 
     /**
@@ -434,8 +431,6 @@ class ColorPaletteManager {
             // === MONOKAI-SPECIFIC PROMPT COLORS ===
             '--color-prompt-background': '#1c1a1d',
             '--color-prompt-text': '#f8f8f2',
-            '--color-prompt-border': '#a9dc76',
-            '--color-prompt-focus-border': '#ff6188',
             '--color-prompt-placeholder': '#75715e'
         };
     }
@@ -700,7 +695,6 @@ class ColorPaletteManager {
             }, {})
         };
 
-        console.log('📊 Palette Statistics:', stats);
 
         return stats;
     }

@@ -21,9 +21,8 @@ window.adminApp = {
 const showNotification = (message, type = 'info') => {
     if (window.AdminUtils && window.AdminUtils.showNotification) {
         window.AdminUtils.showNotification(message, type);
-    } else {
-        console.log(`[${type.toUpperCase()}] ${message}`);
     }
+    // Silently fail if AdminUtils is not available
 };
 
 /**
@@ -33,15 +32,10 @@ const showNotification = (message, type = 'info') => {
  * @param {object} options - Modal options
  */
 const showModal = (title, content, options = {}) => {
-    console.log('🎭 ADMIN: showModal called with title:', title);
-    console.log('🎭 ADMIN: window.adminModal available:', !!window.adminModal);
-    console.log('🎭 ADMIN: window.adminModal.show available:', !!(window.adminModal && window.adminModal.show));
 
     if (window.adminModal && window.adminModal.show) {
-        console.log('🎭 ADMIN: Calling window.adminModal.show');
         try {
             window.adminModal.show(title, content, options);
-            console.log('🎭 ADMIN: Modal show called successfully');
         } catch (error) {
             console.error('🎭 ADMIN: Error calling modal show:', error);
         }
@@ -73,11 +67,10 @@ const hideModal = () => {
  * Handle authentication and redirect logic
  */
 const handleAuthentication = async () => {
-    console.log('🔐 ADMIN: handleAuthentication called');
-    console.log('🔐 ADMIN: window.AdminAuthManager available:', !!window.AdminAuthManager);
 
     if (!window.AdminAuthManager) {
         console.error('❌ ADMIN: AdminAuthManager not available');
+
         return false;
     }
 
@@ -88,7 +81,6 @@ const handleAuthentication = async () => {
         return false;
     }
 
-    console.log('🔐 ADMIN: Starting authentication check...');
     const authResult = await window.AdminAuthManager.checkAdminAuthentication();
 
     if (!authResult) {
@@ -156,7 +148,6 @@ const showDashboardAndVerify = () => {
     }
 
     window.adminApp.initialized = true;
-    console.log('✅ ADMIN: Dashboard initialized successfully');
 };
 
 /**
@@ -164,14 +155,12 @@ const showDashboardAndVerify = () => {
  */
 const initializeAdminDashboard = async () => {
     try {
-        console.log('🎛️ ADMIN: Initializing dashboard...');
         showScreen('loading');
 
         // Initialize modal manager first
         if (window.AdminModalManager) {
             window.adminModal = new window.AdminModalManager();
             window.adminModal.init();
-            console.log('🎭 ADMIN: Modal manager initialized');
         } else {
             console.warn('⚠️ ADMIN: AdminModalManager not available');
         }
@@ -180,7 +169,6 @@ const initializeAdminDashboard = async () => {
         if (window.AdminAuthCheck) {
             window.adminApp.authCheck = new window.AdminAuthCheck();
             await window.adminApp.authCheck.init();
-            console.log('✅ ADMIN: Authentication check initialized');
         } else {
             console.warn('⚠️ ADMIN: AdminAuthCheck not available');
         }
@@ -192,7 +180,6 @@ const initializeAdminDashboard = async () => {
             return;
         }
 
-        console.log('✅ ADMIN: Authentication successful, proceeding with dashboard initialization...');
 
         // Initialize dashboard components
         await initializeDashboardComponents();
@@ -210,7 +197,6 @@ const initializeAdminDashboard = async () => {
  * Show specific screen (loading, dashboard, error)
  */
 const showScreen = screenType => {
-    console.log(`🖥️ ADMIN: showScreen called with type: ${screenType}`);
 
     const screens = {
         loading: document.getElementById('loading-screen'),
@@ -234,7 +220,6 @@ const showScreen = screenType => {
     // Show target screen
     if (screens[screenType]) {
         screens[screenType].style.display = 'flex';
-        console.log(`🖥️ ADMIN: Showing ${screenType} screen`);
     } else {
         console.error(`🖥️ ADMIN: Screen element not found for type: ${screenType}`);
     }
@@ -325,7 +310,6 @@ const setupBasicEventListeners = () => {
  * Note: Modal event listeners are now handled by AdminModalManager
  */
 const setupModalEventListeners = () => {
-    console.log('🎭 ADMIN: Modal event listeners are handled by AdminModalManager');
     // Modal event listeners are now handled by AdminModalManager
     // No need to set up duplicate listeners here
 };
@@ -418,7 +402,6 @@ const setupNotificationSystem = () => {
  * Preview pricing changes
  */
 window.previewPricingChanges = function previewPricingChanges() {
-    console.log('👁️ ADMIN: Previewing pricing changes...');
     showNotification('Pricing preview functionality coming soon', 'info');
 };
 
@@ -426,7 +409,6 @@ window.previewPricingChanges = function previewPricingChanges() {
  * Reset pricing form
  */
 window.resetPricingForm = function resetPricingForm() {
-    console.log('🔄 ADMIN: Resetting pricing form...');
     if (window.AdminModalFunctions.showConfirmModal('Are you sure you want to reset the pricing form?')) {
         // Implementation would reset form
         showNotification('Pricing form reset', 'info');
@@ -437,7 +419,6 @@ window.resetPricingForm = function resetPricingForm() {
  * Rollback pricing
  */
 window.rollbackPricing = function rollbackPricing(versionId) {
-    console.log('⏪ ADMIN: Rolling back pricing to version:', versionId);
 
     const confirmMessage = `Are you sure you want to rollback to pricing version ${versionId}?`;
 
@@ -487,7 +468,6 @@ const assignGlobalFunctions = () => {
  * Apply filters
  */
 window.applyFilters = function applyFilters() {
-    console.log('🔍 ADMIN: Applying filters...');
     showNotification('Filters applied', 'info');
 };
 
@@ -495,7 +475,6 @@ window.applyFilters = function applyFilters() {
  * Clear filters
  */
 window.clearFilters = function clearFilters() {
-    console.log('🗑️ ADMIN: Clearing filters...');
     showNotification('Filters cleared', 'info');
 };
 
@@ -503,7 +482,6 @@ window.clearFilters = function clearFilters() {
  * Go to page
  */
 window.goToPage = function goToPage(page) {
-    console.log('📄 ADMIN: Going to page:', page);
     showNotification(`Loading page ${page}...`, 'info');
 };
 
@@ -515,11 +493,9 @@ window.goToPage = function goToPage(page) {
 
 // Initialize dashboard when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎛️ ADMIN: DOM ready, waiting for scripts to load...');
 
     // Add a small delay to ensure all scripts are loaded
     setTimeout(() => {
-        console.log('🎛️ ADMIN: Starting dashboard initialization...');
         initializeAdminDashboard();
     }, 500); // 500ms delay
 });
@@ -528,7 +504,6 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && window.adminApp.initialized) {
         // Refresh data when page becomes visible again
-        console.log('👁️ ADMIN: Page visible, refreshing critical data...');
         // Could refresh current section or update real-time data
     }
 });
@@ -556,20 +531,13 @@ window.adminDebug = {
     checkAuth: window.AdminAuthManager?.checkAdminAuthentication,
     getFallbackUser: window.AdminAuthManager?.getFallbackUserInfo,
     debugAuth: async () => {
-        console.log('🔍 ADMIN DEBUG: Starting authentication debug...');
-        console.log('🔍 ADMIN DEBUG: userApi available:', !!window.userApi);
-        console.log('🔍 ADMIN DEBUG: userApi.isAuthenticated():', window.userApi?.isAuthenticated());
-        console.log('🔍 ADMIN DEBUG: Auth token:', window.userApi?.getAuthToken());
-        console.log('🔍 ADMIN DEBUG: Fallback user:', window.AdminAuthManager?.getFallbackUserInfo());
 
         if (window.userApi) {
             try {
                 const profile = await window.userApi.getProfile();
 
-                console.log('🔍 ADMIN DEBUG: Profile response:', profile);
-                console.log('🔍 ADMIN DEBUG: User isAdmin:', profile?.data?.user?.isAdmin);
             } catch (error) {
-                console.log('🔍 ADMIN DEBUG: Profile fetch error:', error);
+                console.error('Failed to load user profile:', error);
             }
         }
     }

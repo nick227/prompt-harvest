@@ -98,13 +98,16 @@ class UserSystem {
 
             if (!isApiAuthenticated) {
                 this.setUser(null);
+
                 return false;
             }
 
             // Check if we have a valid token before making API call
             const token = window.userApi.getAuthToken();
+
             if (!token) {
                 this.setUser(null);
+
                 return false;
             }
 
@@ -112,12 +115,15 @@ class UserSystem {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const now = Math.floor(Date.now() / 1000);
+
                 if (payload.exp && payload.exp < now) {
                     this.setUser(null);
+
                     return false;
                 }
             } catch (tokenError) {
                 this.setUser(null);
+
                 return false;
             }
 
@@ -129,6 +135,7 @@ class UserSystem {
 
             if (user && user.id) {
                 this.setUser(user);
+
                 return true;
             } else {
 

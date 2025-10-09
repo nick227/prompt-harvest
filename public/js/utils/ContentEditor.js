@@ -12,6 +12,7 @@ class ContentEditor {
 
         if (!this.container) {
             console.error('ContentEditor: Container not found');
+
             return;
         }
 
@@ -26,18 +27,18 @@ class ContentEditor {
 
     setupEventListeners() {
         // Handle paste events
-        this.container.addEventListener('paste', (e) => {
+        this.container.addEventListener('paste', e => {
             e.preventDefault();
             this.handlePaste(e);
         });
 
         // Handle input events
-        this.container.addEventListener('input', (e) => {
+        this.container.addEventListener('input', e => {
             this.handleInput(e);
         });
 
         // Handle keydown for special keys
-        this.container.addEventListener('keydown', (e) => {
+        this.container.addEventListener('keydown', e => {
             this.handleKeydown(e);
         });
 
@@ -67,7 +68,7 @@ class ContentEditor {
     }
 
     handleInput(e) {
-        if (this.isProcessing) return;
+        if (this.isProcessing) { return; }
 
         this.syncContent();
         this.processContent();
@@ -89,8 +90,10 @@ class ContentEditor {
 
     insertText(text) {
         const selection = window.getSelection();
+
         if (selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
+
             range.deleteContents();
             range.insertNode(document.createTextNode(text));
             range.collapse(false);
@@ -107,12 +110,15 @@ class ContentEditor {
     insertContent(content) {
         // Insert content at cursor position or at end
         const selection = window.getSelection();
+
         if (selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
+
             range.deleteContents();
 
             // Create a temporary div to parse HTML
             const tempDiv = document.createElement('div');
+
             tempDiv.innerHTML = content;
 
             // Insert each child node
@@ -134,9 +140,11 @@ class ContentEditor {
 
     insertLineBreak() {
         const selection = window.getSelection();
+
         if (selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
             const br = document.createElement('br');
+
             range.deleteContents();
             range.insertNode(br);
             range.setStartAfter(br);
@@ -149,12 +157,12 @@ class ContentEditor {
     }
 
     processContent() {
-        if (this.isProcessing) return;
+        if (this.isProcessing) { return; }
 
         this.isProcessing = true;
 
         // Find URLs in the content
-        const textContent = this.container.textContent;
+        const { textContent } = this.container;
         const urls = this.extractUrls(textContent);
 
         // Process each URL
@@ -173,30 +181,29 @@ class ContentEditor {
         const matches = text.match(urlRegex) || [];
 
         // Clean URLs by removing trailing punctuation
-        const urls = matches.map(url => {
-            return url.replace(/[.,;:!?)\]]+$/, '');
-        });
+        const urls = matches.map(url => url.replace(/[.,;:!?)\]]+$/, ''));
 
         // Filter for image and YouTube URLs
-        return urls.filter(url => {
-            return this.isImageUrl(url) || this.isYouTubeUrl(url);
-        });
+        return urls.filter(url => this.isImageUrl(url) || this.isYouTubeUrl(url));
     }
 
     isImageUrl(url) {
         const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
+
         return imageExtensions.test(url);
     }
 
     isYouTubeUrl(url) {
         // Match YouTube URLs with video IDs (typically 11 chars, but flexible for testing)
         const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]+)/i;
+
         return youtubeRegex.test(url);
     }
 
     renderMedia(url) {
         const mediaId = this.generateMediaId(url);
         const mediaContainer = document.createElement('div');
+
         mediaContainer.id = mediaId;
         mediaContainer.className = 'blog-media';
 
@@ -233,8 +240,9 @@ class ContentEditor {
 
         // Find the text node containing the URL
         while (textNode = walker.nextNode()) {
-            const textContent = textNode.textContent;
+            const { textContent } = textNode;
             const index = textContent.indexOf(url);
+
             if (index !== -1) {
                 urlIndex = index;
                 targetNode = textNode;
@@ -243,7 +251,7 @@ class ContentEditor {
         }
 
         if (targetNode && urlIndex !== -1) {
-            const textContent = targetNode.textContent;
+            const { textContent } = targetNode;
             const beforeText = textContent.substring(0, urlIndex);
             const afterText = textContent.substring(urlIndex + url.length);
 
@@ -271,6 +279,7 @@ class ContentEditor {
     addTextNode(text) {
         if (text.trim()) {
             const textNode = document.createTextNode(text);
+
             this.container.appendChild(textNode);
         }
     }
@@ -314,6 +323,7 @@ class ContentEditor {
 
     loadYouTube(url, container) {
         const videoId = this.extractYouTubeId(url);
+
         if (!videoId) {
             container.innerHTML = `
                 <div class="blog-media-error">
@@ -322,6 +332,7 @@ class ContentEditor {
                     <div class="error-url">${url}</div>
                 </div>
             `;
+
             return;
         }
 
@@ -346,11 +357,13 @@ class ContentEditor {
         // Extract YouTube video ID (typically 11 chars, but flexible for testing)
         const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]+)/i;
         const match = url.match(regex);
+
         return match ? match[1] : null;
     }
 
     removeMedia(url) {
         const mediaElement = this.mediaElements.get(url);
+
         if (mediaElement) {
             mediaElement.remove();
             this.mediaElements.delete(url);
@@ -359,13 +372,14 @@ class ContentEditor {
     }
 
     generateMediaId(url) {
-        return 'media-' + btoa(url).replace(/[^a-zA-Z0-9]/g, '');
+        return `media-${btoa(url).replace(/[^a-zA-Z0-9]/g, '')}`;
     }
 
     syncContent() {
         if (this.hiddenInput) {
             // Get text content without media elements
-            const textContent = this.container.textContent;
+            const { textContent } = this.container;
+
             this.hiddenInput.value = textContent;
         }
     }

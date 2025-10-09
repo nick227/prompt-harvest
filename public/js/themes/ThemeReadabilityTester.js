@@ -34,18 +34,18 @@ class ThemeReadabilityTester {
      * Test readability across all themes
      */
     async testAllThemes() {
-        console.log('🔍 ThemeReadabilityTester: Starting comprehensive readability test...');
 
         const themes = Array.from(window.themeService?.themes?.keys() || []);
+
         this.testResults = {};
         this.issues = [];
 
         for (const themeName of themes) {
-            console.log(`🎨 Testing theme: ${themeName}`);
             await this.testTheme(themeName);
         }
 
         this.generateReport();
+
         return {
             results: this.testResults,
             issues: this.issues,
@@ -73,6 +73,7 @@ class ThemeReadabilityTester {
         // Test each element type
         for (const selector of this.elements) {
             const elementResults = this.testElement(selector, themeName);
+
             results.elementTests[selector] = elementResults;
 
             if (!elementResults.readable) {
@@ -93,10 +94,10 @@ class ThemeReadabilityTester {
         // Calculate overall score
         const totalElements = this.elements.length;
         const readableElements = Object.values(results.elementTests).filter(r => r.readable).length;
+
         results.overallScore = Math.round((readableElements / totalElements) * 100);
 
         this.testResults[themeName] = results;
-        console.log(`✅ Theme ${themeName}: ${results.overallScore}% readable`);
     }
 
     /**
@@ -104,6 +105,7 @@ class ThemeReadabilityTester {
      */
     testElement(selector, themeName) {
         const elements = document.querySelectorAll(selector);
+
         if (elements.length === 0) {
             return {
                 readable: true,
@@ -114,9 +116,9 @@ class ThemeReadabilityTester {
         }
 
         let readableCount = 0;
-        let totalElements = elements.length;
+        const totalElements = elements.length;
         let minContrast = Infinity;
-        let issues = [];
+        const issues = [];
 
         elements.forEach((element, index) => {
             const contrast = this.calculateContrast(element);
@@ -126,8 +128,8 @@ class ThemeReadabilityTester {
                 readableCount++;
             } else {
                 issues.push({
-                    element: element,
-                    contrast: contrast,
+                    element,
+                    contrast,
                     computedStyle: window.getComputedStyle(element)
                 });
             }
@@ -146,7 +148,7 @@ class ThemeReadabilityTester {
             contrast: minContrast,
             elements: totalElements,
             readableElements: readableCount,
-            issues: issues
+            issues
         };
     }
 
@@ -161,6 +163,7 @@ class ThemeReadabilityTester {
         // If background is transparent, try to get parent background
         if (backgroundColor.alpha < 1) {
             const parentBg = this.getParentBackground(element);
+
             if (parentBg) {
                 backgroundColor.r = parentBg.r;
                 backgroundColor.g = parentBg.g;
@@ -185,6 +188,7 @@ class ThemeReadabilityTester {
         // Handle different color formats
         if (colorString.startsWith('rgb')) {
             const values = colorString.match(/\d+/g);
+
             return {
                 r: parseInt(values[0]) / 255,
                 g: parseInt(values[1]) / 255,
@@ -193,6 +197,7 @@ class ThemeReadabilityTester {
             };
         } else if (colorString.startsWith('#')) {
             const hex = colorString.slice(1);
+
             return {
                 r: parseInt(hex.substr(0, 2), 16) / 255,
                 g: parseInt(hex.substr(2, 2), 16) / 255,
@@ -210,14 +215,17 @@ class ThemeReadabilityTester {
      */
     getParentBackground(element) {
         let parent = element.parentElement;
+
         while (parent && parent !== document.body) {
             const bgColor = window.getComputedStyle(parent).backgroundColor;
             const parsed = this.parseColor(bgColor);
+
             if (parsed.alpha > 0) {
                 return parsed;
             }
             parent = parent.parentElement;
         }
+
         return null;
     }
 
@@ -227,9 +235,7 @@ class ThemeReadabilityTester {
     getLuminance(color) {
         const { r, g, b } = color;
 
-        const toLinear = (c) => {
-            return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-        };
+        const toLinear = c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
 
         return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
     }
@@ -238,25 +244,24 @@ class ThemeReadabilityTester {
      * Generate comprehensive test report
      */
     generateReport() {
-        console.log('📊 ThemeReadabilityTester: Generating comprehensive report...');
 
         const themes = Object.keys(this.testResults);
         const avgScore = themes.reduce((sum, theme) => sum + this.testResults[theme].overallScore, 0) / themes.length;
 
-        console.log(`📈 Overall Readability Score: ${avgScore.toFixed(1)}%`);
 
         // Log issues by theme
         themes.forEach(theme => {
             const result = this.testResults[theme];
+
             if (result.issues.length > 0) {
                 console.warn(`⚠️ ${theme} has ${result.issues.length} readability issues:`, result.issues);
-            } else {
-                console.log(`✅ ${theme} has no readability issues`);
             }
+            // Theme passed readability test
         });
 
         // Log critical issues
         const criticalIssues = this.issues.filter(issue => issue.contrast < 3);
+
         if (criticalIssues.length > 0) {
             console.error(`❌ ${criticalIssues.length} critical readability issues found:`, criticalIssues);
         }
@@ -272,11 +277,9 @@ class ThemeReadabilityTester {
         return {
             totalThemes: themes.length,
             averageScore: scores.reduce((a, b) => a + b, 0) / scores.length,
-            bestTheme: themes.reduce((best, theme) =>
-                this.testResults[theme].overallScore > this.testResults[best].overallScore ? theme : best
+            bestTheme: themes.reduce((best, theme) => (this.testResults[theme].overallScore > this.testResults[best].overallScore ? theme : best)
             ),
-            worstTheme: themes.reduce((worst, theme) =>
-                this.testResults[theme].overallScore < this.testResults[worst].overallScore ? theme : worst
+            worstTheme: themes.reduce((worst, theme) => (this.testResults[theme].overallScore < this.testResults[worst].overallScore ? theme : worst)
             ),
             themesWithIssues: themes.filter(theme => this.testResults[theme].issues.length > 0),
             criticalIssues: this.issues.filter(issue => issue.contrast < 3).length
@@ -288,6 +291,7 @@ class ThemeReadabilityTester {
      */
     quickCheck() {
         const currentTheme = window.themeService?.getCurrentTheme();
+
         if (!currentTheme) {
             return null;
         }
@@ -297,8 +301,10 @@ class ThemeReadabilityTester {
 
         criticalElements.forEach(selector => {
             const elements = document.querySelectorAll(selector);
+
             elements.forEach(element => {
                 const contrast = this.calculateContrast(element);
+
                 if (contrast < 4.5) {
                     issues.push({ selector, contrast, element });
                 }
@@ -323,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.themeReadabilityTester = new ThemeReadabilityTester();
             window.testThemeReadability = () => window.themeReadabilityTester.testAllThemes();
             window.quickReadabilityCheck = () => window.themeReadabilityTester.quickCheck();
-            console.log('🔍 Theme readability tester available - use testThemeReadability() or quickReadabilityCheck()');
         }
     }, 1000);
 });

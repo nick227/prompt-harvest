@@ -14,7 +14,6 @@ class AdminEventBus {
         this.listeners = new Map();
         this.debugMode = true;
 
-        console.log('🎭 ADMIN-EVENT-BUS: Initializing centralized event system');
     }
 
     /**
@@ -25,7 +24,7 @@ class AdminEventBus {
      */
     emit(type, action, data = {}) {
         if (this.debugMode) {
-            console.log(`🎭 ADMIN-EVENT-BUS: Emitting ${type}.${action}`, data);
+            console.log(`[AdminEventBus] Emitting: ${type}.${action}`, data);
         }
 
         const eventKey = `${type}.${action}`;
@@ -41,6 +40,7 @@ class AdminEventBus {
 
         // Also emit to wildcard listeners
         const wildcardListeners = this.listeners.get(`${type}.*`) || [];
+
         wildcardListeners.forEach(listener => {
             try {
                 listener(action, data);
@@ -65,17 +65,19 @@ class AdminEventBus {
 
         // Check if listener is already registered to prevent duplicates
         const existingListeners = this.listeners.get(eventKey);
+
         if (existingListeners.includes(listener)) {
             if (this.debugMode) {
-                console.log(`🎭 ADMIN-EVENT-BUS: Listener already registered for ${eventKey}, skipping`);
+                console.warn(`[AdminEventBus] Listener already registered for: ${eventKey}`);
             }
+
             return;
         }
 
         this.listeners.get(eventKey).push(listener);
 
         if (this.debugMode) {
-            console.log(`🎭 ADMIN-EVENT-BUS: Registered listener for ${eventKey}`);
+            console.log(`[AdminEventBus] Registered listener for: ${eventKey}`);
         }
     }
 
@@ -93,7 +95,7 @@ class AdminEventBus {
         if (index > -1) {
             listeners.splice(index, 1);
             if (this.debugMode) {
-                console.log(`🎭 ADMIN-EVENT-BUS: Removed listener for ${eventKey}`);
+                console.log(`[AdminEventBus] Removed listener from: ${eventKey}`);
             }
         }
     }
@@ -105,10 +107,11 @@ class AdminEventBus {
      */
     removeAll(type, action) {
         const eventKey = `${type}.${action}`;
+
         this.listeners.delete(eventKey);
 
         if (this.debugMode) {
-            console.log(`🎭 ADMIN-EVENT-BUS: Removed all listeners for ${eventKey}`);
+            console.log(`[AdminEventBus] Removed all listeners from: ${eventKey}`);
         }
     }
 
@@ -117,9 +120,11 @@ class AdminEventBus {
      */
     getListeners() {
         const result = {};
+
         for (const [key, listeners] of this.listeners.entries()) {
             result[key] = listeners.length;
         }
+
         return result;
     }
 
@@ -129,7 +134,6 @@ class AdminEventBus {
      */
     setDebugMode(enabled) {
         this.debugMode = enabled;
-        console.log(`🎭 ADMIN-EVENT-BUS: Debug mode ${enabled ? 'enabled' : 'disabled'}`);
     }
 }
 

@@ -3,7 +3,6 @@
 // Dependencies: TouchEventHandler, NotificationManager, AuthUtils, ImageDetection
 class ImageEvents {
     constructor(imageManager) {
-        // console.log('🔍 IMAGE EVENTS: Constructor called with imageManager:', imageManager);
         this.imageManager = imageManager;
         this.currentKeyHandler = null;
         this.currentClickHandler = null;
@@ -20,7 +19,6 @@ class ImageEvents {
         // Initialize with fallbacks
         this.touchHandler = this.createTouchHandler(imageManager);
         this.notificationManager = this.createNotificationManager();
-        // console.log('🔍 IMAGE EVENTS: ImageEvents instance created');
     }
 
     createTouchHandler(imageManager) {
@@ -347,7 +345,6 @@ class ImageEvents {
 
     // Debug method to test touch events manually
     debugTouchEvents() {
-        console.log('Touch handler:', this.touchHandler);
         this.setupTouchEvents();
     }
 
@@ -364,7 +361,6 @@ class ImageEvents {
 
         if (listCheckbox) {
             listCheckbox.checked = isPublic;
-            console.log(`🔄 Updated list view checkbox for image ${imageId} to ${isPublic}`);
         }
 
         // Also update the compact view checkbox if it exists
@@ -372,7 +368,6 @@ class ImageEvents {
 
         if (compactCheckbox) {
             compactCheckbox.checked = isPublic;
-            console.log(`🔄 Updated compact view checkbox for image ${imageId} to ${isPublic}`);
         }
     }
 
@@ -430,6 +425,7 @@ class ImageEvents {
         // Fallback to existing AuthUtils if available
         if (window.AdminAuthUtils?.hasValidToken()) {
             const currentUserId = window.userSystem?.getCurrentUser()?.id;
+
             return currentUserId && imageData.userId === currentUserId;
         }
 

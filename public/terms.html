@@ -261,28 +261,23 @@
         <script>
         // Debug: Check if components are loaded
         window.addEventListener('load', () => {
-            console.log('Terms page loaded, checking components...');
 
             if (window.headerComponent) {
-                console.log('Header component found:', window.headerComponent);
             } else {
                 console.error('Header component not found!');
             }
 
             if (window.authComponent) {
-                console.log('Auth component found:', window.authComponent);
             } else {
                 console.error('Auth component not found!');
             }
 
             if (window.termsManager) {
-                console.log('Terms manager found:', window.termsManager);
             } else {
                 console.error('Terms manager not found!');
             }
 
             if (window.TermsManager) {
-                console.log('TermsManager class found:', window.TermsManager);
             } else {
                 console.error('TermsManager class not found!');
             }
@@ -290,17 +285,14 @@
             // Check if header element exists
             const header = document.querySelector('header');
             if (header) {
-                console.log('Header element found:', header);
             } else {
                 console.error('Header element not found!');
             }
 
             // Note: Authentication is now handled by the dynamic header component
-            console.log('Authentication handled by header component');
 
             // Initialize terms manager
             if (typeof initTermsManager === 'function') {
-                console.log('Initializing terms manager...');
                 initTermsManager();
             } else {
                 console.error('initTermsManager function not found!');

@@ -16,7 +16,6 @@ class TextAreaManagerTests {
      * Test: Destroy before DOMContentLoaded fires → no callbacks run, no errors
      */
     testDestroyBeforeDOMReady() {
-        console.log('🧪 Testing: Destroy before DOMContentLoaded fires');
 
         const manager = new TextAreaManager();
         const originalConsoleError = console.error;
@@ -25,7 +24,6 @@ class TextAreaManagerTests {
         // Mock console.error to catch errors
         console.error = (...args) => {
             errorCount++;
-            console.log('❌ Error caught:', ...args);
         };
 
         // Destroy immediately
@@ -34,10 +32,8 @@ class TextAreaManagerTests {
         // Simulate DOM ready after destroy
         setTimeout(() => {
             if (errorCount === 0) {
-                console.log('✅ No errors when destroyed before DOM ready');
                 this.testResults.push({ test: 'destroyBeforeDOMReady', passed: true });
             } else {
-                console.log('❌ Errors occurred when destroyed before DOM ready');
                 this.testResults.push({ test: 'destroyBeforeDOMReady', passed: false });
             }
 
@@ -49,7 +45,6 @@ class TextAreaManagerTests {
      * Test: Rebind after textarea node is replaced → call updateTargets() then bindEvents()
      */
     testRebindAfterNodeReplacement() {
-        console.log('🧪 Testing: Rebind after textarea node replacement');
 
         // Create mock elements
         const oldTextArea = document.createElement('textarea');
@@ -70,10 +65,8 @@ class TextAreaManagerTests {
         const bindSuccess = manager.bindEvents();
 
         if (updateSuccess && bindSuccess) {
-            console.log('✅ Successfully updated targets and rebound events');
             this.testResults.push({ test: 'rebindAfterReplacement', passed: true });
         } else {
-            console.log('❌ Failed to update targets or bind events');
             this.testResults.push({ test: 'rebindAfterReplacement', passed: false });
         }
 
@@ -86,7 +79,6 @@ class TextAreaManagerTests {
      * Test: Toggle enableA11yAnnouncements(true) → a live region appears once; removing/destroying doesn't leak
      */
     testA11yAnnouncementsLifecycle() {
-        console.log('🧪 Testing: A11y announcements lifecycle');
 
         const manager = new TextAreaManager();
         const initialLiveRegions = document.querySelectorAll('[aria-live]').length;
@@ -104,10 +96,8 @@ class TextAreaManagerTests {
         const afterDestroy = document.querySelectorAll('[aria-live]').length;
 
         if (afterEnable > initialLiveRegions && afterDisable === initialLiveRegions && afterDestroy === initialLiveRegions) {
-            console.log('✅ A11y announcements lifecycle works correctly');
             this.testResults.push({ test: 'a11yAnnouncementsLifecycle', passed: true });
         } else {
-            console.log('❌ A11y announcements lifecycle has issues');
             this.testResults.push({ test: 'a11yAnnouncementsLifecycle', passed: false });
         }
     }
@@ -116,15 +106,16 @@ class TextAreaManagerTests {
      * Test: Trigger multiple _retryInitAndBind() calls → only a single active binding
      */
     testMultipleRetryInitAndBind() {
-        console.log('🧪 Testing: Multiple _retryInitAndBind calls');
 
         const manager = new TextAreaManager();
         let callCount = 0;
 
         // Mock the method to track calls
         const originalRetry = manager._retryInitAndBind;
+
         manager._retryInitAndBind = function() {
             callCount++;
+
             return originalRetry.call(this);
         };
 
@@ -135,10 +126,8 @@ class TextAreaManagerTests {
 
         // Check that only one binding occurred
         if (callCount === 3 && manager.eventsBound === true) {
-            console.log('✅ Multiple retry calls handled correctly');
             this.testResults.push({ test: 'multipleRetryInitAndBind', passed: true });
         } else {
-            console.log('❌ Multiple retry calls not handled correctly');
             this.testResults.push({ test: 'multipleRetryInitAndBind', passed: false });
         }
 
@@ -149,7 +138,6 @@ class TextAreaManagerTests {
      * Run all tests
      */
     runAllTests() {
-        console.log('🚀 Running TextAreaManager Quick Tests...');
 
         this.testDestroyBeforeDOMReady();
 
@@ -174,23 +162,17 @@ class TextAreaManagerTests {
      * Print test results
      */
     printResults() {
-        console.log('\n📊 Test Results:');
-        console.log('================');
 
         const passed = this.testResults.filter(r => r.passed).length;
         const total = this.testResults.length;
 
         this.testResults.forEach(result => {
             const status = result.passed ? '✅' : '❌';
-            console.log(`${status} ${result.test}`);
         });
 
-        console.log(`\n🎯 Summary: ${passed}/${total} tests passed`);
 
         if (passed === total) {
-            console.log('🎉 All tests passed! TextAreaManager is working correctly.');
         } else {
-            console.log('⚠️  Some tests failed. Check the implementation.');
         }
     }
 }
@@ -203,6 +185,7 @@ if (typeof window !== 'undefined') {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         setTimeout(() => {
             const tests = new TextAreaManagerTests();
+
             tests.runAllTests();
         }, 1000);
     }

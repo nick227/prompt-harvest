@@ -4,7 +4,6 @@
  */
 
 
-
 class ProfileAPIService {
     /**
      * Check username availability
@@ -17,6 +16,7 @@ class ProfileAPIService {
         });
 
         const data = await response.json();
+
         return { response, data };
     }
 
@@ -31,6 +31,7 @@ class ProfileAPIService {
         });
 
         const data = await response.json();
+
         return { response, data };
     }
 
@@ -45,6 +46,7 @@ class ProfileAPIService {
         });
 
         const data = await response.json();
+
         return { response, data };
     }
 
@@ -57,6 +59,7 @@ class ProfileAPIService {
         });
 
         const data = await response.json();
+
         return { response, data };
     }
 
@@ -71,6 +74,7 @@ class ProfileAPIService {
         });
 
         const data = await response.json();
+
         return { response, data };
     }
 
@@ -89,6 +93,7 @@ class ProfileAPIService {
         });
 
         const data = await response.json();
+
         return { response, data };
     }
 
@@ -98,6 +103,7 @@ class ProfileAPIService {
     static fileToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
+
             reader.onload = () => resolve(reader.result);
             reader.onerror = reject;
             reader.readAsDataURL(file);

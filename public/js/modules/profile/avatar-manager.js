@@ -4,8 +4,6 @@
  */
 
 
-
-
 class AvatarManager {
     constructor() {
         this.selectedImageId = null;
@@ -19,6 +17,7 @@ class AvatarManager {
      */
     async handleFileUpload(file) {
         this.uploadedFile = file;
+
         return file;
     }
 
@@ -81,9 +80,10 @@ class AvatarManager {
                 // Store the generated avatar for preview
                 this.generatedAvatar = {
                     url: data.data.avatarUrl,
-                    prompt: prompt,
-                    provider: provider
+                    prompt,
+                    provider
                 };
+
                 return data.data.avatarUrl;
             } else {
                 throw new Error(data.message || 'Failed to generate avatar');
@@ -177,31 +177,6 @@ class AvatarManager {
         };
     }
 
-
-    /**
-     * Set avatar from existing image and return URL
-     */
-    async setAvatarFromImage(imageId) {
-        if (!imageId) {
-            throw new Error('No image selected');
-        }
-
-        const response = await fetch('/api/profile/set-avatar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${window.AdminAuthUtils?.getAuthToken() || window.ProfileAuthUtils?.getAuthToken() || localStorage.getItem('authToken')}`
-            },
-            body: JSON.stringify({ imageId })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to set avatar from image');
-        }
-
-        const data = await response.json();
-        return data.data.avatarUrl;
-    }
 }
 
 // Export for global access

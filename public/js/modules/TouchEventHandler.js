@@ -23,7 +23,6 @@ class TouchEventHandler {
     setup(fullscreenContainer) {
         this.fullscreenContainer = fullscreenContainer;
 
-        console.log('🔍 TOUCH HANDLER: Setting up touch events on container:', this.fullscreenContainer);
 
         if (!this.fullscreenContainer) {
             console.warn('⚠️ TOUCH HANDLER: No fullscreen container found for touch events');
@@ -32,12 +31,10 @@ class TouchEventHandler {
         }
 
         this.addTouchEventListeners();
-        console.log('🔍 TOUCH HANDLER: Touch event listeners added successfully');
     }
 
     addTouchEventListeners() {
         const handleTouchStart = event => {
-            console.log('🔍 TOUCH START: Touch detected', event.touches.length, 'touches');
 
             if (event.touches.length !== 1) {
                 return; // Only handle single touch
@@ -53,7 +50,6 @@ class TouchEventHandler {
                                  target.closest('.info-box-header');
 
             if (isInteractive) {
-                console.log('🔍 TOUCH START: Touch on interactive element, allowing default behavior');
                 return; // Don't interfere with interactive elements
             }
 
@@ -61,7 +57,6 @@ class TouchEventHandler {
             this.touchStartY = event.touches[0].clientY;
             this.isSwipeInProgress = true;
 
-            console.log('🔍 TOUCH START: Position set', this.touchStartX, this.touchStartY);
 
             // Prevent default to avoid scrolling during swipe
             event.preventDefault();
@@ -90,7 +85,6 @@ class TouchEventHandler {
         };
 
         const handleTouchEnd = event => {
-            console.log('🔍 TOUCH END: Touch ended, swipe in progress:', this.isSwipeInProgress);
 
             if (!this.isSwipeInProgress) {
                 return;
@@ -102,24 +96,19 @@ class TouchEventHandler {
             const deltaX = this.touchEndX - this.touchStartX;
             const deltaY = Math.abs(this.touchEndY - this.touchStartY);
 
-            console.log('🔍 TOUCH END: Delta X:', deltaX, 'Delta Y:', deltaY, 'Min distance:', this.minSwipeDistance);
 
             // Check if this is a valid horizontal swipe
             if (Math.abs(deltaX) >= this.minSwipeDistance && deltaY <= this.maxVerticalDistance) {
-                console.log('🔍 TOUCH END: Valid swipe detected, direction:', deltaX > 0 ? 'right (prev)' : 'left (next)');
 
                 if (deltaX > 0) {
                     // Swipe right - go to previous image
-                    console.log('🔍 TOUCH END: Navigating to previous image');
                     this.imageManager.navigateImage('prev');
                 } else {
                     // Swipe left - go to next image
-                    console.log('🔍 TOUCH END: Navigating to next image');
                     this.imageManager.navigateImage('next');
                 }
-            } else {
-                console.log('🔍 TOUCH END: Swipe not valid - distance too short or too vertical');
             }
+            // No swipe threshold met - do nothing
 
             this.isSwipeInProgress = false;
         };

@@ -112,6 +112,7 @@ class AuthService {
 
         this.authCheckPromise = this.performAuthCheck();
         const result = await this.authCheckPromise;
+
         this.authCheckPromise = null;
 
         return result;
@@ -124,8 +125,8 @@ class AuthService {
         try {
             // Wait for userApi to be available
             if (!window.userApi) {
-                console.log('🔐 AUTH-SERVICE: userApi not available, cannot check auth state');
                 this.setUser(null);
+
                 return false;
             }
 
@@ -134,6 +135,7 @@ class AuthService {
 
             if (!isApiAuthenticated) {
                 this.setUser(null);
+
                 return false;
             }
 
@@ -145,9 +147,11 @@ class AuthService {
 
             if (user && user.id) {
                 this.setUser(user);
+
                 return true;
             } else {
                 this.setUser(null);
+
                 return false;
             }
         } catch (error) {
@@ -155,11 +159,11 @@ class AuthService {
 
             // Clear any invalid tokens
             if (window.userApi) {
-                console.log('🔐 AUTH-SERVICE: Clearing auth token due to error');
                 window.userApi.clearAuthToken();
             }
 
             this.setUser(null);
+
             return false;
         }
     }
@@ -171,6 +175,7 @@ class AuthService {
     getCurrentAuthState() {
         // Check for auth token
         const token = this.getAuthToken();
+
         if (!token) {
             return false;
         }
@@ -202,6 +207,7 @@ class AuthService {
         if (this.authState !== null) {
             return this.authState;
         }
+
         return this.getCurrentAuthState();
     }
 
@@ -217,6 +223,7 @@ class AuthService {
         // Try to get from userApi
         if (window.userApi && window.userApi.getCurrentUser) {
             const user = window.userApi.getCurrentUser();
+
             return user ? user.id : null;
         }
 
@@ -237,6 +244,7 @@ class AuthService {
      */
     setUser(user) {
         const wasAuthenticated = this.isAuthenticated();
+
         this.currentUser = user;
         this.authState = user !== null;
 
@@ -288,6 +296,7 @@ class AuthService {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const now = Math.floor(Date.now() / 1000);
+
             return payload.exp < now;
         } catch {
             return true; // If we can't parse, consider it expired
@@ -303,7 +312,7 @@ class AuthService {
      */
     setupAuthListeners() {
         // Listen for storage changes (token updates from other tabs)
-        window.addEventListener('storage', (e) => {
+        window.addEventListener('storage', e => {
             if (e.key === 'authToken') {
                 this.checkAuthState();
             }
@@ -352,6 +361,7 @@ class AuthService {
         const event = new CustomEvent('authStateChanged', {
             detail: { isAuthenticated, user: this.currentUser }
         });
+
         window.dispatchEvent(event);
     }
 

@@ -440,11 +440,9 @@ class LoadingPlaceholderFactory {
             // Remove the first one (most recent)
             const [placeholder] = loadingPlaceholders;
 
-            console.log('🗑️ REMOVE: Removing loading placeholder', placeholder);
             placeholder.remove();
-        } else {
-            console.log('🗑️ REMOVE: No loading placeholders found to remove');
         }
+        // No placeholders to remove
     }
 
     /**

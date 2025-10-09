@@ -918,7 +918,6 @@ class UnifiedInfoBox {
                 e.preventDefault();
                 e.stopPropagation();
 
-                console.log(`🏷️ INFO BOX TAG CLICK: Adding tag: ${tag}`);
 
                 // Add tag to active tags
                 if (window.tagRouter && window.tagRouter.addTag) {

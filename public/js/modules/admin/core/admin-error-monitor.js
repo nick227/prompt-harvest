@@ -17,7 +17,6 @@ class AdminErrorMonitor {
             return;
         }
 
-        console.log('🛡️ ADMIN-ERROR-MONITOR: Initializing error monitoring...');
 
         // Global error handling
         window.addEventListener('error', event => {
@@ -39,7 +38,6 @@ class AdminErrorMonitor {
         });
 
         this.isInitialized = true;
-        console.log('✅ ADMIN-ERROR-MONITOR: Error monitoring initialized');
     }
 
     /**
@@ -48,7 +46,6 @@ class AdminErrorMonitor {
     cleanup() {
         // Note: We don't remove event listeners as they're global
         this.isInitialized = false;
-        console.log('🧹 ADMIN-ERROR-MONITOR: Error monitoring cleaned up');
     }
 }
 

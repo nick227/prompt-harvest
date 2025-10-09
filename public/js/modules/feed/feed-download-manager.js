@@ -20,6 +20,7 @@ class FeedDownloadManager {
     downloadImageFile(imageUrl) {
         if (!imageUrl) {
             console.error('❌ DOWNLOAD MANAGER: No image URL provided');
+
             return;
         }
 
@@ -92,6 +93,7 @@ class FeedDownloadManager {
             // If no filename or extension, generate one
             if (!fileName || !fileName.includes('.')) {
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
                 return `generated-image-${timestamp}.jpg`;
             }
 
@@ -99,6 +101,7 @@ class FeedDownloadManager {
         } catch (error) {
             // Fallback filename
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
             return `generated-image-${timestamp}.jpg`;
         }
     }

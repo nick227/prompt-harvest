@@ -13,6 +13,7 @@ class NotificationManager {
         // Try to use existing notification system if available
         if (window.showNotification) {
             window.showNotification(message, type);
+
             return;
         }
 

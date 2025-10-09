@@ -15,8 +15,10 @@ class MediaRenderer {
      */
     renderContent(content, containerId) {
         const container = document.getElementById(containerId);
+
         if (!container) {
             console.error('MediaRenderer: Container not found');
+
             return;
         }
 
@@ -50,6 +52,7 @@ class MediaRenderer {
             // Add text before URL
             if (match.index > lastIndex) {
                 const textPart = content.substring(lastIndex, match.index);
+
                 if (textPart.trim()) {
                     parts.push(textPart);
                 }
@@ -63,6 +66,7 @@ class MediaRenderer {
         // Add remaining text
         if (lastIndex < content.length) {
             const remainingText = content.substring(lastIndex);
+
             if (remainingText.trim()) {
                 parts.push(remainingText);
             }
@@ -77,7 +81,7 @@ class MediaRenderer {
      * @param {HTMLElement} container - Container element
      */
     renderText(text, container) {
-        if (!text.trim()) return;
+        if (!text.trim()) { return; }
 
         // Convert line breaks to paragraphs
         const paragraphs = text.split('\n\n');
@@ -85,6 +89,7 @@ class MediaRenderer {
         paragraphs.forEach(paragraph => {
             if (paragraph.trim()) {
                 const p = document.createElement('p');
+
                 p.textContent = paragraph.trim();
                 p.className = 'mb-4 text-gray-300 leading-relaxed';
                 container.appendChild(p);
@@ -99,6 +104,7 @@ class MediaRenderer {
      */
     renderMedia(url, container) {
         const mediaContainer = document.createElement('div');
+
         mediaContainer.className = 'blog-media my-6';
 
         if (this.isImageUrl(url)) {
@@ -117,6 +123,7 @@ class MediaRenderer {
      */
     renderImage(url, container) {
         const img = document.createElement('img');
+
         img.src = url;
         img.alt = 'Blog image';
         img.className = 'w-full h-auto rounded-lg shadow-lg';
@@ -145,6 +152,7 @@ class MediaRenderer {
      */
     renderYouTube(url, container) {
         const videoId = this.extractYouTubeId(url);
+
         if (!videoId) {
             container.innerHTML = `
                 <div class="blog-media-error">
@@ -153,10 +161,12 @@ class MediaRenderer {
                     <div class="error-url">${url}</div>
                 </div>
             `;
+
             return;
         }
 
         const iframe = document.createElement('iframe');
+
         iframe.src = `https://www.youtube.com/embed/${videoId}`;
         iframe.className = 'w-full aspect-video rounded-lg shadow-lg';
         iframe.frameBorder = '0';
@@ -173,6 +183,7 @@ class MediaRenderer {
      */
     isImageUrl(url) {
         const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
+
         return imageExtensions.test(url);
     }
 
@@ -184,6 +195,7 @@ class MediaRenderer {
     isYouTubeUrl(url) {
         // Match YouTube URLs with video IDs (typically 11 chars, but flexible for testing)
         const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]+)/i;
+
         return youtubeRegex.test(url);
     }
 
@@ -196,6 +208,7 @@ class MediaRenderer {
         // Extract YouTube video ID (typically 11 chars, but flexible for testing)
         const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]+)/i;
         const match = url.match(regex);
+
         return match ? match[1] : null;
     }
 

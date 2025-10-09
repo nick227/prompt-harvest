@@ -100,4 +100,3 @@ window.billingSystem = {
 // Make manager available globally for debugging
 window.billingManager = billingManager;
 
-console.log('🏦 BILLING: Modular billing system loaded');

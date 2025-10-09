@@ -70,7 +70,6 @@ class SearchReplaceManager {
         searchInput.addEventListener('keydown', this.handleSearchKeydown.bind(this));
         replaceInput.addEventListener('keydown', this.handleReplaceKeydown.bind(this));
 
-        // console.log('✅ SEARCH REPLACE: Event listeners attached successfully');
     }
 
     /**

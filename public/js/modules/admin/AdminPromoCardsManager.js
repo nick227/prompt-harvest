@@ -46,76 +46,64 @@ class AdminPromoCardsManager {
             // Listen for delete actions
             this.eventBus.on('table-action', 'delete', eventData => {
                 if (eventData.dataType === 'promo-cards') {
-                    console.log('🎫 ADMIN-PROMO-CARDS: AdminEventBus delete received for promo-cards');
 
                     // Safety check: ensure currentPromoCards is an array
                     if (!Array.isArray(this.currentPromoCards)) {
                         console.error('🎫 ADMIN-PROMO-CARDS: currentPromoCards is not an array:', typeof this.currentPromoCards);
-                        console.log('🎫 ADMIN-PROMO-CARDS: Loading promo cards data first...');
                         this.loadPromoCardsData().then(() => {
                             const promoCardData = this.currentPromoCards.find(promo => promo.id === eventData.id);
+
                             if (promoCardData) {
-                                console.log('🎫 ADMIN-PROMO-CARDS: Promo card data found after loading, showing confirmation');
                                 this.showDeletePromoCardConfirmation(promoCardData);
                             } else {
                                 console.error('🎫 ADMIN-PROMO-CARDS: Promo card not found for delete action:', eventData.id);
-                                console.log('🎫 ADMIN-PROMO-CARDS: Available promo cards:', this.currentPromoCards.map(p => p.id));
                             }
                         });
+
                         return;
                     }
 
                     const promoCardData = this.currentPromoCards.find(promo => promo.id === eventData.id);
 
                     if (promoCardData) {
-                        console.log('🎫 ADMIN-PROMO-CARDS: Promo card data found, showing confirmation');
                         this.showDeletePromoCardConfirmation(promoCardData);
                     } else {
                         console.error('🎫 ADMIN-PROMO-CARDS: Promo card not found for delete action:', eventData.id);
-                        console.log('🎫 ADMIN-PROMO-CARDS: Available promo cards:', this.currentPromoCards.map(p => p.id));
                     }
-                } else {
-                    console.log('🎫 ADMIN-PROMO-CARDS: Event not for promo-cards, dataType:', eventData.dataType);
                 }
+                // Unhandled action - ignore
             });
 
             // Debug: Check what listeners are registered
-            console.log('🎫 ADMIN-PROMO-CARDS: AdminEventBus listeners after registration:', this.eventBus.getListeners());
         } else if (this.eventBusListenerSet) {
-            console.log('🎫 ADMIN-PROMO-CARDS: AdminEventBus listeners already set up, skipping');
+            console.log('🎫 ADMIN-PROMO-CARDS: Event bus listeners already set');
         }
 
         // Fallback: Listen for old DOM events
-        console.log('🎫 ADMIN-PROMO-CARDS: Setting up fallback DOM event listener');
         document.addEventListener('admin-table-action', event => {
-            console.log('🎫 ADMIN-PROMO-CARDS: admin-table-action event received:', event.detail);
             const { action, data, dataType, id } = event.detail;
 
             // Only handle promo-cards-related actions
             if (dataType !== 'promo-cards') {
-                console.log('🎫 ADMIN-PROMO-CARDS: Ignoring non-promo-cards action:', dataType);
                 return;
             }
 
-            console.log('🎫 ADMIN-PROMO-CARDS: Processing promo card action:', action);
             switch (action) {
                 case 'delete': {
-                    console.log('🎫 ADMIN-PROMO-CARDS: Fallback DOM listener handling delete action for ID:', id);
 
                     // Safety check: ensure currentPromoCards is an array
                     if (!Array.isArray(this.currentPromoCards)) {
                         console.error('🎫 ADMIN-PROMO-CARDS: currentPromoCards is not an array in fallback:', typeof this.currentPromoCards);
-                        console.log('🎫 ADMIN-PROMO-CARDS: Loading promo cards data first...');
                         this.loadPromoCardsData().then(() => {
                             const promoCardData = this.currentPromoCards.find(promo => promo.id === id);
+
                             if (promoCardData) {
-                                console.log('🎫 ADMIN-PROMO-CARDS: Promo card data found after loading in fallback, showing confirmation');
                                 this.showDeletePromoCardConfirmation(promoCardData);
                             } else {
                                 console.error('🎫 ADMIN-PROMO-CARDS: Promo card not found for delete action:', id);
-                                console.log('🎫 ADMIN-PROMO-CARDS: Available promo cards in fallback after loading:', this.currentPromoCards.map(p => p.id));
                             }
                         });
+
                         return;
                     }
 
@@ -123,11 +111,9 @@ class AdminPromoCardsManager {
                     const promoCardData = this.currentPromoCards.find(promo => promo.id === id);
 
                     if (promoCardData) {
-                        console.log('🎫 ADMIN-PROMO-CARDS: Promo card data found in fallback, showing confirmation');
                         this.showDeletePromoCardConfirmation(promoCardData);
                     } else {
                         console.error('🎫 ADMIN-PROMO-CARDS: Promo card not found for delete action:', id);
-                        console.log('🎫 ADMIN-PROMO-CARDS: Available promo cards in fallback:', this.currentPromoCards.map(p => p.id));
                     }
                     break;
                 }
@@ -142,33 +128,28 @@ class AdminPromoCardsManager {
         try {
             this.isLoading = true;
 
-            console.log('🎫 ADMIN-PROMO-CARDS: Starting to load promo cards data...');
 
             // Check authentication first
             if (!window.AdminAuthUtils?.hasValidToken()) {
                 console.warn('🔐 ADMIN-PROMO-CARDS: No valid token available, skipping promo cards load');
                 this.isLoading = false;
+
                 return;
             }
 
             // Use AdminAPIService for proper authentication
             if (window.adminApiService) {
-                console.log('🔑 ADMIN-PROMO-CARDS: Using AdminAPIService for authenticated request');
                 const result = await window.adminApiService.request('GET', '/promo-codes');
 
-                console.log('🎫 ADMIN-PROMO-CARDS: AdminAPIService result:', result);
 
                 if (result.success) {
                     // Extract the actual array from result.data.items
                     this.currentPromoCards = result.data.items || [];
-                    console.log('✅ ADMIN-PROMO-CARDS: Promo cards data loaded successfully via AdminAPIService');
-                    console.log('🎫 ADMIN-PROMO-CARDS: Loaded promo cards count:', this.currentPromoCards.length);
                 } else {
                     throw new Error(result.message || 'Failed to load promo cards');
                 }
             } else {
                 // Fallback to direct fetch with auth headers
-                console.log('🔑 ADMIN-PROMO-CARDS: Using direct fetch with auth headers');
 
                 const headers = window.AdminAuthUtils.getAuthHeaders();
 
@@ -186,8 +167,6 @@ class AdminPromoCardsManager {
                 if (result.success) {
                     // Extract the actual array from result.data.items
                     this.currentPromoCards = result.data.items || [];
-                    console.log('✅ ADMIN-PROMO-CARDS: Promo cards data loaded successfully via fallback');
-                    console.log('🎫 ADMIN-PROMO-CARDS: Loaded promo cards count:', this.currentPromoCards.length);
                 } else {
                     throw new Error(result.message || 'Failed to load promo cards');
                 }
@@ -241,6 +220,7 @@ class AdminPromoCardsManager {
 
         document.getElementById('confirm-delete-promo-card').addEventListener('click', async e => {
             const { promoCardId } = e.target.dataset;
+
             await this.deletePromoCard(promoCardId);
         });
     }
@@ -395,7 +375,6 @@ class AdminPromoCardsManager {
         if (this.sharedTable) {
             this.sharedTable.destroy();
         }
-        console.log('🗑️ ADMIN-PROMO-CARDS: Promo cards manager destroyed');
     }
 }
 

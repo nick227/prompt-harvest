@@ -17,6 +17,7 @@ class AIImageGeneratorService {
         };
 
         const token = window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
@@ -30,7 +31,7 @@ class AIImageGeneratorService {
     async generateImage(prompt, provider = 'dalle3', options = {}) {
         try {
             console.log('🤖 AI GENERATOR: Starting image generation...', {
-                prompt: prompt.substring(0, 50) + '...',
+                prompt: `${prompt.substring(0, 50)}...`,
                 provider,
                 baseUrl: this.baseUrl,
                 hasAuth: !!this.getAuthHeaders().Authorization
@@ -42,7 +43,6 @@ class AIImageGeneratorService {
                 ...options
             };
 
-            console.log('🤖 AI GENERATOR: Request body:', requestBody);
 
             const response = await fetch(`${this.baseUrl}/profile/generate-avatar`, {
                 method: 'POST',
@@ -50,10 +50,10 @@ class AIImageGeneratorService {
                 body: JSON.stringify(requestBody)
             });
 
-            console.log('🤖 AI GENERATOR: Response status:', response.status, response.statusText);
 
             if (!response.ok) {
                 const errorText = await response.text();
+
                 console.error('🤖 AI GENERATOR: Response not OK:', {
                     status: response.status,
                     statusText: response.statusText,
@@ -63,7 +63,6 @@ class AIImageGeneratorService {
             }
 
             const data = await response.json();
-            console.log('🤖 AI GENERATOR: Response data:', data);
 
             if (data.success) {
                 return {
@@ -82,6 +81,7 @@ class AIImageGeneratorService {
                 type: error.constructor.name,
                 stack: error.stack
             });
+
             return {
                 success: false,
                 error: error.message || 'Failed to generate image'
@@ -119,6 +119,7 @@ class AIImageGeneratorService {
             }
         } catch (error) {
             console.error('AI Image Generation Error:', error);
+
             return {
                 success: false,
                 error: error.message || 'Failed to generate image'
@@ -142,6 +143,7 @@ class AIImageGeneratorService {
     getProviderCost(provider) {
         const providers = this.getProviders();
         const providerData = providers.find(p => p.value === provider);
+
         return providerData?.cost || 1;
     }
 
@@ -154,6 +156,7 @@ class AIImageGeneratorService {
         }
 
         const trimmed = prompt.trim();
+
         if (trimmed.length === 0) {
             return { valid: false, message: 'Prompt cannot be empty' };
         }
@@ -174,10 +177,12 @@ class AIImageGeneratorService {
      */
     isAuthenticated() {
         const token = window.AdminAuthUtils?.getAuthToken() || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+
         console.log('🔐 AI GENERATOR: Auth check:', {
             hasToken: !!token,
-            tokenPreview: token ? token.substring(0, 20) + '...' : 'none'
+            tokenPreview: token ? `${token.substring(0, 20)}...` : 'none'
         });
+
         return !!token;
     }
 
@@ -205,6 +210,7 @@ class AIImageGeneratorService {
             }
         } catch (error) {
             console.error('Failed to get user credits:', error);
+
             return {
                 success: false,
                 credits: 0

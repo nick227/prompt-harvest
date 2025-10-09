@@ -21,26 +21,19 @@ class AdminPromoCodeModal {
      * @param {string|null} promoCardId - ID for editing, null for creating
      */
     show(promoCardId = null) {
-        console.log('🎭 ADMIN-PROMO-MODAL: show() called with promoCardId:', promoCardId);
 
         const isEdit = promoCardId !== null;
         const title = isEdit ? 'Edit Promo Code' : 'Add New Promo Code';
 
         const modalContent = this.generateForm(isEdit, promoCardId);
 
-        console.log('🎭 ADMIN-PROMO-MODAL: Generated modal content, checking modal availability...');
-        console.log('🎭 ADMIN-PROMO-MODAL: window.showModal available:', !!window.showModal);
-        console.log('🎭 ADMIN-PROMO-MODAL: window.adminModal available:', !!window.adminModal);
 
         // Create modal using the admin modal system
         if (window.showModal) {
-            console.log('🎭 ADMIN-PROMO-MODAL: Using window.showModal');
             window.showModal(title, modalContent, { size: 'lg' });
         } else if (window.adminModal) {
-            console.log('🎭 ADMIN-PROMO-MODAL: Using window.adminModal directly');
             window.adminModal.show(title, modalContent, { size: 'lg' });
         } else {
-            console.log('🎭 ADMIN-PROMO-MODAL: Using fallback modal creation');
             // Fallback: create modal manually
             this.createModal(title, modalContent);
         }
@@ -244,12 +237,9 @@ class AdminPromoCodeModal {
 
             // Add debugging for focus events
             codeInput.addEventListener('focus', e => {
-                console.log('🎭 ADMIN-PROMO-MODAL: Input focused:', e.target.id);
-                console.log('🎭 ADMIN-PROMO-MODAL: Modal still open:', window.adminModal?.isModalOpen());
             });
 
             codeInput.addEventListener('blur', e => {
-                console.log('🎭 ADMIN-PROMO-MODAL: Input blurred:', e.target.id);
             });
         }
 
@@ -268,6 +258,7 @@ class AdminPromoCodeModal {
             // Check authentication before making request
             if (!window.AdminAuthUtils?.hasValidToken()) {
                 console.warn('🔐 ADMIN-PROMO: No valid token for promo code request, skipping');
+
                 return;
             }
 
@@ -455,6 +446,7 @@ class AdminPromoCodeModal {
             // Check authentication before making request
             if (!window.AdminAuthUtils?.hasValidToken()) {
                 console.warn('🔐 ADMIN-PROMO: No valid token for promo code request, skipping');
+
                 return;
             }
 
@@ -472,7 +464,6 @@ class AdminPromoCodeModal {
                 if (this.uiRenderer && this.uiRenderer.loadPromoCardsData) {
                     await this.uiRenderer.loadPromoCardsData();
                 }
-                console.log('Promo card activated successfully');
             } else {
                 const error = await response.json();
 
@@ -493,6 +484,7 @@ class AdminPromoCodeModal {
             // Check authentication before making request
             if (!window.AdminAuthUtils?.hasValidToken()) {
                 console.warn('🔐 ADMIN-PROMO: No valid token for promo code request, skipping');
+
                 return;
             }
 
@@ -510,7 +502,6 @@ class AdminPromoCodeModal {
                 if (this.uiRenderer && this.uiRenderer.loadPromoCardsData) {
                     await this.uiRenderer.loadPromoCardsData();
                 }
-                console.log('Promo card deactivated successfully');
             } else {
                 const error = await response.json();
 
@@ -535,6 +526,7 @@ class AdminPromoCodeModal {
             // Check authentication before making request
             if (!window.AdminAuthUtils?.hasValidToken()) {
                 console.warn('🔐 ADMIN-PROMO: No valid token for promo code request, skipping');
+
                 return;
             }
 
@@ -551,7 +543,6 @@ class AdminPromoCodeModal {
                 if (this.uiRenderer && this.uiRenderer.loadPromoCardsData) {
                     await this.uiRenderer.loadPromoCardsData();
                 }
-                console.log('Promo card deleted successfully');
             } else {
                 const error = await response.json();
 
@@ -568,7 +559,6 @@ class AdminPromoCodeModal {
      */
     destroy() {
         this.hide();
-        console.log('🗑️ ADMIN-PROMO-MODAL: Modal destroyed');
     }
 }
 

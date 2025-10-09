@@ -152,7 +152,6 @@
                 const placeholder = factory.showLoadingPlaceholder(promptObj);
 
                 if (placeholder) {
-                    console.log('✅ Placeholder added successfully');
                     placeholderCount++;
                 } else {
                     console.error('❌ Failed to add placeholder');
@@ -162,7 +161,6 @@
             // Remove placeholder function
             function removePlaceholder() {
                 factory.removeLoadingPlaceholder();
-                console.log('🗑️ Placeholder removed');
             }
 
             // Add multiple placeholders
@@ -189,7 +187,6 @@
                 const button = document.getElementById('toggleView');
                 button.textContent = currentView === 'compact' ? 'Switch to List View' : 'Switch to Compact View';
 
-                console.log(`🔄 Switched to ${currentView} view`);
             }
 
             // Event listeners
@@ -198,12 +195,6 @@
             document.getElementById('addMultiple').addEventListener('click', addMultiplePlaceholders);
             document.getElementById('toggleView').addEventListener('click', toggleView);
 
-            console.log('🧪 Placeholder test environment ready!');
-            console.log('📋 Available commands:');
-            console.log('  - Click "Add Placeholder" to test single placeholder');
-            console.log('  - Click "Add Multiple" to test multiple placeholders');
-            console.log('  - Click "Remove Placeholder" to test removal');
-            console.log('  - Click "Switch View" to test view switching');
         };
     </script>
 </body>

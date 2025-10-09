@@ -159,18 +159,13 @@
 
     <!-- Chart.js for activity metrics - Load before queue monitor -->
     <script>
-        console.log('🔄 ADMIN: Chart.js loading script starting...');
 
         function loadChartJS() {
-            console.log('🔄 ADMIN: Starting Chart.js loading process...');
-            console.log('🔄 ADMIN: DOM ready state:', document.readyState);
 
             // Try local file first
             const localScript = document.createElement('script');
             localScript.src = 'js/lib/chart.min.js';
             localScript.onload = function() {
-                console.log('✅ Chart.js loaded from local file');
-                console.log('✅ Chart object available:', typeof Chart !== 'undefined');
                 window.ChartJSLoaded = true;
                 window.dispatchEvent(new CustomEvent('chartjs-loaded'));
             };
@@ -181,8 +176,6 @@
                 const cdnScript = document.createElement('script');
                 cdnScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js';
                 cdnScript.onload = function() {
-                    console.log('✅ Chart.js loaded successfully from CDN fallback');
-                    console.log('✅ Chart object available:', typeof Chart !== 'undefined');
                     window.ChartJSLoaded = true;
                     window.dispatchEvent(new CustomEvent('chartjs-loaded'));
                 };
@@ -250,7 +243,6 @@
         if (window.AdminModalManager) {
             window.adminModal = new AdminModalManager();
             window.adminModal.init();
-            console.log('✅ ADMIN: Modal manager initialized successfully');
         } else {
             console.error('❌ ADMIN: AdminModalManager not available');
         }

@@ -58,10 +58,8 @@ class ProfileFeedManager {
         return new Promise(resolve => {
             const checkComponents = () => {
                 if (window.FeedManager && window.ProfileFeedManager) {
-                    console.log('✅ PROFILE FEED: All feed components available');
                     resolve();
                 } else {
-                    console.log('⏳ PROFILE FEED: Waiting for feed components...');
                     setTimeout(checkComponents, 100);
                 }
             };
@@ -75,7 +73,6 @@ class ProfileFeedManager {
      */
     initializeSubManagers() {
         try {
-            console.log('🔍 PROFILE FEED: Initializing sub-managers...');
             console.log('🔍 PROFILE FEED: Available window objects:', {
                 FeedManager: !!window.FeedManager,
                 feedManager: !!window.feedManager
@@ -83,19 +80,15 @@ class ProfileFeedManager {
 
             // Use the existing FeedManager instance
             this.feedManager = window.feedManager || new window.FeedManager();
-            console.log('✅ PROFILE FEED: Feed manager initialized');
 
             // Initialize the feed manager if needed BUT DON'T load initial feed
             if (this.feedManager && !this.feedManager.isInitialized) {
-                console.log('🔍 PROFILE FEED: Initializing FeedManager components only...');
                 // Initialize sub-managers but don't call init() which loads initial feed
                 this.feedManager.initializeSubManagers();
                 this.feedManager.setupEventListeners();
                 this.feedManager.isInitialized = true;
-                console.log('🔍 PROFILE FEED: FeedManager components ready (no auto-loading)');
             }
 
-            console.log('✅ PROFILE FEED: Feed system ready');
         } catch (error) {
             console.error('❌ PROFILE FEED: Failed to initialize feed manager:', error);
             throw error;
@@ -134,7 +127,6 @@ class ProfileFeedManager {
 
         try {
             // Use direct API call - simpler and more reliable
-            console.log('🔍 PROFILE FEED: Using direct API call for profile data');
             const responseData = await this.fetchProfileData();
 
             if (responseData.success) {
@@ -157,7 +149,6 @@ class ProfileFeedManager {
     async fetchProfileData() {
         const customEndpoint = `/api/profile/${this.username}?page=${this.currentPage}&limit=20`;
 
-        console.log(`🔍 PROFILE FEED: Fetching profile data from: ${customEndpoint}`);
         const response = await fetch(customEndpoint, {
             method: 'GET',
             headers: {
@@ -172,7 +163,6 @@ class ProfileFeedManager {
 
         const data = await response.json();
 
-        console.log('🔍 PROFILE FEED: API response:', data);
 
         // DEBUG: Log the isPublic values in the API response
         if (data.data && data.data.images) {
@@ -190,7 +180,6 @@ class ProfileFeedManager {
      * Process profile API response
      */
     async processProfileResponse(responseData) {
-        console.log('🔍 PROFILE FEED: Processing API response...');
 
         const { user, images, pagination } = this.parseResponseData(responseData);
 
@@ -208,22 +197,18 @@ class ProfileFeedManager {
         // Update profile header
         const userToDisplay = user || this.createFallbackUser();
 
-        console.log('🔍 PROFILE FEED: Updating profile header with user:', userToDisplay);
         this.updateProfileHeader(userToDisplay);
 
         // Handle images - use validated images only
         if (validatedImages && validatedImages.length > 0) {
-            console.log(`🔍 PROFILE FEED: Adding ${validatedImages.length} validated images to feed`);
             this.addImagesToFeed(validatedImages, user);
             this.showImageContainer();
         } else {
-            console.log('🔍 PROFILE FEED: No validated images found, showing no images message');
             this.showNoImagesMessage();
         }
 
         // Update pagination
         if (pagination) {
-            console.log('🔍 PROFILE FEED: Updating pagination state');
             this.updatePaginationState(pagination);
         }
     }
@@ -265,7 +250,6 @@ class ProfileFeedManager {
      */
     validateImagesArePublic(images) {
         if (!images || !Array.isArray(images)) {
-            console.log('🔒 PROFILE SECURITY: No images to validate');
 
             return images;
         }
@@ -290,9 +274,8 @@ class ProfileFeedManager {
 
             // Return only public images
             return publicImages;
-        } else {
-            console.log('✅ PROFILE SECURITY: All images are public');
         }
+        // User viewing own profile - return all images
 
         // Additional security check: Log image visibility status
         const publicImageCount = images.filter(img => img.isPublic === true).length;
@@ -310,7 +293,6 @@ class ProfileFeedManager {
      * Add images to feed using shared interface
      */
     addImagesToFeed(images, user) {
-        console.log('🔍 PROFILE FEED: Adding images to feed...');
 
         // SECURITY: Final validation before displaying images
         this.validateImagesBeforeDisplay(images);
@@ -323,7 +305,6 @@ class ProfileFeedManager {
         }
 
         if (this.feedManager && this.feedManager.addImageToFeed) {
-            console.log('🔍 PROFILE FEED: Using shared FeedManager interface');
             publicImages.forEach(image => {
                 const imageWithUsername = {
                     ...image,
@@ -332,10 +313,8 @@ class ProfileFeedManager {
 
                 // Use 'site' filter to ensure public-only display
                 this.feedManager.addImageToFeed(imageWithUsername, 'site');
-                console.log(`🔒 PROFILE SECURITY: Added public image ${image.id} to feed via shared interface`);
             });
         } else {
-            console.log('🔍 PROFILE FEED: FeedManager not available, adding images directly to DOM');
             this.addImagesDirectlyToDOM(publicImages, user);
         }
     }
@@ -381,7 +360,6 @@ class ProfileFeedManager {
                 const imageElement = this.createImageElement(image, user);
 
                 container.appendChild(imageElement);
-                console.log(`🔒 PROFILE SECURITY: Added public image ${image.id} directly to DOM`);
             } else {
                 console.error(`🚨 PROFILE SECURITY: Blocked private image ${image.id} from DOM insertion`);
             }
@@ -505,7 +483,6 @@ class ProfileFeedManager {
         // Use the existing feed system's infinite scroll
         if (window.profileFeedSystem && window.profileFeedSystem.fillToBottomManager) {
             // The existing fillToBottomManager will handle infinite scroll
-            console.log('✅ PROFILE FEED: Using existing infinite scroll system');
         } else {
             // Fallback to custom event listener
             window.addEventListener('lastImageVisible', this.handleLastImageVisible.bind(this));
@@ -540,7 +517,6 @@ class ProfileFeedManager {
 
         if (container) {
             container.classList.remove('hidden');
-            console.log('✅ PROFILE FEED: Image container shown');
         } else {
             console.error('❌ PROFILE FEED: Image container not found');
         }
@@ -566,7 +542,6 @@ class ProfileFeedManager {
 
         if (loadingElement) {
             loadingElement.classList.remove('hidden');
-            console.log('🔍 PROFILE FEED: Showing loading state');
         } else {
             console.warn('⚠️ PROFILE FEED: Loading element not found');
         }
@@ -580,7 +555,6 @@ class ProfileFeedManager {
 
         if (loadingElement) {
             loadingElement.classList.add('hidden');
-            console.log('🔍 PROFILE FEED: Hiding loading state');
         } else {
             console.warn('⚠️ PROFILE FEED: Loading element not found');
         }
@@ -648,7 +622,6 @@ class ProfileFeedManager {
      * Update profile header with user info
      */
     updateProfileHeader(user) {
-        console.log('🔍 PROFILE FEED: updateProfileHeader called with user:', user);
 
         this.updateUsernameElement(user);
         this.updateJoinedElement(user);
@@ -663,7 +636,6 @@ class ProfileFeedManager {
             const username = user.username || 'Unknown User';
 
             usernameElement.textContent = username;
-            console.log(`🔍 PROFILE FEED: Updated username to: ${username}`);
         } else {
             console.error('❌ PROFILE FEED: Username element not found');
         }
@@ -677,7 +649,6 @@ class ProfileFeedManager {
             const joinedText = `Joined ${joinedDate.toLocaleDateString()}`;
 
             joinedElement.textContent = joinedText;
-            console.log(`🔍 PROFILE FEED: Updated joined date to: ${joinedText}`);
         } else {
             console.error('❌ PROFILE FEED: Joined element not found');
         }
@@ -689,9 +660,8 @@ class ProfileFeedManager {
         if (avatarElement && user.picture) {
             avatarElement.innerHTML =
                 `<img src="${user.picture}" alt="${user.username}" class="w-16 h-16 rounded-full object-cover">`;
-            console.log(`🔍 PROFILE FEED: Updated avatar with: ${user.picture}`);
         } else if (avatarElement) {
-            console.log('🔍 PROFILE FEED: No user picture available, keeping default avatar');
+            // Avatar element exists but no picture - leave default avatar
         } else {
             console.error('❌ PROFILE FEED: Avatar element not found');
         }
@@ -707,9 +677,8 @@ class ProfileFeedManager {
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
             memberSinceElement.textContent = `${diffDays} days ago`;
-            console.log(`🔍 PROFILE FEED: Updated member since to: ${diffDays} days ago`);
         } else if (memberSinceElement) {
-            console.log('🔍 PROFILE FEED: No user createdAt available for member since');
+            // Element exists but no created date - leave empty
         } else {
             console.error('❌ PROFILE FEED: Member since element not found');
         }

@@ -49,6 +49,7 @@ class EventManager {
 
         this.setupResizeObserver();
         this.eventsAreBound = true;
+
         return true;
     }
 
@@ -85,6 +86,7 @@ class EventManager {
             for (const entry of entries) {
                 if (entry.target === this.textArea) {
                     const newHeight = this.textArea.style.height;
+
                     this.persistManualHeight(newHeight);
                 }
             }
@@ -152,6 +154,7 @@ class EventManager {
         }
 
         const currentHeight = this.textArea.style.height;
+
         if (currentHeight === this.lastPersistedHeight) {
             return;
         }

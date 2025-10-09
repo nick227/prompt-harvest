@@ -1,17 +1,34 @@
-/* global FeedUIHelpers, FeedUIEventFactory, FeedTransitionManager, FeedTagUI */
+/* global FeedUIHelpers, FeedUIEventFactory, FeedTransitionManager, FeedTagUI, FeedUIStaticHelpers, FeedUILifecycle */
 
 /**
  * @typedef {Object} FeedDomManager
  * @property {Function} getLastImageElement - Get the last image in the feed
- * @property {Function} [showLoading] - Show loading indicator
- * @property {Function} [hideLoading] - Hide loading indicator
- * @property {Function} [clearFeedContent] - Clear all feed content
+ * @property {Function} showLoading - Show loading indicator
+ * @property {Function} hideLoading - Hide loading indicator
+ * @property {Function} clearFeedContent - Clear all feed content
+ * @property {Function} showLoginPrompt - Show login prompt
+ * @property {Function} showNoImagesMessage - Show no images message
+ * @property {Function} showErrorMessage - Show error message
+ * @property {Function} removeImageFromFeed - Remove specific image
+ * @property {Function} [addImageToFeed] - Add image to feed (optional, falls back to global)
  * @property {Function} [getElement] - Get element by name
  * @property {Function} [isElementInViewport] - Check if element is in viewport
+ * @property {Function} [updateFilterButtonStates] - Update filter button states
+ * @property {Function} [setFilterButtonActive] - Set active filter button
+ * @property {Function} [getScrollPosition] - Get scroll position
+ * @property {Function} [setScrollPosition] - Set scroll position
  */
 
 /**
  * Feed UI Manager - Handles UI state and interactions for infinite scroll
+ *
+ * BREAKING CHANGES (from previous versions):
+ * - Removed wrapper methods: Use domManager directly for showLoginPrompt, showNoImagesMessage,
+ *   showErrorMessage, removeImageFromFeed, getLastImageElement, updateFilterButtonStates,
+ *   setFilterButtonActive, getScrollPosition, setScrollPosition
+ * - showLoading/hideLoading removed: Use setLoading(true/false) instead
+ * - Requires FeedUIStaticHelpers and FeedUILifecycle modules (or uses inline fallbacks)
+ *
  * @class FeedUIManager
  */
 class FeedUIManager {
@@ -32,7 +49,9 @@ class FeedUIManager {
      * @param {number} [config.transitionDuration=300] - Default transition duration (ms)
      * @param {EventTarget} [config.eventTarget=window] - Target for global event dispatch
      * @param {boolean} [config.debug=false] - Enable debug logging for this instance
-     * @param {boolean} [config.disconnectOnPause=false] - Disconnect IO during pause (for bulk DOM virtualization/masonry reflows). Trades tiny re-arm cost for zero observer activity during heavy ops.
+     * @param {boolean} [config.disconnectOnPause=false] - Disconnect IO during pause (for bulk DOM virtualization/masonry reflows)
+     * @param {boolean} [config.forceCheckOnMutation=false] - Force pagination check after notifyFeedChanged (for masonry/virtualized layouts)
+     * @param {boolean} [config.pauseOnHidden=true] - Auto-pause when document.hidden (battery saver, recommended)
      */
     constructor(domManager, scrollRoot = null, config = {}) {
 
@@ -49,6 +68,7 @@ class FeedUIManager {
             debug: false, // Per-instance debug flag
             disconnectOnPause: false, // IO-off mode for extreme DOM work
             forceCheckOnMutation: false, // Option to force-check after notifyFeedChanged (masonry/virtualized layouts)
+            pauseOnHidden: true, // Auto-pause when document.hidden (battery saver, opt-in)
             ...config
         };
 
@@ -72,8 +92,7 @@ class FeedUIManager {
         this.scrollFallbackController = null; // Initialize fallback controller
         this.scrollFallbackHandlers = null; // Store fallback listeners for cleanup
         this.windowListenerHandlers = null; // Store window listeners for cleanup without signal
-        this.resizeThrottleTimer = null; // For resize throttling
-        this.resizeTimeoutId = null; // Track resize timeout (50ms in handleWindowResize)
+        this.resizeThrottleTimer = null; // Unified resize throttle timer
         this.lastEmittedEl = null; // Track last emitted element for de-duplication (or WeakRef)
         this.useWeakRef = typeof WeakRef !== 'undefined'; // Use WeakRef if available for GC-friendly tracking
         this.isPaused = false; // Pause state for heavy DOM operations
@@ -83,6 +102,22 @@ class FeedUIManager {
         this.isDestroyed = false; // Flag to prevent late timers after cleanup
         FeedUIManager.instances = FeedUIManager.instances || new Set();
         FeedUIManager.instances.add(this);
+
+        // Share instances with static helpers
+        if (typeof FeedUIStaticHelpers !== 'undefined') {
+            FeedUIStaticHelpers.setInstancesReference(FeedUIManager.instances);
+        }
+
+        // Constructor invariants (dev-only, fail-fast if domManager missing critical methods)
+        if (this.config.debug || (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production')) {
+            const requiredMethods = ['getLastImageElement', 'showLoading', 'hideLoading'];
+            const missingMethods = requiredMethods.filter(method => !domManager?.[method]);
+
+            if (missingMethods.length > 0) {
+                console.error(`❌ FeedUIManager: domManager missing required methods: ${missingMethods.join(', ')}`);
+                console.warn('⚠️ Some features may not work correctly. Provide a complete domManager implementation.');
+            }
+        }
 
         // Centralized microtask scheduling with auto-guard
         this.scheduleMicrotask = callback => {
@@ -105,9 +140,12 @@ class FeedUIManager {
         };
 
         // Ultra-light debug hook (per-instance, only logs if enabled)
-        this.debug = (message, ...args) => {
+        // Lazy evaluation: pass functions to avoid computing expensive args when debug=false
+        this.debug = (message, dataOrFn) => {
             if (this.config.debug) {
-                console.log(`[FeedUI:${this.instanceId.slice(-8)}] ${message}`, ...args);
+                const data = typeof dataOrFn === 'function' ? dataOrFn() : dataOrFn;
+
+                console.log(`[FeedUI:${this.instanceId.slice(-8)}] ${message}`, data);
             }
         };
 
@@ -119,6 +157,51 @@ class FeedUIManager {
 
             // Fallback: 16ms timeout (~60fps)
             return setTimeout(callback, 16);
+        };
+
+        // Unified throttle helper for resize handling (prevents double-fires)
+        this.throttleResize = callback => {
+            if (this.resizeThrottleTimer) {
+                clearTimeout(this.resizeThrottleTimer);
+            }
+
+            this.resizeThrottleTimer = setTimeout(() => {
+                // Guard against late timers after cleanup
+                if (!this.isDestroyed) {
+                    this.raf(() => {
+                        if (!this.isDestroyed) {
+                            callback();
+                        }
+                    });
+                }
+            }, this.config.resizeThrottleMs);
+        };
+
+        // Centralized addEventListener with signal fallback (returns cleanup info)
+        this.addListener = (target, event, handler, options = {}) => {
+            try {
+                // Try with full options object first
+                target.addEventListener(event, handler, options);
+
+                return { target, event, handler, options, hasSignal: !!options.signal };
+            } catch (error) {
+                // Fallback 1: Try without signal (old browsers without AbortController)
+                try {
+                    const fallbackOptions = { ...options };
+
+                    delete fallbackOptions.signal;
+                    target.addEventListener(event, handler, fallbackOptions);
+
+                    return { target, event, handler, options: fallbackOptions, hasSignal: false };
+                } catch (innerError) {
+                    // Fallback 2: Very old Safari/engines - use plain boolean capture only
+                    const captureFlag = Boolean(options.capture);
+
+                    target.addEventListener(event, handler, captureFlag);
+
+                    return { target, event, handler, options: { capture: captureFlag }, hasSignal: false };
+                }
+            }
         };
     }
 
@@ -151,14 +234,14 @@ class FeedUIManager {
         this.setupWindowListeners();
         this.isSetupComplete = true;
 
-        this.debug('Init complete', {
+        this.debug('Init complete', () => ({
             hasObserver: !!this.intersectionObserver,
             config: {
                 rootMargin: this.config.rootMargin,
                 threshold: this.config.threshold,
                 debounceMs: this.config.debounceMs
             }
-        });
+        }));
 
         // Observe initial last image if it exists
         this.updateIntersectionObserver();
@@ -224,8 +307,13 @@ class FeedUIManager {
             this.scrollFallbackHandlers = null;
         }
 
-        // Create AbortController for fallback cleanup
-        this.scrollFallbackController = new AbortController();
+        // Guard AbortController creation (old Safari/Android may not have it)
+        try {
+            this.scrollFallbackController = new AbortController();
+        } catch (error) {
+            // Old browser without AbortController - use manual cleanup path
+            this.scrollFallbackController = null;
+        }
 
         // rAF-throttle for scroll fallback to reduce layout thrash
         let rafPending = false;
@@ -261,16 +349,15 @@ class FeedUIManager {
                                FeedUIHelpers.getValidObserverRoot(this.domManager?.getScrollContainer?.()) ||
                                window;
 
-        // Try to use signal for cleanup, fall back if not supported
-        try {
-            scrollContainer.addEventListener('scroll', handleScroll, { passive: true, signal: this.scrollFallbackController.signal });
-            // Note: resize handled by setupWindowListeners to avoid double work
-        } catch (error) {
-            // Fallback for browsers without AbortController support
-            // Store listeners for manual cleanup
+        // Use centralized listener helper with signal fallback
+        const listenerInfo = this.addListener(scrollContainer, 'scroll', handleScroll, {
+            passive: true,
+            signal: this.scrollFallbackController?.signal
+        });
+
+        // Store for manual cleanup if signal isn't supported
+        if (!listenerInfo.hasSignal) {
             this.scrollFallbackHandlers = { scrollContainer, handleScroll };
-            scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
-            // Note: resize handled by setupWindowListeners to avoid double work
         }
     }
 
@@ -285,17 +372,8 @@ class FeedUIManager {
 
             if ('ResizeObserver' in window) {
                 this.resizeObserver = new ResizeObserver(() => {
-                    // Throttle resize events for performance
-                    if (this.resizeThrottleTimer) {
-                        clearTimeout(this.resizeThrottleTimer);
-                    }
-
-                    this.resizeThrottleTimer = setTimeout(() => {
-                        // Guard against late timers after cleanup
-                        if (this.isDestroyed) {
-                            return;
-                        }
-
+                    // Use unified throttle to prevent double-fires with window resize
+                    this.throttleResize(() => {
                         // Trigger pagination check on container size changes
                         if (!this.isLoading) {
                             const lastImage = this.domManager?.getLastImageElement();
@@ -304,7 +382,7 @@ class FeedUIManager {
                                 this.handleLastImageVisible();
                             }
                         }
-                    }, this.config.resizeThrottleMs);
+                    });
                 });
 
                 // Observe the element that actually resizes (prefer domManager > scrollRoot > fallback)
@@ -331,11 +409,11 @@ class FeedUIManager {
 
     // Handle when last image becomes visible
     handleLastImageVisible() {
-        this.debug('handleLastImageVisible triggered', {
+        this.debug('handleLastImageVisible triggered', () => ({
             isLoading: this.isLoading,
             isPaused: this.isPaused,
             observedTarget: this.observedTarget?.id || 'none'
-        });
+        }));
 
         try {
             if (this.isLoading || this.isPaused) {
@@ -424,7 +502,7 @@ class FeedUIManager {
      * @param {boolean} loading - True to show loading, false to hide
      */
     setLoading(loading) {
-        this.debug('setLoading:', loading);
+        this.debug('setLoading', () => loading);
 
         // No-op fast path after destroy (public API safety)
         if (this.isDestroyed) {
@@ -483,37 +561,16 @@ class FeedUIManager {
         return this.isDestroyed;
     }
 
-    // Show loading spinner
-    showLoading() {
-        this.setLoading(true);
+    /**
+     * Check if manager is fully initialized and ready
+     * @returns {boolean} True if ready to handle scroll events
+     */
+    isReady() {
+        return this.isSetupComplete && !this.isDestroyed && !!this.domManager;
     }
 
-    // Hide loading spinner
-    hideLoading() {
-        this.setLoading(false);
-    }
-
-    // Show login prompt
-    showLoginPrompt() {
-        if (!this.domManager?.showLoginPrompt) {
-            console.error('❌ FEED UI MANAGER: domManager.showLoginPrompt not available');
-
-            return;
-        }
-
-        this.domManager.showLoginPrompt();
-    }
-
-    // Show no images message
-    showNoImagesMessage() {
-        if (!this.domManager?.showNoImagesMessage) {
-            console.error('❌ FEED UI MANAGER: domManager.showNoImagesMessage not available');
-
-            return;
-        }
-
-        this.domManager.showNoImagesMessage();
-    }
+    // Note: showLoading/hideLoading removed - use setLoading(true/false) directly
+    // Note: showLoginPrompt/showNoImagesMessage removed - use domManager directly
 
     // Start smooth transition (delegates to transition manager)
     async startSmoothTransition() {
@@ -530,15 +587,7 @@ class FeedUIManager {
         return this.transitionManager.waitForTransition(element, duration);
     }
 
-    // Show error message
-    showErrorMessage(message) {
-        if (!this.domManager?.showErrorMessage) {
-            console.error('❌ FEED UI MANAGER: domManager.showErrorMessage not available');
-
-            return;
-        }
-        this.domManager.showErrorMessage(message);
-    }
+    // Note: showErrorMessage removed - use domManager.showErrorMessage() directly
 
     // Clear feed content
     clearFeedContent() {
@@ -573,45 +622,39 @@ class FeedUIManager {
         });
     }
 
-    // Remove specific image from feed
-    removeImageFromFeed(imageId) {
-        if (!this.domManager?.removeImageFromFeed) {
-            console.error('❌ FEED UI MANAGER: domManager.removeImageFromFeed not available');
-
-            return false;
-        }
-
-        return this.domManager.removeImageFromFeed(imageId);
-    }
+    // Note: removeImageFromFeed removed - use domManager.removeImageFromFeed() directly
 
     // Add image to feed (delegates to image handler)
     addImageToFeed(imageData, filter) {
-        // For backward compatibility, try to use the feed manager's image handler
-        if (window.feedManager && window.feedManager.imageHandler) {
-            const wasAdded = window.feedManager.imageHandler.addImageToFeed(imageData, filter);
+        let wasAdded = false;
 
-            // Only update intersection observer if a new image was actually added
-            if (wasAdded) {
-                // Microtask fallback in addImageToFeed (DOM flush first)
-                this.scheduleMicrotask(() => {
-                    this.updateIntersectionObserver();
-
-                    // Manual poke if IO is missing (fallback immediate check)
-                    if (!this.intersectionObserver) {
-                        this.checkNow();
-                    }
-                });
-
-                // Add to tab service for intelligent filtering
-                if (window.feedManager && window.feedManager.tabService) {
-                    window.feedManager.tabService.addImage(imageData);
-                }
-            }
-
-            return wasAdded;
+        // Prefer domManager delegation (testable, decoupled)
+        if (this.domManager?.addImageToFeed) {
+            wasAdded = Boolean(this.domManager.addImageToFeed(imageData, filter));
+        } else if (window.feedManager && window.feedManager.imageHandler) {
+            // Fallback to global feedManager (backward compatibility)
+            wasAdded = Boolean(window.feedManager.imageHandler.addImageToFeed(imageData, filter));
         }
 
-        return false;
+        // Only update intersection observer if a new image was actually added
+        if (wasAdded) {
+            // Microtask fallback in addImageToFeed (DOM flush first)
+            this.scheduleMicrotask(() => {
+                this.updateIntersectionObserver();
+
+                // Manual poke if IO is missing (fallback immediate check)
+                if (!this.intersectionObserver) {
+                    this.checkNow();
+                }
+            });
+
+            // Always add to tab service for intelligent filtering (regardless of path)
+            if (window.feedManager && window.feedManager.tabService) {
+                window.feedManager.tabService.addImage(imageData);
+            }
+        }
+
+        return wasAdded;
     }
 
     // Centralize "last element" sanitation (prevents stale dedupe + GC pinning)
@@ -657,11 +700,11 @@ class FeedUIManager {
 
     // Update intersection observer - fix observer churn
     updateIntersectionObserver() {
-        this.debug('updateIntersectionObserver called', {
+        this.debug('updateIntersectionObserver called', () => ({
             hasObserver: !!this.intersectionObserver,
             isPaused: this.isPaused,
             currentTarget: this.observedTarget?.id || 'none'
-        });
+        }));
 
         // Auto-clear dedupe ref if the node was removed (prevents GC pinning)
         this.sanitizeLastEmittedElement();
@@ -685,12 +728,12 @@ class FeedUIManager {
 
         const lastImage = this.domManager?.getLastImageElement();
 
-        this.debug('Last image element', {
+        this.debug('Last image element', () => ({
             exists: !!lastImage,
             id: lastImage?.id || 'no-id',
             className: lastImage?.className || 'no-class',
             isConnected: lastImage?.isConnected
-        });
+        }));
 
         // Ensure getLastImageElement() returns an Element
         if (!lastImage || lastImage.nodeType !== 1) {
@@ -708,10 +751,10 @@ class FeedUIManager {
 
         // Only update if we have a new last image
         if (lastImage !== this.observedTarget) {
-            this.debug('New last image detected, updating observer', {
+            this.debug('New last image detected, updating observer', () => ({
                 oldTarget: this.observedTarget?.id || 'none',
                 newTarget: lastImage.id || 'no-id'
-            });
+            }));
             // Unobserve previous element instead of disconnecting
             if (this.observedTarget) {
                 try {
@@ -723,13 +766,20 @@ class FeedUIManager {
 
             // Observe new last image - wrap to catch DOM churn errors
             try {
-                this.intersectionObserver.observe(lastImage);
-                this.observedTarget = lastImage;
-                this.debug('Now observing', {
-                    id: lastImage.id || 'no-id',
-                    rect: lastImage.getBoundingClientRect(),
-                    isInViewport: this.isElementInViewport(lastImage)
-                });
+                // Final guard: race between isConnected check and observe() call
+                if (lastImage.isConnected) {
+                    this.intersectionObserver.observe(lastImage);
+                    this.observedTarget = lastImage;
+                    // Lazy evaluation: only compute rect if debug=true
+                    this.debug('Now observing', () => ({
+                        id: lastImage.id || 'no-id',
+                        rect: lastImage.getBoundingClientRect(),
+                        isInViewport: this.isElementInViewport(lastImage)
+                    }));
+                } else {
+                    // Element was detached in the microseconds between checks
+                    this.observedTarget = null;
+                }
             } catch (error) {
                 // Element might have been detached between check and observe()
                 // Silently handle and clear observedTarget
@@ -742,28 +792,17 @@ class FeedUIManager {
     }
 
 
-    // Update filter button states
-    updateFilterButtonStates(availableFilters) {
-        this.domManager?.updateFilterButtonStates?.(availableFilters);
-    }
+    // Note: updateFilterButtonStates, setFilterButtonActive, getScrollPosition, setScrollPosition
+    // removed - use domManager methods directly
 
-    // Set filter button as active
-    setFilterButtonActive(filter) {
-        this.domManager?.setFilterButtonActive?.(filter);
-    }
-
-    // Get scroll position
-    getScrollPosition() {
-        return this.domManager?.getScrollPosition?.();
-    }
-
-    // Set scroll position
-    setScrollPosition(position) {
-        this.domManager?.setScrollPosition?.(position);
-    }
-
-    // Check if element is in viewport
-    isElementInViewport(element) {
+    /**
+     * Check if element is in viewport
+     * @param {Element} element - Element to check
+     * @param {Object} [options] - Check options
+     * @param {boolean} [options.allowZeroSize=false] - Allow zero-size sentinel elements
+     * @returns {boolean} True if element is in viewport
+     */
+    isElementInViewport(element, options = {}) {
         // Guard hot path against post-cleanup calls
         if (this.isDestroyed) {
             return false;
@@ -771,7 +810,7 @@ class FeedUIManager {
 
         // Use domManager if available, otherwise fallback
         if (this.domManager?.isElementInViewport) {
-            return this.domManager.isElementInViewport(element, this.scrollRoot);
+            return this.domManager.isElementInViewport(element, this.scrollRoot, options.allowZeroSize);
         }
 
         // Fallback implementation with custom scroll root support
@@ -782,7 +821,8 @@ class FeedUIManager {
         const rect = element.getBoundingClientRect();
 
         // Zero-size element check (display:none or width/height 0)
-        if (rect.width === 0 && rect.height === 0) {
+        // Skip check if allowZeroSize is true (for zero-height pagination sentinels)
+        if (!options.allowZeroSize && rect.width === 0 && rect.height === 0) {
             return false; // Invisible element can't trigger
         }
 
@@ -817,10 +857,7 @@ class FeedUIManager {
         );
     }
 
-    // Get last image element (proxy to domManager for convenience)
-    getLastImageElement() {
-        return this.domManager?.getLastImageElement?.();
-    }
+    // Note: getLastImageElement removed - use domManager.getLastImageElement() directly
 
 
     /**
@@ -919,7 +956,9 @@ class FeedUIManager {
             const { resizeHandler, visibilityHandler } = this.windowListenerHandlers;
 
             window.removeEventListener('resize', resizeHandler);
-            document.removeEventListener('visibilitychange', visibilityHandler);
+            if (visibilityHandler) {
+                document.removeEventListener('visibilitychange', visibilityHandler);
+            }
             this.windowListenerHandlers = null;
         }
 
@@ -987,35 +1026,19 @@ class FeedUIManager {
         this.setLastEmittedElement(null);
     }
 
-    // Handle window resize
+    // Handle window resize (uses unified throttle with ResizeObserver)
     handleWindowResize() {
-        // Window resize handled by CSS media queries and responsive design
+        // Use unified throttle helper to prevent double-fires with ResizeObserver
+        this.throttleResize(() => {
+            // Trigger fill-to-bottom check after layout settles
+            if (window.feedManager && window.feedManager.fillToBottomManager) {
+                const currentFilter = window.feedManager.getCurrentFilter();
 
-        // Clear any pending resize timeout
-        if (this.resizeTimeoutId) {
-            clearTimeout(this.resizeTimeoutId);
-            this.resizeTimeoutId = null;
-        }
-
-        // Check and fill to bottom after window resize using rAF + timeout for layout alignment
-        this.raf(() => {
-            this.resizeTimeoutId = setTimeout(() => {
-                // Guard deferred work after destroy
-                if (this.isDestroyed) {
-                    return;
-                }
-
-                this.resizeTimeoutId = null; // Clear after execution
-
-                if (window.feedManager && window.feedManager.fillToBottomManager) {
-                    const currentFilter = window.feedManager.getCurrentFilter();
-
-                    window.feedManager.fillToBottomManager.checkAndFillWithDebounce(
-                        currentFilter,
-                        this.config.resizeThrottleMs
-                    );
-                }
-            }, 50); // Small timeout to align with final layout
+                window.feedManager.fillToBottomManager.checkAndFillWithDebounce(
+                    currentFilter,
+                    this.config.resizeThrottleMs
+                );
+            }
         });
     }
 
@@ -1031,119 +1054,126 @@ class FeedUIManager {
             const { resizeHandler, visibilityHandler } = this.windowListenerHandlers;
 
             window.removeEventListener('resize', resizeHandler);
-            document.removeEventListener('visibilitychange', visibilityHandler);
+            if (visibilityHandler) {
+                document.removeEventListener('visibilitychange', visibilityHandler);
+            }
             this.windowListenerHandlers = null;
         }
 
-        this.abortController = new AbortController();
-        const { signal } = this.abortController;
+        // Guard AbortController creation (old Safari/Android may not have it)
+        let signal;
+
+        try {
+            this.abortController = new AbortController();
+            signal = this.abortController.signal;
+        } catch (error) {
+            // Old browser without AbortController - use manual cleanup path
+            this.abortController = null;
+            signal = undefined;
+        }
 
         const resizeHandler = () => {
             this.handleWindowResize();
 
             // Re-arm IO before fallback poke (layout shifts may change last element)
             this.raf(() => {
-                this.updateIntersectionObserver();
+                // Guard for consistency with other rAF blocks
+                if (!this.isDestroyed) {
+                    this.updateIntersectionObserver();
 
-                // Fallback check after re-arm (orientation change / soft keyboard, etc.)
-                if (!this.intersectionObserver) {
-                    this.checkNow();
+                    // Fallback check after re-arm (orientation change / soft keyboard, etc.)
+                    if (!this.intersectionObserver) {
+                        this.checkNow();
+                    }
                 }
             });
         };
 
-        const visibilityHandler = () => {
-            if (document.hidden) {
-                this.pause();
-            } else {
-                this.resume();
-            }
-        };
+        // Use centralized listener helper for resize
+        const resizeInfo = this.addListener(window, 'resize', resizeHandler, { passive: true, signal });
 
-        // Try to use signal for cleanup, fall back if not supported
-        try {
-            window.addEventListener('resize', resizeHandler, { passive: true, signal });
-            document.addEventListener('visibilitychange', visibilityHandler, { signal });
-        } catch (error) {
-            // Fallback for browsers without AbortController support
-            // Store handlers for manual cleanup
-            this.windowListenerHandlers = { resizeHandler, visibilityHandler };
-            window.addEventListener('resize', resizeHandler, { passive: true });
-            document.addEventListener('visibilitychange', visibilityHandler);
+        // Visibility handler: opt-in auto-pause (battery saver)
+        let visibilityInfo = null;
+
+        if (this.config.pauseOnHidden) {
+            const visibilityHandler = () => {
+                if (document.hidden) {
+                    this.pause();
+                } else {
+                    this.resume();
+                }
+            };
+
+            visibilityInfo = this.addListener(document, 'visibilitychange', visibilityHandler, { signal });
+        }
+
+        // Store for manual cleanup if signal isn't supported
+        if (!resizeInfo.hasSignal || (visibilityInfo && !visibilityInfo.hasSignal)) {
+            this.windowListenerHandlers = {
+                resizeHandler,
+                visibilityHandler: visibilityInfo?.handler
+            };
         }
 
     }
 
-    // Cleanup
+    // Cleanup (delegates to lifecycle manager with fallback)
     cleanup() {
-        // Flip pause state to short-circuit any stray work
-        this.isPaused = true;
+        if (typeof FeedUILifecycle !== 'undefined') {
+            FeedUILifecycle.cleanup(this);
+        } else {
+            // Fallback: inline cleanup (old browsers without AbortController)
+            this.isPaused = true;
+            this.setLastEmittedElement(null);
+            if (this.debounceTimer) {
+                clearTimeout(this.debounceTimer);
+                this.debounceTimer = null;
+            }
 
-        // Clear last emitted element so fresh load can re-emit
-        this.setLastEmittedElement(null);
+            // Abort controllers if present
+            if (this.abortController) {
+                this.abortController.abort();
+                this.abortController = null;
+            }
+            if (this.scrollFallbackController) {
+                this.scrollFallbackController.abort();
+                this.scrollFallbackController = null;
+            }
 
-        // Clear debounce timer
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer);
-            this.debounceTimer = null;
+            // Manual cleanup for fallback handlers (critical for old browsers!)
+            if (this.scrollFallbackHandlers) {
+                const { scrollContainer, handleScroll } = this.scrollFallbackHandlers;
+
+                scrollContainer.removeEventListener('scroll', handleScroll);
+                this.scrollFallbackHandlers = null;
+            }
+
+            // Manual cleanup for window listeners
+            if (this.windowListenerHandlers) {
+                const { resizeHandler, visibilityHandler } = this.windowListenerHandlers;
+
+                window.removeEventListener('resize', resizeHandler);
+                if (visibilityHandler) {
+                    document.removeEventListener('visibilitychange', visibilityHandler);
+                }
+                this.windowListenerHandlers = null;
+            }
+
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect();
+                this.resizeObserver = null;
+            }
+            if (this.resizeThrottleTimer) {
+                clearTimeout(this.resizeThrottleTimer);
+                this.resizeThrottleTimer = null;
+            }
+            if (FeedUIManager.instances) {
+                FeedUIManager.instances.delete(this);
+            }
+            this.disconnectIntersectionObserver();
+            this.isSetupComplete = false;
+            this.isDestroyed = true;
         }
-
-        // Abort event listeners
-        if (this.abortController) {
-            this.abortController.abort();
-            this.abortController = null;
-        }
-
-        // Cleanup scroll fallback
-        if (this.scrollFallbackController) {
-            this.scrollFallbackController.abort();
-            this.scrollFallbackController = null;
-        }
-
-        // Manual cleanup for fallback handlers without signal support
-        if (this.scrollFallbackHandlers) {
-            const { scrollContainer, handleScroll } = this.scrollFallbackHandlers;
-
-            scrollContainer.removeEventListener('scroll', handleScroll);
-            // Note: resize is not attached in fallback (handled by setupWindowListeners)
-            this.scrollFallbackHandlers = null;
-        }
-
-        // Cleanup ResizeObserver
-        if (this.resizeObserver) {
-            this.resizeObserver.disconnect();
-            this.resizeObserver = null;
-        }
-
-        // Cleanup resize throttle timer
-        if (this.resizeThrottleTimer) {
-            clearTimeout(this.resizeThrottleTimer);
-            this.resizeThrottleTimer = null;
-        }
-
-        // Cleanup resize timeout (50ms in handleWindowResize)
-        if (this.resizeTimeoutId) {
-            clearTimeout(this.resizeTimeoutId);
-            this.resizeTimeoutId = null;
-        }
-
-        // Manual cleanup for window listeners without signal support
-        if (this.windowListenerHandlers) {
-            const { resizeHandler, visibilityHandler } = this.windowListenerHandlers;
-
-            window.removeEventListener('resize', resizeHandler);
-            document.removeEventListener('visibilitychange', visibilityHandler);
-            this.windowListenerHandlers = null;
-        }
-
-        // Remove from instance tracking
-        if (FeedUIManager.instances) {
-            FeedUIManager.instances.delete(this);
-        }
-
-        this.disconnectIntersectionObserver();
-        this.isSetupComplete = false;
-        this.isDestroyed = true; // Mark as destroyed to prevent late timers
     }
 
     // Static method to get all instances
@@ -1158,6 +1188,11 @@ class FeedUIManager {
                 instance.cleanup();
             });
             FeedUIManager.instances.clear();
+
+            // Keep helpers in sync after clearing (for hot-reload/test environments)
+            if (typeof FeedUIStaticHelpers !== 'undefined') {
+                FeedUIStaticHelpers.setInstancesReference(FeedUIManager.instances);
+            }
         }
     }
 
@@ -1185,102 +1220,66 @@ class FeedUIManager {
         }, { once: false });
     }
 
-    /**
-     * Static convenience helper: subscribe to lastImageVisible events
-     * @param {Function} handler - Event handler function
-     * @param {EventTarget|Object} [options={}] - Target or options object
-     * @param {EventTarget} [options.target=window] - Target to listen on
-     * @param {boolean} [options.once] - Remove listener after first call
-     * @param {boolean} [options.passive] - Passive listener flag
-     * @param {boolean} [options.capture] - Use capture phase
-     * @param {AbortSignal} [options.signal] - AbortSignal for cleanup
-     * @returns {Function} Unsubscribe function (mirrors same options for reliable removal)
-     */
+    // Delegate static methods to FeedUIStaticHelpers (with fallbacks)
     static subscribe(handler, options = {}) {
-        // Normalize options - support both EventTarget and options object
-        let target;
-        let listenerOptions;
-        let captureFlag = false; // Capture only the capture bit for reliable removal
-
-        if (options && typeof options.addEventListener === 'function') {
-            // Legacy: second param is EventTarget
-            target = options;
-            listenerOptions = {};
-        } else {
-            // Modern: second param is options object
-            target = options.target || (typeof window !== 'undefined' ? window : null);
-            captureFlag = Boolean(options.capture); // Capture as boolean for older Safari
-            listenerOptions = {
-                once: options.once,
-                passive: options.passive,
-                capture: captureFlag,
-                signal: options.signal
-            };
+        if (typeof FeedUIStaticHelpers !== 'undefined') {
+            return FeedUIStaticHelpers.subscribe(handler, options, FeedUIManager.LAST_IMAGE_VISIBLE_EVENT);
         }
 
-        if (!target || typeof target.addEventListener !== 'function') {
-            console.warn('FeedUIManager.subscribe: Invalid target provided');
+        // Fallback: minimal inline implementation (old-Safari safe)
+        const target = options.target || (typeof window !== 'undefined' ? window : null);
+        const captureFlag = Boolean(options.capture); // Extract capture for reliable removal
 
-            return () => {}; // No-op unsubscribe
+        if (target) {
+            // Try with options, fallback to capture boolean only (old Safari)
+            try {
+                target.addEventListener(FeedUIManager.LAST_IMAGE_VISIBLE_EVENT, handler, options);
+            } catch (error) {
+                // Old Safari doesn't support options object
+                target.addEventListener(FeedUIManager.LAST_IMAGE_VISIBLE_EVENT, handler, captureFlag);
+            }
         }
 
-        // Add listener - try with options, fallback to capture boolean for older engines
-        try {
-            target.addEventListener(FeedUIManager.LAST_IMAGE_VISIBLE_EVENT, handler, listenerOptions);
-        } catch (error) {
-            // Older engines might not support options object
-            // Fallback to capture boolean only
-            target.addEventListener(FeedUIManager.LAST_IMAGE_VISIBLE_EVENT, handler, captureFlag);
-        }
-
-        // Return unsubscribe function - only capture bit is critical for removal
         return () => {
-            // On older Safari, passing full options object can fail
-            // Only capture bit must match for reliable removal
-            target.removeEventListener(FeedUIManager.LAST_IMAGE_VISIBLE_EVENT, handler, captureFlag);
+            // Only capture flag must match for reliable removal
+            if (target) {
+                target.removeEventListener(FeedUIManager.LAST_IMAGE_VISIBLE_EVENT, handler, captureFlag);
+            }
         };
     }
 
-    /**
-     * Static convenience helper: unsubscribe from lastImageVisible events
-     * NOTE: Prefer using the unsubscribe function returned by subscribe() for proper option matching.
-     * This helper only removes listeners added without special options (no capture, once, etc.)
-     * @param {Function} handler - Event handler function to remove
-     * @param {EventTarget} [target=window] - Target to remove from (defaults to window)
-     */
     static unsubscribe(handler, target = typeof window !== 'undefined' ? window : null) {
-        if (!target || typeof target.removeEventListener !== 'function') {
-            return;
+        if (typeof FeedUIStaticHelpers !== 'undefined') {
+            return FeedUIStaticHelpers.unsubscribe(handler, target, FeedUIManager.LAST_IMAGE_VISIBLE_EVENT);
         }
 
-        target.removeEventListener(FeedUIManager.LAST_IMAGE_VISIBLE_EVENT, handler);
+        // Fallback: basic removal
+        if (target) {
+            target.removeEventListener(FeedUIManager.LAST_IMAGE_VISIBLE_EVENT, handler);
+        }
     }
 
-    /**
-     * Trigger pagination check after external DOM mutations
-     * Updates observers and checks all instances (or specific one)
-     * @param {FeedUIManager} [manager] - Specific manager instance, or checks all instances
-     */
     static triggerCheck(manager = null) {
+        if (typeof FeedUIStaticHelpers !== 'undefined') {
+            return FeedUIStaticHelpers.triggerCheck(manager);
+        }
+
+        // Fallback: inline implementation
         if (manager) {
-            // Check specific instance (re-arms observation in all cases)
             manager.notifyFeedChanged();
         } else {
-            // Check all instances (useful when you don't have a reference)
             const instances = FeedUIManager.getAllInstances();
 
-            instances.forEach(instance => {
-                instance.notifyFeedChanged();
-            });
+            instances.forEach(instance => instance.notifyFeedChanged());
         }
     }
 
-    /**
-     * Capability probe - check browser feature support
-     * Handy for guards/analytics before instantiation
-     * @returns {Object} Feature support flags
-     */
     static getCapabilities() {
+        if (typeof FeedUIStaticHelpers !== 'undefined') {
+            return FeedUIStaticHelpers.getCapabilities();
+        }
+
+        // Fallback: full capability check (matches FeedUIStaticHelpers parity)
         const hasWindow = typeof window !== 'undefined';
 
         return {
@@ -1290,7 +1289,8 @@ class FeedUIManager {
             abortController: hasWindow && typeof AbortController === 'function',
             queueMicrotask: hasWindow && typeof queueMicrotask !== 'undefined',
             eventTarget: hasWindow && typeof EventTarget !== 'undefined',
-            prefersReducedMotion: hasWindow && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+            weakRef: hasWindow && typeof WeakRef !== 'undefined',
+            prefersReducedMotion: Boolean(hasWindow && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches),
             isSSR: !hasWindow
         };
     }
@@ -1363,7 +1363,9 @@ class FeedUIManager {
             const { resizeHandler, visibilityHandler } = this.windowListenerHandlers;
 
             window.removeEventListener('resize', resizeHandler);
-            document.removeEventListener('visibilitychange', visibilityHandler);
+            if (visibilityHandler) {
+                document.removeEventListener('visibilitychange', visibilityHandler);
+            }
             this.windowListenerHandlers = null;
         }
 
@@ -1389,98 +1391,82 @@ class FeedUIManager {
 
     /**
      * Pause triggers during heavy DOM operations
-     * Call before bulk DOM mutations, then resume() after
-     * @param {boolean} [disconnectIO=false] - Disconnect IO for extreme DOM work (opt-in)
+     * @param {boolean} [disconnectIO=false] - Disconnect IO for extreme DOM work
      */
     pause(disconnectIO = false) {
-        // No-op fast path after destroy (public API safety)
-        if (this.isDestroyed) {
-            return;
-        }
+        if (typeof FeedUILifecycle !== 'undefined') {
+            FeedUILifecycle.pause(this, disconnectIO);
+        } else {
+            // Fallback: inline pause with IO disconnect support
+            this.isPaused = true;
 
-        this.isPaused = true;
+            // Clear in-flight debounce
+            if (this.debounceTimer) {
+                clearTimeout(this.debounceTimer);
+                this.debounceTimer = null;
+            }
 
-        // Clear in-flight debounce to prevent late fires
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer);
-            this.debounceTimer = null;
-        }
-
-        // IO-off mode for extreme DOM work (opt-in via config or param)
-        // Note: _pausedObserverState is just a boolean flag (true if IO existed)
-        if (disconnectIO || this.config.disconnectOnPause) {
-            this._pausedObserverState = !!this.intersectionObserver;
-            this.disconnectIntersectionObserver();
-            this.debug('IO disconnected during pause (extreme mode)');
+            // IO-off mode for extreme DOM work (opt-in)
+            if (disconnectIO || this.config.disconnectOnPause) {
+                this._pausedObserverState = !!this.intersectionObserver;
+                this.disconnectIntersectionObserver();
+            }
         }
     }
 
     /**
      * Resume triggers after heavy DOM operations
-     * Automatically checks if pagination should trigger
      */
     resume() {
-        // No-op fast path after destroy (public API safety)
-        if (this.isDestroyed) {
-            return;
-        }
+        if (typeof FeedUILifecycle !== 'undefined') {
+            FeedUILifecycle.resume(this);
+        } else {
+            // Fallback: inline resume with IO reconnection and proactive check
+            this.isPaused = false;
 
-        this.isPaused = false;
+            // Reconnect IO if it was disconnected during extreme pause
+            if (this._pausedObserverState) {
+                this.setupIntersectionObserver();
+                this.updateIntersectionObserver();
+                this._pausedObserverState = null;
 
-        // Reconnect IO if it was disconnected during pause (extreme mode)
-        if (this._pausedObserverState) {
-            this.setupIntersectionObserver();
-            this.updateIntersectionObserver(); // Re-arm immediately
-            this.debug('IO reconnected after extreme pause');
-            this._pausedObserverState = null;
+                // Immediate check if already at bottom
+                const lastImage = this.domManager?.getLastImageElement();
 
-            // Immediate check if already at bottom (no need to wait for next frame)
-            const lastImage = this.domManager?.getLastImageElement();
+                if (lastImage && this.isElementInViewport(lastImage)) {
+                    this.handleLastImageVisible();
 
-            if (lastImage && this.isElementInViewport(lastImage)) {
-                this.handleLastImageVisible();
-
-                return; // Skip double rAF check below
-            }
-        }
-
-        this.debug('Resumed after pause');
-
-        // Refresh IO before fallback on resume (double rAF for layout settling)
-        this.raf(() => {
-            this.raf(() => {
-                // Guard against late timers after cleanup
-                if (this.isDestroyed) {
                     return;
                 }
+            }
 
-                // Re-arm observer first so checkNow() sees current IO state
-                this.updateIntersectionObserver();
-
-                // Check if we should trigger after resume (force=true for proactive check)
-                this.checkNow(true); // Force check even with IO (proactive re-check)
+            // Refresh IO and check (double rAF for layout settling)
+            this.raf(() => {
+                this.raf(() => {
+                    if (!this.isDestroyed) {
+                        this.updateIntersectionObserver();
+                        this.checkNow(true); // Force proactive check
+                    }
+                });
             });
-        });
+        }
     }
 
     /**
      * Batch mutation helper - automatically pauses, runs callback, and resumes
-     * Guarantees resume() is called even if callback throws
      * @param {Function} callback - Function that performs DOM mutations
      * @returns {Promise<any>} Result of callback
      */
     async batchMutations(callback) {
-        // No-op fast path after destroy
-        if (this.isDestroyed) {
-            return;
+        if (typeof FeedUILifecycle !== 'undefined') {
+            return FeedUILifecycle.batchMutations(this, callback);
         }
 
+        // Fallback: inline batch
         this.pause();
-
         try {
             return await callback();
         } finally {
-            // Always resume, even if callback throws
             this.resume();
         }
     }

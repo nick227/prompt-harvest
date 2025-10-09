@@ -215,7 +215,6 @@
 
             if (googleLoginBtn) {
                 googleLoginBtn.addEventListener('click', () => {
-                    console.log('🔐 GOOGLE LOGIN: Initiating Google OAuth...');
                     // Redirect to Google OAuth endpoint
                     window.location.href = '/api/auth/google';
                 });
@@ -230,17 +229,14 @@
             const error = urlParams.get('error');
 
             if (success === 'google_login' && token) {
-                console.log('🔐 GOOGLE LOGIN: Success callback received');
 
                 // Store the token
                 if (window.userApi) {
                     window.userApi.setAuthToken(token, true);
-                    console.log('🔐 GOOGLE LOGIN: Token stored successfully');
 
                     // Refresh authentication state
                     if (window.userSystem) {
                         window.userSystem.checkAuthState().then(() => {
-                            console.log('🔐 GOOGLE LOGIN: Authentication state refreshed');
                         });
                     }
                 } else {
@@ -259,7 +255,6 @@
                     window.location.href = '/';
                 }, 1500);
             } else if (error === 'google_auth_failed') {
-                console.log('🔐 GOOGLE LOGIN: Failed callback received');
 
                 // Show error message
                 const errorDiv = document.getElementById('authError');
@@ -304,23 +299,18 @@
 
         // Initialize password toggles and Google login
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('🔐 REGISTER: Setting up password toggles...');
             setupPasswordToggle('togglePassword1', 'registerPassword', 'eyeIcon1');
             setupPasswordToggle('togglePassword2', 'confirmPassword', 'eyeIcon2');
 
-            console.log('🔐 REGISTER: Setting up Google login...');
             setupGoogleLogin();
 
-            console.log('🔐 REGISTER: Handling Google callback...');
             handleGoogleCallback();
 
-            console.log('🔐 REGISTER: Setting up form handlers...');
             setupFormHandlers();
         });
 
         // Check if user is already authenticated (redirect to homepage if so)
         if (window.userSystem && window.userSystem.isAuthenticated()) {
-            console.log('🔐 REGISTER: User already authenticated, redirecting to homepage');
             window.location.href = '/';
         }
 

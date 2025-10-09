@@ -35,6 +35,7 @@ class MatchManager {
             this.matchesEl.innerHTML = this.sanitizeMatchesHTML(sampleMatches);
             this.hasReplacedTrigger = false;
             this.matchSessionKey = Date.now();
+
             return;
         }
 
@@ -42,6 +43,7 @@ class MatchManager {
 
         if (requestId !== this.currentMatchRequestId) {
             this.metrics.droppedMatches++;
+
             return;
         }
 
@@ -50,6 +52,7 @@ class MatchManager {
         }
 
         const currentTriggeringWord = this.matchProcessor.getLastMatchedWord();
+
         if (currentTriggeringWord && currentTriggeringWord !== this.lastTriggeringWord) {
             this.hasReplacedTrigger = false;
             this.lastTriggeringWord = currentTriggeringWord;
@@ -69,14 +72,17 @@ class MatchManager {
         }
 
         const temp = document.createElement('div');
+
         temp.innerHTML = html;
         const liElements = temp.querySelectorAll('li');
 
         if (liElements.length === 0) {
             const textContent = temp.textContent || '';
+
             if (textContent.trim()) {
                 return `<li>${this.escapeHTML(textContent)}</li>`;
             }
+
             return '';
         }
 
@@ -84,6 +90,7 @@ class MatchManager {
             const text = li.textContent || '';
             const className = li.className || '';
             const title = li.title || '';
+
             return `<li class="${this.escapeHTML(className)}" title="${this.escapeHTML(title)}">${this.escapeHTML(text)}</li>`;
         }).join('');
 
@@ -95,7 +102,9 @@ class MatchManager {
             return '';
         }
         const div = document.createElement('div');
+
         div.textContent = text;
+
         return div.innerHTML;
     }
 
@@ -105,6 +114,7 @@ class MatchManager {
         }
 
         const listItem = e.target.closest('li');
+
         if (!listItem) {
             return;
         }
@@ -150,6 +160,7 @@ class MatchManager {
         }
 
         const endPosition = this.textArea.value.length;
+
         this.textArea.selectionStart = endPosition;
         this.textArea.selectionEnd = endPosition;
         this.insertText(text);
@@ -158,6 +169,7 @@ class MatchManager {
     replaceTriggeringWord(replacement) {
         if (!this.textArea || !this.matchProcessor.getLastMatchedWord()) {
             this.insertText(replacement);
+
             return;
         }
 
@@ -166,11 +178,13 @@ class MatchManager {
 
         if (this.shouldAppendInsteadOfReplace()) {
             this.appendToEnd(replacement);
+
             return;
         }
 
         if (this.isRTLContext()) {
             this.appendToEnd(replacement);
+
             return;
         }
 
@@ -188,6 +202,7 @@ class MatchManager {
         }
 
         const { direction } = window.getComputedStyle(this.textArea);
+
         if (direction === 'rtl') {
             return true;
         }
@@ -195,6 +210,7 @@ class MatchManager {
         const startPos = Math.max(0, this.textArea.selectionStart - 64);
         const textBeforeCursor = this.textArea.value.slice(startPos, this.textArea.selectionStart);
         const rtlPattern = /[\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
         return rtlPattern.test(textBeforeCursor);
     }
 

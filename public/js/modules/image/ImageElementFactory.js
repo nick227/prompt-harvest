@@ -16,6 +16,7 @@ class ImageElementFactory {
     createImageElement(imageData) {
         if (!this.utils) {
             console.error('❌ ImageDOMUtils not available');
+
             return this.createFallbackImageElement(imageData);
         }
 
@@ -56,7 +57,6 @@ class ImageElementFactory {
             this.utils.removeLoadingSpinner(img);
         }
 
-        console.log('✅ Image loaded successfully:', img.src);
     }
 
     /**
@@ -65,7 +65,6 @@ class ImageElementFactory {
      * @param {Object} imageData - Image data object
      */
     handleImageError(img, imageData) {
-        console.log('❌ Image failed to load:', img.src);
 
         if (this.utils && this.utils.removeLoadingSpinner) {
             this.utils.removeLoadingSpinner(img);
@@ -102,10 +101,10 @@ class ImageElementFactory {
     // Download image as blob to force Save As dialog
     async downloadImageAsBlob(imageUrl, imageData = null) {
         try {
-            console.log('📥 DOWNLOAD: Fetching image as blob for download...');
 
             // Fetch the image as a blob
             const response = await fetch(imageUrl);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -117,6 +116,7 @@ class ImageElementFactory {
             const objectUrl = URL.createObjectURL(blob);
 
             const a = document.createElement('a');
+
             a.href = objectUrl;
             a.download = fileName;
             a.style.display = 'none';
@@ -128,7 +128,6 @@ class ImageElementFactory {
             // Clean up object URL
             URL.revokeObjectURL(objectUrl);
 
-            console.log('📥 DOWNLOAD: Blob download triggered for:', fileName);
         } catch (error) {
             console.error('❌ DOWNLOAD: Blob download failed, trying fallback:', error);
 
@@ -136,10 +135,10 @@ class ImageElementFactory {
             try {
                 const a = document.createElement('a');
                 const fileName = this.generateFileName(imageUrl, imageData);
+
                 a.href = imageUrl;
                 a.download = fileName;
                 a.click();
-                console.log('📥 DOWNLOAD: Fallback download triggered');
             } catch (fallbackError) {
                 console.error('❌ DOWNLOAD: All download methods failed:', fallbackError);
             }
@@ -154,10 +153,12 @@ class ImageElementFactory {
                                imageData.finalPrompt ||
                                imageData.enhancedPrompt ||
                                imageData.prompt;
+
             if (finalPrompt && finalPrompt.length > 0) {
                 // Take first 30 characters
                 const truncatedPrompt = finalPrompt.length > 30 ?
-                    finalPrompt.substring(0, 30) : finalPrompt;
+                    finalPrompt.substring(0, 30)
+                    : finalPrompt;
 
                 // Sanitize filename - remove invalid characters but keep spaces
                 const sanitized = truncatedPrompt
@@ -181,6 +182,7 @@ class ImageElementFactory {
             // If no filename or extension, generate one
             if (!fileName || !fileName.includes('.')) {
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
                 return `generated-image-${timestamp}.jpg`;
             }
 
@@ -188,6 +190,7 @@ class ImageElementFactory {
         } catch (error) {
             // Final fallback filename
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
             return `generated-image-${timestamp}.jpg`;
         }
     }
@@ -200,6 +203,7 @@ class ImageElementFactory {
      */
     createFallbackImageElement(imageData) {
         const img = document.createElement('img');
+
         img.src = imageData.url || imageData.imageUrl || '';
         img.alt = imageData.title || 'Generated Image';
         img.style.width = '100%';

@@ -52,6 +52,7 @@ class ImageViewUtils {
             const removed = window.feedManager.removeImageFromFeed(imageId);
 
             if (removed) {
+                console.log(`Image ${imageId} removed from feed`);
             }
         }
     }
@@ -538,7 +539,6 @@ class ImageViewUtils {
 
         if (compactCheckbox) {
             compactCheckbox.checked = isPublic;
-            console.log(`🔄 Updated compact view checkbox for image ${imageId} to ${isPublic}`);
         }
     }
 
@@ -834,18 +834,6 @@ class ImageViewUtils {
 
         tagsContainer.className = 'list-tags-container';
 
-        const tagsLabel = document.createElement('span');
-        tagsLabel.textContent = 'Tags:';
-
-        tagsLabel.style.cssText = `
-            color: #9ca3af;
-            font-size: 12px;
-            margin-right: 4px;
-            flex-shrink: 0;
-        `;
-
-        tagsContainer.appendChild(tagsLabel);
-
         tags.forEach(tag => {
             const tagElement = document.createElement('span');
 
@@ -892,7 +880,6 @@ class ImageViewUtils {
                 e.preventDefault();
                 e.stopPropagation();
 
-                console.log(`🏷️ TAG CLICK: Filtering by tag: ${tag}`);
 
                 // Use tag router if available
                 if (window.TagRouter && window.tagRouter) {

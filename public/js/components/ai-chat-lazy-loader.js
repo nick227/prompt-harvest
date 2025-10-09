@@ -79,7 +79,6 @@ class AIChatLazyLoader {
             this.isLoaded = true;
             this.hideLoadingState();
 
-            console.log('✅ AI Chat Widget loaded successfully');
 
         } catch (error) {
             console.error('❌ Failed to load AI Chat Widget:', error);
@@ -97,10 +96,12 @@ class AIChatLazyLoader {
             // Check if CSS is already loaded
             if (document.querySelector('link[href*="ai-chat-widget.css"]')) {
                 resolve();
+
                 return;
             }
 
             const link = document.createElement('link');
+
             link.rel = 'stylesheet';
             link.href = 'css/ai-chat-widget.css';
             link.onload = resolve;
@@ -118,10 +119,12 @@ class AIChatLazyLoader {
             // Check if script is already loaded
             if (window.AIChatWidget) {
                 resolve();
+
                 return;
             }
 
             const script = document.createElement('script');
+
             script.src = 'js/components/ai-chat-widget.js';
             script.onload = () => {
                 // Give the script a moment to execute and set up the global
@@ -157,7 +160,6 @@ class AIChatLazyLoader {
         // Store reference globally for consistency
         window.aiChatWidget = this.originalWidget;
 
-        console.log('✅ AI Chat Widget initialized successfully');
     }
 
     /**

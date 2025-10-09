@@ -49,11 +49,13 @@ class AutoResizeManager {
                 if (!content.trim()) {
                     this.resetToInitialHeight();
                     this.updateResizeCache(content);
+
                     return;
                 }
 
                 this.cachedComputedStyle = window.getComputedStyle(this.textArea);
                 const resizeData = this.calculateResizeData(content);
+
                 this.applyResize(resizeData);
                 this.metrics.autoResizes++;
                 this.updateResizeCache(content);
@@ -87,6 +89,7 @@ class AutoResizeManager {
 
         if (lineHeight && lineHeight !== 'normal') {
             const parsed = parseInt(lineHeight);
+
             if (!isNaN(parsed) && parsed > 0) {
                 return parsed;
             }
@@ -108,6 +111,7 @@ class AutoResizeManager {
         this.lineHeightMeasureElement.style.lineHeight = lineHeight;
 
         const measuredHeight = this.lineHeightMeasureElement.offsetHeight;
+
         return measuredHeight || 20;
     }
 
@@ -116,6 +120,7 @@ class AutoResizeManager {
             return this.cachedComputedStyle;
         }
         this.cachedComputedStyle = window.getComputedStyle(this.textArea);
+
         return this.cachedComputedStyle;
     }
 
@@ -126,6 +131,7 @@ class AutoResizeManager {
     ensureInitialHeight() {
         if (this.initialHeight === null || this.initialHeight === 0) {
             const height = this.textArea.offsetHeight;
+
             if (height > 0) {
                 this.initialHeight = height;
                 this.initialHeightIsEstimate = false;
@@ -136,12 +142,14 @@ class AutoResizeManager {
                 const paddingBottom = parseInt(computedStyle.paddingBottom) || 8;
                 const borderTop = parseInt(computedStyle.borderTopWidth) || 0;
                 const borderBottom = parseInt(computedStyle.borderBottomWidth) || 0;
+
                 this.initialHeight = (lineHeight * 3) + paddingTop + paddingBottom + borderTop + borderBottom;
                 this.initialHeightIsEstimate = true;
                 this.scheduleVisibilityCheck();
             }
         } else if (this.initialHeightIsEstimate) {
             const height = this.textArea.offsetHeight;
+
             if (height > 0) {
                 this.initialHeight = height;
                 this.initialHeightIsEstimate = false;
@@ -155,6 +163,7 @@ class AutoResizeManager {
                 entries.forEach(entry => {
                     if (entry.isIntersecting && this.initialHeightIsEstimate) {
                         const height = this.textArea.offsetHeight;
+
                         if (height > 0) {
                             this.initialHeight = height;
                             this.initialHeightIsEstimate = false;
@@ -178,6 +187,7 @@ class AutoResizeManager {
                 return;
             }
             const height = this.textArea.offsetHeight;
+
             if (height > 0) {
                 this.initialHeight = height;
                 this.initialHeightIsEstimate = false;
@@ -187,6 +197,7 @@ class AutoResizeManager {
                 requestAnimationFrame(checkVisibility);
             }
         };
+
         requestAnimationFrame(checkVisibility);
     }
 
@@ -224,6 +235,7 @@ class AutoResizeManager {
             };
         } catch (error) {
             console.warn('Error calculating resize data:', error);
+
             return {
                 totalLines: content.split('\n').length,
                 linesInInitialHeight: 3,
@@ -251,6 +263,7 @@ class AutoResizeManager {
         const naturalHeight = this.textArea.scrollHeight;
 
         let newHeight;
+
         if (totalLines <= linesInInitialHeight) {
             newHeight = this.initialHeight;
         } else if (naturalHeight <= maxHeightLimit) {

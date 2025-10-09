@@ -58,23 +58,17 @@ class BlogIndexPage {
 
             // Debug admin status
             const isAdmin = this.blogService.isAdmin();
-            console.log('🔍 BLOG-INDEX: Admin check result:', isAdmin);
-            console.log('🔍 BLOG-INDEX: Auth service:', this.authService);
-            console.log('🔍 BLOG-INDEX: Current user:', this.authService?.currentUser);
 
             // Load unpublished posts for admins only
             if (isAdmin) {
-                console.log('🔍 BLOG-INDEX: Loading draft posts for admin...');
                 await this.loadDraftPosts();
             } else {
-                console.log('🔍 BLOG-INDEX: Not admin, skipping draft posts');
 
                 // Try again after a delay in case auth wasn't fully loaded
                 setTimeout(async () => {
                     const delayedAdminCheck = this.blogService.isAdmin();
-                    console.log('🔍 BLOG-INDEX: Delayed admin check result:', delayedAdminCheck);
+
                     if (delayedAdminCheck) {
-                        console.log('🔍 BLOG-INDEX: Loading draft posts after delay...');
                         await this.loadDraftPosts();
                     }
                 }, 1000);
@@ -88,9 +82,8 @@ class BlogIndexPage {
             // Force re-render of posts with admin controls after a delay
             setTimeout(() => {
                 const finalAdminCheck = this.blogService.isAdmin();
-                console.log('🔍 BLOG-INDEX: Final admin check for re-render:', finalAdminCheck);
+
                 if (finalAdminCheck) {
-                    console.log('🔍 BLOG-INDEX: Re-rendering posts with admin controls...');
                     this.renderPosts(this.currentPosts || []);
                 }
             }, 1500);
@@ -120,23 +113,18 @@ class BlogIndexPage {
 
     async loadDraftPosts() {
         try {
-            console.log('🔍 BLOG-INDEX: Loading draft posts...');
             const draftData = await this.blogService.getDraftPosts(1, 10);
-            console.log('🔍 BLOG-INDEX: Draft data received:', draftData);
 
             if (draftData.posts.length > 0) {
-                console.log('🔍 BLOG-INDEX: Rendering', draftData.posts.length, 'draft posts');
                 this.renderDraftPosts(draftData.posts);
                 this.showDraftSection();
-            } else {
-                console.log('🔍 BLOG-INDEX: No draft posts found');
             }
+            // No draft posts to show
         } catch (error) {
             console.error('Failed to load draft posts:', error);
             // Don't show error for draft posts, just log it
         }
     }
-
 
 
     renderPosts(posts) {
@@ -178,10 +166,9 @@ class BlogIndexPage {
 
         // Admin controls for all posts
         const isAdmin = this.blogService.isAdmin();
-        console.log('🔍 BLOG-INDEX: createPostCard - Admin check:', isAdmin);
-        console.log('🔍 BLOG-INDEX: createPostCard - Post:', post.title, 'isPublished:', post.isPublished);
 
-        const adminControls = isAdmin ? `
+        const adminControls = isAdmin
+            ? `
             <div class="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-700">
                 <a href="/blog/${post.slug}/edit"
                    class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">
@@ -197,9 +184,9 @@ class BlogIndexPage {
                     <i class="fas fa-trash mr-1"></i>Delete
                 </button>
             </div>
-        ` : '';
+        `
+            : '';
 
-        console.log('🔍 BLOG-INDEX: createPostCard - Admin controls HTML length:', adminControls.length);
 
         return `
             <article class="bg-gray-900 rounded-lg border ${featuredClass} p-6 hover:bg-gray-800 transition-colors">
@@ -276,45 +263,6 @@ class BlogIndexPage {
                 </div>
             `;
         }
-    }
-
-    getFallbackGradient(post) {
-        // Create a consistent gradient based on post title and author
-        const seed = this.generateSeed(post.title + (post.author?.name || post.author?.username || ''));
-        const palettes = [
-            ['#3B82F6', '#1D4ED8', '#1E40AF'],
-            ['#10B981', '#059669', '#047857'],
-            ['#8B5CF6', '#7C3AED', '#6D28D9'],
-            ['#F59E0B', '#D97706', '#B45309'],
-            ['#EF4444', '#DC2626', '#B91C1C'],
-            ['#06B6D4', '#0891B2', '#0E7490'],
-            ['#84CC16', '#65A30D', '#4D7C0F'],
-            ['#EC4899', '#DB2777', '#BE185D']
-        ];
-
-        const palette = palettes[seed % palettes.length];
-
-        return `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 50%, ${palette[2]} 100%)`;
-    }
-
-    getFallbackIcon(post) {
-        const seed = this.generateSeed(post.title + (post.author?.name || post.author?.username || ''));
-        const icons = ['📝', '✍️', '📰', '📄', '📋', '📑', '📊', '📈', '📉', '📌', '💡', '🔍', '📚', '📖', '📗', '📘', '📙', '📕', '📓', '📔', '🎯', '🚀', '⭐', '💫', '✨', '🌟', '🔥', '💎', '🎨', '🎭'];
-
-        return icons[seed % icons.length];
-    }
-
-    generateSeed(str) {
-        let hash = 0;
-
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-
-            hash = ((hash * 32) - hash) + char;
-            hash = Math.abs(hash);
-        }
-
-        return Math.abs(hash);
     }
 
     renderPagination(pagination) {
@@ -478,6 +426,7 @@ class BlogIndexPage {
             await this.blogService.updatePost(postId, updateData);
 
             const action = newStatus ? 'published' : 'unpublished';
+
             this.showSuccess(`Post ${action} successfully`);
 
             // Reload posts to reflect changes
@@ -551,11 +500,9 @@ class BlogIndexPage {
 
     showDraftSection() {
         const draftSection = document.getElementById('draft-posts');
-        console.log('🔍 BLOG-INDEX: Showing draft section, element found:', !!draftSection);
 
         if (draftSection) {
             draftSection.classList.remove('hidden');
-            console.log('🔍 BLOG-INDEX: Draft section should now be visible');
         } else {
             console.error('🔍 BLOG-INDEX: Draft section element not found!');
         }
@@ -627,8 +574,9 @@ class BlogIndexPage {
 
         for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
+
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
+            hash &= hash;
         }
 
         return Math.abs(hash);

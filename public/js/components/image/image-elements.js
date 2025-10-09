@@ -137,6 +137,7 @@ class ImageElements {
         // Add compact view tags if available
         if (imageData.tags && Array.isArray(imageData.tags) && imageData.tags.length > 0) {
             const tagsOverlay = this.createCompactTagsOverlay(imageData.tags);
+
             wrapper.appendChild(tagsOverlay);
         }
 
@@ -185,6 +186,7 @@ class ImageElements {
      */
     createCompactTagsOverlay(tags) {
         const overlay = this.uiConfig.createElement('div');
+
         overlay.className = 'compact-tags-overlay';
         overlay.style.cssText = `
             position: absolute;
@@ -203,6 +205,7 @@ class ImageElements {
 
         displayTags.forEach(tag => {
             const tagElement = this.uiConfig.createElement('span');
+
             tagElement.textContent = tag;
             tagElement.style.cssText = `
                 display: inline-block;
@@ -233,11 +236,10 @@ class ImageElements {
             });
 
             // Add click handler to filter by tag
-            tagElement.addEventListener('click', (e) => {
+            tagElement.addEventListener('click', e => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                console.log(`🏷️ COMPACT TAG CLICK: Filtering by tag: ${tag}`);
 
                 // Use tag router if available
                 if (window.TagRouter && window.tagRouter) {
@@ -245,6 +247,7 @@ class ImageElements {
                 } else {
                     // Fallback: update URL directly
                     const url = new URL(window.location);
+
                     url.searchParams.set('tag', tag);
                     window.location.href = url.toString();
                 }
@@ -256,6 +259,7 @@ class ImageElements {
         // Add "..." if there are more tags
         if (tags.length > 3) {
             const moreElement = this.uiConfig.createElement('span');
+
             moreElement.textContent = `+${tags.length - 3}`;
             moreElement.style.cssText = `
                 display: inline-block;

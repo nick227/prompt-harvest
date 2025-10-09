@@ -486,11 +486,9 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
                     title: 'Status',
                     sortable: true,
                     width: '100px',
-                    formatter: value => {
-                        return value
-                            ? '<span class="badge badge-danger">Suspended</span>'
-                            : '<span class="badge badge-success">Active</span>';
-                    }
+                    formatter: value => (value
+                        ? '<span class="badge badge-danger">Suspended</span>'
+                        : '<span class="badge badge-success">Active</span>')
                 },
                 {
                     key: 'createdAt',
@@ -508,15 +506,15 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
                             <i class="fas fa-coins"></i>
                         </button>
                         ${!row.isSuspended && !row.isAdmin
-                            ? `<button class="btn btn-sm btn-outline btn-danger" onclick="suspendUser('${row.id}')" title="Suspend User">
+        ? `<button class="btn btn-sm btn-outline btn-danger" onclick="suspendUser('${row.id}')" title="Suspend User">
                                 <i class="fas fa-ban"></i>
                             </button>`
-                            : row.isSuspended
-                                ? `<button class="btn btn-sm btn-outline btn-success" onclick="unsuspendUser('${row.id}')" title="Unsuspend User">
+        : row.isSuspended
+            ? `<button class="btn btn-sm btn-outline btn-success" onclick="unsuspendUser('${row.id}')" title="Unsuspend User">
                                     <i class="fas fa-check"></i>
                                 </button>`
-                                : ''
-                        }
+            : ''
+}
                     `
                 }
             ],
@@ -966,9 +964,11 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
                     width: '80px',
                     formatter: (value, row) => {
                         const max = row.maxRedemptions;
+
                         if (max) {
                             return `${value}/${max}`;
                         }
+
                         return `${value}∞`;
                     }
                 },
@@ -984,6 +984,7 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
                             exhausted: '<span class="badge badge-info">Exhausted</span>',
                             disabled: '<span class="badge badge-danger">Disabled</span>'
                         };
+
                         return statusMap[value] || `<span class="badge badge-secondary">${value}</span>`;
                     }
                 },
@@ -999,6 +1000,7 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
                         const date = new Date(value);
                         const now = new Date();
                         const isExpired = date <= now;
+
                         return `<span class="${isExpired ? 'text-red-400' : 'text-gray-300'}">
                             ${date.toLocaleDateString()}
                         </span>`;
@@ -1144,5 +1146,6 @@ ${row.status === 'completed' ? `<button class="btn btn-sm btn-outline" onclick="
         ]
     }
 };
+
 // Export for use
 window.AdminModels = _AdminModels;

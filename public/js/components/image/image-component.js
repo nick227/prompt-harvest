@@ -11,6 +11,7 @@ class ImageComponent {
             if (typeof window.UnifiedNavigation === 'undefined') {
                 // Retry after a short delay
                 setTimeout(() => this.retryInit(), 100);
+
                 return false;
             } else {
                 this.navigation = new window.UnifiedNavigation();
@@ -27,6 +28,7 @@ class ImageComponent {
 
         // Expose component for backward compatibility with feed system
         window.imageComponent = this;
+
         return true;
     }
 
@@ -54,19 +56,22 @@ class ImageComponent {
             }
             this.navigation = new window.UnifiedNavigation();
         }
+
         return true;
     }
 
     // Setup event delegation for image clicks
     setupEventDelegation() {
         const imageContainer = document.querySelector('.prompt-output');
+
         if (!imageContainer) {
             return;
         }
 
         // Use event delegation for image clicks
-        imageContainer.addEventListener('click', (e) => {
+        imageContainer.addEventListener('click', e => {
             const img = e.target.closest('img[data-id], img[data-image-id]');
+
             if (!img) {
                 return;
             }
@@ -101,6 +106,7 @@ class ImageComponent {
         }
 
         const img = document.createElement('img');
+
         img.src = imageUrl;
         img.alt = imageData.title || 'Generated Image';
         img.className = 'generated-image';
@@ -160,9 +166,11 @@ class ImageComponent {
         }
 
         const wrapper = document.createElement('div');
+
         wrapper.className = 'image-wrapper';
 
         const img = this.createImageElement(imageData);
+
         if (img) {
             wrapper.appendChild(img);
         }
@@ -177,6 +185,7 @@ class ImageComponent {
         }
 
         const wrapper = this.createImageWrapper(imageData);
+
         if (wrapper) {
             container.appendChild(wrapper);
         }
@@ -191,8 +200,10 @@ class ImageComponent {
         }
 
         const renderedImages = [];
+
         images.forEach(imageData => {
             const rendered = this.renderImage(imageData, container);
+
             if (rendered) {
                 renderedImages.push(rendered);
             }
@@ -209,6 +220,7 @@ class ImageComponent {
 
         // Find the image element in DOM
         const img = document.querySelector(`img[data-id="${imageData.id}"], img[data-image-id="${imageData.id}"]`);
+
         if (img) {
             this.navigation.openFullscreen(img);
         }
@@ -256,10 +268,12 @@ if (typeof window !== 'undefined') {
         // Try to initialize, but don't fail if dependencies aren't ready
         try {
             const success = window.imageComponent.init();
+
             if (!success) {
+                console.warn('Image component initialization returned false');
             }
         } catch (error) {
-            // Initialization failed
+            // Initialization failed - silently continue
         }
     }
 }

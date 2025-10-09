@@ -145,10 +145,11 @@ class ThemePreview {
     setupEventListeners() {
         // Close button
         const closeBtn = this.previewContainer.querySelector('#close-preview');
+
         closeBtn.addEventListener('click', () => this.hidePreview());
 
         // Click outside to close
-        this.previewContainer.addEventListener('click', (e) => {
+        this.previewContainer.addEventListener('click', e => {
             if (e.target === this.previewContainer) {
                 this.hidePreview();
             }
@@ -156,9 +157,11 @@ class ThemePreview {
 
         // Theme selection
         const themeItems = this.previewContainer.querySelectorAll('.theme-preview-item');
+
         themeItems.forEach(item => {
             item.addEventListener('click', () => {
                 const themeId = item.dataset.theme;
+
                 if (window.themeService) {
                     window.themeService.applyTheme(themeId);
                 }
@@ -167,12 +170,13 @@ class ThemePreview {
         });
 
         // ESC key to close
-        const handleEsc = (e) => {
+        const handleEsc = e => {
             if (e.key === 'Escape') {
                 this.hidePreview();
                 document.removeEventListener('keydown', handleEsc);
             }
         };
+
         document.addEventListener('keydown', handleEsc);
     }
 
@@ -181,9 +185,11 @@ class ThemePreview {
      */
     createPreviewButton() {
         const button = document.createElement('button');
+
         button.innerHTML = '👁️ Preview Themes';
         button.className = 'text-xs text-gray-400 hover:text-purple-400 transition-colors cursor-pointer';
         button.addEventListener('click', () => this.showPreview());
+
         return button;
     }
 
@@ -193,10 +199,13 @@ class ThemePreview {
     addPreviewButtons() {
         // Add to desktop theme section
         const desktopThemeSection = document.querySelector('#theme-select')?.parentElement?.parentElement;
+
         if (desktopThemeSection) {
             const existingButton = desktopThemeSection.querySelector('.theme-preview-btn');
+
             if (!existingButton) {
                 const previewBtn = this.createPreviewButton();
+
                 previewBtn.className += ' theme-preview-btn';
                 desktopThemeSection.appendChild(previewBtn);
             }
@@ -204,10 +213,13 @@ class ThemePreview {
 
         // Add to mobile theme section
         const mobileThemeSection = document.querySelector('#mobile-theme-select')?.parentElement?.parentElement;
+
         if (mobileThemeSection) {
             const existingButton = mobileThemeSection.querySelector('.theme-preview-btn');
+
             if (!existingButton) {
                 const previewBtn = this.createPreviewButton();
+
                 previewBtn.className += ' theme-preview-btn';
                 mobileThemeSection.appendChild(previewBtn);
             }
@@ -224,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.location.search.includes('preview=true') || window.location.hash.includes('preview')) {
             window.themePreview = new ThemePreview();
             window.themePreview.addPreviewButtons();
-            console.log('🎨 Theme preview available - click "Preview Themes" to see all themes');
         }
     }, 1000);
 });

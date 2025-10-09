@@ -38,11 +38,11 @@ class AdminDashboardManager {
         }
 
         try {
-            console.log('🎛️ ADMIN-DASHBOARD: Initializing dashboard manager...');
 
             // Check authentication before initializing
             if (!window.AdminAuthUtils?.hasValidToken()) {
                 console.warn('🔐 ADMIN-DASHBOARD: No valid token, skipping dashboard manager initialization');
+
                 return;
             }
 
@@ -76,7 +76,6 @@ class AdminDashboardManager {
             this.renderDashboard();
 
             // Ensure packages tab is rendered for package handler
-            console.log('🎛️ ADMIN-DASHBOARD: Rendering packages tab for package handler...');
             this.uiRenderer.renderPackagesTab();
 
             // Set up global admin app object for other components
@@ -95,7 +94,6 @@ class AdminDashboardManager {
             window.adminApiService = this.apiService;
 
             this.isInitialized = true;
-            console.log('✅ ADMIN-DASHBOARD: Dashboard manager initialized successfully');
 
         } catch (error) {
             console.error('❌ ADMIN-DASHBOARD: Initialization failed:', error);
@@ -121,14 +119,13 @@ class AdminDashboardManager {
         this.eventBus.on('refresh-queue', this.loadQueueStatus.bind(this));
 
         // Router-initiated tab switches
-        window.addEventListener('admin-tab-switch', (e) => {
+        window.addEventListener('admin-tab-switch', e => {
             this.handleRouterTabSwitch(e.detail.tab);
         });
     }
 
     async loadSiteSnapshot() {
         try {
-            console.log('📊 ADMIN-DASHBOARD: Loading site snapshot...');
 
             if (!this.snapshotService) {
                 throw new Error('Snapshot service not initialized');
@@ -143,7 +140,6 @@ class AdminDashboardManager {
                 if (this.eventBus) {
                     this.eventBus.emit('snapshot-loaded', snapshotData);
                 }
-                console.log('✅ ADMIN-DASHBOARD: Site snapshot loaded successfully');
             }
 
         } catch (error) {
@@ -156,14 +152,11 @@ class AdminDashboardManager {
 
     async handleTabSwitch(eventData) {
         const tabName = eventData.tab;
-        console.log(`🔄 ADMIN-DASHBOARD: handleTabSwitch called with tab: ${tabName}`);
 
         if (this.currentTab === tabName) {
-            console.log(`🔄 ADMIN-DASHBOARD: Already on tab ${tabName}, skipping`);
             return;
         }
 
-        console.log(`🔄 ADMIN-DASHBOARD: Switching to tab: ${tabName}`);
 
         this.currentTab = tabName;
 
@@ -185,10 +178,8 @@ class AdminDashboardManager {
      * Handle tab switch initiated by router (URL changes)
      */
     async handleRouterTabSwitch(tabName) {
-        console.log(`🔗 ADMIN-DASHBOARD: Router-initiated tab switch to: ${tabName}`);
 
         if (this.currentTab === tabName) {
-            console.log(`🔗 ADMIN-DASHBOARD: Already on tab ${tabName}, skipping`);
             return;
         }
 
@@ -216,6 +207,7 @@ class AdminDashboardManager {
             btn.classList.remove('active');
         });
         const tabButton = document.querySelector(`[data-tab="${tabName}"]`);
+
         if (tabButton) {
             tabButton.classList.add('active');
         }
@@ -225,6 +217,7 @@ class AdminDashboardManager {
             panel.classList.remove('active');
         });
         const tabPanel = document.getElementById(`${tabName}-tab`);
+
         if (tabPanel) {
             tabPanel.classList.add('active');
         }
@@ -232,7 +225,6 @@ class AdminDashboardManager {
 
     async loadHistoryData(historyType) {
         try {
-            console.log(`📋 ADMIN-DASHBOARD: Loading ${historyType} history...`);
 
             if (!this.historyManager) {
                 throw new Error('History manager not initialized');
@@ -247,7 +239,6 @@ class AdminDashboardManager {
                 if (this.eventBus) {
                     this.eventBus.emit('history-loaded', { type: historyType, data: historyData });
                 }
-                console.log(`✅ ADMIN-DASHBOARD: ${historyType} history loaded successfully`);
             }
 
         } catch (error) {
@@ -311,7 +302,6 @@ class AdminDashboardManager {
      * Render the queue monitoring tab
      */
     renderQueueMonitorTab() {
-        console.log('🚀 ADMIN-DASHBOARD: Rendering queue monitoring tab...');
 
         // Initialize the queue monitor if not already done
         if (!this.queueMonitor) {
@@ -324,11 +314,9 @@ class AdminDashboardManager {
 
     async handleTableAction(actionData) {
         try {
-            console.log('🔧 ADMIN-DASHBOARD: Handling table action:', actionData);
 
             // Don't handle create-package actions - let AdminPackageManager handle them
             if (actionData.action === 'create-package') {
-                console.log('🔧 ADMIN-DASHBOARD: Skipping create-package action - handled by AdminPackageManager');
                 return;
             }
 
@@ -367,7 +355,6 @@ class AdminDashboardManager {
 
     async loadQueueStatus() {
         try {
-            console.log('📊 ADMIN-DASHBOARD: Loading queue status...');
 
             if (!this.queueService) {
                 throw new Error('Queue service not initialized');
@@ -383,6 +370,7 @@ class AdminDashboardManager {
             // Update UI if summary tab is currently active
             if (this.currentTab === 'summary' && window.AdminSummaryRenderer) {
                 const summaryRenderer = new window.AdminSummaryRenderer();
+
                 summaryRenderer.updateSummaryQueueStatus(queueData);
             }
 
@@ -390,7 +378,6 @@ class AdminDashboardManager {
                 this.eventBus.emit('queue-loaded', queueData);
             }
 
-            console.log('✅ ADMIN-DASHBOARD: Queue status loaded successfully');
 
         } catch (error) {
             console.error('❌ ADMIN-DASHBOARD: Failed to load queue status:', error);
@@ -408,7 +395,6 @@ class AdminDashboardManager {
 
 
     async refreshAll() {
-        console.log('🔄 ADMIN-DASHBOARD: Refreshing all data...');
 
         // Refresh snapshot
         await this.loadSiteSnapshot();
@@ -437,7 +423,6 @@ class AdminDashboardManager {
         }
 
         this.isInitialized = false;
-        console.log('🗑️ ADMIN-DASHBOARD: Dashboard manager destroyed');
     }
 }
 

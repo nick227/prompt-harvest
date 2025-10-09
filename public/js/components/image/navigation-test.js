@@ -8,11 +8,11 @@ class NavigationTest {
 
     // Test basic navigation functionality
     testNavigation() {
-        console.log('🧪 Testing Unified Navigation System...');
 
         // Test 1: Check if UnifiedNavigation is available
         if (typeof window.UnifiedNavigation === 'undefined') {
             this.addResult('❌ UnifiedNavigation not available', false);
+
             return false;
         }
         this.addResult('✅ UnifiedNavigation available', true);
@@ -20,22 +20,27 @@ class NavigationTest {
         // Test 2: Create navigation instance
         try {
             const navigation = new window.UnifiedNavigation();
+
             this.addResult('✅ Navigation instance created', true);
         } catch (error) {
-            this.addResult('❌ Failed to create navigation instance: ' + error.message, false);
+            this.addResult(`❌ Failed to create navigation instance: ${error.message}`, false);
+
             return false;
         }
 
         // Test 3: Check if image container exists
         const container = document.querySelector('.prompt-output');
+
         if (!container) {
             this.addResult('❌ Image container not found', false);
+
             return false;
         }
         this.addResult('✅ Image container found', true);
 
         // Test 4: Check if images exist
         const images = container.querySelectorAll('img[data-id], img[data-image-id]');
+
         if (images.length === 0) {
             this.addResult('⚠️ No images found for testing', true);
         } else {
@@ -47,13 +52,13 @@ class NavigationTest {
 
     // Test circular navigation logic
     testCircularNavigation() {
-        console.log('🧪 Testing Circular Navigation Logic...');
 
         const navigation = new window.UnifiedNavigation();
         const images = navigation.getAllVisibleImageElements();
 
         if (images.length === 0) {
             this.addResult('⚠️ No images to test circular navigation', true);
+
             return true;
         }
 
@@ -90,12 +95,10 @@ class NavigationTest {
     // Add test result
     addResult(message, success) {
         this.testResults.push({ message, success });
-        console.log(message);
     }
 
     // Run all tests
     runAllTests() {
-        console.log('🚀 Starting Navigation System Tests...');
 
         this.testNavigation();
         this.testCircularNavigation();
@@ -103,12 +106,10 @@ class NavigationTest {
         const passed = this.testResults.filter(r => r.success).length;
         const total = this.testResults.length;
 
-        console.log(`\n📊 Test Results: ${passed}/${total} tests passed`);
-
         if (passed === total) {
-            console.log('🎉 All navigation tests passed!');
+            console.log('✅ All navigation tests passed');
         } else {
-            console.log('⚠️ Some navigation tests failed');
+            console.warn(`⚠️ ${total - passed} navigation tests failed`);
         }
 
         return passed === total;
@@ -123,6 +124,7 @@ if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             const tester = new NavigationTest();
+
             tester.runAllTests();
         }, 1000);
     });

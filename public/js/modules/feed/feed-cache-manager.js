@@ -24,12 +24,14 @@ class FeedCacheManager {
         if (tags.length > 0) {
             return `${filter}-tags-${tags.join(',')}`;
         }
+
         return filter;
     }
 
     // Get cache for specific filter and tags
     getCache(filter, tags = []) {
         const key = this.getCacheKey(filter, tags);
+
         return this.cache[key] || null;
     }
 
@@ -97,6 +99,7 @@ class FeedCacheManager {
     // Add images to cache
     addImagesToCache(filter, images, tags = []) {
         const key = this.getCacheKey(filter, tags);
+
         if (this.cache[key]) {
             // Get existing image IDs to prevent duplicates
             const existingIds = new Set(this.cache[key].images.map(img => img.id));
@@ -104,7 +107,6 @@ class FeedCacheManager {
             // Filter out duplicate images
             const newImages = images.filter(image => {
                 if (existingIds.has(image.id)) {
-                    console.log('🚫 CACHE: Skipping duplicate image:', image.id);
 
                     return false;
                 }
@@ -156,6 +158,7 @@ class FeedCacheManager {
     // Update pagination info
     updatePagination(filter, page, hasMore, tags = []) {
         const key = this.getCacheKey(filter, tags);
+
         if (this.cache[key]) {
             this.cache[key].currentPage = page;
             this.cache[key].hasMore = hasMore;
@@ -165,19 +168,19 @@ class FeedCacheManager {
     // Invalidate cache (alias for clearAllCaches for backward compatibility)
     invalidateCache() {
         this.clearAllCaches();
-        console.log('🔄 CACHE: All caches invalidated');
     }
 
     // Update a specific image in all caches
     updateImageInCache(imageId, updates) {
         Object.keys(this.cache).forEach(filter => {
             const cache = this.cache[filter];
+
             if (cache && cache.images) {
                 const imageIndex = cache.images.findIndex(img => img.id === imageId);
+
                 if (imageIndex !== -1) {
                     // Update the image with new data
                     cache.images[imageIndex] = { ...cache.images[imageIndex], ...updates };
-                    console.log(`🔄 CACHE: Updated image ${imageId} in ${filter} cache:`, updates);
                 }
             }
         });

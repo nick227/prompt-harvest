@@ -116,9 +116,11 @@ class BillingDataManager {
     setImageHistoryPagination(pagination) {
         this.state.imageHistoryPagination = pagination;
     }
+
     getImageHistoryPagination() {
         return this.state.imageHistoryPagination || { page: 0, limit: 20, hasMore: false, totalCount: 0 };
     }
+
     updateImageHistoryPagination(updates) {
         this.state.imageHistoryPagination = { ...this.getImageHistoryPagination(), ...updates };
     }

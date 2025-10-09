@@ -110,8 +110,6 @@ class AdminSharedTable {
     }
 
     init() {
-        console.log('📊 ADMIN-SHARED-TABLE: Initializing shared table component...');
-        console.log('✅ ADMIN-SHARED-TABLE: Shared table component initialized');
     }
 
     /**
@@ -157,7 +155,6 @@ class AdminSharedTable {
             // Apply initial data
             this.applyData();
 
-            console.log(`✅ ADMIN-SHARED-TABLE: Table rendered for ${dataType}`);
 
         } catch (error) {
             console.error(`❌ ADMIN-SHARED-TABLE: Failed to render table for ${dataType}:`, error);
@@ -410,7 +407,6 @@ class AdminSharedTable {
         // Apply sorting
         this.applyData();
 
-        console.log(`📊 ADMIN-SHARED-TABLE: Sorting by ${field} ${newDirection || 'none'}`);
     }
 
     handleFilter() {
@@ -430,7 +426,6 @@ class AdminSharedTable {
         this.currentPage = 1; // Reset to first page when filtering
         this.applyData();
 
-        console.log('🔍 ADMIN-SHARED-TABLE: Filters applied:', this.currentFilters);
     }
 
     clearFilters() {
@@ -444,7 +439,6 @@ class AdminSharedTable {
         this.currentPage = 1;
         this.applyData();
 
-        console.log('🗑️ ADMIN-SHARED-TABLE: Filters cleared');
     }
 
     updateSortUI() {
@@ -730,8 +724,6 @@ class AdminSharedTable {
     }
 
     handleAddButtonClick(action) {
-        console.log(`🔧 ADMIN-SHARED-TABLE: Add button clicked with action: ${action}`);
-        console.log(`🔧 ADMIN-SHARED-TABLE: Current dataType: ${this.dataType}`);
 
         // Dispatch the admin-table-action event for add button clicks
         const eventDetail = {
@@ -740,7 +732,6 @@ class AdminSharedTable {
             id: null
         };
 
-        console.log('🔧 ADMIN-SHARED-TABLE: Dispatching admin-table-action event:', eventDetail);
 
         window.dispatchEvent(new CustomEvent('admin-table-action', {
             detail: eventDetail
@@ -748,7 +739,6 @@ class AdminSharedTable {
     }
 
     handleAction(action, id) {
-        console.log(`🔧 ADMIN-SHARED-TABLE: ${action} action on ${this.dataType} item ${id}`);
 
         // Handle user-specific actions directly
         if (this.dataType === 'users') {
@@ -1022,7 +1012,6 @@ class AdminSharedTable {
         if (this.container) {
             this.container.innerHTML = '';
         }
-        console.log('🗑️ ADMIN-SHARED-TABLE: Shared table component destroyed');
     }
 }
 

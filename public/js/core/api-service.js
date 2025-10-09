@@ -48,12 +48,12 @@ class ApiService {
             headers['Authorization'] = `Bearer ${token}`;
             // Only log auth headers when debugging
             if (window.location.search.includes('debug')) {
-                console.log('🔑 API: Adding auth header with token:', `${token.substring(0, 20)}...`);
+                console.log('Auth headers set');
             }
         } else {
             // Only log auth token status in debug mode
             if (window.location.search.includes('debug')) {
-                console.log('🔑 API: No auth token found in storage');
+                console.log('No auth token available');
             }
         }
 
@@ -224,7 +224,6 @@ class ApiService {
             if (safeHeaders.Authorization) {
                 safeHeaders.Authorization = `${safeHeaders.Authorization.substring(0, 20)}...`;
             }
-            console.log('🔑 API: Request headers for', endpoint, ':', safeHeaders);
         }
 
         const requestOptions = this.buildRequestOptions(method, headers, data, options);
@@ -295,18 +294,14 @@ class ApiService {
     }
 
     handleAuthenticationError(url) {
-        console.log('🔑 API: 401 Unauthorized - clearing auth token');
 
         const isProfileEndpoint = url.includes('/api/auth/profile');
 
         if (isProfileEndpoint) {
-            console.log('🔑 API: Profile endpoint 401 - this might be a backend issue, not clearing token yet');
             if (this.profile401Count && this.profile401Count > 1) {
-                console.log('🔑 API: Multiple profile 401s - clearing token');
                 this.clearAuthToken();
             } else {
                 this.profile401Count = (this.profile401Count || 0) + 1;
-                console.log('🔑 API: Profile 401 count:', this.profile401Count);
             }
         } else {
             this.clearAuthToken();
@@ -410,7 +405,6 @@ class UserApiService extends ApiService {
      * Login user
      */
     async login(email, password) {
-        console.log('🌐 API: login() called');
 
         // Client-side validation
         if (!email || !password) {
@@ -421,10 +415,8 @@ class UserApiService extends ApiService {
             throw new Error('Please enter a valid email address');
         }
 
-        console.log('🌐 API: Sending login request to /api/auth/login');
         const data = await this.post('/api/auth/login', { email, password });
 
-        console.log('🌐 API: Login response received', data);
 
         // Store token from the correct location in response
         const token = data.data?.token || data.token;
@@ -571,7 +563,6 @@ class ImageApiService extends ApiService {
             throw new Error('Image ID is required');
         }
 
-        console.log('🔍 API-SERVICE: Getting image by ID:', id);
         const result = await this.get(`/api/images/${id}`);
 
         console.log('🔍 API-SERVICE: Image API response:', {

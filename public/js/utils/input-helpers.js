@@ -42,8 +42,9 @@ function preventInvalidChars(event) {
     }
 
     // Only allow digits 0-9
-    if (!/[0-9]/.test(char)) {
+    if (!(/[0-9]/).test(char)) {
         event.preventDefault();
+
         return false;
     }
 }

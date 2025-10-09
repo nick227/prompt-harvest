@@ -3,9 +3,9 @@
  * Single Responsibility: Render UI components and handle DOM updates
  */
 
-/* global AdminSharedTable, AdminPromoCodeModal,
-   AdminSummaryRenderer, AdminImageManager, AdminPackageManager,
-   AdminEventHandler, SystemSettingsManager */
+// Globals: AdminSharedTable, AdminPromoCodeModal,
+// AdminSummaryRenderer, AdminImageManager, AdminPackageManager,
+// AdminEventHandler, SystemSettingsManager (defined in .eslintrc.json)
 
 class AdminUIRenderer {
     constructor() {
@@ -33,12 +33,10 @@ class AdminUIRenderer {
     }
 
     init() {
-        console.log('🎨 ADMIN-UI: Initializing UI renderer...');
 
         // Initialize shared table
         this.sharedTable.init();
 
-        console.log('✅ ADMIN-UI: UI renderer initialized');
     }
 
     renderDashboard(snapshotData) {
@@ -51,9 +49,7 @@ class AdminUIRenderer {
         }
 
         try {
-            console.log('🎨 ADMIN-UI: Rendering dashboard with snapshot data:', snapshotData);
             dashboardElement.innerHTML = this.summaryRenderer.generateDashboardHTML();
-            console.log('🎨 ADMIN-UI: Dashboard HTML inserted into DOM');
 
             // Check if router has a specific tab to show
             const currentTab = window.adminRouter ? window.adminRouter.getCurrentTab() : 'summary';
@@ -77,7 +73,6 @@ class AdminUIRenderer {
 
 
     renderSummaryTab(snapshotData) {
-        console.log('🎨 ADMIN-UI: Rendering summary tab with data:', snapshotData);
         const summaryTab = document.getElementById('summary-tab');
 
         if (!summaryTab) {
@@ -85,7 +80,6 @@ class AdminUIRenderer {
 
             return;
         }
-        console.log('🎨 ADMIN-UI: Summary tab element found:', summaryTab);
 
         if (!snapshotData) {
             console.warn('⚠️ ADMIN-UI: No snapshot data available, showing loading state');
@@ -283,7 +277,6 @@ class AdminUIRenderer {
         await this.loadPackagesData();
 
         if (window.adminApp && window.adminApp.packageHandler) {
-            console.log('📦 ADMIN-UI: Triggering package handler to load packages');
             await window.adminApp.packageHandler.loadPackages();
         } else {
             console.warn('⚠️ ADMIN-UI: Package handler not available');
@@ -476,7 +469,6 @@ class AdminUIRenderer {
         if (window.AdminMessaging) {
             try {
                 window.adminMessaging = new window.AdminMessaging();
-                console.log('✅ ADMIN-UI: AdminMessaging component initialized successfully');
             } catch (error) {
                 console.error('❌ ADMIN-UI: Failed to initialize AdminMessaging:', error);
             }
@@ -494,7 +486,6 @@ class AdminUIRenderer {
             if (window.AdminMessaging) {
                 try {
                     window.adminMessaging = new window.AdminMessaging();
-                    console.log('✅ ADMIN-UI: AdminMessaging component initialized on retry');
                 } catch (error) {
                     console.error('❌ ADMIN-UI: Failed to initialize AdminMessaging on retry:', error);
                 }
@@ -506,7 +497,6 @@ class AdminUIRenderer {
         try {
             // Always let the package handler manage the packages display
             // The package handler will handle loading and rendering
-            console.log('📦 ADMIN-UI: Delegating package loading to package handler');
 
             return;
         } catch (error) {
@@ -524,6 +514,7 @@ class AdminUIRenderer {
             if (data.success) {
                 // Use shared table system for models
                 const tableContainer = document.getElementById('models-table-container');
+
                 if (tableContainer && this.sharedTable) {
                     this.sharedTable.render('models', data.data.models, tableContainer, {
                         addButton: {
@@ -566,6 +557,7 @@ class AdminUIRenderer {
             if (data.success) {
                 // Use shared table system for promo cards
                 const tableContainer = document.getElementById('promo-cards-table-container');
+
                 if (tableContainer && this.sharedTable) {
                     this.sharedTable.render('promo-cards', data.data.items || [], tableContainer, {
                         addButton: {
@@ -595,6 +587,7 @@ class AdminUIRenderer {
             if (data.success) {
                 // Use shared table system for providers
                 const tableContainer = document.getElementById('providers-table-container');
+
                 if (tableContainer && this.sharedTable) {
                     this.sharedTable.render('providers', data.data.providers, tableContainer, {
                         addButton: {
@@ -645,9 +638,6 @@ class AdminUIRenderer {
     }
 
     showPromoCardModal(promoCardId = null) {
-        console.log('🎭 ADMIN-UI: showPromoCardModal called with promoCardId:', promoCardId);
-        console.log('🎭 ADMIN-UI: promoCodeModal available:', !!this.promoCodeModal);
-        console.log('🎭 ADMIN-UI: promoCodeModal.show method available:', !!(this.promoCodeModal && this.promoCodeModal.show));
 
         if (this.promoCodeModal && this.promoCodeModal.show) {
             this.promoCodeModal.show(promoCardId);
@@ -689,7 +679,6 @@ class AdminUIRenderer {
         try {
             if (this.summaryRenderer && this.summaryRenderer.updateQueueStatus) {
                 this.summaryRenderer.updateQueueStatus(queueData);
-                console.log('✅ ADMIN-UI: Queue display updated successfully');
             } else {
                 console.warn('⚠️ ADMIN-UI: Summary renderer not available for queue update');
             }
@@ -709,7 +698,6 @@ class AdminUIRenderer {
 
             window.adminTermsManager = null;
         }
-        console.log('🗑️ ADMIN-UI: UI renderer destroyed');
     }
 
     /**

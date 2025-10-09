@@ -119,10 +119,8 @@ class UnifiedCreditService {
 
         // Debug authentication for balance requests
         if (endpoint === '/balance') {
-            console.log('🔐 UNIFIED-CREDIT: Making balance request with headers:', headers);
             const token = this.getAuthToken();
 
-            console.log('🔐 UNIFIED-CREDIT: Token available:', !!token, token ? `${token.substring(0, 20)}...` : 'null');
         }
 
         const config = {
@@ -453,12 +451,10 @@ class UnifiedCreditService {
             const now = Math.floor(Date.now() / 1000);
 
             if (payload.exp && payload.exp < now) {
-                console.log('🔐 UNIFIED-CREDIT: Token expired, not authenticated');
 
                 return false;
             }
         } catch (error) {
-            console.log('🔐 UNIFIED-CREDIT: Invalid token format, not authenticated');
 
             return false;
         }

@@ -63,6 +63,7 @@ class BlogPostViewPage {
         } else {
             // Fallback to query parameters for backward compatibility
             const urlParams = new URLSearchParams(window.location.search);
+
             this.postSlug = urlParams.get('slug');
             this.postId = urlParams.get('id');
         }
@@ -77,6 +78,7 @@ class BlogPostViewPage {
             }
 
             let post;
+
             if (this.postSlug) {
                 post = await this.blogService.getPostBySlug(this.postSlug);
             } else if (this.postId) {
@@ -111,26 +113,32 @@ class BlogPostViewPage {
 
         // Update post title
         const postTitle = document.getElementById('post-title');
-        if (postTitle) postTitle.textContent = post.title;
+
+        if (postTitle) { postTitle.textContent = post.title; }
 
         // Update post author
         const postAuthor = document.getElementById('post-author');
-        if (postAuthor) postAuthor.textContent = post.author?.name || post.author?.username || 'Unknown';
+
+        if (postAuthor) { postAuthor.textContent = post.author?.name || post.author?.username || 'Unknown'; }
 
         // Update post date
         const postDate = document.getElementById('post-date');
-        if (postDate) postDate.textContent = formattedPost.formattedDate;
+
+        if (postDate) { postDate.textContent = formattedPost.formattedDate; }
 
         // Update view count
         const viewCount = document.getElementById('view-count');
-        if (viewCount) viewCount.textContent = post.viewCount || 0;
+
+        if (viewCount) { viewCount.textContent = post.viewCount || 0; }
 
         // Update author name in footer
         const authorName = document.getElementById('author-name');
-        if (authorName) authorName.textContent = post.author?.name || post.author?.username || 'Unknown';
+
+        if (authorName) { authorName.textContent = post.author?.name || post.author?.username || 'Unknown'; }
 
         // Update last updated
         const lastUpdated = document.getElementById('last-updated');
+
         if (lastUpdated) {
             lastUpdated.textContent = `Updated ${this.blogService.formatDateTime(post.updatedAt)}`;
         }
@@ -146,7 +154,8 @@ class BlogPostViewPage {
 
         // Show post details
         const postDetails = document.getElementById('post-details');
-        if (postDetails) postDetails.classList.remove('hidden');
+
+        if (postDetails) { postDetails.classList.remove('hidden'); }
 
         if (this.uiUtils) {
             this.uiUtils.hideLoading();
@@ -157,7 +166,8 @@ class BlogPostViewPage {
 
     renderThumbnail(thumbnail) {
         const thumbnailContainer = document.getElementById('post-thumbnail');
-        if (!thumbnailContainer) return;
+
+        if (!thumbnailContainer) { return; }
 
         if (thumbnail) {
             // Show actual thumbnail with fallback
@@ -198,7 +208,7 @@ class BlogPostViewPage {
     }
 
     getFallbackGradient(post) {
-        if (!post) return 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 50%, #1E40AF 100%)';
+        if (!post) { return 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 50%, #1E40AF 100%)'; }
 
         const seed = this.generateSeed(post.title + (post.author?.name || post.author?.username || ''));
         const palettes = [
@@ -213,53 +223,61 @@ class BlogPostViewPage {
         ];
 
         const palette = palettes[seed % palettes.length];
+
         return `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 50%, ${palette[2]} 100%)`;
     }
 
     getFallbackIcon(post) {
-        if (!post) return '📝';
+        if (!post) { return '📝'; }
 
         const seed = this.generateSeed(post.title + (post.author?.name || post.author?.username || ''));
         const icons = ['📝', '✍️', '📰', '📄', '📋', '📑', '📊', '📈', '📉', '📌', '💡', '🔍', '📚', '📖', '📗', '📘', '📙', '📕', '📓', '📔', '🎯', '🚀', '⭐', '💫', '✨', '🌟', '🔥', '💎', '🎨', '🎭'];
+
         return icons[seed % icons.length];
     }
 
     generateSeed(str) {
         let hash = 0;
+
         for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
+
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
+            hash &= hash;
         }
+
         return Math.abs(hash);
     }
 
     renderTags(tags) {
         const tagsContainer = document.getElementById('post-tags');
-        if (!tagsContainer || !tags.length) return;
 
-        tagsContainer.innerHTML = tags.map(tag =>
-            `<span class="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-sm">${tag}</span>`
+        if (!tagsContainer || !tags.length) { return; }
+
+        tagsContainer.innerHTML = tags.map(tag => `<span class="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-sm">${tag}</span>`
         ).join('');
     }
 
     renderPostContent(content) {
         const postBody = document.getElementById('post-body');
-        if (!postBody) return;
+
+        if (!postBody) { return; }
 
         // Use MediaRenderer for rich content with embedded media
         if (window.MediaRenderer) {
             const mediaRenderer = new MediaRenderer();
+
             mediaRenderer.renderContent(content, 'post-body');
         } else {
             // Fallback to basic text rendering
             const htmlContent = this.convertContentToHtml(content);
+
             postBody.innerHTML = htmlContent;
         }
     }
 
     convertContentToHtml(content) {
-        if (!content) return '';
+        if (!content) { return ''; }
 
         // Basic markdown-like conversion
         return content
@@ -280,6 +298,7 @@ class BlogPostViewPage {
         } else {
             // Fallback to direct DOM manipulation
             const adminActions = document.getElementById('admin-actions');
+
             if (adminActions) {
                 if (isAdmin) {
                     adminActions.classList.remove('hidden');
@@ -293,6 +312,7 @@ class BlogPostViewPage {
     setupEventListeners() {
         // Edit post button
         const editBtn = document.getElementById('edit-post-btn');
+
         if (editBtn) {
             editBtn.addEventListener('click', () => {
                 this.editPost();
@@ -301,6 +321,7 @@ class BlogPostViewPage {
 
         // Delete post button
         const deleteBtn = document.getElementById('delete-post-btn');
+
         if (deleteBtn) {
             deleteBtn.addEventListener('click', () => {
                 this.showDeleteModal();
@@ -314,7 +335,7 @@ class BlogPostViewPage {
 
         if (cancelDelete) {
             cancelDelete.addEventListener('click', () => {
-                if (deleteModal) deleteModal.classList.add('hidden');
+                if (deleteModal) { deleteModal.classList.add('hidden'); }
             });
         }
 
@@ -326,7 +347,7 @@ class BlogPostViewPage {
     }
 
     editPost() {
-        if (!this.postSlug && !this.postId) return;
+        if (!this.postSlug && !this.postId) { return; }
 
         const editUrl = this.postSlug
             ? `/blog/${this.postSlug}/edit`
@@ -337,6 +358,7 @@ class BlogPostViewPage {
 
     showDeleteModal() {
         const deleteModal = document.getElementById('delete-modal');
+
         if (deleteModal) {
             deleteModal.classList.remove('hidden');
         }
@@ -351,6 +373,7 @@ class BlogPostViewPage {
                 } else {
                     this.showError('Only administrators can delete blog posts.');
                 }
+
                 return;
             }
 
@@ -361,6 +384,7 @@ class BlogPostViewPage {
                 } else {
                     this.showError('Cannot delete post: Post ID not found.');
                 }
+
                 return;
             }
 
@@ -392,21 +416,24 @@ class BlogPostViewPage {
         const postDetails = document.getElementById('post-details');
         const error = document.getElementById('error');
 
-        if (loading) loading.classList.remove('hidden');
-        if (postDetails) postDetails.classList.add('hidden');
-        if (error) error.classList.add('hidden');
+        if (loading) { loading.classList.remove('hidden'); }
+        if (postDetails) { postDetails.classList.add('hidden'); }
+        if (error) { error.classList.add('hidden'); }
     }
 
     hideLoading() {
         const loading = document.getElementById('loading');
-        if (loading) loading.classList.add('hidden');
+
+        if (loading) { loading.classList.add('hidden'); }
     }
 
     showDraftStatus() {
         // Add draft status banner
         const postDetails = document.getElementById('post-details');
+
         if (postDetails) {
             const draftBanner = document.createElement('div');
+
             draftBanner.className = 'bg-yellow-600 text-white px-4 py-2 rounded-lg mb-6 flex items-center';
             draftBanner.innerHTML = `
                 <i class="fas fa-edit mr-2"></i>
@@ -421,18 +448,20 @@ class BlogPostViewPage {
         const postDetails = document.getElementById('post-details');
         const error = document.getElementById('error');
 
-        if (loading) loading.classList.add('hidden');
-        if (postDetails) postDetails.classList.add('hidden');
+        if (loading) { loading.classList.add('hidden'); }
+        if (postDetails) { postDetails.classList.add('hidden'); }
         if (error) {
             error.classList.remove('hidden');
             const errorText = error.querySelector('p');
-            if (errorText) errorText.textContent = message;
+
+            if (errorText) { errorText.textContent = message; }
         }
     }
 
     showSuccess(message) {
         // Create a temporary success message
         const successDiv = document.createElement('div');
+
         successDiv.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
         successDiv.innerHTML = `
             <div class="flex items-center">

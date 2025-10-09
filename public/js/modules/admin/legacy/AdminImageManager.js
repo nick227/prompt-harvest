@@ -49,9 +49,11 @@ class AdminImageManager {
                         <p><strong>User:</strong> ${image.user?.email || 'Unknown'}</p>
                         <p><strong>Model:</strong> ${image.model || 'N/A'}</p>
                         <p><strong>Size:</strong> ${image.width}x${image.height}</p>
-                        ${image.tags && image.tags.length > 0 ? `
+                        ${image.tags && image.tags.length > 0
+        ? `
                             <p><strong>Tags:</strong> ${image.tags.join(', ')}</p>
-                        ` : ''}
+                        `
+        : ''}
                         ${image.likes ? `<p><strong>Likes:</strong> ${image.likes}</p>` : ''}
                     </div>
                 </div>
@@ -76,20 +78,18 @@ class AdminImageManager {
         try {
             // For demo purposes, simulate the toggle functionality
             // In a real implementation, this would make an API call
-            console.log(`🔄 ADMIN-IMAGE: Toggling visibility for image ${imageId}`);
 
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // Show success notification
-            AdminUtils.showNotification(`Image visibility toggled successfully`, 'success');
+            AdminUtils.showNotification('Image visibility toggled successfully', 'success');
 
             // Refresh the images table
             if (window.adminApp?.dashboardManager) {
                 await window.adminApp.dashboardManager.handleHistoryRefresh('images');
             }
 
-            console.log('✅ ADMIN-IMAGE: Image visibility toggled successfully');
         } catch (error) {
             console.error('❌ ADMIN-IMAGE: Error toggling image visibility:', error);
             AdminUtils.showNotification(`Failed to toggle image visibility: ${error.message}`, 'error');
@@ -103,20 +103,18 @@ class AdminImageManager {
 
         try {
             // For demo purposes, simulate the hide functionality
-            console.log(`🚫 ADMIN-IMAGE: Hiding image ${imageId} from everyone`);
 
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // Show success notification
-            AdminUtils.showNotification(`Image hidden from everyone successfully`, 'success');
+            AdminUtils.showNotification('Image hidden from everyone successfully', 'success');
 
             // Refresh the images table
             if (window.adminApp?.dashboardManager) {
                 await window.adminApp.dashboardManager.handleHistoryRefresh('images');
             }
 
-            console.log('✅ ADMIN-IMAGE: Image hidden by admin successfully');
         } catch (error) {
             console.error('❌ ADMIN-IMAGE: Error hiding image:', error);
             AdminUtils.showNotification(`Failed to hide image: ${error.message}`, 'error');
@@ -126,20 +124,18 @@ class AdminImageManager {
     async adminShowImage(imageId) {
         try {
             // For demo purposes, simulate the show functionality
-            console.log(`👁️ ADMIN-IMAGE: Showing image ${imageId} to everyone`);
 
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // Show success notification
-            AdminUtils.showNotification(`Image shown to everyone successfully`, 'success');
+            AdminUtils.showNotification('Image shown to everyone successfully', 'success');
 
             // Refresh the images table
             if (window.adminApp?.dashboardManager) {
                 await window.adminApp.dashboardManager.handleHistoryRefresh('images');
             }
 
-            console.log('✅ ADMIN-IMAGE: Image shown by admin successfully');
         } catch (error) {
             console.error('❌ ADMIN-IMAGE: Error showing image:', error);
             AdminUtils.showNotification(`Failed to show image: ${error.message}`, 'error');
@@ -157,7 +153,6 @@ class AdminImageManager {
         }
 
         try {
-            console.log(`🗑️ ADMIN-IMAGE: ${deleteType} image ${imageId}`);
 
             // Call the API service
             const response = await window.adminApp?.apiService?.deleteImage(imageId, permanent);
@@ -174,7 +169,6 @@ class AdminImageManager {
                     await window.adminApp.dashboardManager.handleHistoryRefresh('images');
                 }
 
-                console.log(`✅ ADMIN-IMAGE: Image ${deleteType} successfully`);
             } else {
                 throw new Error(response?.message || 'Delete operation failed');
             }
@@ -264,6 +258,7 @@ class AdminImageManager {
 
         if (!approveBtn || !flagBtn || !rejectBtn) {
             console.error('❌ ADMIN-IMAGE: Moderation buttons not found');
+
             return;
         }
 
@@ -315,6 +310,7 @@ class AdminImageManager {
             // Check authentication before making request
             if (!window.AdminAuthUtils?.hasValidToken()) {
                 console.warn('🔐 ADMIN-IMAGE: No valid token for moderation action, skipping');
+
                 return;
             }
 
@@ -330,6 +326,7 @@ class AdminImageManager {
 
             if (response.ok) {
                 const actionText = action === 'approve' ? 'approved' : action === 'flag' ? 'flagged' : 'rejected';
+
                 AdminUtils.showNotification(`Image ${actionText} successfully`, 'success');
 
                 // Refresh the images table
@@ -338,6 +335,7 @@ class AdminImageManager {
                 }
             } else {
                 const error = await response.json();
+
                 AdminUtils.showNotification(`Failed to moderate image: ${error.error || 'Unknown error'}`, 'error');
             }
         } catch (error) {
@@ -349,7 +347,6 @@ class AdminImageManager {
     async generateImageTags(imageId) {
         try {
             // For demo purposes, simulate the tag generation
-            console.log(`🤖 ADMIN-IMAGE: Generating AI tags for image ${imageId}`);
 
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -416,6 +413,7 @@ class AdminImageManager {
 
         if (!saveBtn || !tagsInput) {
             console.error('❌ ADMIN-IMAGE: Tag edit elements not found');
+
             return;
         }
 
@@ -426,6 +424,7 @@ class AdminImageManager {
                 // Check authentication before making request
                 if (!window.AdminAuthUtils?.hasValidToken()) {
                     console.warn('🔐 ADMIN-IMAGE: No valid token for tag update, skipping');
+
                     return;
                 }
 
@@ -451,6 +450,7 @@ class AdminImageManager {
                     }
                 } else {
                     const error = await response.json();
+
                     AdminUtils.showNotification(`Failed to update tags: ${error.error || 'Unknown error'}`, 'error');
                 }
             } catch (error) {
@@ -462,7 +462,6 @@ class AdminImageManager {
 
     destroy() {
         // Clean up any event listeners or resources
-        console.log('🗑️ ADMIN-IMAGE: Image manager destroyed');
     }
 }
 

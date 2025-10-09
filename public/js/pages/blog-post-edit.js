@@ -35,13 +35,13 @@ class BlogPostEditPage {
             // Load post for editing
             await this.loadPost();
 
-        // Initialize advanced UI components
-        this.initializeAdvancedComponents();
+            // Initialize advanced UI components
+            this.initializeAdvancedComponents();
 
-        // Initialize UI utilities
-        if (window.BlogUIUtils) {
-            this.uiUtils = new window.BlogUIUtils();
-        }
+            // Initialize UI utilities
+            if (window.BlogUIUtils) {
+                this.uiUtils = new window.BlogUIUtils();
+            }
 
             // Set up form handling
             this.setupFormHandling();
@@ -99,6 +99,7 @@ class BlogPostEditPage {
             this.showLoading();
 
             const post = await this.blogService.getPostBySlug(this.postSlug);
+
             this.post = post;
             this.postId = post.id;
 
@@ -125,6 +126,7 @@ class BlogPostEditPage {
 
         // Tags
         const tags = post.tags ? (Array.isArray(post.tags) ? post.tags.join(', ') : post.tags) : '';
+
         document.getElementById('tags').value = tags;
 
         // Settings
@@ -159,16 +161,15 @@ class BlogPostEditPage {
             // Initialize Thumbnail Selector
             if (window.ThumbnailSelector) {
                 this.thumbnailSelector = new window.ThumbnailSelector('thumbnail-selector-container', {
-                    onThumbnailSelected: (imageData) => {
-                        console.log('🔍 BLOG-EDIT: Thumbnail selected:', imageData);
+                    onThumbnailSelected: imageData => {
                         // Update the hidden input
                         const thumbnailInput = document.getElementById('thumbnail');
+
                         if (thumbnailInput) {
                             thumbnailInput.value = imageData.url;
                         }
                     }
                 });
-                console.log('🔍 BLOG-EDIT: ThumbnailSelector initialized');
             }
 
             // Initialize Form Validator
@@ -193,6 +194,7 @@ class BlogPostEditPage {
         if (this.thumbnailSelector && thumbnailUrl) {
             // Set the thumbnail in the widget
             const thumbnailInput = document.getElementById('thumbnail');
+
             if (thumbnailInput) {
                 thumbnailInput.value = thumbnailUrl;
             }
@@ -207,21 +209,21 @@ class BlogPostEditPage {
         const publishBtn = document.getElementById('publish-btn');
 
         if (form) {
-            form.addEventListener('submit', (e) => {
+            form.addEventListener('submit', e => {
                 e.preventDefault();
                 this.handleFormSubmit(e);
             });
         }
 
         if (saveDraftBtn) {
-            saveDraftBtn.addEventListener('click', (e) => {
+            saveDraftBtn.addEventListener('click', e => {
                 e.preventDefault();
                 this.submitPost(false); // Save as draft
             });
         }
 
         if (publishBtn) {
-            publishBtn.addEventListener('click', (e) => {
+            publishBtn.addEventListener('click', e => {
                 e.preventDefault();
                 this.submitPost(true); // Publish
             });
@@ -230,6 +232,7 @@ class BlogPostEditPage {
 
     async handleFormSubmit(event) {
         const isPublish = event.submitter?.id === 'publish-btn';
+
         await this.submitPost(isPublish);
     }
 
@@ -291,30 +294,31 @@ class BlogPostEditPage {
         const form = document.getElementById('post-form');
         const error = document.getElementById('error');
 
-        if (loading) loading.classList.remove('hidden');
-        if (form) form.classList.add('hidden');
-        if (error) error.classList.add('hidden');
+        if (loading) { loading.classList.remove('hidden'); }
+        if (form) { form.classList.add('hidden'); }
+        if (error) { error.classList.add('hidden'); }
     }
 
     showForm() {
         const loading = document.getElementById('loading');
         const form = document.getElementById('post-form');
 
-        if (loading) loading.classList.add('hidden');
-        if (form) form.classList.remove('hidden');
+        if (loading) { loading.classList.add('hidden'); }
+        if (form) { form.classList.remove('hidden'); }
     }
 
     showSaving() {
         const saving = document.getElementById('saving');
         const form = document.getElementById('post-form');
 
-        if (saving) saving.classList.remove('hidden');
-        if (form) form.classList.add('hidden');
+        if (saving) { saving.classList.remove('hidden'); }
+        if (form) { form.classList.add('hidden'); }
     }
 
     hideSaving() {
         const saving = document.getElementById('saving');
-        if (saving) saving.classList.add('hidden');
+
+        if (saving) { saving.classList.add('hidden'); }
     }
 
     showSuccess(message) {
@@ -322,6 +326,7 @@ class BlogPostEditPage {
 
         // Create success message
         const successDiv = document.createElement('div');
+
         successDiv.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
         successDiv.innerHTML = `
             <div class="flex items-center">
@@ -342,12 +347,13 @@ class BlogPostEditPage {
         const form = document.getElementById('post-form');
         const error = document.getElementById('error');
 
-        if (loading) loading.classList.add('hidden');
-        if (form) form.classList.add('hidden');
+        if (loading) { loading.classList.add('hidden'); }
+        if (form) { form.classList.add('hidden'); }
         if (error) {
             error.classList.remove('hidden');
             const errorText = error.querySelector('p');
-            if (errorText) errorText.textContent = message;
+
+            if (errorText) { errorText.textContent = message; }
         }
     }
 }

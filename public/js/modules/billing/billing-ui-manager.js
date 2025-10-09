@@ -141,7 +141,6 @@ class BillingUIManager {
             return;
         }
 
-        console.log('🎫 BILLING UI: Redeeming promo code:', promoCode);
 
         this.dataManager.setLoading(true);
         this.domManager.setPromoButtonLoading(true);
@@ -166,6 +165,7 @@ class BillingUIManager {
 
                 // Show success in main message area
                 const successMessage = this.config.SUCCESS_MESSAGES.PROMO_REDEEMED.replace('{credits}', credits);
+
                 this.domManager.showSuccess(successMessage);
 
                 // Trigger data refresh
@@ -215,7 +215,6 @@ class BillingUIManager {
         const { action } = event.target.dataset;
 
         if (action) {
-            console.log('🔄 BILLING UI: Retrying action:', action);
             this.triggerDataRefresh();
         }
     }
@@ -292,7 +291,6 @@ class BillingUIManager {
 
         // Also directly refresh header widget if available
         if (window.creditWidget && typeof window.creditWidget.loadBalance === 'function') {
-            console.log('🔄 BILLING UI: Directly refreshing header widget');
             window.creditWidget.loadBalance();
         }
     }
@@ -301,7 +299,6 @@ class BillingUIManager {
      * Refresh all data
      */
     async refreshAllData() {
-        console.log('🔄 BILLING UI: Refreshing all data...');
         this.dataManager.clearCache();
 
         // Refresh balance and usage stats
@@ -448,15 +445,14 @@ class BillingUIManager {
      * @param {Array} images - Image history data
      */
     updateImageHistory(images, hasMore = false) {
-        console.log('🔄 BILLING UI: updateImageHistory called with:', { imagesCount: images?.length, hasMore });
         const container = this.domManager.getElement('imageHistory');
 
         if (!container) {
             console.warn('⚠️ BILLING UI: Image history container not found');
+
             return;
         }
 
-        console.log('✅ BILLING UI: Image history container found:', container);
 
         if (!images || images.length === 0) {
             container.innerHTML = `
@@ -466,10 +462,10 @@ class BillingUIManager {
                     <p>You haven't generated any images yet.</p>
                 </div>
             `;
+
             return;
         }
 
-        console.log('🔄 BILLING UI: Rendering', images.length, 'images');
 
         const imageItems = images.map(image => {
             // Calculate cost information
@@ -525,14 +521,16 @@ class BillingUIManager {
         }).join('');
 
         // Create load more button if there are more images
-        const loadMoreButton = hasMore ? `
+        const loadMoreButton = hasMore
+            ? `
             <div class="load-more-container">
                 <button id="load-more-images" class="load-more-btn">
                     <i class="fas fa-plus"></i>
                     Load More Images
                 </button>
             </div>
-        ` : '';
+        `
+            : '';
 
         container.innerHTML = `
             <div class="image-list">
@@ -546,7 +544,6 @@ class BillingUIManager {
             this.setupLoadMoreButton();
         }
 
-        console.log('✅ BILLING UI: Image history rendered successfully');
     }
 
     /**
@@ -554,6 +551,7 @@ class BillingUIManager {
      */
     setupLoadMoreButton() {
         const loadMoreBtn = document.getElementById('load-more-images');
+
         if (loadMoreBtn) {
             // Remove existing listener to prevent duplicates
             if (this.handleLoadMore) {
@@ -562,7 +560,6 @@ class BillingUIManager {
 
             // Add new listener
             this.handleLoadMore = () => {
-                console.log('🔄 BILLING UI: Load more button clicked');
                 loadMoreBtn.disabled = true;
                 loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
 
@@ -570,9 +567,8 @@ class BillingUIManager {
                 if (window.billingManager) {
                     window.billingManager.loadMoreImageHistory()
                         .then(() => {
-                            console.log('✅ BILLING UI: Load more completed');
                         })
-                        .catch((error) => {
+                        .catch(error => {
                             console.error('❌ BILLING UI: Load more failed:', error);
                             loadMoreBtn.disabled = false;
                             loadMoreBtn.innerHTML = '<i class="fas fa-plus"></i> Load More Images';
@@ -591,8 +587,10 @@ class BillingUIManager {
      */
     showImageHistoryError(message) {
         const container = this.domManager.getElement('imageHistory');
+
         if (!container) {
             console.warn('⚠️ BILLING UI: Image history container not found for error display');
+
             return;
         }
 
@@ -619,7 +617,8 @@ class BillingUIManager {
         if (!text || text.length <= maxLength) {
             return text;
         }
-        return text.substring(0, maxLength) + '...';
+
+        return `${text.substring(0, maxLength)}...`;
     }
 
     /**

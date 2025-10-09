@@ -49,7 +49,6 @@ class SimpleThemeService {
                 const theme = this.themeComposer.buildTheme(newName);
 
                 this.themes.set(oldName, theme);
-                // console.log(`✅ Theme loaded: ${oldName} → ${newName}`);
             } catch (error) {
                 console.error(`❌ Failed to load theme ${oldName} (${newName}):`, error);
                 // Create a fallback theme for missing themes
@@ -57,7 +56,6 @@ class SimpleThemeService {
             }
         });
 
-        // console.log(`🎨 Theme loading complete: ${this.themes.size} themes loaded`);
     }
 
     /**
@@ -110,7 +108,6 @@ class SimpleThemeService {
      * Apply a theme
      */
     applyTheme(themeName) {
-        // console.log(`🎨 SimpleThemeService: Applying theme: ${themeName}`);
         const theme = this.themes.get(themeName);
 
         if (!theme) {
@@ -119,26 +116,21 @@ class SimpleThemeService {
             return;
         }
 
-        // console.log('🎨 SimpleThemeService: Found theme:', theme);
 
         // Remove existing theme styles
         if (this.themeElement) {
-            // console.log('🎨 SimpleThemeService: Removing existing theme styles');
             this.themeElement.remove();
         }
 
         // Create new theme styles
-        // console.log('🎨 SimpleThemeService: Generating CSS for theme');
         const css = this.generateCSS(theme);
 
-        // console.log('🎨 SimpleThemeService: Generated CSS:', `${css.substring(0, 200)}...`);
 
         this.themeElement = document.createElement('style');
         this.themeElement.id = 'theme-styles';
         this.themeElement.textContent = css;
         document.head.appendChild(this.themeElement);
 
-        // console.log('🎨 SimpleThemeService: Theme styles applied to document head');
 
         // Update state
         this.currentTheme = themeName;
@@ -146,7 +138,6 @@ class SimpleThemeService {
 
         // Dispatch event
         this.dispatchThemeChange(theme);
-        // console.log(`✅ SimpleThemeService: Theme '${themeName}' applied successfully`);
     }
 
     /**

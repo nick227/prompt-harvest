@@ -55,7 +55,6 @@ class TermsUIManager {
             });
 
             termInput.addEventListener('keyup', e => {
-                console.log('🔍 EVENT: keyup event fired on termInput');
                 this.handleTermInputKeyup(e.target.value);
             });
         }
@@ -110,17 +109,14 @@ class TermsUIManager {
 
     // Handle add term
     handleAddTerm() {
-        console.log('🎯 UI: handleAddTerm called');
 
         if (this.isProcessing) {
-            console.log('⚠️ UI: Already processing, ignoring request');
 
             return;
         }
 
         const termInput = this.domManager.getElement('termInput');
 
-        console.log('🔍 UI: Term input element:', termInput);
 
         if (!termInput) {
             console.error('❌ UI: Term input element not found');
@@ -130,10 +126,8 @@ class TermsUIManager {
 
         const termWord = termInput.value.trim();
 
-        console.log('📝 UI: Term word extracted:', termWord);
 
         if (!termWord) {
-            console.log('⚠️ UI: Empty term word, showing error message');
             this.showMessage(window.TERMS_CONSTANTS.MESSAGE_TYPES.ERROR, 'Please enter a term');
 
             return;
@@ -146,7 +140,6 @@ class TermsUIManager {
         // Show immediate feedback
         this.showMessage('info', `Adding "${termWord}"...`, 0); // 0 = no auto-hide
 
-        console.log('🚀 UI: Dispatching TERM_ADDED event with term:', termWord);
         // Dispatch custom event
         this.dispatchEvent(window.TERMS_CONSTANTS.EVENTS.TERM_ADDED, { term: termWord });
     }
@@ -171,14 +164,11 @@ class TermsUIManager {
 
     // Handle term input keyup for duplicate checking
     handleTermInputKeyup(value) {
-        console.log('🔍 KEYUP: handleTermInputKeyup called with value:', value);
 
         const trimmed = value.trim();
 
-        console.log('🔍 KEYUP: trimmed value:', trimmed);
 
         if (trimmed.length === 0) {
-            console.log('🔍 KEYUP: Empty input, clearing duplicate indicator');
 
             this.clearDuplicateIndicator();
 
@@ -187,15 +177,12 @@ class TermsUIManager {
 
         // Debounce the duplicate check
         if (this.duplicateCheckTimeout) {
-            console.log('🔍 KEYUP: Clearing previous timeout');
 
             clearTimeout(this.duplicateCheckTimeout);
         }
 
-        console.log('🔍 KEYUP: Setting new timeout for duplicate check');
 
         this.duplicateCheckTimeout = setTimeout(() => {
-            console.log('🔍 KEYUP: Timeout fired, checking for duplicate:', trimmed);
 
             this.checkForDuplicate(trimmed);
         }, 300); // 300ms delay after user stops typing
@@ -203,30 +190,24 @@ class TermsUIManager {
 
     // Check if term already exists
     checkForDuplicate(termWord) {
-        console.log('🔍 DUPLICATE: checkForDuplicate called with:', termWord);
 
         const existingTerms = this.getExistingTerms();
 
-        console.log('🔍 DUPLICATE: Existing terms found:', existingTerms);
 
         const isDuplicate = existingTerms.some(term => {
             const existingWord = typeof term === 'string' ? term : term.word;
 
             const comparison = existingWord.toLowerCase() === termWord.toLowerCase();
 
-            console.log('🔍 DUPLICATE: Comparing', existingWord, 'with', termWord, '=', comparison);
 
             return comparison;
         });
 
-        console.log('🔍 DUPLICATE: Is duplicate?', isDuplicate);
 
         if (isDuplicate) {
-            console.log('🔍 DUPLICATE: Showing duplicate indicator and disabling button');
             this.showDuplicateIndicator();
             this.domManager.disableElement('addButton');
         } else {
-            console.log('🔍 DUPLICATE: Clearing duplicate indicator and enabling button');
             this.clearDuplicateIndicator();
             this.domManager.enableElement('addButton');
         }
@@ -234,47 +215,38 @@ class TermsUIManager {
 
     // Get existing terms from the DOM
     getExistingTerms() {
-        console.log('🔍 GETTERMS: getExistingTerms called');
 
         const termsList = this.domManager.getElement('termsList');
 
-        console.log('🔍 GETTERMS: termsList element:', termsList);
 
         if (!termsList) {
-            console.log('🔍 GETTERMS: No termsList found, returning empty array');
 
             return [];
         }
 
         const termRows = termsList.querySelectorAll(`.${window.TERMS_CONSTANTS.CLASSES.TERM_ROW}`);
 
-        console.log('🔍 GETTERMS: Found term rows:', termRows.length);
 
         const terms = Array.from(termRows).map(row => {
             // Get the term word from the .term-word element, not the dataset
             const termWordElement = row.querySelector('.term-word');
             const term = termWordElement ? termWordElement.textContent.trim() : null;
 
-            console.log('🔍 GETTERMS: Row term-word element:', termWordElement, 'Text content:', term, 'Row:', row);
 
             return term;
         }).filter(term => term !== null); // Filter out any null values
 
-        console.log('🔍 GETTERMS: Final terms array:', terms);
 
         return terms;
     }
 
     // Show duplicate indicator
     showDuplicateIndicator() {
-        console.log('🔍 INDICATOR: showDuplicateIndicator called');
 
         const termInput = this.domManager.getElement('termInput');
 
-        console.log('🔍 INDICATOR: termInput element:', termInput);
 
         if (!termInput) {
-            console.log('🔍 INDICATOR: No termInput found, returning');
 
             return;
         }
@@ -288,28 +260,21 @@ class TermsUIManager {
         indicator.className = 'duplicate-indicator';
         indicator.innerHTML = '<span class="text-red-500 text-sm">⚠️ Term already exists</span>';
 
-        console.log('🔍 INDICATOR: Created indicator element:', indicator);
-        console.log('🔍 INDICATOR: termInput parentNode:', termInput.parentNode);
 
         // Insert after the input
         termInput.parentNode.insertBefore(indicator, termInput.nextSibling);
-        console.log('🔍 INDICATOR: Indicator inserted into DOM');
     }
 
     // Clear duplicate indicator
     clearDuplicateIndicator() {
-        console.log('🔍 CLEAR: clearDuplicateIndicator called');
 
         const existingIndicator = document.querySelector('.duplicate-indicator');
 
-        console.log('🔍 CLEAR: Existing indicator found:', existingIndicator);
 
         if (existingIndicator) {
-            console.log('🔍 CLEAR: Removing existing indicator');
             existingIndicator.remove();
-        } else {
-            console.log('🔍 CLEAR: No existing indicator to remove');
         }
+        // No indicator to remove
     }
 
     // Handle search input change

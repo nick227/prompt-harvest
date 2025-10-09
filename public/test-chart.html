@@ -8,13 +8,11 @@
     <div id="status">Loading...</div>
 
     <script>
-        console.log('🔄 Testing Chart.js loading...');
 
         function testChartJS() {
             const localScript = document.createElement('script');
             localScript.src = 'js/lib/chart.min.js';
             localScript.onload = function() {
-                console.log('✅ Chart.js loaded from local file');
                 document.getElementById('status').innerHTML = '✅ Chart.js loaded successfully! Chart object: ' + (typeof Chart !== 'undefined' ? 'Available' : 'Not Available');
             };
             localScript.onerror = function() {

@@ -42,7 +42,6 @@ class AIChatWidget {
      * Clear invalid conversation ID from localStorage
      */
     clearInvalidConversation() {
-        console.log('🧹 [CHAT WIDGET] Clearing invalid conversation ID...');
         localStorage.removeItem('ai-chat-conversation-id');
         this.conversationId = null;
         this.historyLoaded = false;
@@ -61,7 +60,6 @@ class AIChatWidget {
             welcomeMessage.style.display = 'block';
         }
 
-        console.log('✅ [CHAT WIDGET] Invalid conversation ID cleared');
     }
 
     createWidget() {
@@ -467,7 +465,6 @@ class AIChatWidget {
     handleButtonClick(button) {
         const { action, value, prompt } = button.dataset;
 
-        console.log('🔘 AI Chat Button Clicked:', { action, value, prompt });
 
         // Handle different button actions
         switch (action) {
@@ -500,7 +497,6 @@ class AIChatWidget {
                 this.sendAIPrompt(prompt);
                 break;
             default:
-                console.log('Unknown button action:', action);
         }
     }
 
@@ -678,7 +674,6 @@ class AIChatWidget {
         });
 
         if (this.historyLoaded || this.isLoadingHistory) {
-            console.log('⏭️ [CHAT WIDGET] Skipping history load - already loaded or loading');
 
             return;
         }
@@ -687,7 +682,6 @@ class AIChatWidget {
             // Get conversation ID from localStorage or generate new one
             const savedConversationId = localStorage.getItem('ai-chat-conversation-id');
 
-            console.log('💾 [CHAT WIDGET] Saved conversation ID:', savedConversationId);
             console.log('🔍 [CHAT WIDGET] localStorage contents:', {
                 conversationId: localStorage.getItem('ai-chat-conversation-id'),
                 allKeys: Object.keys(localStorage)
@@ -695,7 +689,6 @@ class AIChatWidget {
 
             if (savedConversationId) {
                 this.conversationId = savedConversationId;
-                console.log('📚 [CHAT WIDGET] Loading history for conversation:', this.conversationId);
 
                 try {
                     await this.loadHistoryPage();
@@ -706,18 +699,15 @@ class AIChatWidget {
                     // Clear the invalid conversation ID from localStorage
                     localStorage.removeItem('ai-chat-conversation-id');
                     this.conversationId = null;
-                    console.log('🧹 [CHAT WIDGET] Cleared invalid conversation ID from localStorage');
                 }
-            } else {
-                console.log('ℹ️ [CHAT WIDGET] No saved conversation ID found');
             }
+            // No history to load
         } catch (error) {
             console.error('❌ [CHAT WIDGET] Error loading chat history:', error);
             console.error('❌ [CHAT WIDGET] Error stack:', error.stack);
         } finally {
             this.isLoadingHistory = false;
             this.historyLoaded = true;
-            console.log('✅ [CHAT WIDGET] Chat history loading completed');
         }
     }
 
@@ -734,7 +724,6 @@ class AIChatWidget {
         });
 
         if (!this.conversationId || this.isLoadingHistory) {
-            console.log('⏭️ [CHAT WIDGET] Skipping history page load - no conversation ID or already loading');
 
             return;
         }
@@ -745,7 +734,6 @@ class AIChatWidget {
         try {
             const url = `/api/ai-chat/history/${this.conversationId}?page=${this.historyPage}&limit=${this.historyLimit}`;
 
-            console.log('🌐 [CHAT WIDGET] Fetching history from:', url);
             console.log('🔍 [CHAT WIDGET] Request details:', {
                 url,
                 method: 'GET',
@@ -759,8 +747,6 @@ class AIChatWidget {
                 }
             });
 
-            console.log('📡 [CHAT WIDGET] History response status:', response.status);
-            console.log('📡 [CHAT WIDGET] Response headers:', Object.fromEntries(response.headers.entries()));
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -779,7 +765,6 @@ class AIChatWidget {
 
             const data = await response.json();
 
-            console.log('📊 [CHAT WIDGET] History response data:', data);
             console.log('📊 [CHAT WIDGET] Response structure:', {
                 hasHistory: !!data.history,
                 historyLength: data.history?.length || 0,
@@ -790,17 +775,14 @@ class AIChatWidget {
 
             const history = data.history || [];
 
-            console.log('📚 [CHAT WIDGET] History messages count:', history.length);
 
             if (history.length === 0) {
-                console.log('ℹ️ [CHAT WIDGET] No history messages found');
                 this.hasMoreHistory = false;
 
                 // Show welcome message if no history
                 const welcomeMessage = this.messagesContainer.querySelector('.ai-welcome-message');
 
                 if (welcomeMessage) {
-                    console.log('👋 [CHAT WIDGET] Showing welcome message - no history');
                     welcomeMessage.style.display = 'block';
                 }
 
@@ -808,7 +790,6 @@ class AIChatWidget {
             }
 
             // Add history messages to the beginning of the container
-            console.log('➕ [CHAT WIDGET] Adding history messages to chat');
             this.addHistoryMessages(history);
 
             // Check if we have more history
@@ -830,7 +811,6 @@ class AIChatWidget {
         } finally {
             this.isLoadingHistory = false;
             this.hideHistoryLoadingIndicator();
-            console.log('✅ [CHAT WIDGET] History page loading completed');
         }
     }
 
@@ -860,7 +840,6 @@ class AIChatWidget {
         const welcomeMessage = this.messagesContainer.querySelector('.ai-welcome-message');
 
         if (welcomeMessage) {
-            console.log('🙈 [CHAT WIDGET] Hiding welcome message');
             console.log('🙈 [CHAT WIDGET] Welcome message element:', {
                 found: !!welcomeMessage,
                 currentDisplay: welcomeMessage.style.display,
@@ -902,10 +881,8 @@ class AIChatWidget {
         });
 
         // Insert history messages at the beginning of the messages container
-        console.log('📍 Inserting history container into messages container');
         this.messagesContainer.insertBefore(historyContainer, this.messagesContainer.firstChild);
 
-        console.log('✅ History messages added to DOM');
     }
 
     /**

@@ -58,12 +58,13 @@ class AdminPackageManager {
                     } else {
                         console.error('📦 ADMIN-PACKAGES: Package not found for delete action:', eventData.id);
                     }
-                } else {
                 }
+                // Unhandled action - ignore
             });
 
             // Debug: Check what listeners are registered
         } else if (this.eventBusListenerSet) {
+            console.log('📦 ADMIN-PACKAGES: Event bus listeners already set');
         }
 
         // Fallback: Listen for old DOM events

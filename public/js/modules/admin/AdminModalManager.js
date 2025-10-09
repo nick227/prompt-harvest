@@ -22,21 +22,19 @@ class AdminModalManager {
     }
 
     init() {
-        console.log('🎭 ADMIN-MODAL: Initializing modal manager...');
 
         // Setup close button
         if (this.modalClose) {
-            this.modalClose.addEventListener('click', (e) => {
+            this.modalClose.addEventListener('click', e => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🎭 ADMIN-MODAL: Close button clicked');
                 this.close();
             });
         }
 
         // Close on backdrop click
         if (this.modalContainer) {
-            this.modalContainer.addEventListener('click', (e) => {
+            this.modalContainer.addEventListener('click', e => {
                 console.log('🎭 ADMIN-MODAL: Backdrop clicked', {
                     target: e.target,
                     modalContainer: this.modalContainer,
@@ -50,34 +48,29 @@ class AdminModalManager {
                 if (e.target === this.modalContainer) {
                     // Prevent accidental closes by requiring modal to be open for at least 300ms
                     const timeSinceOpened = Date.now() - this.modalOpenedTime;
+
                     if (timeSinceOpened < 300) {
-                        console.log('🎭 ADMIN-MODAL: Modal opened too recently, preventing close');
                         return;
                     }
 
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🎭 ADMIN-MODAL: Backdrop close triggered');
                     this.close();
-                } else {
-                    console.log('🎭 ADMIN-MODAL: Clicked on modal content, not closing');
                 }
+                // Click inside modal - do nothing
             });
         }
 
         // Close on Escape key
-        document.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', e => {
             if (e.key === 'Escape' && this.isOpen) {
-                console.log('🎭 ADMIN-MODAL: Escape key pressed');
                 this.close();
             }
         });
 
-        console.log('✅ ADMIN-MODAL: Modal manager initialized');
     }
 
     show(title, content, options = {}) {
-        console.log('🎭 ADMIN-MODAL: show method called with title:', title);
         console.log('🎭 ADMIN-MODAL: Modal elements check:', {
             modalContainer: !!this.modalContainer,
             modalTitle: !!this.modalTitle,
@@ -90,6 +83,7 @@ class AdminModalManager {
                 modalTitle: !!this.modalTitle,
                 modalBody: !!this.modalBody
             });
+
             return;
         }
 
@@ -111,6 +105,7 @@ class AdminModalManager {
 
         // Apply size class if specified
         const modal = this.modalContainer.querySelector('.modal');
+
         if (modal) {
             // Remove existing size classes
             modal.classList.remove('modal-sm', 'modal-md', 'modal-lg', 'modal-xl');
@@ -135,7 +130,6 @@ class AdminModalManager {
         // Focus management
         this.trapFocus();
 
-        console.log('🎭 ADMIN-MODAL: Modal opened:', title);
         console.log('🎭 ADMIN-MODAL: Modal container state:', {
             display: this.modalContainer.style.display,
             classList: this.modalContainer.classList.toString(),
@@ -148,7 +142,6 @@ class AdminModalManager {
             return;
         }
 
-        console.log('🎭 ADMIN-MODAL: Closing modal');
         console.trace('🎭 ADMIN-MODAL: Close call stack');
 
         // Hide modal
@@ -174,11 +167,11 @@ class AdminModalManager {
 
         // Remove size classes
         const modal = this.modalContainer.querySelector('.modal');
+
         if (modal) {
             modal.classList.remove('modal-sm', 'modal-md', 'modal-lg', 'modal-xl');
         }
 
-        console.log('🎭 ADMIN-MODAL: Modal closed');
     }
 
     updateContent(content) {
@@ -219,17 +212,14 @@ class AdminModalManager {
             const firstElement = focusableElements[0];
             const lastElement = focusableElements[focusableElements.length - 1];
 
-            console.log('🎭 ADMIN-MODAL: Focusable elements found:', focusableElements.length);
-            console.log('🎭 ADMIN-MODAL: First element:', firstElement.tagName, firstElement.id || firstElement.className);
 
             // Focus first element only if modal is still open
             if (this.isOpen && firstElement) {
-                console.log('🎭 ADMIN-MODAL: Focusing first element');
                 firstElement.focus();
             }
 
             // Handle tab cycling
-            const handleTabKey = (e) => {
+            const handleTabKey = e => {
                 if (e.key !== 'Tab') {
                     return;
                 }
@@ -239,11 +229,9 @@ class AdminModalManager {
                         e.preventDefault();
                         lastElement.focus();
                     }
-                } else {
-                    if (document.activeElement === lastElement) {
-                        e.preventDefault();
-                        firstElement.focus();
-                    }
+                } else if (document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
                 }
             };
 
@@ -270,7 +258,6 @@ class AdminModalManager {
             this._focusCleanup();
         }
         this.close();
-        console.log('🗑️ ADMIN-MODAL: Modal manager destroyed');
     }
 }
 

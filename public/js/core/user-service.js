@@ -73,7 +73,7 @@ class UserService {
         }
 
         // Listen for user profile updates
-        window.addEventListener('userProfileUpdated', (event) => {
+        window.addEventListener('userProfileUpdated', event => {
             this.updateUserProfile(event.detail);
         });
     }
@@ -89,6 +89,7 @@ class UserService {
         try {
             if (window.authService && window.authService.isAuthenticated()) {
                 const user = window.authService.getCurrentUser();
+
                 if (user) {
                     this.setUser(user);
                 }
@@ -104,6 +105,7 @@ class UserService {
      */
     setUser(user) {
         const previousUser = this.currentUser;
+
         this.currentUser = user;
 
         // Notify listeners if user changed
@@ -117,6 +119,7 @@ class UserService {
      */
     clearUser() {
         const previousUser = this.currentUser;
+
         this.currentUser = null;
 
         // Notify listeners if user was cleared
@@ -253,6 +256,7 @@ class UserService {
         const event = new CustomEvent('userChanged', {
             detail: { user }
         });
+
         window.dispatchEvent(event);
     }
 

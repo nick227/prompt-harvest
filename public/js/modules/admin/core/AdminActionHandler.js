@@ -16,7 +16,6 @@ class AdminActionHandler {
         this.modalManager = null;
         this.apiService = null;
 
-        console.log('🎯 ADMIN-ACTION-HANDLER: Initializing centralized action handler');
         this.setupEventListeners();
     }
 
@@ -28,7 +27,6 @@ class AdminActionHandler {
     init(modalManager, apiService) {
         this.modalManager = modalManager;
         this.apiService = apiService;
-        console.log('🎯 ADMIN-ACTION-HANDLER: Dependencies initialized');
     }
 
     /**
@@ -36,23 +34,22 @@ class AdminActionHandler {
      */
     setupEventListeners() {
         // Table actions (CRUD operations)
-        this.eventBus.on('table', 'create', (data) => this.handleCreate(data));
-        this.eventBus.on('table', 'edit', (data) => this.handleEdit(data));
-        this.eventBus.on('table', 'delete', (data) => this.handleDelete(data));
-        this.eventBus.on('table', 'view', (data) => this.handleView(data));
+        this.eventBus.on('table', 'create', data => this.handleCreate(data));
+        this.eventBus.on('table', 'edit', data => this.handleEdit(data));
+        this.eventBus.on('table', 'delete', data => this.handleDelete(data));
+        this.eventBus.on('table', 'view', data => this.handleView(data));
 
         // Modal actions
-        this.eventBus.on('modal', 'open', (data) => this.handleModalOpen(data));
-        this.eventBus.on('modal', 'close', (data) => this.handleModalClose(data));
+        this.eventBus.on('modal', 'open', data => this.handleModalOpen(data));
+        this.eventBus.on('modal', 'close', data => this.handleModalClose(data));
 
         // API actions
-        this.eventBus.on('api', 'success', (data) => this.handleApiSuccess(data));
-        this.eventBus.on('api', 'error', (data) => this.handleApiError(data));
+        this.eventBus.on('api', 'success', data => this.handleApiSuccess(data));
+        this.eventBus.on('api', 'error', data => this.handleApiError(data));
 
         // Form actions
-        this.eventBus.on('form', 'submit', (data) => this.handleFormSubmit(data));
+        this.eventBus.on('form', 'submit', data => this.handleFormSubmit(data));
 
-        console.log('🎯 ADMIN-ACTION-HANDLER: Event listeners registered');
     }
 
     /**
@@ -62,7 +59,6 @@ class AdminActionHandler {
     handleCreate(data) {
         const { entity, formData } = data;
 
-        console.log(`🎯 ADMIN-ACTION-HANDLER: Creating ${entity}`, formData);
 
         // Show create modal
         this.showCreateModal(entity, formData);
@@ -75,7 +71,6 @@ class AdminActionHandler {
     handleEdit(data) {
         const { entity, id, itemData } = data;
 
-        console.log(`🎯 ADMIN-ACTION-HANDLER: Editing ${entity} ${id}`, itemData);
 
         // Show edit modal
         this.showEditModal(entity, id, itemData);
@@ -88,7 +83,6 @@ class AdminActionHandler {
     handleDelete(data) {
         const { entity, id, itemData } = data;
 
-        console.log(`🎯 ADMIN-ACTION-HANDLER: Deleting ${entity} ${id}`, itemData);
 
         // Show delete confirmation
         this.showDeleteConfirmation(entity, id, itemData);
@@ -101,7 +95,6 @@ class AdminActionHandler {
     handleView(data) {
         const { entity, id, itemData } = data;
 
-        console.log(`🎯 ADMIN-ACTION-HANDLER: Viewing ${entity} ${id}`, itemData);
 
         // Show view modal
         this.showViewModal(entity, id, itemData);
@@ -115,6 +108,7 @@ class AdminActionHandler {
     showCreateModal(entity, formData = {}) {
         if (!this.modalManager) {
             console.error('🎯 ADMIN-ACTION-HANDLER: Modal manager not initialized');
+
             return;
         }
 
@@ -134,6 +128,7 @@ class AdminActionHandler {
     showEditModal(entity, id, itemData) {
         if (!this.modalManager) {
             console.error('🎯 ADMIN-ACTION-HANDLER: Modal manager not initialized');
+
             return;
         }
 
@@ -153,6 +148,7 @@ class AdminActionHandler {
     showDeleteConfirmation(entity, id, itemData) {
         if (!this.modalManager) {
             console.error('🎯 ADMIN-ACTION-HANDLER: Modal manager not initialized');
+
             return;
         }
 
@@ -172,6 +168,7 @@ class AdminActionHandler {
     showViewModal(entity, id, itemData) {
         if (!this.modalManager) {
             console.error('🎯 ADMIN-ACTION-HANDLER: Modal manager not initialized');
+
             return;
         }
 
@@ -243,8 +240,7 @@ class AdminActionHandler {
                     </div>
                 `;
             } else if (field.type === 'select') {
-                const options = field.options.map(option =>
-                    `<option value="${option}" ${value === option ? 'selected' : ''}>${option}</option>`
+                const options = field.options.map(option => `<option value="${option}" ${value === option ? 'selected' : ''}>${option}</option>`
                 ).join('');
 
                 return `
@@ -257,6 +253,7 @@ class AdminActionHandler {
                 `;
             } else {
                 const step = field.step ? `step="${field.step}"` : '';
+
                 return `
                     <div class="form-group">
                         <label for="${field.name}">${field.label} ${field.required ? '*' : ''}</label>
@@ -303,9 +300,8 @@ class AdminActionHandler {
             <div class="delete-confirmation">
                 <p>Are you sure you want to delete this ${config.displayName.toLowerCase()}?</p>
                 <div class="entity-preview">
-                    ${Object.entries(data).map(([key, value]) =>
-                        `<div><strong>${key}:</strong> ${value}</div>`
-                    ).join('')}
+                    ${Object.entries(data).map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`
+    ).join('')}
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="window.AdminEventBus.emit('modal', 'close')">Cancel</button>
@@ -322,8 +318,7 @@ class AdminActionHandler {
      * @returns {string} View HTML
      */
     generateViewHTML(config, data) {
-        const fields = config.fields.map(field =>
-            `<div class="view-field">
+        const fields = config.fields.map(field => `<div class="view-field">
                 <label>${field.label}:</label>
                 <span>${data[field.name] || 'N/A'}</span>
             </div>`
@@ -344,7 +339,6 @@ class AdminActionHandler {
      * @param {Object} data - Modal data
      */
     handleModalOpen(data) {
-        console.log('🎯 ADMIN-ACTION-HANDLER: Modal open requested', data);
     }
 
     /**
@@ -352,7 +346,6 @@ class AdminActionHandler {
      * @param {Object} data - Modal data
      */
     handleModalClose(data) {
-        console.log('🎯 ADMIN-ACTION-HANDLER: Modal close requested', data);
         if (this.modalManager) {
             this.modalManager.hide();
         }
@@ -363,7 +356,6 @@ class AdminActionHandler {
      * @param {Object} data - Success data
      */
     handleApiSuccess(data) {
-        console.log('🎯 ADMIN-ACTION-HANDLER: API success', data);
         // Show success notification
         if (window.showNotification) {
             window.showNotification('Operation completed successfully', 'success');
@@ -375,10 +367,9 @@ class AdminActionHandler {
      * @param {Object} data - Error data
      */
     handleApiError(data) {
-        console.log('🎯 ADMIN-ACTION-HANDLER: API error', data);
         // Show error notification
         if (window.showNotification) {
-            window.showNotification('Operation failed: ' + data.message, 'error');
+            window.showNotification(`Operation failed: ${data.message}`, 'error');
         }
     }
 
@@ -387,13 +378,13 @@ class AdminActionHandler {
      * @param {Object} data - Form submission data
      */
     handleFormSubmit(data) {
-        console.log('🎯 ADMIN-ACTION-HANDLER: Form submitted', data);
 
         const { entity, mode, data: formData } = data;
 
         if (!this.apiService) {
             console.error('🎯 ADMIN-ACTION-HANDLER: API service not available');
             this.handleApiError({ message: 'API service not available' });
+
             return;
         }
 

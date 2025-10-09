@@ -325,10 +325,8 @@ class TransactionStatsComponent {
                 await modal.show({
                     showPromoCode: true,
                     onSuccess: () => {
-                        console.log('Credit purchase/promo redemption completed');
                     },
                     onCancel: () => {
-                        console.log('Credit purchase cancelled');
                     }
                 });
             } else {

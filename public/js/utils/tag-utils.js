@@ -18,6 +18,7 @@ class TagUtils {
                 return JSON.parse(tags);
             } catch (error) {
                 console.warn('Failed to parse tags JSON:', { tags, error: error.message });
+
                 return [];
             }
         }
@@ -36,9 +37,11 @@ class TagUtils {
                 return JSON.stringify(tags);
             } catch (error) {
                 console.warn('Failed to stringify tags:', { tags, error: error.message });
+
                 return '';
             }
         }
+
         return '';
     }
 

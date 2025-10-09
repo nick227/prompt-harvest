@@ -25,12 +25,14 @@ class FeedAPIManager {
 
         // Check cache first
         const cached = this.getCachedRequest(requestKey);
+
         if (cached) {
             return cached;
         }
 
         // Create new request
         const requestPromise = this.makeFeedRequest(filter, page, tags, customEndpoint);
+
         FeedAPIManager.activeRequests.set(requestKey, requestPromise);
 
         try {
@@ -52,6 +54,7 @@ class FeedAPIManager {
 
             // Use custom endpoint if provided, otherwise use the correct endpoint based on filter
             let url;
+
             if (customEndpoint) {
                 url = customEndpoint;
             } else if (filter === 'user') {
@@ -64,6 +67,7 @@ class FeedAPIManager {
             // Add tag parameters if provided
             if (tags && tags.length > 0) {
                 const tagsParam = tags.join(',');
+
                 url += `&tags=${encodeURIComponent(tagsParam)}`;
             }
 
@@ -72,7 +76,7 @@ class FeedAPIManager {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getAuthToken()}`
+                    Authorization: `Bearer ${this.getAuthToken()}`
                 }
             });
 
@@ -85,6 +89,7 @@ class FeedAPIManager {
 
             // Handle different response structures
             let images;
+
             if (data.images) {
                 // Direct images property
                 images = data.images;
@@ -106,9 +111,9 @@ class FeedAPIManager {
 
             // Return in consistent format
             const result = {
-                images: images,
+                images,
                 pagination: data.pagination || data.data?.pagination,
-                hasMore: hasMore, // Include hasMore in result
+                hasMore, // Include hasMore in result
                 success: data.success !== false
             };
 
@@ -124,9 +129,10 @@ class FeedAPIManager {
                     sampleImages: result.images.slice(0, 2).map(img => ({ id: img.id, isPublic: img.isPublic, userId: img.userId }))
                 });
             }
+
             return result;
         } catch (error) {
-            console.error(`❌ FEED: Error loading feed images:`, error);
+            console.error('❌ FEED: Error loading feed images:', error);
             throw error;
         }
     }
@@ -134,9 +140,11 @@ class FeedAPIManager {
     // Get cached request if still valid
     getCachedRequest(requestKey) {
         const cached = FeedAPIManager.requestCache.get(requestKey);
+
         if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
             return cached.data;
         }
+
         return null;
     }
 
@@ -154,6 +162,7 @@ class FeedAPIManager {
     // Clean up expired cache entries
     cleanupCache() {
         const now = Date.now();
+
         for (const [key, value] of FeedAPIManager.requestCache.entries()) {
             if (now - value.timestamp > this.cacheTimeout) {
                 FeedAPIManager.requestCache.delete(key);
@@ -175,6 +184,7 @@ class FeedAPIManager {
     // Check if user is authenticated
     isUserAuthenticated() {
         const token = this.getAuthToken();
+
         return !!token;
     }
 
@@ -186,6 +196,7 @@ class FeedAPIManager {
     // Get current user info
     getCurrentUserInfo() {
         const token = this.getAuthToken();
+
         if (!token) {
             return null;
         }
@@ -193,6 +204,7 @@ class FeedAPIManager {
         try {
             // Decode JWT token to get user info
             const payload = JSON.parse(atob(token.split('.')[1]));
+
             return {
                 id: payload.userId || payload.id,
                 email: payload.email,
@@ -200,6 +212,7 @@ class FeedAPIManager {
             };
         } catch (error) {
             console.error('Error decoding user token:', error);
+
             return null;
         }
     }

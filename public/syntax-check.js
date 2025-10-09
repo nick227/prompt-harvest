@@ -14,7 +14,7 @@ function checkSyntax(filePath) {
 
 const files = [
     'js/components/ai-chat-widget.js',
-    'js/components/controls-drawer.js', 
+    'js/components/controls-drawer.js',
     'js/components/header-component.js',
     'js/components/unified-drawer-component.js',
     'js/components/image/image-component.js',
@@ -22,13 +22,10 @@ const files = [
     'js/components/image/unified-info-box.js'
 ];
 
-console.log('🔍 Checking JavaScript syntax...\n');
 
 files.forEach(file => {
     const result = checkSyntax(file);
     if (result.valid) {
-        console.log(`✅ ${file}: Valid syntax`);
     } else {
-        console.log(`❌ ${file}: ${result.error}`);
     }
 });

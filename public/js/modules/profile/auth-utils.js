@@ -20,9 +20,9 @@ class ProfileAuthUtils {
         };
 
         const token = this.getAuthToken();
+
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
-            console.log('🔑 PROFILE: Using auth token for API call');
         } else {
             console.warn('⚠️ PROFILE: No auth token found for API call');
         }
@@ -48,7 +48,7 @@ class ProfileAuthUtils {
         }
 
         const token = this.getAuthToken();
-        console.log('🔍 PROFILE: Auth check (fallback):', { hasToken: !!token });
+
         return !!token;
     }
 
@@ -62,7 +62,6 @@ class ProfileAuthUtils {
 
         while (waited < maxWaitTime) {
             if (window.userSystem?.isInitialized) {
-                console.log('✅ PROFILE: UserSystem is ready');
                 return;
             }
 
@@ -86,6 +85,7 @@ class ProfileAuthUtils {
 
             // Fallback: try localStorage
             const userData = localStorage.getItem('currentUser');
+
             if (userData) {
                 return JSON.parse(userData);
             }
@@ -93,6 +93,7 @@ class ProfileAuthUtils {
             return null;
         } catch (error) {
             console.error('Failed to get current user:', error);
+
             return null;
         }
     }
@@ -103,7 +104,6 @@ class ProfileAuthUtils {
     static syncUserData(user) {
         if (window.userSystem?.setUser) {
             window.userSystem.setUser(user);
-            console.log('✅ PROFILE: Synced user data to global system');
         }
     }
 }

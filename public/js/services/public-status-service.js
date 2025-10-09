@@ -26,13 +26,14 @@ class PublicStatusService {
         // Input validation
         if (!imageId || typeof isPublic !== 'boolean') {
             console.error('❌ PUBLIC-STATUS: Invalid parameters', { imageId, isPublic });
+
             return false;
         }
 
         // Prevent duplicate updates
         const updateKey = `${imageId}-${isPublic}`;
+
         if (this.updateQueue.has(updateKey)) {
-            console.log(`🔄 PUBLIC-STATUS: Update already in progress for ${imageId}`);
             return this.updateQueue.get(updateKey);
         }
 
@@ -79,6 +80,7 @@ class PublicStatusService {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
+
                 throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
             }
 
@@ -94,7 +96,6 @@ class PublicStatusService {
                 this._showSuccessNotification(isPublic);
             }
 
-            console.log(`✅ PUBLIC-STATUS: Successfully updated image ${imageId} to ${isPublic ? 'public' : 'private'}`);
             return true;
 
         } catch (error) {
@@ -125,9 +126,9 @@ class PublicStatusService {
         // CRITICAL: Update the main image wrapper's dataset.isPublic attribute
         // This is what the filtering system relies on for proper visibility
         const imageWrapper = document.querySelector(`[data-image-id="${imageId}"]`);
+
         if (imageWrapper) {
             imageWrapper.dataset.isPublic = isPublic.toString();
-            console.log(`🔄 PUBLIC-STATUS: Updated wrapper dataset.isPublic for ${imageId}: ${isPublic}`);
         } else {
             console.warn(`⚠️ PUBLIC-STATUS: Image wrapper not found for ${imageId}`);
         }
@@ -158,6 +159,7 @@ class PublicStatusService {
      */
     _revertDOMCheckboxes(imageId) {
         const cachedState = this.cache.get(imageId);
+
         if (cachedState !== undefined) {
             this._updateDOMCheckboxes(imageId, cachedState);
         }
@@ -176,17 +178,20 @@ class PublicStatusService {
 
         selectors.forEach(selector => {
             const checkbox = document.querySelector(selector);
+
             if (checkbox) {
                 checkbox.disabled = isLoading;
 
                 // Update label text
                 const label = document.querySelector(`label[for="${checkbox.id}"]`);
+
                 if (label) {
                     label.textContent = isLoading ? 'Updating...' : 'Public';
                 }
 
                 // Update container opacity
                 const container = checkbox.closest('.public-checkbox-container, .list-public-checkbox-container, .info-box-public-toggle');
+
                 if (container) {
                     container.style.opacity = isLoading ? '0.6' : '1';
                 }
@@ -214,6 +219,7 @@ class PublicStatusService {
 
         // Update the DOM wrapper's dataset to ensure consistency
         const imageWrapper = document.querySelector(`[data-image-id="${imageId}"]`);
+
         if (imageWrapper) {
             imageWrapper.dataset.isPublic = isPublic.toString();
         }
@@ -247,6 +253,7 @@ class PublicStatusService {
             const message = isPublic
                 ? 'Image is now public and visible to everyone'
                 : 'Image is now private and only visible to you';
+
             window.notificationManager.success(message);
         }
     }
@@ -284,6 +291,7 @@ class PublicStatusService {
 
                 // Also ensure DOM wrapper has correct dataset attribute
                 const imageWrapper = document.querySelector(`[data-image-id="${image.id}"]`);
+
                 if (imageWrapper) {
                     imageWrapper.dataset.isPublic = image.isPublic.toString();
                 }
@@ -318,16 +326,20 @@ class PublicStatusService {
 
             // Update the public status checkbox in fullscreen
             const publicToggle = window.imageManager.fullscreenContainer?.querySelector('.info-box-public-toggle');
+
             if (publicToggle) {
                 const checkbox = publicToggle.querySelector('.public-status-checkbox');
+
                 if (checkbox) {
                     checkbox.checked = isPublic;
                 }
 
                 // Update label text
                 const label = publicToggle.querySelector('.public-status-label');
+
                 if (label) {
                     const currentStatus = isPublic ? 'Public' : 'Private';
+
                     label.textContent = currentStatus;
                 }
             }
@@ -396,6 +408,7 @@ class PublicStatusService {
 
         selectors.forEach(selector => {
             const checkbox = document.querySelector(selector);
+
             if (checkbox) {
                 checkbox.checked = isPublic;
             }
@@ -415,6 +428,7 @@ class PublicStatusService {
 
         displaySelectors.forEach(selector => {
             const display = document.querySelector(selector);
+
             if (display) {
                 display.textContent = isPublic ? 'Public' : 'Private';
             }

@@ -180,10 +180,8 @@ class ProfileDOMManager {
             // Show checking status
             this.showUsernameStatus('checking', 'Checking availability...');
 
-            console.log('🔍 DOM MANAGER: Setting timer for username check:', username);
 
             this.usernameCheckTimer = setTimeout(() => {
-                console.log('🔍 DOM MANAGER: Timer fired, checking username:', username);
                 this.emit('checkUsername');
                 this.lastUsernameValue = username;
             }, 1000); // 1 second delay
@@ -320,7 +318,6 @@ class ProfileDOMManager {
 
         if (updateUsernameBtn) {
             updateUsernameBtn.disabled = false;
-            console.log('🔍 DOM MANAGER: TEST - Button manually enabled');
         }
     }
 

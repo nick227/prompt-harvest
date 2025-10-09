@@ -25,7 +25,7 @@ class UIController {
     }
 
     showLoading(message = 'Saving Post') {
-        if (this.isLoading) return;
+        if (this.isLoading) { return; }
 
         this.isLoading = true;
         this.elements.loading?.classList.remove('hidden');
@@ -33,6 +33,7 @@ class UIController {
 
         // Update loading message if element exists
         const messageEl = this.elements.loading?.querySelector('h3');
+
         if (messageEl) {
             messageEl.textContent = message;
         }
@@ -47,6 +48,7 @@ class UIController {
     showSuccess(message = 'Post saved successfully!') {
         this.hideError();
         const messageEl = this.elements.successMessage?.querySelector('span');
+
         if (messageEl) {
             messageEl.textContent = message;
         }
@@ -59,6 +61,7 @@ class UIController {
     showError(message = 'Failed to save post. Please try again.') {
         this.hideSuccess();
         const messageEl = this.elements.errorMessage?.querySelector('span');
+
         if (messageEl) {
             messageEl.textContent = message;
         }
@@ -83,11 +86,13 @@ class UIController {
         const timeout = setTimeout(() => {
             this.hideNotification(type);
         }, delay);
+
         this.notificationTimeouts.set(type, timeout);
     }
 
     clearNotificationTimeout(type) {
         const timeout = this.notificationTimeouts.get(type);
+
         if (timeout) {
             clearTimeout(timeout);
             this.notificationTimeouts.delete(type);
@@ -108,7 +113,7 @@ class UIController {
     }
 
     updateButton(button, isEnabled) {
-        if (!button) return;
+        if (!button) { return; }
 
         button.disabled = !isEnabled;
         button.classList.toggle('opacity-50', !isEnabled);
@@ -132,9 +137,10 @@ class UIController {
     }
 
     getFormData() {
-        if (!this.elements.form) return {};
+        if (!this.elements.form) { return {}; }
 
         const formData = new FormData(this.elements.form);
+
         return {
             title: formData.get('title') || '',
             content: formData.get('content') || '', // This will be the hidden input value

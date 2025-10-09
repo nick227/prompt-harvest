@@ -16,6 +16,7 @@ class FormValidator {
     init() {
         if (!this.form) {
             console.error('FormValidator: Form not found');
+
             return;
         }
 
@@ -24,7 +25,7 @@ class FormValidator {
 
     setupValidation() {
         // Debounced validation to prevent excessive calls
-        const debouncedValidation = PerformanceUtils.debounce((e) => {
+        const debouncedValidation = PerformanceUtils.debounce(e => {
             this.validateField(e.target);
             this.updateFormState();
         }, 300);
@@ -48,6 +49,7 @@ class FormValidator {
 
         if (validator && callback) {
             const isValid = validator(field.value);
+
             callback(isValid, field);
         }
     }
@@ -55,6 +57,7 @@ class FormValidator {
     updateFormState() {
         const allValid = Array.from(this.validators.entries()).every(([fieldName, validator]) => {
             const field = this.form.querySelector(`[name="${fieldName}"]`);
+
             return field ? validator(field.value) : false;
         });
 
@@ -71,11 +74,13 @@ class FormValidator {
 
     validate() {
         this.updateFormState();
+
         return this.isValid;
     }
 
     getFieldValue(fieldName) {
         const field = this.form.querySelector(`[name="${fieldName}"]`);
+
         return field ? field.value.trim() : '';
     }
 

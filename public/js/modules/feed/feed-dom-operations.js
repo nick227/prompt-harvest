@@ -221,15 +221,70 @@ class FeedDOMOperations {
         window.scrollTo(0, position);
     }
 
-    // Check if element is in viewport
-    isElementInViewport(element) {
+    /**
+     * Check if element is in viewport (enhanced with scroll root and margin support)
+     * @param {Element} element - Element to check
+     * @param {Element|null} [scrollRoot=null] - Custom scroll container
+     * @param {boolean} [allowZeroSize=false] - Allow zero-size sentinel elements
+     * @param {string} [rootMargin='0px 0px'] - Root margin for viewport calculation
+     * @returns {boolean} True if element is in viewport
+     */
+    isElementInViewport(element, scrollRoot = null, allowZeroSize = false, rootMargin = '0px 0px') {
+        if (!element) {
+            return false;
+        }
+
         const rect = element.getBoundingClientRect();
 
+        // Zero-size element check (display:none or width/height 0)
+        // Skip check if allowZeroSize is true (for zero-height pagination sentinels)
+        if (!allowZeroSize && rect.width === 0 && rect.height === 0) {
+            return false;
+        }
+
+        // Validate scrollRoot is an element before using it
+        const validRoot = scrollRoot && scrollRoot.nodeType === 1 ? scrollRoot : null;
+
+        if (validRoot) {
+            // Use custom scroll container bounds with margin
+            const containerRect = validRoot.getBoundingClientRect();
+            const containerSize = { width: containerRect.width, height: containerRect.height };
+
+            // Parse rootMargin (simplified - assumes format like '300px 0px')
+            const margins = rootMargin.split(' ').map(m => parseInt(m) || 0);
+            const margin = {
+                top: margins[0] || 0,
+                right: margins[1] || margins[0] || 0,
+                bottom: margins[2] || margins[0] || 0,
+                left: margins[3] || margins[1] || margins[0] || 0
+            };
+
+            return (
+                rect.top <= containerRect.bottom + margin.bottom &&
+                rect.bottom >= containerRect.top - margin.top &&
+                rect.right >= containerRect.left - margin.left &&
+                rect.left <= containerRect.right + margin.right
+            );
+        }
+
+        // Use window bounds with margin
+        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+        const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+
+        // Parse rootMargin
+        const margins = rootMargin.split(' ').map(m => parseInt(m) || 0);
+        const margin = {
+            top: margins[0] || 0,
+            right: margins[1] || margins[0] || 0,
+            bottom: margins[2] || margins[0] || 0,
+            left: margins[3] || margins[1] || margins[0] || 0
+        };
+
         return (
-            rect.top >= 0 &&
-            rect.left >= 0 &&
-            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            rect.top <= windowHeight + margin.bottom &&
+            rect.bottom >= -margin.top &&
+            rect.right >= -margin.left &&
+            rect.left <= windowWidth + margin.right
         );
     }
 }

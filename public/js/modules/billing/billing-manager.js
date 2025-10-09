@@ -21,7 +21,6 @@ class BillingManager {
             return;
         }
 
-        console.log('🏦 BILLING: Initializing billing system...');
 
         try {
             // Initialize DOM manager first
@@ -44,7 +43,6 @@ class BillingManager {
             this.handleURLParameters();
 
             this.isInitialized = true;
-            console.log('✅ BILLING: System initialized successfully');
         } catch (error) {
             console.error('❌ BILLING: Initialization failed:', error);
             this.domManager.showError(this.config.ERROR_MESSAGES.INITIALIZATION_FAILED);
@@ -56,12 +54,10 @@ class BillingManager {
      */
     setupCrossComponentListeners() {
         // Listen for promo code redemption events from header widget
-        window.addEventListener('promoCodeRedeemed', (event) => {
-            console.log('🎫 BILLING: Promo code redeemed event received:', event.detail);
+        window.addEventListener('promoCodeRedeemed', event => {
 
             // Only refresh if the event came from header widget (not from billing page itself)
             if (event.detail.source === 'header-widget') {
-                console.log('🔄 BILLING: Refreshing data due to header widget promo redemption');
                 this.refresh();
             }
         });
@@ -75,7 +71,6 @@ class BillingManager {
             await this.waitForUserSystem();
 
             if (!window.userSystem || !window.userSystem.isInitialized || !window.userSystem.isAuthenticated()) {
-                console.log('🔐 BILLING: User not authenticated, redirecting to login');
                 this.redirectToLogin();
 
                 return;
@@ -84,7 +79,6 @@ class BillingManager {
             const user = window.userSystem.getUser();
 
             this.dataManager.setCurrentUser(user);
-            console.log('👤 BILLING: User authenticated:', user.email);
         } catch (error) {
             console.error('❌ BILLING: Authentication check failed:', error);
             this.redirectToLogin();
@@ -134,7 +128,6 @@ class BillingManager {
 
         try {
             await Promise.allSettled(criticalPromises);
-            console.log('✅ BILLING: Critical data loaded');
         } catch (error) {
             console.error('❌ BILLING: Critical data loading failed:', error);
         }
@@ -152,7 +145,6 @@ class BillingManager {
 
         try {
             await Promise.allSettled(secondaryPromises);
-            console.log('✅ BILLING: Secondary data loaded');
         } catch (error) {
             console.error('❌ BILLING: Secondary data loading failed:', error);
         }
@@ -178,7 +170,6 @@ class BillingManager {
             this.domManager.updateBalanceDisplay(balance);
             this.dataManager.setCachedData(this.config.CACHE.KEYS.BALANCE, balance);
 
-            console.log('💰 BILLING: Current balance loaded:', balance);
         } catch (error) {
             console.error('❌ BILLING: Failed to load balance:', error);
             this.domManager.updateBalanceDisplay('Error');
@@ -218,7 +209,6 @@ class BillingManager {
             this.dataManager.setCreditPackages(packages);
             this.domManager.renderCreditPackages(packages);
 
-            console.log('📦 BILLING: Credit packages loaded:', packages.length);
         } catch (error) {
             console.error('❌ BILLING: Failed to load credit packages:', error);
             this.domManager.showError(this.config.ERROR_MESSAGES.PACKAGES_LOAD_FAILED);
@@ -245,7 +235,6 @@ class BillingManager {
             this.domManager.updateUsageDisplay(stats);
             this.dataManager.setCachedData(this.config.CACHE.KEYS.USAGE_STATS, stats);
 
-            console.log('📈 BILLING: Usage summary loaded');
         } catch (error) {
             console.error('❌ BILLING: Failed to load usage summary:', error);
             this.domManager.showUsageError();
@@ -270,7 +259,6 @@ class BillingManager {
      * Refresh all data
      */
     async refresh() {
-        console.log('🔄 BILLING: Refreshing all data...');
         this.dataManager.clearCache();
         await this.loadCriticalData();
         this.loadSecondaryData();
@@ -281,14 +269,12 @@ class BillingManager {
      */
     async loadPaymentHistory() {
         try {
-            console.log('🔄 BILLING: Loading payment history...');
             const payments = await this.apiManager.getPaymentHistory();
             const promoRedemptions = await this.apiManager.getPromoRedemptions();
 
             this.dataManager.setPaymentHistory(payments);
             this.dataManager.setPromoRedemptions(promoRedemptions);
             this.uiManager.updatePaymentHistory(payments, promoRedemptions);
-            console.log(`✅ BILLING: Loaded ${payments.length} payment records and ${promoRedemptions.length} promo redemptions`);
         } catch (error) {
             console.error('❌ BILLING: Failed to load payment history:', error);
             this.uiManager.showError('Failed to load payment history');
@@ -300,13 +286,11 @@ class BillingManager {
      */
     async loadImageHistory(page = 0, append = false) {
         try {
-            console.log('🔄 BILLING: Loading image history...', { page, append });
 
             const { limit } = this.dataManager.getImageHistoryPagination();
 
             const result = await this.apiManager.getImageHistory(limit, page);
 
-            console.log('🔄 BILLING: Images received:', result);
 
             // Update pagination state
             this.dataManager.updateImageHistoryPagination({
@@ -317,8 +301,10 @@ class BillingManager {
 
             // Handle appending vs replacing
             let allImages;
+
             if (append && page > 0) {
                 const existingImages = this.dataManager.getImageHistory();
+
                 allImages = [...existingImages, ...result.images];
             } else {
                 allImages = result.images;
@@ -326,7 +312,6 @@ class BillingManager {
 
             this.dataManager.setImageHistory(allImages);
             this.uiManager.updateImageHistory(allImages, result.hasMore);
-            console.log(`✅ BILLING: Loaded ${result.images.length} image records (total: ${allImages.length})`);
         } catch (error) {
             console.error('❌ BILLING: Failed to load image history:', error);
             console.error('❌ BILLING: Error stack:', error.stack);
@@ -336,9 +321,10 @@ class BillingManager {
 
     async loadMoreImageHistory() {
         const pagination = this.dataManager.getImageHistoryPagination();
+
         if (pagination.hasMore) {
             const nextPage = pagination.page + 1;
-            console.log('🔄 BILLING: Loading more images, page:', nextPage);
+
             await this.loadImageHistory(nextPage, true);
         }
     }
@@ -364,7 +350,6 @@ class BillingManager {
             const packageParam = urlParams.get('package');
 
             if (packageParam) {
-                console.log(`🏦 BILLING: Package parameter found: ${packageParam}`);
 
                 // Wait a bit for packages to be loaded, then pre-select
                 setTimeout(() => {
@@ -385,7 +370,6 @@ class BillingManager {
             const packageElement = document.querySelector(`[data-package-id="${packageId}"]`);
 
             if (packageElement) {
-                console.log(`🏦 BILLING: Pre-selecting package: ${packageId}`);
 
                 // Scroll to packages section
                 const packagesSection = document.querySelector('.credit-packages');
@@ -421,7 +405,6 @@ class BillingManager {
         this.uiManager.cleanup();
         this.dataManager.clearCache();
         this.isInitialized = false;
-        console.log('🧹 BILLING: System destroyed and cleaned up');
     }
 }
 

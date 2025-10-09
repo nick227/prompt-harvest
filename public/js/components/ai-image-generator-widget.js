@@ -43,6 +43,7 @@ class AIImageGeneratorWidget {
      */
     render() {
         const container = document.getElementById(this.containerId);
+
         if (!container) {
             console.error(`AI Image Generator Widget: Container with id "${this.containerId}" not found`);
 
@@ -79,20 +80,21 @@ class AIImageGeneratorWidget {
                             AI Provider
                         </label>
                         <select id="${this.containerId}-provider" class="form-select ai-provider-select">
-                            ${this.options.providers.map(provider =>
-                                `<option value="${provider.value}" ${provider.value === this.options.defaultProvider ? 'selected' : ''}>
+                            ${this.options.providers.map(provider => `<option value="${provider.value}" ${provider.value === this.options.defaultProvider ? 'selected' : ''}>
                                     ${provider.label}
                                 </option>`
-                            ).join('')}
+    ).join('')}
                         </select>
                     </div>
 
-                    ${this.options.showCost ? `
+                    ${this.options.showCost
+        ? `
                         <div class="generation-cost">
                             <i class="fas fa-coins" aria-hidden="true"></i>
                             <span>Cost: <span class="cost-amount">1 credit</span></span>
                         </div>
-                    ` : ''}
+                    `
+        : ''}
 
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary generate-btn" disabled>
@@ -118,12 +120,14 @@ class AIImageGeneratorWidget {
                                 <i class="fas fa-check" aria-hidden="true"></i>
                                 Use This Image
                             </button>
-                            ${this.options.allowRetry ? `
+                            ${this.options.allowRetry
+        ? `
                                 <button type="button" class="btn btn-secondary retry-btn">
                                     <i class="fas fa-redo" aria-hidden="true"></i>
                                     Try Again
                                 </button>
-                            ` : ''}
+                            `
+        : ''}
                         </div>
                     </div>
 
@@ -154,10 +158,12 @@ class AIImageGeneratorWidget {
      */
     attachEventListeners() {
         const container = document.getElementById(this.containerId);
-        if (!container) return;
+
+        if (!container) { return; }
 
         // Prompt input
         const promptInput = container.querySelector('.ai-prompt-input');
+
         if (promptInput) {
             promptInput.addEventListener('input', this.handlePromptInput.bind(this));
             promptInput.addEventListener('keydown', this.handlePromptKeydown.bind(this));
@@ -165,24 +171,28 @@ class AIImageGeneratorWidget {
 
         // Provider selection
         const providerSelect = container.querySelector('.ai-provider-select');
+
         if (providerSelect) {
             providerSelect.addEventListener('change', this.handleProviderChange.bind(this));
         }
 
         // Generate button
         const generateBtn = container.querySelector('.generate-btn');
+
         if (generateBtn) {
             generateBtn.addEventListener('click', this.handleGenerate.bind(this));
         }
 
         // Use image button
         const useImageBtn = container.querySelector('.use-image-btn');
+
         if (useImageBtn) {
             useImageBtn.addEventListener('click', this.handleUseImage.bind(this));
         }
 
         // Retry button
         const retryBtn = container.querySelector('.retry-btn');
+
         if (retryBtn) {
             retryBtn.addEventListener('click', this.handleRetry.bind(this));
         }
@@ -218,6 +228,7 @@ class AIImageGeneratorWidget {
         if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
             event.preventDefault();
             const generateBtn = this.getGenerateButton();
+
             if (generateBtn && !generateBtn.disabled) {
                 this.handleGenerate();
             }
@@ -241,6 +252,7 @@ class AIImageGeneratorWidget {
 
         if (!prompt.trim()) {
             this.emit('error', { message: 'Please enter a description for your image' });
+
             return;
         }
 
@@ -303,6 +315,7 @@ class AIImageGeneratorWidget {
         }
         if (providerText) {
             const providerLabel = this.options.providers.find(p => p.value === provider)?.label || provider;
+
             providerText.textContent = providerLabel;
         }
 
@@ -371,6 +384,7 @@ class AIImageGeneratorWidget {
         if (costElement) {
             const providerData = this.options.providers.find(p => p.value === provider);
             const cost = providerData?.cost || 1;
+
             costElement.textContent = `${cost} credit${cost !== 1 ? 's' : ''}`;
         }
     }
@@ -380,6 +394,7 @@ class AIImageGeneratorWidget {
      */
     updateStatus(text, type = 'default') {
         const statusElement = this.getStatusElement();
+
         if (statusElement) {
             statusElement.textContent = text;
             statusElement.className = `status-text ${type}`;
@@ -391,6 +406,7 @@ class AIImageGeneratorWidget {
      */
     showForm() {
         const form = this.getFormElement();
+
         if (form) {
             form.classList.remove('hidden');
         }
@@ -398,6 +414,7 @@ class AIImageGeneratorWidget {
 
     hideForm() {
         const form = this.getFormElement();
+
         if (form) {
             form.classList.add('hidden');
         }
@@ -405,6 +422,7 @@ class AIImageGeneratorWidget {
 
     showPreview() {
         const preview = this.getPreviewElement();
+
         if (preview) {
             preview.classList.remove('hidden');
         }
@@ -412,6 +430,7 @@ class AIImageGeneratorWidget {
 
     hidePreview() {
         const preview = this.getPreviewElement();
+
         if (preview) {
             preview.classList.add('hidden');
         }
@@ -419,6 +438,7 @@ class AIImageGeneratorWidget {
 
     showLoadingElement() {
         const loading = this.getLoadingElement();
+
         if (loading) {
             loading.classList.remove('hidden');
         }
@@ -426,6 +446,7 @@ class AIImageGeneratorWidget {
 
     hideLoadingElement() {
         const loading = this.getLoadingElement();
+
         if (loading) {
             loading.classList.add('hidden');
         }
@@ -436,11 +457,13 @@ class AIImageGeneratorWidget {
      */
     getPrompt() {
         const input = this.getPromptInput();
+
         return input ? input.value.trim() : '';
     }
 
     getProvider() {
         const select = this.getProviderSelect();
+
         return select ? select.value : this.options.defaultProvider;
     }
 
@@ -449,6 +472,7 @@ class AIImageGeneratorWidget {
      */
     setPrompt(prompt) {
         const input = this.getPromptInput();
+
         if (input) {
             input.value = prompt;
             this.handlePromptInput({ target: input });
@@ -457,6 +481,7 @@ class AIImageGeneratorWidget {
 
     setProvider(provider) {
         const select = this.getProviderSelect();
+
         if (select) {
             select.value = provider;
             this.updateCost();
@@ -528,6 +553,7 @@ class AIImageGeneratorWidget {
         if (this.eventListeners.has(event)) {
             const listeners = this.eventListeners.get(event);
             const index = listeners.indexOf(callback);
+
             if (index > -1) {
                 listeners.splice(index, 1);
             }
@@ -560,6 +586,7 @@ class AIImageGeneratorWidget {
     setGenerating(generating) {
         this.isGenerating = generating;
         const generateBtn = this.getGenerateButton();
+
         if (generateBtn) {
             generateBtn.disabled = generating || this.getPrompt().length === 0;
         }
@@ -567,6 +594,7 @@ class AIImageGeneratorWidget {
 
     destroy() {
         const container = document.getElementById(this.containerId);
+
         if (container) {
             container.innerHTML = '';
         }

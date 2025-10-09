@@ -3,7 +3,7 @@
  * Single Responsibility: Fetch and process site snapshot metrics
  */
 
-/* global AdminAPIService */
+// Globals: AdminAPIService (defined in .eslintrc.json)
 
 class AdminSnapshotService {
     constructor() {
@@ -14,11 +14,11 @@ class AdminSnapshotService {
     }
 
     async init() {
-        console.log('📊 ADMIN-SNAPSHOT: Initializing snapshot service...');
 
         // Check authentication before initializing
         if (!window.AdminAuthUtils?.hasValidToken()) {
             console.warn('🔐 ADMIN-SNAPSHOT: No valid token, skipping snapshot service initialization');
+
             return;
         }
 
@@ -32,7 +32,6 @@ class AdminSnapshotService {
         }
 
         try {
-            console.log('📊 ADMIN-SNAPSHOT: Fetching site snapshot...');
 
             const [statsResult, metricsResult, healthResult] = await Promise.all([
                 this.apiService.getDashboardStats(),
@@ -56,7 +55,6 @@ class AdminSnapshotService {
             this.cache = snapshotData;
             this.lastFetch = Date.now();
 
-            console.log('✅ ADMIN-SNAPSHOT: Site snapshot fetched successfully');
 
             return snapshotData;
 
@@ -89,12 +87,10 @@ class AdminSnapshotService {
     clearCache() {
         this.cache = null;
         this.lastFetch = null;
-        console.log('🧹 ADMIN-SNAPSHOT: Cache cleared');
     }
 
     destroy() {
         this.clearCache();
-        console.log('🗑️ ADMIN-SNAPSHOT: Snapshot service destroyed');
     }
 }
 

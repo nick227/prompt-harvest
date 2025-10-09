@@ -11,42 +11,35 @@ class AdminAuthManager {
      */
     static async checkAdminAuthentication() {
         try {
-            console.log('🔍 ADMIN: Starting authentication check...');
 
             // Check if userApi is available
             if (!window.userApi) {
                 console.error('❌ ADMIN: userApi not available');
+
                 return false;
             }
 
-            console.log('✅ ADMIN: userApi is available');
 
             // Check if user is authenticated
             const isAuthenticated = window.userApi.isAuthenticated();
 
-            console.log('🔍 ADMIN: isAuthenticated() returned:', isAuthenticated);
 
             if (!isAuthenticated) {
-                console.log('🔐 ADMIN: User not authenticated');
                 return false;
             }
 
             // Get user profile to check admin status
-            console.log('🔍 ADMIN: Fetching user profile...');
             let userProfile;
 
             try {
                 userProfile = await window.userApi.getProfile();
-                console.log('🔍 ADMIN: Profile response:', userProfile);
             } catch (error) {
                 console.error('❌ ADMIN: Profile fetch failed:', error);
 
                 // Fallback: try to get user info from localStorage/sessionStorage
-                console.log('🔍 ADMIN: Trying fallback method...');
                 const fallbackUser = this.getFallbackUserInfo();
 
                 if (fallbackUser && fallbackUser.isAdmin) {
-                    console.log('✅ ADMIN: Fallback user info found:', fallbackUser);
                     return true;
                 }
 
@@ -54,14 +47,11 @@ class AdminAuthManager {
             }
 
             if (!userProfile || !userProfile.data) {
-                console.log('🔐 ADMIN: No user profile data');
 
                 // Fallback: try to get user info from localStorage/sessionStorage
-                console.log('🔍 ADMIN: Trying fallback method...');
                 const fallbackUser = this.getFallbackUserInfo();
 
                 if (fallbackUser && fallbackUser.isAdmin) {
-                    console.log('✅ ADMIN: Fallback user info found:', fallbackUser);
                     return true;
                 }
 
@@ -69,10 +59,6 @@ class AdminAuthManager {
             }
 
             // Check if user has admin privileges
-            console.log('🔍 ADMIN: Full user data:', userProfile.data.user);
-            console.log('🔍 ADMIN: User data keys:', Object.keys(userProfile.data.user || {}));
-            console.log('🔍 ADMIN: Raw isAdmin value:', userProfile.data.user?.isAdmin);
-            console.log('🔍 ADMIN: isAdmin type:', typeof userProfile.data.user?.isAdmin);
 
             const isAdmin = userProfile.data.user?.isAdmin === true;
 
@@ -84,15 +70,14 @@ class AdminAuthManager {
             });
 
             if (!isAdmin) {
-                console.log('🔐 ADMIN: User is not an admin');
                 return false;
             }
 
-            console.log('✅ ADMIN: User authenticated as admin:', userProfile.data.user.email);
             return true;
 
         } catch (error) {
             console.error('❌ ADMIN: Authentication check failed:', error);
+
             return false;
         }
     }
@@ -112,6 +97,7 @@ class AdminAuthManager {
             };
         } catch (error) {
             console.error('❌ ADMIN: Failed to get user info:', error);
+
             return { email: 'Unknown', name: 'Unknown', isAdmin: false };
         }
     }
@@ -140,7 +126,6 @@ class AdminAuthManager {
                         const userData = JSON.parse(localData);
 
                         if (userData && userData.isAdmin) {
-                            console.log('🔍 ADMIN: Found user in localStorage:', key, userData);
                             return userData;
                         }
                     } catch (e) {
@@ -156,7 +141,6 @@ class AdminAuthManager {
                         const userData = JSON.parse(sessionData);
 
                         if (userData && userData.isAdmin) {
-                            console.log('🔍 ADMIN: Found user in sessionStorage:', key, userData);
                             return userData;
                         }
                     } catch (e) {
@@ -170,15 +154,14 @@ class AdminAuthManager {
                 const user = window.userSystem.getUser();
 
                 if (user && user.isAdmin) {
-                    console.log('🔍 ADMIN: Found user in window.userSystem:', user);
                     return user;
                 }
             }
 
-            console.log('🔍 ADMIN: No fallback user info found');
             return null;
         } catch (error) {
             console.error('❌ ADMIN: Error getting fallback user info:', error);
+
             return null;
         }
     }
@@ -192,7 +175,6 @@ class AdminAuthManager {
         const maxAttempts = 100; // 10 seconds max
 
         while (!window.userApi && attempts < maxAttempts) {
-            console.log(`🔍 ADMIN: Waiting for userApi... (attempt ${attempts + 1}/${maxAttempts})`);
             await new Promise(resolve => setTimeout(resolve, 100));
             attempts++;
         }
@@ -200,27 +182,27 @@ class AdminAuthManager {
         if (!window.userApi) {
             console.error('❌ ADMIN: userApi not available after waiting');
             console.error('🔍 ADMIN: Available window objects:', Object.keys(window).filter(key => key.includes('user') || key.includes('api') || key.includes('Api')));
+
             return false;
         }
 
-        console.log('✅ ADMIN: userApi is available');
 
         // Additional check to ensure userApi methods are available
         if (typeof window.userApi.isAuthenticated !== 'function') {
             console.error('❌ ADMIN: userApi.isAuthenticated is not a function');
+
             return false;
         }
 
         if (typeof window.userApi.getProfile !== 'function') {
             console.error('❌ ADMIN: userApi.getProfile is not a function');
+
             return false;
         }
 
-        console.log('✅ ADMIN: userApi methods are available');
         return true;
     }
 }
 
 // Export for use in other modules
 window.AdminAuthManager = AdminAuthManager;
-console.log('🔐 ADMIN-AUTH: AdminAuthManager loaded and assigned to window.AdminAuthManager');

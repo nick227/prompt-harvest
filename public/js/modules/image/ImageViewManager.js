@@ -15,16 +15,12 @@ class ImageViewManager {
      * @param {HTMLElement} listItem - New list item with image
      */
     replaceLoadingPlaceholder(loadingPlaceholder, newWrapper) {
-        console.log('🔄 REPLACE: Starting placeholder replacement', loadingPlaceholder, newWrapper);
 
         if (this.hasDualViews(loadingPlaceholder)) {
-            console.log('🔄 REPLACE: Using dual view replacement');
             this.replaceDualViewPlaceholder(loadingPlaceholder, newWrapper);
         } else {
-            console.log('🔄 REPLACE: Using simple replacement');
             this.replaceSimplePlaceholder(loadingPlaceholder, newWrapper);
         }
-        console.log('🔄 REPLACE: Replacement completed');
     }
 
     /**
@@ -44,7 +40,6 @@ class ImageViewManager {
      * @param {HTMLElement} listItem - New list item with image
      */
     replaceDualViewPlaceholder(loadingWrapper, newWrapper) {
-        console.log('🔄 Loading placeholder has dual views, replacing entire placeholder');
 
         const container = loadingWrapper.parentElement;
 
@@ -55,9 +50,7 @@ class ImageViewManager {
         }
 
         // Replace the entire placeholder with the new wrapper
-        console.log('🔄 Replacing entire placeholder with new wrapper');
         container.replaceChild(newWrapper, loadingWrapper);
-        console.log('✅ Loading placeholder completely replaced');
     }
 
 
@@ -160,15 +153,11 @@ class ImageViewManager {
      * @param {HTMLElement} listItem - New list item
      */
     replaceSimplePlaceholder(loadingPlaceholder, newWrapper) {
-        console.log('🔄 SIMPLE: Starting simple replacement');
         const container = loadingPlaceholder.parentElement;
 
-        console.log('🔄 SIMPLE: Found container', container);
 
         if (container) {
-            console.log('🔄 SIMPLE: Replacing placeholder with new wrapper');
             container.replaceChild(newWrapper, loadingPlaceholder);
-            console.log('🔄 SIMPLE: Replacement completed');
         } else {
             console.error('❌ SIMPLE: No container found for replacement');
         }
@@ -195,14 +184,11 @@ class ImageViewManager {
         this.assembleImageStructure(wrapper, img, null);
 
         if (loadingPlaceholder) {
-            console.log('🔄 Replacing loading placeholder with generated image', loadingPlaceholder);
             this.replaceLoadingPlaceholder(loadingPlaceholder, wrapper);
         } else {
-            console.log('📝 No loading placeholder found, inserting at beginning');
             this.insertAtBeginning(wrapper, container);
         }
 
-        console.log('✅ Image successfully inserted using replacement approach');
     }
 
     /**

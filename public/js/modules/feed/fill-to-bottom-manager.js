@@ -89,6 +89,7 @@ class FillToBottomManager {
             return false;
         } catch (error) {
             console.error('❌ FILL: Error loading more content:', error);
+
             return false;
         }
     }

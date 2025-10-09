@@ -26,7 +26,7 @@ class UnifiedStatsService {
     setupEventListeners() {
         // Listen for authentication state changes
         if (window.UnifiedAuthUtils) {
-            window.UnifiedAuthUtils.addAuthListener((isAuthenticated) => {
+            window.UnifiedAuthUtils.addAuthListener(isAuthenticated => {
                 if (isAuthenticated) {
                     this.loadStats();
                 } else {
@@ -58,6 +58,7 @@ class UnifiedStatsService {
      */
     subscribe(callback) {
         this.listeners.add(callback);
+
         return () => this.listeners.delete(callback);
     }
 
@@ -114,6 +115,7 @@ class UnifiedStatsService {
             if (!response.ok) {
                 if (response.status === 401) {
                     this.stats = null;
+
                     return null;
                 }
                 throw new Error(`HTTP ${response.status}`);
@@ -125,12 +127,14 @@ class UnifiedStatsService {
                 this.stats = data.data;
                 this.setCachedData('stats', this.stats);
                 this.notify(this.stats);
+
                 return this.stats;
             }
 
             return this.stats;
         } catch (error) {
             console.error('Stats fetch failed:', error);
+
             return this.stats;
         } finally {
             this.isLoading = false;
@@ -153,6 +157,7 @@ class UnifiedStatsService {
             return await this.fetchStats();
         } catch (error) {
             console.error('Error refreshing stats after generation:', error);
+
             return null;
         }
     }
@@ -234,9 +239,11 @@ class UnifiedStatsService {
      */
     getCachedData(key) {
         const cached = this.cache.get(key);
+
         if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
             return cached.data;
         }
+
         return null;
     }
 

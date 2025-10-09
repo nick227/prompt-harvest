@@ -29,7 +29,6 @@ class AdminModalFunctions {
      * @returns {Promise<Object|null>} Credits data or null if cancelled
      */
     static async showAddCreditsModal() {
-        console.log('🔍 ADMIN: showAddCreditsModal called');
 
         return new Promise(resolve => {
             const content = `
@@ -44,7 +43,6 @@ class AdminModalFunctions {
                 </div>
             `;
 
-            console.log('🔍 ADMIN: Showing credits modal with content:', content);
             window.showModal('Add Credits', content);
 
             // Wait for modal content to be rendered before adding event listeners
@@ -56,12 +54,11 @@ class AdminModalFunctions {
 
                 // Check if all elements exist
                 if (!amountInput || !reasonInput || !cancelBtn || !confirmBtn) {
-                    console.log('🔍 ADMIN: Modal elements not ready, retrying...');
                     setTimeout(setupEventListeners, 50);
+
                     return;
                 }
 
-                console.log('🔍 ADMIN: All modal elements found, setting up event listeners');
 
                 const cleanup = () => {
                     window.hideModal();
@@ -80,7 +77,6 @@ class AdminModalFunctions {
                 };
 
                 const handleCancel = () => {
-                    console.log('🔍 ADMIN: Credits modal cancelled');
                     cleanup();
                     resolve(null);
                 };
@@ -89,14 +85,11 @@ class AdminModalFunctions {
                     const amount = parseInt(amountInput.value.trim());
                     const reason = reasonInput.value.trim() || 'Admin credit adjustment';
 
-                    console.log('🔍 ADMIN: Credits modal confirmed with:', { amount, reason });
 
                     if (amount && amount > 0) {
                         cleanup();
-                        console.log('🔍 ADMIN: Resolving with result:', { amount, reason });
                         resolve({ amount, reason });
                     } else {
-                        console.log('🔍 ADMIN: Invalid amount, not resolving');
                         alert('Please enter a valid amount greater than 0');
                     }
                 };
@@ -129,10 +122,9 @@ class AdminModalFunctions {
      * @returns {Promise<string|null>} Suspension reason or null if cancelled
      */
     static async showSuspensionReasonModal() {
-        console.log('🔍 ADMIN: showSuspensionReasonModal called');
         // Create a simple modal for suspension reason input
         const result = await this.createInputModal('Enter suspension reason:', 'text');
-        console.log('🔍 ADMIN: showSuspensionReasonModal result:', result);
+
         return result;
     }
 
@@ -141,10 +133,9 @@ class AdminModalFunctions {
      * @returns {Promise<string|null>} Unsuspension reason or null if cancelled
      */
     static async showUnsuspensionReasonModal() {
-        console.log('🔍 ADMIN: showUnsuspensionReasonModal called');
         // Create a simple modal for unsuspension reason input
         const result = await this.createInputModal('Enter unsuspension reason:', 'text');
-        console.log('🔍 ADMIN: showUnsuspensionReasonModal result:', result);
+
         return result;
     }
 
@@ -155,7 +146,6 @@ class AdminModalFunctions {
      * @returns {Promise<string|null>} Input value or null if cancelled
      */
     static createInputModal(message, type = 'text') {
-        console.log('🔍 ADMIN: createInputModal called with:', { message, type });
 
         return new Promise(resolve => {
             const content = `
@@ -169,7 +159,6 @@ class AdminModalFunctions {
                 </div>
             `;
 
-            console.log('🔍 ADMIN: Showing modal with content:', content);
             window.showModal('Input Required', content);
 
             // Wait for modal content to be rendered before adding event listeners
@@ -180,12 +169,11 @@ class AdminModalFunctions {
 
                 // Check if all elements exist
                 if (!input || !cancelBtn || !confirmBtn) {
-                    console.log('🔍 ADMIN: Modal elements not ready, retrying...');
                     setTimeout(setupEventListeners, 50);
+
                     return;
                 }
 
-                console.log('🔍 ADMIN: All modal elements found, setting up event listeners');
 
                 const cleanup = () => {
                     window.hideModal();
@@ -201,7 +189,6 @@ class AdminModalFunctions {
                 };
 
                 const handleCancel = () => {
-                    console.log('🔍 ADMIN: Modal cancelled');
                     cleanup();
                     resolve(null);
                 };
@@ -209,16 +196,13 @@ class AdminModalFunctions {
                 const handleConfirm = () => {
                     const value = input.value.trim();
 
-                    console.log('🔍 ADMIN: Modal confirmed with value:', value);
                     if (value) {
                         cleanup();
                         const result = type === 'number' ? parseInt(value) || 0 : value;
 
-                        console.log('🔍 ADMIN: Resolving with result:', result);
                         resolve(result);
-                    } else {
-                        console.log('🔍 ADMIN: No value provided, not resolving');
                     }
+                    // Input not confirmed - wait for user action
                 };
 
                 const handleKeydown = e => {
@@ -268,12 +252,11 @@ class AdminModalFunctions {
 
                 // Check if all elements exist
                 if (!cancelBtn || !confirmBtn) {
-                    console.log('🔍 ADMIN: Modal elements not ready, retrying...');
                     setTimeout(setupEventListeners, 50);
+
                     return;
                 }
 
-                console.log('🔍 ADMIN: All modal elements found, setting up event listeners');
 
                 const cleanup = () => {
                     window.hideModal();
@@ -286,13 +269,11 @@ class AdminModalFunctions {
                 };
 
                 const handleCancel = () => {
-                    console.log('🔍 ADMIN: Confirm modal cancelled');
                     cleanup();
                     resolve(false);
                 };
 
                 const handleConfirm = () => {
-                    console.log('🔍 ADMIN: Confirm modal confirmed');
                     cleanup();
                     resolve(true);
                 };

@@ -21,6 +21,7 @@ class AdminQueueService {
         try {
             // Check authentication first
             const token = this.getAuthToken();
+
             if (!token) {
                 console.warn('🔐 ADMIN-QUEUE-SERVICE: No auth token available, skipping queue status request');
                 throw new Error('Authentication required');
@@ -28,6 +29,7 @@ class AdminQueueService {
 
             // Check cache first
             const now = Date.now();
+
             if (this.cache.data && (now - this.cache.timestamp) < this.cacheTimeout) {
                 return this.cache.data;
             }
@@ -36,7 +38,7 @@ class AdminQueueService {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    Authorization: `Bearer ${token}`
                 }
             });
 
@@ -72,7 +74,7 @@ class AdminQueueService {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getAuthToken()}`
+                    Authorization: `Bearer ${this.getAuthToken()}`
                 }
             });
 
@@ -107,7 +109,7 @@ class AdminQueueService {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getAuthToken()}`
+                    Authorization: `Bearer ${this.getAuthToken()}`
                 },
                 body: JSON.stringify({ concurrency })
             });

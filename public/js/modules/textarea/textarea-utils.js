@@ -22,9 +22,10 @@ class TextAreaUtils {
     }
 
     setValue(textArea, value, options = {}) {
-        if (!textArea) return;
+        if (!textArea) { return; }
 
         const { silent = false, noResize = false, autoResizeManager = null, isMatchClick = false } = options;
+
         textArea.value = value;
 
         if (!silent) {
@@ -65,12 +66,13 @@ class TextAreaUtils {
     }
 
     getWordAtCursor(textArea) {
-        if (!textArea) return '';
+        if (!textArea) { return ''; }
+
         return window.TextUtils.getWordAtCursor(textArea.value, textArea.selectionStart);
     }
 
     replaceWordAtCursor(textArea, newWord) {
-        if (!textArea) return;
+        if (!textArea) { return; }
 
         const { value, cursorPosition } = window.TextUtils.replaceWordAtCursor(
             textArea.value,
@@ -83,17 +85,19 @@ class TextAreaUtils {
     }
 
     getTextBeforeCursor(textArea) {
-        if (!textArea) return '';
+        if (!textArea) { return ''; }
+
         return window.TextUtils.getTextBeforeCursor(textArea.value, textArea.selectionStart);
     }
 
     getTextAfterCursor(textArea) {
-        if (!textArea) return '';
+        if (!textArea) { return ''; }
+
         return window.TextUtils.getTextAfterCursor(textArea.value, textArea.selectionStart);
     }
 
     insertAtCursor(textArea, text, options = {}) {
-        if (!textArea) return;
+        if (!textArea) { return; }
 
         const { value, cursorPosition } = window.TextUtils.insertTextAtPosition(
             textArea.value,
@@ -142,6 +146,7 @@ class TextAreaUtils {
             const newHistory = window.TextUtils.addToHistory(currentHistory, value);
             const MAX_HISTORY = 50;
             const cappedHistory = newHistory.slice(-MAX_HISTORY);
+
             Utils.storage.set('textAreaHistory', cappedHistory);
         } catch (error) {
             console.warn('Could not save to history:', error);
@@ -153,12 +158,14 @@ class TextAreaUtils {
             return Utils.storage.get('textAreaHistory') || [];
         } catch (error) {
             console.warn('Could not load history from localStorage:', error);
+
             return [];
         }
     }
 
     loadFromHistory(textArea, index) {
         const historyItem = window.TextUtils.getHistoryItem(this.getHistory(), index);
+
         if (historyItem) {
             this.setValue(textArea, historyItem);
         }
@@ -183,6 +190,7 @@ class TextAreaUtils {
             }
 
             const savedHeight = Utils.storage.get('textAreaHeight:v2');
+
             if (!savedHeight || !textArea) {
                 return;
             }
@@ -192,11 +200,13 @@ class TextAreaUtils {
 
             if (isNaN(savedHeightValue) || savedHeightValue <= 0) {
                 Utils.storage.remove('textAreaHeight:v2');
+
                 return;
             }
 
             if (savedHeightValue > expectedInitialHeight * 1.5) {
                 Utils.storage.remove('textAreaHeight:v2');
+
                 return;
             }
 
@@ -215,7 +225,7 @@ class TextAreaUtils {
     setDebug(enabled) {
         this.debugMode = !!enabled;
         if (this.debugMode) {
-            console.log('🐛 TextAreaUtils debug mode enabled');
+            console.log('[TextAreaUtils] Debug mode enabled');
         }
     }
 
@@ -247,6 +257,7 @@ class TextAreaUtils {
             if (ariaLiveRegion) {
                 ariaLiveRegion.remove();
             }
+
             return null;
         }
 
@@ -275,6 +286,7 @@ class TextAreaUtils {
         };
 
         const message = messages[heightLevel];
+
         if (message) {
             requestAnimationFrame(() => {
                 if (ariaLiveRegion) {

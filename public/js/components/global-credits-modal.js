@@ -30,6 +30,7 @@ class GlobalCreditsModal {
      */
     hide() {
         const modal = document.getElementById(this.modalId);
+
         if (modal) {
             modal.remove();
         }
@@ -42,12 +43,14 @@ class GlobalCreditsModal {
     async createModal() {
         // Remove existing modal
         const existing = document.getElementById(this.modalId);
+
         if (existing) {
             existing.remove();
         }
 
         // Create modal
         const modal = document.createElement('div');
+
         modal.id = this.modalId;
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
 
@@ -163,12 +166,13 @@ class GlobalCreditsModal {
         });
 
         // Keyboard close handler (Escape key)
-        const handleEscape = (e) => {
+        const handleEscape = e => {
             if (e.key === 'Escape') {
                 this.hide();
                 document.removeEventListener('keydown', handleEscape);
             }
         };
+
         document.addEventListener('keydown', handleEscape);
 
         // Promo code handlers
@@ -193,7 +197,7 @@ class GlobalCreditsModal {
         });
 
         // Enter key handler
-        promoCodeInput.addEventListener('keypress', async (e) => {
+        promoCodeInput.addEventListener('keypress', async e => {
             if (e.key === 'Enter') {
                 await this.handlePromoRedeem(promoCodeInput, redeemPromoBtn, promoMessage);
             }
@@ -215,6 +219,7 @@ class GlobalCreditsModal {
             // Use UnifiedCreditService if available, otherwise fallback to direct API
             if (window.UnifiedCreditService) {
                 const result = await window.UnifiedCreditService.getPackages();
+
                 this.packages = result.packages || result;
             } else {
                 const response = await fetch('/api/credits/packages');
@@ -242,6 +247,7 @@ class GlobalCreditsModal {
      */
     renderPackages() {
         const grid = document.getElementById('globalPackagesGrid');
+
         if (!grid || !this.packages.length) {
             return;
         }
@@ -277,6 +283,7 @@ class GlobalCreditsModal {
      */
     showPackageError() {
         const grid = document.getElementById('globalPackagesGrid');
+
         if (!grid) {
             return;
         }
@@ -301,11 +308,13 @@ class GlobalCreditsModal {
 
         if (!promoCode) {
             this.showPromoMessage(messageEl, 'Please enter a promo code', 'error');
+
             return;
         }
 
         if (!window.UnifiedCreditService) {
             this.showPromoMessage(messageEl, 'Service unavailable. Please try again later.', 'error');
+
             return;
         }
 
@@ -359,7 +368,7 @@ class GlobalCreditsModal {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.getAuthToken()}`
+                        Authorization: `Bearer ${this.getAuthToken()}`
                     },
                     body: JSON.stringify({
                         packageId,
@@ -426,6 +435,7 @@ class GlobalCreditsModal {
      */
     showError(message) {
         const errorDiv = document.createElement('div');
+
         errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
         errorDiv.textContent = message;
 

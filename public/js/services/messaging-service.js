@@ -21,6 +21,7 @@ class MessagingService {
 
             // Add JWT token if available (same as other API calls)
             const token = this.getAuthToken();
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -39,6 +40,7 @@ class MessagingService {
             }
 
             const data = await response.json();
+
             return data.messages || [];
         } catch (error) {
             console.error('Error fetching user messages:', error);
@@ -58,6 +60,7 @@ class MessagingService {
 
             // Add JWT token if available
             const token = this.getAuthToken();
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -73,6 +76,7 @@ class MessagingService {
             }
 
             const data = await response.json();
+
             return {
                 conversations: data.messages || [],
                 totalUnread: data.totalUnread || 0
@@ -97,6 +101,7 @@ class MessagingService {
 
             // Add JWT token if available
             const token = this.getAuthToken();
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -127,6 +132,7 @@ class MessagingService {
             }
 
             const data = await response.json();
+
             return data.message;
         } catch (error) {
             console.error('Error sending admin reply:', error);
@@ -149,6 +155,7 @@ class MessagingService {
 
             // Add JWT token if available
             const token = this.getAuthToken();
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -180,6 +187,7 @@ class MessagingService {
             }
 
             const data = await response.json();
+
             return data.message;
         } catch (error) {
             console.error('Error sending message:', error);
@@ -201,6 +209,7 @@ class MessagingService {
 
             // Add JWT token if available
             const token = this.getAuthToken();
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -217,6 +226,7 @@ class MessagingService {
             }
 
             const data = await response.json();
+
             return data.message;
         } catch (error) {
             console.error('Error marking message as read:', error);
@@ -238,6 +248,7 @@ class MessagingService {
 
             // Add JWT token if available
             const token = this.getAuthToken();
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -253,10 +264,12 @@ class MessagingService {
 
             if (!response.ok) {
                 const errorData = await response.json();
+
                 throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
+
             return data.message;
         } catch (error) {
             console.error('Error updating message:', error);
@@ -277,6 +290,7 @@ class MessagingService {
 
             // Add JWT token if available
             const token = this.getAuthToken();
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -289,6 +303,7 @@ class MessagingService {
 
             if (!response.ok) {
                 const errorData = await response.json();
+
                 throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
 
@@ -311,6 +326,7 @@ class MessagingService {
 
             // Add JWT token if available
             const token = this.getAuthToken();
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -326,6 +342,7 @@ class MessagingService {
             }
 
             const data = await response.json();
+
             return data.stats;
         } catch (error) {
             console.error('Error fetching message stats:', error);
@@ -352,10 +369,12 @@ class MessagingService {
      */
     getCache(key) {
         const cached = this.cache.get(key);
+
         if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
             return cached.data;
         }
         this.cache.delete(key);
+
         return null;
     }
 
@@ -414,6 +433,7 @@ class MessagingService {
                 lastError = error;
                 if (i < maxRetries - 1) {
                     const delay = Math.pow(2, i) * 1000; // Exponential backoff
+
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
             }

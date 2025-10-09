@@ -25,11 +25,13 @@ class SpeechToTextService {
 
         if (!this.recordButton) {
             console.warn('Speech-to-text: Record button not found');
+
             return;
         }
 
         if (!this.promptTextarea) {
             console.warn('Speech-to-text: Prompt textarea not found');
+
             return;
         }
     }
@@ -54,21 +56,19 @@ class SpeechToTextService {
         this.recognition.onstart = () => {
             this.isRecording = true;
             this.updateButtonState();
-            console.log('Speech recognition started');
         };
 
-        this.recognition.onresult = (event) => {
+        this.recognition.onresult = event => {
             this.handleRecognitionResult(event);
         };
 
-        this.recognition.onerror = (event) => {
+        this.recognition.onerror = event => {
             this.handleRecognitionError(event);
         };
 
         this.recognition.onend = () => {
             this.isRecording = false;
             this.updateButtonState();
-            console.log('Speech recognition ended');
         };
     }
 
@@ -85,6 +85,7 @@ class SpeechToTextService {
     toggleRecording() {
         if (!this.isSupported) {
             this.showUnsupportedMessage();
+
             return;
         }
 
@@ -139,6 +140,7 @@ class SpeechToTextService {
         // Use TextAreaManager if available for proper auto-resize handling
         if (window.textAreaManager) {
             window.textAreaManager.insertAtCursor(text);
+
             return;
         }
 
@@ -148,10 +150,12 @@ class SpeechToTextService {
 
         // Insert text at cursor position
         const newValue = currentValue.slice(0, cursorPosition) + text + currentValue.slice(cursorPosition);
+
         this.promptTextarea.value = newValue;
 
         // Update cursor position
         const newCursorPosition = cursorPosition + text.length;
+
         this.promptTextarea.setSelectionRange(newCursorPosition, newCursorPosition);
 
         // Trigger input event to notify other components and trigger auto-resize

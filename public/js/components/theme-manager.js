@@ -27,9 +27,9 @@ class ThemeManager {
             // Also ensure dropdowns are synced to current theme
             if (this.themeService) {
                 const currentTheme = this.themeService.getCurrentTheme();
+
                 this.syncThemeDropdownsSilently(currentTheme);
                 this.initialized = true;
-                // console.log('Theme Manager: Initialized dropdowns with theme:', currentTheme);
             }
         }, 100);
     }
@@ -38,7 +38,7 @@ class ThemeManager {
      * Wait for theme service to be available
      */
     waitForThemeService() {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             const checkThemeService = () => {
                 if (window.themeService) {
                     this.themeService = window.themeService;
@@ -47,6 +47,7 @@ class ThemeManager {
                     setTimeout(checkThemeService, 100);
                 }
             };
+
             checkThemeService();
         });
     }
@@ -55,7 +56,7 @@ class ThemeManager {
      * Wait for unified drawer to be available
      */
     waitForUnifiedDrawer() {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             const checkUnifiedDrawer = () => {
                 if (window.unifiedDrawerComponent) {
                     this.unifiedDrawer = window.unifiedDrawerComponent;
@@ -64,6 +65,7 @@ class ThemeManager {
                     setTimeout(checkUnifiedDrawer, 100);
                 }
             };
+
             checkUnifiedDrawer();
         });
     }
@@ -73,15 +75,14 @@ class ThemeManager {
      */
     setupEventListeners() {
         // Listen for theme dropdown changes
-        document.addEventListener('change', (event) => {
+        document.addEventListener('change', event => {
             if (event.target.id === 'theme-select' || event.target.id === 'mobile-theme-select') {
                 this.handleThemeChange(event.target.value);
             }
         });
 
         // Listen for theme service events
-        document.addEventListener('themeChanged', (event) => {
-            // console.log('Theme Manager: Received theme change event:', event.detail);
+        document.addEventListener('themeChanged', event => {
             this.handleThemeServiceChange(event.detail.themeName);
         });
     }
@@ -92,7 +93,6 @@ class ThemeManager {
      */
     handleThemeChange(themeName) {
         if (this.themeService && !this.isUpdatingDropdowns) {
-            console.log(`Theme changed to: ${themeName}`);
             this.themeService.switchTheme(themeName);
         }
     }
@@ -114,7 +114,7 @@ class ThemeManager {
     updateThemeDropdowns() {
         if (this.themeService && !this.isUpdatingDropdowns) {
             const currentTheme = this.themeService.getCurrentTheme();
-            // console.log('Theme Manager: Updating dropdowns to theme:', currentTheme);
+
             this.syncThemeDropdowns(currentTheme);
         }
     }
@@ -135,26 +135,21 @@ class ThemeManager {
         const desktopThemeSelect = document.getElementById('theme-select');
         const mobileThemeSelect = document.getElementById('mobile-theme-select');
 
-        // console.log('Theme Manager: Syncing dropdowns to theme:', themeName);
-        // console.log('Theme Manager: Desktop select found:', !!desktopThemeSelect);
-        // console.log('Theme Manager: Mobile select found:', !!mobileThemeSelect);
 
         // Temporarily remove event listeners to prevent recursion
         if (desktopThemeSelect) {
             const originalValue = desktopThemeSelect.value;
-            // console.log('Theme Manager: Desktop select current value:', originalValue);
+
             if (originalValue !== themeName) {
                 desktopThemeSelect.value = themeName;
-                // console.log('Theme Manager: Set desktop select to:', themeName);
             }
         }
 
         if (mobileThemeSelect) {
             const originalValue = mobileThemeSelect.value;
-            // console.log('Theme Manager: Mobile select current value:', originalValue);
+
             if (originalValue !== themeName) {
                 mobileThemeSelect.value = themeName;
-                // console.log('Theme Manager: Set mobile select to:', themeName);
             }
         }
     }
@@ -167,6 +162,7 @@ class ThemeManager {
         if (this.themeService) {
             return this.themeService.getThemes();
         }
+
         return {};
     }
 
@@ -178,6 +174,7 @@ class ThemeManager {
         if (this.themeService) {
             return this.themeService.getCurrentTheme();
         }
+
         return 'default';
     }
 

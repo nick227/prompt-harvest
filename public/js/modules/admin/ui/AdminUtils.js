@@ -76,7 +76,6 @@ class AdminUtils {
             window.AdminNotificationSystem.show(message, type);
         } else {
             // Fallback: use console log instead of alert
-            console.log(`[${type.toUpperCase()}] ${message}`);
         }
     }
 
@@ -90,7 +89,8 @@ class AdminUtils {
         if (!text || text.length <= maxLength) {
             return text || '';
         }
-        return text.substring(0, maxLength) + '...';
+
+        return `${text.substring(0, maxLength)}...`;
     }
 
     /**
@@ -99,13 +99,13 @@ class AdminUtils {
      * @returns {string} Formatted file size
      */
     static formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
+        if (bytes === 0) { return '0 Bytes'; }
 
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
     }
 
     /**
@@ -135,9 +135,11 @@ class AdminUtils {
     static generateId(length = 8) {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
+
         for (let i = 0; i < length; i++) {
             result += chars.charAt(Math.floor(Math.random() * chars.length));
         }
+
         return result;
     }
 
@@ -149,11 +151,13 @@ class AdminUtils {
      */
     static debounce(func, wait) {
         let timeout;
+
         return function executedFunction(...args) {
             const later = () => {
                 clearTimeout(timeout);
                 func(...args);
             };
+
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
@@ -167,6 +171,7 @@ class AdminUtils {
      */
     static throttle(func, limit) {
         let inThrottle;
+
         return function executedFunction(...args) {
             if (!inThrottle) {
                 func.apply(this, args);
@@ -182,16 +187,18 @@ class AdminUtils {
      * @returns {*} Cloned object
      */
     static deepClone(obj) {
-        if (obj === null || typeof obj !== 'object') return obj;
-        if (obj instanceof Date) return new Date(obj.getTime());
-        if (obj instanceof Array) return obj.map(item => AdminUtils.deepClone(item));
+        if (obj === null || typeof obj !== 'object') { return obj; }
+        if (obj instanceof Date) { return new Date(obj.getTime()); }
+        if (obj instanceof Array) { return obj.map(item => AdminUtils.deepClone(item)); }
         if (typeof obj === 'object') {
             const clonedObj = {};
+
             for (const key in obj) {
                 if (obj.hasOwnProperty(key)) {
                     clonedObj[key] = AdminUtils.deepClone(obj[key]);
                 }
             }
+
             return clonedObj;
         }
     }
@@ -202,10 +209,11 @@ class AdminUtils {
      * @returns {boolean} True if empty
      */
     static isEmpty(value) {
-        if (value === null || value === undefined) return true;
-        if (typeof value === 'string') return value.trim() === '';
-        if (Array.isArray(value)) return value.length === 0;
-        if (typeof value === 'object') return Object.keys(value).length === 0;
+        if (value === null || value === undefined) { return true; }
+        if (typeof value === 'string') { return value.trim() === ''; }
+        if (Array.isArray(value)) { return value.length === 0; }
+        if (typeof value === 'object') { return Object.keys(value).length === 0; }
+
         return false;
     }
 
@@ -215,7 +223,8 @@ class AdminUtils {
      * @returns {string} Capitalized string
      */
     static capitalize(str) {
-        if (!str) return '';
+        if (!str) { return ''; }
+
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
 
@@ -238,9 +247,7 @@ class AdminUtils {
      */
     static toCamelCase(str) {
         return str
-            .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
-                return index === 0 ? word.toLowerCase() : word.toUpperCase();
-            })
+            .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => (index === 0 ? word.toLowerCase() : word.toUpperCase()))
             .replace(/\s+/g, '');
     }
 }

@@ -46,7 +46,6 @@ class ProviderManager {
      */
     async loadProvidersFromAPI() {
         try {
-            // console.log('🔄 Loading providers from API...');
 
             const response = await fetch('/api/providers/models/all');
 
@@ -67,7 +66,6 @@ class ProviderManager {
             }));
 
             this.providersLoaded = true;
-            // console.log(`✅ Loaded ${this.providers.length} providers from API (via unified interface)`);
 
         } catch (error) {
             console.error('❌ Failed to load providers from API:', error);
@@ -306,6 +304,7 @@ class ProviderManager {
 
         // Update the "all" checkbox state to match
         const allCheckbox = this.providerList.querySelector('#all');
+
         if (allCheckbox) {
             allCheckbox.checked = checked;
             allCheckbox.indeterminate = false;

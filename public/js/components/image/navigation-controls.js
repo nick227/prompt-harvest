@@ -4,6 +4,7 @@
 
 // Import UIConfig for ES6 module support
 let UIConfigClass;
+
 if (typeof window !== 'undefined' && window.UIConfig) {
     UIConfigClass = window.UIConfig;
 }
@@ -25,7 +26,9 @@ class NavigationControls {
             this.uiConfig = {
                 createElement: (tag, className = '') => {
                     const element = document.createElement(tag);
-                    if (className) element.className = className;
+
+                    if (className) { element.className = className; }
+
                     return element;
                 },
                 getClasses: () => ({

@@ -4,12 +4,6 @@
  */
 
 
-
-
-
-
-
-
 class ProfileManager {
     constructor() {
         this.currentUser = null;
@@ -39,10 +33,8 @@ class ProfileManager {
      */
     async loadCurrentUser() {
         try {
-            console.log('🔍 PROFILE: Loading current user...');
 
             this.currentUser = await ProfileAuthUtils.getCurrentUser();
-            console.log('🔍 PROFILE: Got user:', this.currentUser);
 
             this.domManager.updateProfileDisplay(this.currentUser);
         } catch (error) {
@@ -76,7 +68,6 @@ class ProfileManager {
      */
     setupUserSystemListener() {
         window.addEventListener('authStateChanged', () => {
-            console.log('🔍 PROFILE: Auth state changed, refreshing user data');
             this.loadCurrentUser();
         });
 
@@ -87,7 +78,6 @@ class ProfileManager {
                 originalSetUser(user);
                 this.currentUser = user;
                 this.domManager.updateProfileDisplay(this.currentUser);
-                console.log('🔍 PROFILE: User system updated, synced local user data');
             };
         }
     }
@@ -205,25 +195,21 @@ class ProfileManager {
     }
 
     handleUsernameCheckResponse(response, data) {
-        console.log('🔍 PROFILE MANAGER: Username check response:', { response: response.ok, data });
 
         if (response.ok && data.success) {
             const message = data.data.available ? 'Username is available!' : 'Username is already taken';
             const type = data.data.available ? 'success' : 'error';
 
-            console.log('🔍 PROFILE MANAGER: Setting status:', { type, message, available: data.data.available });
             this.domManager.showUsernameStatus(type, message);
             this.usernameAvailable = data.data.available;
 
             // Test: Try to manually enable button if username is available
             if (data.data.available) {
-                console.log('🔍 PROFILE MANAGER: Username is available, testing button enable...');
                 setTimeout(() => {
                     this.domManager.testEnableButton();
                 }, 100);
             }
         } else {
-            console.log('🔍 PROFILE MANAGER: Error response:', data.message);
             this.domManager.showUsernameStatus('error', data.message || 'Failed to check username');
             this.usernameAvailable = false;
         }

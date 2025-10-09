@@ -15,9 +15,8 @@ class AdminPricingCalculatorUI {
      * Initialize the pricing calculator UI
      */
     async init() {
-        if (this.isInitialized) return;
+        if (this.isInitialized) { return; }
 
-        console.log('🧮 ADMIN-PRICING: Initializing pricing calculator UI...');
 
         try {
             // Setup event listeners
@@ -27,7 +26,6 @@ class AdminPricingCalculatorUI {
             await this.updateCalculations();
 
             this.isInitialized = true;
-            console.log('✅ ADMIN-PRICING: Pricing calculator UI initialized');
         } catch (error) {
             console.error('❌ ADMIN-PRICING: Failed to initialize pricing calculator UI:', error);
         }
@@ -39,8 +37,9 @@ class AdminPricingCalculatorUI {
     setupEventListeners() {
         // Price per credit input
         const priceInput = document.getElementById('price-per-credit-input');
+
         if (priceInput) {
-            priceInput.addEventListener('input', (e) => {
+            priceInput.addEventListener('input', e => {
                 this.currentPricePerCredit = parseFloat(e.target.value) || 0;
                 this.updateCalculations();
                 this.updateProfitMarginFromPrice();
@@ -49,18 +48,22 @@ class AdminPricingCalculatorUI {
 
         // Target margin input
         const marginInput = document.getElementById('target-margin-input');
+
         if (marginInput) {
-            marginInput.addEventListener('input', (e) => {
+            marginInput.addEventListener('input', e => {
                 const targetMargin = parseFloat(e.target.value) || 60;
+
                 this.updatePriceFromMargin(targetMargin);
             });
         }
 
         // Profit margin slider
         const marginSlider = document.getElementById('profit-margin-slider');
+
         if (marginSlider) {
-            marginSlider.addEventListener('input', (e) => {
+            marginSlider.addEventListener('input', e => {
                 const targetMargin = parseFloat(e.target.value);
+
                 document.getElementById('target-margin-input').value = targetMargin;
                 this.updatePriceFromMargin(targetMargin);
             });
@@ -68,8 +71,9 @@ class AdminPricingCalculatorUI {
 
         // Pricing mode toggle (radio buttons)
         const modeToggles = document.querySelectorAll('input[name="pricing-mode"]');
+
         modeToggles.forEach(toggle => {
-            toggle.addEventListener('change', (e) => {
+            toggle.addEventListener('change', e => {
                 if (e.target.checked) {
                     this.pricingMode = e.target.value;
                     this.updatePricingMode();
@@ -78,7 +82,7 @@ class AdminPricingCalculatorUI {
         });
 
         // Package size inputs
-        document.addEventListener('input', (e) => {
+        document.addEventListener('input', e => {
             if (e.target.matches('.package-credits-input')) {
                 this.updatePackageCalculations();
             }
@@ -112,14 +116,17 @@ class AdminPricingCalculatorUI {
      */
     updateProviderCosts() {
         const container = document.getElementById('provider-costs-container');
-        if (!container) return;
+
+        if (!container) { return; }
 
         const providerCosts = this.calculator.getAllProviderCosts(this.currentPricePerCredit);
 
         // Group by category
         const categories = {};
+
         providerCosts.forEach(cost => {
             const category = this.getProviderCategory(cost.provider);
+
             if (!categories[category]) {
                 categories[category] = [];
             }
@@ -180,7 +187,8 @@ class AdminPricingCalculatorUI {
      */
     updatePackageProfitability() {
         const container = document.getElementById('package-profitability-container');
-        if (!container) return;
+
+        if (!container) { return; }
 
         // Get current packages from the form or use defaults
         const packages = this.getCurrentPackages();
@@ -237,7 +245,8 @@ class AdminPricingCalculatorUI {
      */
     updateBreakEvenAnalysis() {
         const container = document.getElementById('break-even-container');
-        if (!container) return;
+
+        if (!container) { return; }
 
         const analysis = this.calculator.calculateBreakEvenAnalysis(this.currentPricePerCredit);
 
@@ -289,7 +298,8 @@ class AdminPricingCalculatorUI {
      */
     updateRecommendations(targetMargin = 60) {
         const container = document.getElementById('recommendations-container');
-        if (!container) return;
+
+        if (!container) { return; }
 
         const recommendations = this.calculator.generatePricingRecommendations(targetMargin);
 
@@ -362,6 +372,7 @@ class AdminPricingCalculatorUI {
 
         // Look for package form inputs
         const packageInputs = document.querySelectorAll('.package-credits-input');
+
         if (packageInputs.length > 0) {
             packageInputs.forEach((input, index) => {
                 const credits = parseInt(input.value) || 10;
@@ -390,13 +401,14 @@ class AdminPricingCalculatorUI {
      * Get provider category
      */
     getProviderCategory(provider) {
-        if (provider === 'flux') return 'Flux';
+        if (provider === 'flux') { return 'Flux'; }
         if (['juggernaut', 'dreamshaper', 'dreamshaperlighting', 'bluepencil', 'tshirt', 'juggernautReborn'].includes(provider)) {
             return 'SDXL';
         }
         if (['dalle', 'dalle3', 'dalle2'].includes(provider)) {
             return 'DALL-E';
         }
+
         return 'SD 1/2';
     }
 
@@ -405,10 +417,12 @@ class AdminPricingCalculatorUI {
      */
     updatePriceFromMargin(targetMargin) {
         const calculation = this.calculator.calculatePriceFromProfitMargin(targetMargin);
+
         this.currentPricePerCredit = calculation.pricePerCredit;
 
         // Update the price input
         const priceInput = document.getElementById('price-per-credit-input');
+
         if (priceInput) {
             priceInput.value = this.currentPricePerCredit.toFixed(4);
         }
@@ -451,21 +465,22 @@ class AdminPricingCalculatorUI {
 
         if (this.pricingMode === 'margin-based') {
             // Disable price input, enable margin controls
-            if (priceInput) priceInput.disabled = true;
-            if (marginInput) marginInput.disabled = false;
-            if (marginSlider) marginSlider.disabled = false;
+            if (priceInput) { priceInput.disabled = true; }
+            if (marginInput) { marginInput.disabled = false; }
+            if (marginSlider) { marginSlider.disabled = false; }
 
             // Set default margin and calculate price
             const defaultMargin = 60;
-            if (marginInput) marginInput.value = defaultMargin;
-            if (marginSlider) marginSlider.value = defaultMargin;
+
+            if (marginInput) { marginInput.value = defaultMargin; }
+            if (marginSlider) { marginSlider.value = defaultMargin; }
             this.updatePriceFromMargin(defaultMargin);
 
         } else {
             // Enable price input, disable margin controls
-            if (priceInput) priceInput.disabled = false;
-            if (marginInput) marginInput.disabled = true;
-            if (marginSlider) marginSlider.disabled = true;
+            if (priceInput) { priceInput.disabled = false; }
+            if (marginInput) { marginInput.disabled = true; }
+            if (marginSlider) { marginSlider.disabled = true; }
 
             // Update margin from current price
             this.updateProfitMarginFromPrice();
@@ -483,11 +498,11 @@ class AdminPricingCalculatorUI {
         const marginLabel = document.getElementById('margin-label');
 
         if (this.pricingMode === 'margin-based') {
-            if (priceLabel) priceLabel.textContent = 'Calculated Price per Credit ($)';
-            if (marginLabel) marginLabel.textContent = 'Target Profit Margin (%)';
+            if (priceLabel) { priceLabel.textContent = 'Calculated Price per Credit ($)'; }
+            if (marginLabel) { marginLabel.textContent = 'Target Profit Margin (%)'; }
         } else {
-            if (priceLabel) priceLabel.textContent = 'Price per Credit ($)';
-            if (marginLabel) marginLabel.textContent = 'Actual Profit Margin (%)';
+            if (priceLabel) { priceLabel.textContent = 'Price per Credit ($)'; }
+            if (marginLabel) { marginLabel.textContent = 'Actual Profit Margin (%)'; }
         }
     }
 
@@ -496,7 +511,8 @@ class AdminPricingCalculatorUI {
      */
     updateMarginValidation(targetMargin, calculation) {
         const container = document.getElementById('margin-validation-container');
-        if (!container) return;
+
+        if (!container) { return; }
 
         const validation = this.calculator.validateProfitMargin(targetMargin);
 
@@ -541,12 +557,13 @@ class AdminPricingCalculatorUI {
      */
     updateMarginAnalysisDisplay(analysis) {
         const container = document.getElementById('margin-analysis-container');
-        if (!container) return;
+
+        if (!container) { return; }
 
         const statusColor = analysis.isProfitable ? 'text-green-600' : 'text-red-600';
         const statusIcon = analysis.isProfitable ? '✅' : '❌';
 
-        let html = `
+        const html = `
             <div class="bg-white border rounded-lg p-4">
                 <h4 class="font-semibold text-gray-900 mb-3">Profit Margin Analysis</h4>
                 <div class="space-y-3">

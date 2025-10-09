@@ -74,6 +74,7 @@ class FeedFilterManager {
         const event = new CustomEvent('filterManagerReady', {
             detail: { currentFilter: this.currentFilter }
         });
+
         window.dispatchEvent(event);
     }
 

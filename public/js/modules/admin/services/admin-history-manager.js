@@ -3,7 +3,7 @@
  * Single Responsibility: Manage history data loading and actions
  */
 
-/* global AdminAPIService, AdminSharedTable */
+// Globals: AdminAPIService, AdminSharedTable (defined in .eslintrc.json)
 
 class AdminHistoryManager {
     constructor() {
@@ -14,18 +14,17 @@ class AdminHistoryManager {
     }
 
     async init() {
-        console.log('📋 ADMIN-HISTORY: Initializing history manager...');
 
         // Check authentication before initializing
         if (!window.AdminAuthUtils?.hasValidToken()) {
             console.warn('🔐 ADMIN-HISTORY: No valid token, skipping history manager initialization');
+
             return;
         }
 
         // Initialize shared table
         this.sharedTable.init();
 
-        console.log('✅ ADMIN-HISTORY: History manager initialized');
     }
 
     async getHistory(historyType, options = {}) {
@@ -33,13 +32,11 @@ class AdminHistoryManager {
 
         // Check cache first
         if (this.isCacheValid(cacheKey)) {
-            console.log(`📋 ADMIN-HISTORY: Returning cached ${historyType} data`);
 
             return this.cache.get(cacheKey).data;
         }
 
         try {
-            console.log(`📋 ADMIN-HISTORY: Fetching ${historyType} history...`);
 
             let result;
 
@@ -67,7 +64,6 @@ class AdminHistoryManager {
                 timestamp: Date.now()
             });
 
-            console.log(`✅ ADMIN-HISTORY: ${historyType} history fetched successfully`);
 
             return result.data;
 
@@ -115,7 +111,6 @@ class AdminHistoryManager {
 
     async executeAction(actionData) {
         try {
-            console.log(`🔧 ADMIN-HISTORY: Executing ${actionData.action} on ${actionData.historyType}`);
 
             let result;
 
@@ -275,18 +270,15 @@ class AdminHistoryManager {
         }
 
         keysToDelete.forEach(key => this.cache.delete(key));
-        console.log(`🧹 ADMIN-HISTORY: Cleared cache for ${historyType}`);
     }
 
     clearAllCache() {
         this.cache.clear();
-        console.log('🧹 ADMIN-HISTORY: All cache cleared');
     }
 
     destroy() {
         this.clearAllCache();
         this.sharedTable.destroy();
-        console.log('🗑️ ADMIN-HISTORY: History manager destroyed');
     }
 }
 

@@ -13,9 +13,11 @@ class BlogUIUtils {
      */
     showLoading(loadingId = 'loading', message = 'Loading...') {
         const loading = document.getElementById(loadingId);
+
         if (loading) {
             loading.classList.remove('hidden');
             const textElement = loading.querySelector('p');
+
             if (textElement) {
                 textElement.textContent = message;
             }
@@ -27,6 +29,7 @@ class BlogUIUtils {
      */
     hideLoading(loadingId = 'loading') {
         const loading = document.getElementById(loadingId);
+
         if (loading) {
             loading.classList.add('hidden');
         }
@@ -85,6 +88,7 @@ class BlogUIUtils {
         };
 
         const messageElement = document.createElement('div');
+
         messageElement.id = id;
         messageElement.className = `hidden fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
         messageElement.innerHTML = `
@@ -95,6 +99,7 @@ class BlogUIUtils {
         `;
 
         document.body.appendChild(messageElement);
+
         return messageElement;
     }
 
@@ -103,8 +108,10 @@ class BlogUIUtils {
      */
     clearMessages() {
         const messageTypes = ['success', 'error', 'info', 'warning'];
+
         messageTypes.forEach(type => {
             const messageElement = document.getElementById(`${type}-message`);
+
             if (messageElement) {
                 messageElement.classList.add('hidden');
             }
@@ -134,16 +141,17 @@ class BlogUIUtils {
      */
     updateAdminActions(isAdmin, actionsId = 'admin-actions') {
         const actions = document.getElementById(actionsId);
+
         if (actions) {
             if (isAdmin) {
                 actions.classList.remove('hidden');
                 if (this.debugMode) {
-                    console.log('✅ BLOG-UI: Admin actions shown');
+                    console.log('[BlogUIUtils] Showing admin actions');
                 }
             } else {
                 actions.classList.add('hidden');
                 if (this.debugMode) {
-                    console.log('❌ BLOG-UI: Admin actions hidden');
+                    console.log('[BlogUIUtils] Hiding admin actions');
                 }
             }
         }
@@ -175,7 +183,7 @@ class BlogUIUtils {
      */
     debug(message, data = null) {
         if (this.debugMode) {
-            console.log(`🔍 BLOG-UI: ${message}`, data || '');
+            console.log(`[BlogUIUtils] ${message}`, data);
         }
     }
 }

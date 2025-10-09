@@ -62,7 +62,6 @@ class RatingManager {
             }
         }
 
-        console.log('⭐ RATING DROPDOWN: Created with options:', ratingOptions.map(opt => opt.label));
 
         // Initialize the multiselect dropdown
         this.ratingDropdown = new window.MultiSelectDropdown('rating-dropdown', {
@@ -104,14 +103,12 @@ class RatingManager {
             }
         });
 
-        console.log('⭐ RATING DROPDOWN: Found existing ratings:', Array.from(ratings));
 
         return ratings;
     }
 
     refreshRatingDropdown() {
         if (this.ratingDropdown) {
-            console.log('⭐ RATING DROPDOWN: Refreshing dropdown with current ratings');
             const existingRatings = this.getExistingRatings();
 
             // Create new rating options
@@ -173,6 +170,7 @@ class RatingManager {
                 if (window.imageNavigation && window.imageNavigation.currentImageElement) {
                     const imageId = window.imageNavigation.currentImageElement.dataset.id ||
                                    window.imageNavigation.currentImageElement.dataset.imageId;
+
                     id = imageId;
                 }
 

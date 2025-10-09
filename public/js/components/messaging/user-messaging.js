@@ -36,6 +36,7 @@ class UserMessaging {
         if (!window.billingManager) {
             console.warn('UserMessaging: billingManager not available, trying direct approach');
             this.loadMessagesDirectly();
+
             return;
         }
 
@@ -46,7 +47,6 @@ class UserMessaging {
             attempts++;
         }
 
-        console.log('UserMessaging: Billing system ready, loading messages');
         this.loadMessagesDirectly();
         this.startAutoRefresh();
     }
@@ -73,6 +73,7 @@ class UserMessaging {
      */
     showAuthenticationError() {
         const messagesDisplay = document.getElementById('messages-display');
+
         if (messagesDisplay) {
             messagesDisplay.innerHTML = `
                 <div class="no-messages text-center py-8">
@@ -91,6 +92,7 @@ class UserMessaging {
 
         // Hide the message form
         const form = document.getElementById('new-message-form');
+
         if (form) {
             form.style.display = 'none';
         }
@@ -101,13 +103,11 @@ class UserMessaging {
      */
     setupAuthListener() {
         // Listen for authentication state changes
-        document.addEventListener('authStateChanged', (event) => {
+        document.addEventListener('authStateChanged', event => {
             if (event.detail.authenticated) {
-                console.log('UserMessaging: Authentication state changed to authenticated');
                 this.loadMessages();
                 this.startAutoRefresh();
             } else {
-                console.log('UserMessaging: Authentication state changed to unauthenticated');
                 this.showAuthenticationError();
                 this.stopAutoRefresh();
             }
@@ -120,12 +120,14 @@ class UserMessaging {
     setupEventListeners() {
         // Message form submission
         const form = document.getElementById('new-message-form');
+
         if (form) {
             form.addEventListener('submit', this.handleFormSubmit.bind(this));
         }
 
         // Character count for textarea
         const messageInput = document.getElementById('message-input');
+
         if (messageInput) {
             messageInput.addEventListener('input', this.handleInputChange.bind(this));
         }
@@ -160,6 +162,7 @@ class UserMessaging {
             `;
 
             const messages = await this.messagingService.getUserMessages();
+
             this.messages = messages;
             this.renderMessages();
 
@@ -191,11 +194,13 @@ class UserMessaging {
                     <p>Send a message to support and we'll get back to you as soon as possible.</p>
                 </div>
             `;
+
             return;
         }
 
         // Create conversation container
         const conversationEl = this.messageComponent.renderConversation(this.messages, false);
+
         messagesDisplay.innerHTML = '';
         messagesDisplay.appendChild(conversationEl);
 
@@ -216,13 +221,16 @@ class UserMessaging {
 
         if (!message) {
             this.showError('Please enter a message');
+
             return;
         }
 
         // Validate message
         const validation = this.messagingService.validateMessage(message);
+
         if (!validation.isValid) {
             this.showError(validation.errors[0]);
+
             return;
         }
 
@@ -263,6 +271,7 @@ class UserMessaging {
      */
     handleInputChange(event) {
         const message = event.target.value;
+
         this.updateCharacterCount(message.length);
     }
 
@@ -272,6 +281,7 @@ class UserMessaging {
      */
     updateCharacterCount(count) {
         const charCountEl = document.getElementById('char-count');
+
         if (charCountEl) {
             charCountEl.textContent = count;
 
@@ -292,9 +302,10 @@ class UserMessaging {
      */
     autoResizeTextarea(event) {
         const textarea = event?.target || document.getElementById('message-input');
+
         if (textarea) {
             textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
         }
     }
 
@@ -304,17 +315,20 @@ class UserMessaging {
      */
     async handleMessageActions(event) {
         const target = event.target.closest('button');
+
         if (!target) {
             return;
         }
 
         const { messageId } = target.dataset;
+
         if (!messageId) {
             return;
         }
 
-        const action = target.classList.contains('btn-edit') ? 'edit' :
-                      target.classList.contains('btn-delete') ? 'delete' : null;
+        const action = target.classList.contains('btn-edit')
+            ? 'edit' :
+            target.classList.contains('btn-delete') ? 'delete' : null;
 
         if (!action) {
             return;
@@ -338,11 +352,13 @@ class UserMessaging {
      */
     async handleEditMessage(messageId) {
         const message = this.messages.find(m => m.id === messageId);
+
         if (!message) {
             return;
         }
 
         const newContent = prompt('Edit your message:', message.message);
+
         if (newContent === null || newContent.trim() === message.message) {
             return;
         }
@@ -352,6 +368,7 @@ class UserMessaging {
 
             // Update local message
             const index = this.messages.findIndex(m => m.id === messageId);
+
             if (index !== -1) {
                 this.messages[index] = updatedMessage;
                 this.renderMessages();

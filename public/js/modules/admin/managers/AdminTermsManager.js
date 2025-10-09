@@ -12,13 +12,11 @@ class AdminTermsManager {
     }
 
     init() {
-        console.log('📚 ADMIN-TERMS: Initializing terms manager...');
         this.setupEventListeners();
 
         // Ensure global instance is set
         window.adminTermsManager = this;
 
-        console.log('✅ ADMIN-TERMS: Terms manager initialized');
     }
 
     async renderTermsTab() {
@@ -26,10 +24,10 @@ class AdminTermsManager {
 
         if (!termsTab) {
             console.error('❌ ADMIN-TERMS: Terms tab not found');
+
             return;
         }
 
-        console.log('🔍 ADMIN-TERMS: Rendering terms tab...');
 
         try {
             termsTab.innerHTML = `
@@ -104,6 +102,7 @@ class AdminTermsManager {
         // Listen for table action events
         window.addEventListener('admin-table-action', e => {
             const { dataType, action, id } = e.detail;
+
             if (dataType === 'terms') {
                 this.handleTermAction(action, id);
             }
@@ -112,6 +111,7 @@ class AdminTermsManager {
 
     setupTableEventListeners() {
         const container = document.getElementById('terms-table-container');
+
         if (!container) {
             return;
         }
@@ -122,8 +122,9 @@ class AdminTermsManager {
         }
 
         // Use event delegation for action buttons
-        this._tableClickHandler = (e) => {
+        this._tableClickHandler = e => {
             const actionBtn = e.target.closest('.term-action-btn');
+
             if (!actionBtn) {
                 return;
             }
@@ -144,6 +145,7 @@ class AdminTermsManager {
     setupTermsEventListeners() {
         // Add term button
         const addTermBtn = document.getElementById('add-term-btn');
+
         if (addTermBtn) {
             addTermBtn.addEventListener('click', () => {
                 this.showAddTermModal();
@@ -152,6 +154,7 @@ class AdminTermsManager {
 
         // Refresh button
         const refreshBtn = document.getElementById('refresh-terms-btn');
+
         if (refreshBtn) {
             refreshBtn.addEventListener('click', () => {
                 this.loadTermsData();
@@ -161,8 +164,10 @@ class AdminTermsManager {
 
         // Search functionality
         const searchInput = document.getElementById('terms-search');
+
         if (searchInput) {
             let searchTimeout;
+
             searchInput.addEventListener('input', e => {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
@@ -173,9 +178,11 @@ class AdminTermsManager {
 
         // Clear search button
         const clearSearchBtn = document.getElementById('clear-search-btn');
+
         if (clearSearchBtn) {
             clearSearchBtn.addEventListener('click', () => {
                 const searchInput = document.getElementById('terms-search');
+
                 if (searchInput) {
                     searchInput.value = '';
                     this.filterTerms('');
@@ -185,6 +192,7 @@ class AdminTermsManager {
 
         // Sort functionality
         const sortSelect = document.getElementById('terms-sort');
+
         if (sortSelect) {
             sortSelect.addEventListener('change', e => {
                 this.sortTerms(e.target.value);
@@ -244,6 +252,7 @@ class AdminTermsManager {
                     <p>No terms have been added yet. Click "Add Term" to get started.</p>
                 </div>
             `;
+
             return;
         }
 
@@ -308,16 +317,17 @@ class AdminTermsManager {
     filterTerms(searchTerm) {
         if (!searchTerm.trim()) {
             this.renderTermsTable();
+
             return;
         }
 
-        const filteredTerms = this.currentTerms.filter(term =>
-            term.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const filteredTerms = this.currentTerms.filter(term => term.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
             term.types.some(type => type.toLowerCase().includes(searchTerm.toLowerCase()))
         );
 
         // Temporarily replace current terms for rendering
         const originalTerms = this.currentTerms;
+
         this.currentTerms = filteredTerms;
         this.renderTermsTable();
         this.currentTerms = originalTerms;
@@ -361,16 +371,17 @@ class AdminTermsManager {
         // Setup form submission
         setTimeout(() => {
             const form = document.getElementById('add-term-form');
+
             if (form) {
                 // Remove any existing event listeners to prevent duplicates
                 form.removeEventListener('submit', this.handleFormSubmit);
 
                 // Add new event listener
-                this.handleFormSubmit = (e) => {
+                this.handleFormSubmit = e => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🎭 ADMIN-TERMS: Form submitted');
                     const word = document.getElementById('new-term-word').value.trim();
+
                     if (word) {
                         // Close modal immediately and show progress in main section
                         window.adminModal.close();
@@ -384,17 +395,18 @@ class AdminTermsManager {
 
             // Setup cancel button
             const cancelBtn = document.getElementById('cancel-add-term-btn');
+
             if (cancelBtn) {
-                cancelBtn.addEventListener('click', (e) => {
+                cancelBtn.addEventListener('click', e => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🎭 ADMIN-TERMS: Cancel button clicked');
                     window.adminModal.close();
                 });
             }
 
             // Focus on input
             const input = document.getElementById('new-term-word');
+
             if (input) {
                 input.focus();
             }
@@ -404,13 +416,16 @@ class AdminTermsManager {
     showMainSectionProgress(word) {
         // Find the terms section header
         const sectionHeader = document.querySelector('.admin-section .admin-section-header');
+
         if (!sectionHeader) {
             console.error('❌ ADMIN-TERMS: Section header not found');
+
             return;
         }
 
         // Create progress indicator after the header
         const progressContainer = document.createElement('div');
+
         progressContainer.id = 'main-section-progress';
         progressContainer.className = 'main-progress-container';
         progressContainer.innerHTML = `
@@ -450,6 +465,7 @@ class AdminTermsManager {
 
     updateMainSectionProgress(stepIndex, isComplete = false) {
         const progressContainer = document.getElementById('main-section-progress');
+
         if (!progressContainer) {
             return;
         }
@@ -462,6 +478,7 @@ class AdminTermsManager {
                 step.classList.remove('active');
                 step.classList.add('completed');
                 const icon = step.querySelector('i');
+
                 if (icon) {
                     icon.className = 'fas fa-check-circle';
                 }
@@ -471,6 +488,7 @@ class AdminTermsManager {
             steps.forEach((step, index) => {
                 step.classList.remove('active', 'completed');
                 const icon = step.querySelector('i');
+
                 if (index < stepIndex) {
                     step.classList.add('completed');
                     if (icon) {
@@ -488,6 +506,7 @@ class AdminTermsManager {
 
     showMainSectionSuccess(word, typesCount) {
         const progressContainer = document.getElementById('main-section-progress');
+
         if (!progressContainer) {
             return;
         }
@@ -516,6 +535,7 @@ class AdminTermsManager {
 
     showMainSectionError(word, errorMessage) {
         const progressContainer = document.getElementById('main-section-progress');
+
         if (!progressContainer) {
             return;
         }
@@ -561,20 +581,14 @@ class AdminTermsManager {
         const loadingDiv = document.getElementById('terms-ai-loading');
         const statusText = document.getElementById('ai-loading-status');
 
-        console.log('🔍 ADMIN-TERMS: Showing AI loading indicator for:', word);
-        console.log('🔍 ADMIN-TERMS: Loading div found:', !!loadingDiv);
-        console.log('🔍 ADMIN-TERMS: Status text found:', !!statusText);
 
         if (loadingDiv) {
             loadingDiv.classList.remove('hidden');
             // Force visibility with inline styles as backup
             loadingDiv.style.display = 'block';
             loadingDiv.style.visibility = 'visible';
-            console.log('🔍 ADMIN-TERMS: Removed hidden class, loading div should be visible');
-            console.log('🔍 ADMIN-TERMS: Loading div computed style:', window.getComputedStyle(loadingDiv).display);
             if (statusText) {
                 statusText.textContent = `Generating AI word types for "${word}"...`;
-                console.log('🔍 ADMIN-TERMS: Updated status text');
             }
         } else {
             console.error('❌ ADMIN-TERMS: Loading div not found!');
@@ -583,11 +597,9 @@ class AdminTermsManager {
 
     hideAILoadingIndicator() {
         const loadingDiv = document.getElementById('terms-ai-loading');
-        console.log('🔍 ADMIN-TERMS: Hiding AI loading indicator');
-        console.log('🔍 ADMIN-TERMS: Loading div found:', !!loadingDiv);
+
         if (loadingDiv) {
             loadingDiv.classList.add('hidden');
-            console.log('🔍 ADMIN-TERMS: Added hidden class, loading div should be hidden');
         } else {
             console.error('❌ ADMIN-TERMS: Loading div not found when trying to hide!');
         }
@@ -605,8 +617,10 @@ class AdminTermsManager {
 
             // Update progress steps
             const steps = loadingDiv.querySelectorAll('.ai-progress-steps .step');
+
             steps.forEach((stepElement, index) => {
                 const stepNumber = parseInt(stepElement.dataset.step);
+
                 if (stepNumber <= step) {
                     stepElement.classList.add('active');
                 } else {
@@ -617,15 +631,14 @@ class AdminTermsManager {
     }
 
     async addNewTerm(word) {
-        console.log('🚀 ADMIN-TERMS: Starting addNewTerm for:', word);
 
         if (this.duplicateCheckCache.has(word.toLowerCase())) {
             this.showNotification(`Term "${word}" already exists!`, 'warning');
+
             return;
         }
 
         // Show the AI loading indicator immediately
-        console.log('🚀 ADMIN-TERMS: Showing AI loading indicator...');
         this.showAILoadingIndicator(word);
 
         const statusDiv = document.getElementById('add-term-status');
@@ -633,11 +646,9 @@ class AdminTermsManager {
         const form = document.getElementById('add-term-form');
 
         try {
-            console.log('🚀 ADMIN-TERMS: About to show immediate progress...');
             // Update progress steps in main section
             this.updateMainSectionProgress(1); // Validating term (step 0) is already active
             this.updateAILoadingProgress(1, `Validating term "${word}"...`);
-            console.log('🚀 ADMIN-TERMS: Progress updated, continuing with request...');
 
             // Add timeout for long-running requests
             const controller = new AbortController();
@@ -653,11 +664,9 @@ class AdminTermsManager {
             await new Promise(resolve => setTimeout(resolve, 200));
 
             // Call AI generation endpoint
-            console.log('🚀 ADMIN-TERMS: Making API request...');
             const response = await fetch(`/ai/word/add/${encodeURIComponent(word)}`, {
                 signal: controller.signal
             });
-            console.log('🚀 ADMIN-TERMS: API request completed, status:', response.status);
 
             clearTimeout(timeoutId);
 
@@ -667,10 +676,10 @@ class AdminTermsManager {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('🎭 ADMIN-TERMS: Server response:', data);
 
                 // Check if we got valid types - handle both direct types and nested term.types
                 let { types } = data;
+
                 if (!types && data.term && data.term.types) {
                     types = data.term.types;
                 }
@@ -684,14 +693,13 @@ class AdminTermsManager {
                 this.updateAILoadingProgress(4, `Saving ${types.length} word types to database...`);
 
                 // Add the new term to the table immediately (optimistic update)
-                this.addTermToTable(word, { types: types });
+                this.addTermToTable(word, { types });
 
                 // Update progress: Updating interface
                 this.updateMainSectionProgress(5, true); // Complete all steps
-                this.updateAILoadingProgress(5, `Updating interface with new term...`);
+                this.updateAILoadingProgress(5, 'Updating interface with new term...');
 
                 // Hide the AI loading indicator
-                console.log('🚀 ADMIN-TERMS: About to hide loading indicator on success...');
                 this.hideAILoadingIndicator();
 
                 // Show success in main section
@@ -700,27 +708,26 @@ class AdminTermsManager {
             } else if (response.status === 409) {
                 // Handle duplicate term error
                 const errorData = await response.json().catch(() => ({}));
-                console.log('ℹ️ ADMIN-TERMS: Term already exists:', errorData);
 
                 // Hide the AI loading indicator
-                console.log('🚀 ADMIN-TERMS: About to hide loading indicator on duplicate...');
                 this.hideAILoadingIndicator();
 
                 this.showNotification(`Term "${word}" already exists in the database with ${errorData.existingTypes?.length || 0} types`, 'warning');
                 this.showMainSectionError(word, `Term already exists with ${errorData.existingTypes?.length || 0} existing types`);
             } else {
                 const errorData = await response.json().catch(() => ({}));
+
                 throw new Error(errorData.error || 'Failed to generate term types');
             }
         } catch (error) {
             console.error('❌ ADMIN-TERMS: Error adding term:', error);
 
             // Hide the AI loading indicator
-            console.log('🚀 ADMIN-TERMS: About to hide loading indicator on error...');
             this.hideAILoadingIndicator();
 
             // Handle specific error types
             let errorMessage = error.message;
+
             if (error.name === 'AbortError') {
                 errorMessage = 'Request timed out. The AI service may be taking longer than expected. Please try again.';
             } else if (error.message.includes('fetch')) {
@@ -732,7 +739,6 @@ class AdminTermsManager {
             this.showNotification(`Failed to add term "${word}": ${errorMessage}`, 'error');
 
             // Don't add to table if there was an error
-            console.log('❌ ADMIN-TERMS: Not adding term to table due to error');
         }
     }
 
@@ -746,6 +752,7 @@ class AdminTermsManager {
         ];
 
         let currentStep = 0;
+
         statusDiv.innerHTML = `
             <div class="progress-container">
                 <div class="progress-header">
@@ -840,6 +847,7 @@ class AdminTermsManager {
 
         // Hide the form and show the error
         const form = document.getElementById('add-term-form');
+
         if (form) {
             form.style.display = 'none';
         }
@@ -849,7 +857,7 @@ class AdminTermsManager {
         // Create optimistic update - add the new term to the table immediately
         const newTerm = {
             id: word,
-            word: word,
+            word,
             types: data.types || [],
             typesCount: data.types ? data.types.length : 0,
             created: new Date().toISOString()
@@ -865,6 +873,7 @@ class AdminTermsManager {
         // Highlight the new row
         setTimeout(() => {
             const newRow = document.querySelector(`tr[data-term-id="${word}"]`);
+
             if (newRow) {
                 newRow.classList.add('new-term-highlight');
                 setTimeout(() => {
@@ -876,6 +885,7 @@ class AdminTermsManager {
 
     viewTerm(termId) {
         const term = this.currentTerms.find(t => t.id === termId);
+
         if (!term) {
             return;
         }
@@ -908,6 +918,7 @@ class AdminTermsManager {
 
     editTerm(termId) {
         const term = this.currentTerms.find(t => t.id === termId);
+
         if (!term) {
             return;
         }
@@ -947,6 +958,7 @@ class AdminTermsManager {
         // Setup form functionality
         setTimeout(() => {
             const form = document.getElementById('edit-term-form');
+
             if (form) {
                 form.addEventListener('submit', e => {
                     e.preventDefault();
@@ -956,11 +968,14 @@ class AdminTermsManager {
 
             // Add type input functionality
             const addTypeBtn = document.getElementById('add-type-btn');
+
             if (addTypeBtn) {
                 addTypeBtn.addEventListener('click', () => {
                     const container = document.getElementById('edit-types-container');
+
                     if (container) {
                         const newInput = document.createElement('div');
+
                         newInput.className = 'type-edit-item';
                         newInput.innerHTML = `
                             <input type="text" class="form-control type-input" placeholder="Enter new type..." data-index="${container.children.length}">
@@ -984,6 +999,7 @@ class AdminTermsManager {
 
         if (!word) {
             this.showNotification('Word cannot be empty', 'error');
+
             return;
         }
 
@@ -1000,31 +1016,37 @@ class AdminTermsManager {
             if (!window.AdminAuthUtils?.hasValidToken()) {
                 console.warn('🔐 ADMIN-TERMS: No valid token for term update, skipping');
                 statusDiv.innerHTML = '<p class="status-error">Authentication required</p>';
+
                 return;
             }
 
             // Make actual API call to update term
             const authToken = window.AdminAuthUtils.getAuthToken();
+            const description = document.getElementById('edit-term-description')?.value?.trim() || '';
+            const examples = document.getElementById('edit-term-examples')?.value?.trim() || '';
+
             const response = await fetch(`/api/admin/terms/${encodeURIComponent(word)}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${authToken}`,
+                    Authorization: `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    word: newWord,
-                    type: newType,
-                    description: newDescription,
-                    examples: newExamples
+                    word,
+                    types,
+                    description,
+                    examples
                 })
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
+
                 throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
             }
 
             const result = await response.json();
+
             if (!result.success) {
                 throw new Error(result.error || 'Failed to update term');
             }
@@ -1048,6 +1070,7 @@ class AdminTermsManager {
 
     async deleteTerm(termId) {
         const term = this.currentTerms.find(t => t.id === termId);
+
         if (!term) {
             return;
         }
@@ -1094,11 +1117,11 @@ class AdminTermsManager {
             // Try to find the UI renderer and get its terms manager
             if (window.adminApp && window.adminApp.uiRenderer && window.adminApp.uiRenderer.termsManager) {
                 window.adminTermsManager = window.adminApp.uiRenderer.termsManager;
-                console.log('✅ ADMIN-TERMS: Global instance restored from UI renderer');
             } else {
                 console.error('❌ ADMIN-TERMS: Cannot restore global instance - UI renderer not found');
             }
         }
+
         return window.adminTermsManager;
     }
 
@@ -1108,6 +1131,7 @@ class AdminTermsManager {
         } else {
             // Fallback notification
             const notification = document.createElement('div');
+
             notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
             notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
             notification.innerHTML = `
@@ -1128,7 +1152,8 @@ class AdminTermsManager {
             return 'Unknown';
         }
         const date = new Date(timestamp);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+        return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
     }
 
     escapeHtml(text) {
@@ -1136,13 +1161,16 @@ class AdminTermsManager {
             return '';
         }
         const div = document.createElement('div');
+
         div.textContent = text;
+
         return div.innerHTML;
     }
 
     destroy() {
         // Clean up event listeners
         const container = document.getElementById('terms-table-container');
+
         if (container && this._tableClickHandler) {
             container.removeEventListener('click', this._tableClickHandler);
             this._tableClickHandler = null;
@@ -1152,7 +1180,6 @@ class AdminTermsManager {
         if (window.adminTermsManager === this) {
             window.adminTermsManager = null;
         }
-        console.log('🗑️ ADMIN-TERMS: Terms manager destroyed');
     }
 }
 
@@ -1165,6 +1192,7 @@ window.adminTermsManager = null;
 // Fallback functions for global access
 window.viewTerm = function(termId) {
     const manager = AdminTermsManager.ensureGlobalInstance();
+
     if (manager) {
         manager.viewTerm(termId);
     } else {
@@ -1174,6 +1202,7 @@ window.viewTerm = function(termId) {
 
 window.editTerm = function(termId) {
     const manager = AdminTermsManager.ensureGlobalInstance();
+
     if (manager) {
         manager.editTerm(termId);
     } else {
@@ -1183,6 +1212,7 @@ window.editTerm = function(termId) {
 
 window.deleteTerm = function(termId) {
     const manager = AdminTermsManager.ensureGlobalInstance();
+
     if (manager) {
         manager.deleteTerm(termId);
     } else {

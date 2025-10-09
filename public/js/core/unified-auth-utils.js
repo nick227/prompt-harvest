@@ -43,6 +43,7 @@ class UnifiedAuthUtils {
         if (this.authState !== null) {
             return this.authState;
         }
+
         return this.getCurrentAuthState();
     }
 
@@ -62,6 +63,7 @@ class UnifiedAuthUtils {
         for (const source of sources) {
             try {
                 const userId = source();
+
                 if (userId) {
                     return userId;
                 }
@@ -114,6 +116,7 @@ class UnifiedAuthUtils {
         }
 
         const currentUserId = this.getCurrentUserId();
+
         if (!currentUserId) {
             return false;
         }
@@ -122,6 +125,7 @@ class UnifiedAuthUtils {
         // This prevents unauthorized access to images with missing ownership data
         if (!imageData.userId) {
             console.warn('🔒 SECURITY: Image missing userId, denying ownership access for security');
+
             return false;
         }
 
@@ -178,6 +182,7 @@ class UnifiedAuthUtils {
         }
 
         const user = this.getCurrentUser();
+
         return user && (user.role === 'admin' || user.isAdmin === true);
     }
 
@@ -208,6 +213,7 @@ class UnifiedAuthUtils {
     getCurrentAuthState() {
         // Check for auth token
         const token = this.getAuthToken();
+
         if (!token) {
             return false;
         }
@@ -240,9 +246,11 @@ class UnifiedAuthUtils {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const currentTime = Math.floor(Date.now() / 1000);
+
             return payload.exp < currentTime;
         } catch (error) {
             console.warn('Error parsing token:', error);
+
             return true; // If we can't parse it, consider it expired
         }
     }
@@ -256,7 +264,7 @@ class UnifiedAuthUtils {
      */
     setupAuthListeners() {
         // Listen for storage changes (login/logout in other tabs)
-        window.addEventListener('storage', (e) => {
+        window.addEventListener('storage', e => {
             if (e.key === 'authToken') {
                 this.checkAuthState();
             }
@@ -289,6 +297,7 @@ class UnifiedAuthUtils {
      */
     removeAuthListener(callback) {
         const index = this.listeners.indexOf(callback);
+
         if (index > -1) {
             this.listeners.splice(index, 1);
         }
@@ -341,8 +350,10 @@ class UnifiedAuthUtils {
             if (isAuthenticated) {
                 // Show rating buttons
                 const imageId = container.getAttribute('data-image-id');
+
                 if (imageId && window.RatingButtons) {
                     const ratingButtons = new window.RatingButtons(imageId);
+
                     ratingButtons.showRatingButtons(container);
                 }
             } else {
@@ -398,8 +409,10 @@ class UnifiedAuthUtils {
     getUserIdFromUserSystem() {
         if (window.userSystem && window.userSystem.getCurrentUser) {
             const user = window.userSystem.getCurrentUser();
+
             return user?.id || user?._id;
         }
+
         return null;
     }
 
@@ -411,8 +424,10 @@ class UnifiedAuthUtils {
     getUserIdFromUserApi() {
         if (window.userApi && window.userApi.getCurrentUser) {
             const user = window.userApi.getCurrentUser();
+
             return user?.id || user?._id;
         }
+
         return null;
     }
 
@@ -423,14 +438,17 @@ class UnifiedAuthUtils {
      */
     getUserIdFromToken() {
         const token = this.getAuthToken();
+
         if (token) {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
+
                 return payload.userId || payload.id || payload.sub;
             } catch (error) {
                 console.warn('Error getting user ID from token:', error);
             }
         }
+
         return null;
     }
 
@@ -442,9 +460,11 @@ class UnifiedAuthUtils {
     getUserIdFromLocalStorage() {
         try {
             const storedUserId = localStorage.getItem('userId');
+
             return storedUserId || null;
         } catch (error) {
             console.warn('Error getting user ID from localStorage:', error);
+
             return null;
         }
     }
@@ -458,6 +478,7 @@ class UnifiedAuthUtils {
 
         if (this.isAuthenticated()) {
             const token = this.getAuthToken();
+
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
@@ -482,6 +503,7 @@ class UnifiedAuthUtils {
         }
 
         window.location.href = redirectPath;
+
         return false;
     }
 }

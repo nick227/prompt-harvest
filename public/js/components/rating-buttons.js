@@ -12,7 +12,7 @@ class RatingButtons {
     setupAuthListener() {
         // Use centralized auth utils for consistency
         if (window.UnifiedAuthUtils) {
-            window.UnifiedAuthUtils.addAuthListener((isAuthenticated) => {
+            window.UnifiedAuthUtils.addAuthListener(isAuthenticated => {
                 this.onAuthStateChanged(isAuthenticated);
             });
         } else if (window.AdminAuthUtils) {
@@ -20,6 +20,7 @@ class RatingButtons {
             // Note: AdminAuthUtils doesn't have addAuthListener, so we'll use polling
             setInterval(() => {
                 const isAuthenticated = window.AdminAuthUtils.hasValidToken();
+
                 this.onAuthStateChanged(isAuthenticated);
             }, 30000); // Check every 30 seconds
         }
@@ -54,10 +55,12 @@ class RatingButtons {
 
         // Create and add buttons
         const minusBtn = this.createButton('-', 1, 'minus');
+
         minusBtn.title = 'Rate as 1 star (poor)';
         minusBtn.setAttribute('aria-label', 'Rate as 1 star');
 
         const plusBtn = this.createButton('+', 5, 'plus');
+
         plusBtn.title = 'Rate as 5 stars (excellent)';
         plusBtn.setAttribute('aria-label', 'Rate as 5 stars');
 
@@ -79,6 +82,7 @@ class RatingButtons {
      */
     createRatingButtons() {
         const container = document.createElement('div');
+
         container.className = 'rating-buttons';
         container.setAttribute('data-image-id', this.imageId);
 
@@ -94,11 +98,13 @@ class RatingButtons {
 
         // Create minus button (rating 1)
         const minusBtn = this.createButton('-', 1, 'minus');
+
         minusBtn.title = 'Rate as 1 star (poor)';
         minusBtn.setAttribute('aria-label', 'Rate as 1 star');
 
         // Create plus button (rating 5)
         const plusBtn = this.createButton('+', 5, 'plus');
+
         plusBtn.title = 'Rate as 5 stars (excellent)';
         plusBtn.setAttribute('aria-label', 'Rate as 5 stars');
 
@@ -117,13 +123,14 @@ class RatingButtons {
      */
     createButton(symbol, rating, type) {
         const button = document.createElement('button');
+
         button.className = `rating-btn rating-btn-${type}`;
         button.textContent = symbol;
         button.setAttribute('data-rating', rating);
         button.setAttribute('data-image-id', this.imageId);
 
         // Add click event listener
-        button.addEventListener('click', (e) => {
+        button.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
             this.handleRatingClick(rating);
@@ -138,7 +145,6 @@ class RatingButtons {
      */
     async handleRatingClick(rating) {
         try {
-            console.log(`⭐ RATING-BUTTONS: Submitting rating ${rating} for image ${this.imageId}`);
 
             // Check if we're in fullscreen mode and can use the existing tagImage method
             const fullscreenContainer = document.querySelector('.full-screen');
@@ -193,6 +199,7 @@ class RatingButtons {
 
         // Update the image dataset
         const img = document.querySelector(`img[data-id="${this.imageId}"]`);
+
         if (img) {
             img.dataset.rating = rating.toString();
         }
@@ -220,6 +227,7 @@ class RatingButtons {
      */
     updateButtonStates(newRating) {
         const container = document.querySelector(`.rating-buttons[data-image-id="${this.imageId}"]`);
+
         if (!container) {
             return;
         }
@@ -246,6 +254,7 @@ class RatingButtons {
     showRatingFeedback(rating) {
         // Create a temporary feedback element
         const feedback = document.createElement('div');
+
         feedback.textContent = `Rated: ${'★'.repeat(rating)}`;
         feedback.style.cssText = `
             position: fixed;
@@ -288,6 +297,7 @@ class RatingButtons {
             return window.imageNavigation.currentImageElement.dataset.id ||
                    window.imageNavigation.currentImageElement.dataset.imageId;
         }
+
         return null;
     }
 
@@ -307,21 +317,25 @@ class RatingButtons {
      */
     updateRatingDisplay(rating) {
         // Update list view header rating display
-        const listRatingElements = document.querySelectorAll(`.list-rating`);
+        const listRatingElements = document.querySelectorAll('.list-rating');
+
         listRatingElements.forEach(element => {
             element.innerHTML = rating > 0 ? `★ ${rating}` : '★ 0';
         });
 
         // Update list view metadata rating display (the one with rating buttons)
         const metadataRatingElements = document.querySelectorAll('.metadata-value');
+
         metadataRatingElements.forEach(element => {
             if (element.textContent.includes('★')) {
                 const ratingButtons = element.querySelector(`.rating-buttons[data-image-id="${this.imageId}"]`);
+
                 if (ratingButtons) {
                     // Update the rating text
                     element.textContent = `★ ${rating || 0}`;
                     // Re-add the rating buttons
                     const buttonsContainer = ratingButtons.cloneNode(true);
+
                     element.appendChild(buttonsContainer);
                 }
             }
@@ -329,8 +343,10 @@ class RatingButtons {
 
         // Update fullscreen info box rating display
         const infoBoxRatingElements = document.querySelectorAll('.rating-item .info-box-meta-value');
+
         infoBoxRatingElements.forEach(element => {
             const ratingButtons = element.querySelector(`.rating-buttons[data-image-id="${this.imageId}"]`);
+
             if (ratingButtons) {
                 // Update the rating text (format like the unified info box does)
                 const stars = '★'.repeat(rating);
@@ -340,6 +356,7 @@ class RatingButtons {
                 // Clear and rebuild the content
                 element.innerHTML = ratingText;
                 const buttonsContainer = ratingButtons.cloneNode(true);
+
                 element.appendChild(buttonsContainer);
             }
         });

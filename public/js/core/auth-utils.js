@@ -45,6 +45,7 @@ class AuthUtils {
     getCurrentAuthState() {
         // Check for auth token
         const token = this.getAuthToken();
+
         if (!token) {
             return false;
         }
@@ -71,6 +72,7 @@ class AuthUtils {
         if (this.authState !== null) {
             return this.authState;
         }
+
         return this.getCurrentAuthState();
     }
 
@@ -91,9 +93,11 @@ class AuthUtils {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const currentTime = Math.floor(Date.now() / 1000);
+
             return payload.exp < currentTime;
         } catch (error) {
             console.warn('Error parsing token:', error);
+
             return true; // If we can't parse it, consider it expired
         }
     }
@@ -103,7 +107,7 @@ class AuthUtils {
      */
     setupAuthListeners() {
         // Listen for storage changes (login/logout in other tabs)
-        window.addEventListener('storage', (e) => {
+        window.addEventListener('storage', e => {
             if (e.key === 'authToken') {
                 this.checkAuthState();
             }
@@ -136,6 +140,7 @@ class AuthUtils {
      */
     removeAuthListener(callback) {
         const index = this.listeners.indexOf(callback);
+
         if (index > -1) {
             this.listeners.splice(index, 1);
         }
@@ -181,8 +186,10 @@ class AuthUtils {
             if (isAuthenticated) {
                 // Show rating buttons
                 const imageId = container.getAttribute('data-image-id');
+
                 if (imageId && window.RatingButtons) {
                     const ratingButtons = new window.RatingButtons(imageId);
+
                     ratingButtons.showRatingButtons(container);
                 }
             } else {
@@ -218,14 +225,17 @@ class AuthUtils {
         // Try to get from user system first
         if (window.userSystem && window.userSystem.getCurrentUser) {
             const user = window.userSystem.getCurrentUser();
+
             return user?.id || user?._id;
         }
 
         // Fallback: try to get from token
         const token = this.getAuthToken();
+
         if (token) {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
+
                 return payload.userId || payload.id;
             } catch (error) {
                 console.warn('Error getting user ID from token:', error);
@@ -246,6 +256,7 @@ class AuthUtils {
         }
 
         const currentUserId = this.getCurrentUserId();
+
         if (!currentUserId) {
             return false;
         }
@@ -253,6 +264,7 @@ class AuthUtils {
         // SECURITY: Never assume ownership if userId is missing
         if (!imageData.userId) {
             console.warn('🔒 SECURITY: Image missing userId, denying ownership access for security');
+
             return false;
         }
 

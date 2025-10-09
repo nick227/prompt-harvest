@@ -74,17 +74,12 @@ class AdminEventHandler {
     }
 
     setupPromoCardsEventListeners() {
-        console.log('🎭 ADMIN-EVENT: Setting up promo cards event listeners...');
 
         // Add promo card button
         const addPromoCardBtn = document.getElementById('add-promo-card-btn');
-        console.log('🎭 ADMIN-EVENT: Add promo card button found:', !!addPromoCardBtn);
 
         if (addPromoCardBtn) {
             addPromoCardBtn.addEventListener('click', () => {
-                console.log('🎭 ADMIN-EVENT: Add promo card button clicked');
-                console.log('🎭 ADMIN-EVENT: uiRenderer available:', !!this.uiRenderer);
-                console.log('🎭 ADMIN-EVENT: showPromoCardModal method available:', !!(this.uiRenderer && this.uiRenderer.showPromoCardModal));
 
                 if (this.uiRenderer && this.uiRenderer.showPromoCardModal) {
                     this.uiRenderer.showPromoCardModal();
@@ -92,7 +87,6 @@ class AdminEventHandler {
                     console.error('🎭 ADMIN-EVENT: uiRenderer or showPromoCardModal method not available');
                 }
             });
-            console.log('🎭 ADMIN-EVENT: Event listener added to add promo card button');
         } else {
             console.warn('🎭 ADMIN-EVENT: Add promo card button not found in DOM');
         }
@@ -170,7 +164,7 @@ class AdminEventHandler {
                     window.adminApp.eventBus.emit('table-action', {
                         historyType: 'promo-cards',
                         action: 'delete',
-                        id: id
+                        id
                     });
                 } else {
                     // Fallback to modal handling
@@ -203,17 +197,18 @@ class AdminEventHandler {
     setupQueueEventListeners() {
         // Refresh queue status button
         const refreshQueueBtn = document.getElementById('refresh-queue-status');
+
         if (refreshQueueBtn) {
             refreshQueueBtn.addEventListener('click', async () => {
                 if (window.adminDashboardManager) {
                     try {
                         // Show loading state
                         const originalText = refreshQueueBtn.innerHTML;
+
                         refreshQueueBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
                         refreshQueueBtn.disabled = true;
 
                         await window.adminDashboardManager.loadQueueStatus();
-                        console.log('✅ Queue status refreshed successfully');
 
                         // Restore button state
                         refreshQueueBtn.innerHTML = originalText;
@@ -235,13 +230,13 @@ class AdminEventHandler {
 
         // Clear queue button
         const clearQueueBtn = document.getElementById('clear-queue-btn');
+
         if (clearQueueBtn) {
             clearQueueBtn.addEventListener('click', async () => {
                 if (confirm('Are you sure you want to clear the entire queue? This action cannot be undone.')) {
                     try {
                         if (window.adminDashboardManager && window.adminDashboardManager.queueService) {
                             const result = await window.adminDashboardManager.queueService.clearQueue();
-                            console.log('✅ Queue cleared:', result);
 
                             // Refresh queue status after clearing
                             await window.adminDashboardManager.loadQueueStatus();
@@ -254,7 +249,7 @@ class AdminEventHandler {
                     } catch (error) {
                         console.error('❌ Failed to clear queue:', error);
                         if (window.adminModal) {
-                            window.adminModal.showNotification('Failed to clear queue: ' + error.message, 'error');
+                            window.adminModal.showNotification(`Failed to clear queue: ${error.message}`, 'error');
                         }
                     }
                 }
@@ -264,7 +259,6 @@ class AdminEventHandler {
 
     destroy() {
         // Clean up any event listeners or resources
-        console.log('🗑️ ADMIN-EVENT: Event handler destroyed');
     }
 }
 

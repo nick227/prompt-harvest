@@ -139,6 +139,11 @@
     margin-bottom: 0.5rem;
 }
 
+.list-prompt-text {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
 /* Base list container styles */
 .prompt-output ul,
 .prompt-output ol {
@@ -187,7 +192,7 @@
 
 /* Loading placeholder content styling */
 .compact-view.loading-placeholder-content {
-  display: flex;
+  display: flex !important;
   justify-content: center;
   align-items: center;
   border-radius: var(--border-radius-primary);
@@ -325,7 +330,7 @@
 /* Metadata table structure */
 .list-content .list-metadata {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 0.75rem 1.5rem;
     align-items: start;
     flex: 1;
@@ -360,13 +365,15 @@
 
 .list-tags-container {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 4px;
-    overflow-x: auto;
-    white-space: nowrap;
     padding-bottom: 4px;
     margin-top: 8px;
-    align-items: center;
+    align-items: flex-start;
+    grid-column: 1 / -1;   /* spans all columns */
+    /* optional: ensure it stretches */
+    justify-self: stretch;  /* default in grid, but explicit is fine */
+    width: 100%;
 }
 
 .list-tags-container>span {

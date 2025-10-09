@@ -324,7 +324,8 @@ input[type="text"], input[type="number"], input[type="email"], input[type="passw
 }
 
 /* Monokai-specific prompt textarea customization */
-${theme.name === 'Monokai' ? `
+${theme.name === 'Monokai'
+        ? `
 #prompt-textarea, #prompt-input, textarea[name="prompt"], .prompt-textarea {
     background-color: var(--color-prompt-background) !important;
     color: var(--color-prompt-text) !important;
@@ -348,7 +349,8 @@ ${theme.name === 'Monokai' ? `
 .prompt-textarea .keyword { color: var(--color-accent-primary) !important; }
 .prompt-textarea .string { color: var(--color-accent-tertiary) !important; }
 .prompt-textarea .comment { color: var(--color-prompt-placeholder) !important; }
-` : ''}
+`
+        : ''}
 `;
     }
 }

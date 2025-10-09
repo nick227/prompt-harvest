@@ -55,7 +55,6 @@
             // Check if header exists
             const existingHeader = document.querySelector('header');
             if (!existingHeader) {
-                console.log('🔧 POST.HTML: No header found, will create one when script loads');
             }
         });
     </script>
@@ -231,7 +230,6 @@
             // Check if user is authenticated
             const token = localStorage.getItem('authToken');
             if (!token) {
-                console.log('🔐 BLOG-POST: No auth token found, redirecting to login');
                 window.location.href = '/login';
                 return;
             }
@@ -270,17 +268,13 @@
 
                 if (authService.isAdmin) {
                     isAdmin = authService.isAdmin();
-                    console.log('🔍 BLOG-POST: authService.isAdmin() result:', isAdmin);
                 } else if (authService.isAuthenticated && authService.getUser) {
                     const user = authService.getUser();
                     isAdmin = user?.isAdmin || false;
-                    console.log('🔍 BLOG-POST: authService.getUser() result:', { user, isAdmin });
                 } else if (window.userSystem) {
                     isAdmin = window.userSystem.isAdmin ? window.userSystem.isAdmin() : false;
-                    console.log('🔍 BLOG-POST: userSystem.isAdmin() result:', isAdmin);
                 } else if (window.blogService) {
                     isAdmin = window.blogService.isAdmin ? window.blogService.isAdmin() : false;
-                    console.log('🔍 BLOG-POST: blogService.isAdmin() result:', isAdmin);
                 }
 
                 // Fallback: Check JWT token directly
@@ -290,22 +284,17 @@
                         if (token) {
                             const payload = JSON.parse(atob(token.split('.')[1]));
                             isAdmin = payload.isAdmin === true;
-                            console.log('🔍 BLOG-POST: JWT token payload check:', { payload, isAdmin });
                         }
                     } catch (e) {
-                        console.log('🔍 BLOG-POST: JWT token parsing failed:', e.message);
                     }
                 }
 
-                console.log('🔍 BLOG-POST: Final admin check result:', isAdmin);
 
                 if (!isAdmin) {
-                    console.log('🔐 BLOG-POST: User is not admin, redirecting to blog');
                     alert('Access denied. Only administrators can create blog posts.');
                     window.location.href = '/blog';
                     return;
                 }
-                console.log('✅ BLOG-POST: Admin access confirmed');
             } catch (error) {
                 console.error('🔐 BLOG-POST: Error checking admin status:', error);
                 window.location.href = '/login';
@@ -327,7 +316,6 @@
 
             // Initialize header component
             if (!window.headerComponent && window.HeaderComponent) {
-                console.log('🔧 BLOG-POST: Creating header component after admin check');
                 window.headerComponent = new window.HeaderComponent();
 
                 // Force header update after a short delay
