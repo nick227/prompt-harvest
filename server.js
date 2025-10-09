@@ -212,13 +212,51 @@ if (process.env.NODE_ENV === 'production') {
 
 // SECURITY: Use helmet for secure defaults
 app.use(helmet({
-    // Ultra-minimal CSP for API backend in production
-    // Frontend app should set its own rich CSP
+    // CSP configuration - permissive for production (app serves HTML/JS frontend)
     contentSecurityPolicy: process.env.NODE_ENV === 'production'
         ? {
             directives: {
-                defaultSrc: ["'none'"],
-                frameAncestors: ["'none'"]
+                defaultSrc: ["'self'"],
+                scriptSrc: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    "'unsafe-eval'",
+                    'https://cdn.tailwindcss.com',
+                    'https://cdn.jsdelivr.net',
+                    'https://cdnjs.cloudflare.com'
+                ],
+                scriptSrcElem: [
+                    "'self'",
+                    'https://cdn.tailwindcss.com',
+                    'https://cdn.jsdelivr.net',
+                    'https://cdnjs.cloudflare.com'
+                ],
+                scriptSrcAttr: ["'unsafe-inline'"],
+                styleSrc: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'https://cdnjs.cloudflare.com',
+                    'https://fonts.googleapis.com',
+                    'https://cdn.jsdelivr.net'
+                ],
+                styleSrcElem: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    'https://cdnjs.cloudflare.com',
+                    'https://fonts.googleapis.com',
+                    'https://cdn.jsdelivr.net'
+                ],
+                imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+                fontSrc: [
+                    "'self'",
+                    'data:',
+                    'https://fonts.gstatic.com',
+                    'https://cdnjs.cloudflare.com'
+                ],
+                connectSrc: ["'self'", 'https://cdn.tailwindcss.com'],
+                frameAncestors: ["'none'"],
+                baseUri: ["'self'"],
+                formAction: ["'self'"]
             }
         }
         : {
