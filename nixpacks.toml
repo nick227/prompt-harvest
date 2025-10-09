@@ -5,7 +5,10 @@ nixPkgs = ["nodejs", "npm"]
 cmds = ["npm install"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = [
+  "npx prisma migrate deploy",
+  "npx prisma generate"
+]
 
 [start]
 cmd = "node server.js"

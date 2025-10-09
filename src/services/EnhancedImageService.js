@@ -29,27 +29,185 @@ import {
     processCustomVariables
 } from './generate/PromptProcessor.js';
 
-export class EnhancedImageService {
-    constructor(imageRepository, aiService) {
-        this.imageRepository = imageRepository;
-        this.aiService = aiService;
-        this.prisma = databaseClient.getClient();
-        this.transactionService = new TransactionService();
-        this.creditService = new CreditManagementService();
-        this.imageService = new ImageManagementService();
+/**
+ * Centralized database-to-frontend field mapping
+ * DATABASE SCHEMA:
+ * - image.provider: The actual model provider (e.g., 'flux-pro', 'flux-dev')
+ * - image.model: Legacy field, contains provider name for backward compatibility
+ *
+ * FRONTEND EXPECTED FORMAT:
+ * - provider: The model provider name
+ * - model: The model provider name (duplicate for backward compatibility)
+ *
+ * @param {Object} dbImage - Raw image object from database
+ * @returns {Object} Mapped fields for frontend consumption
+ */
+const mapImageFields = dbImage => ({
+    provider: dbImage.provider || dbImage.model || 'unknown',
+    model: dbImage.provider || dbImage.model || 'unknown'
+});
 
-        // Circuit breaker configurations - more conservative
+/**
+ * Normalize a single image object for frontend consumption
+ * @param {Object} image - Raw image from database
+ * @param {Map} userMap - Map of userId to username (optional)
+ * @returns {Object} Normalized image object
+ */
+const normalizeImage = (image, userMap = null) => {
+    const mappedFields = mapImageFields(image);
+    const username = userMap
+        ? userMap.get(image.userId) || (image.userId ? 'User' : 'Anonymous')
+        : null;
+
+    const normalized = {
+        id: image.id,
+        userId: image.userId,
+        prompt: image.prompt,
+        original: image.original,
+        imageUrl: image.imageUrl,
+        ...mappedFields,
+        guidance: image.guidance,
+        rating: image.rating,
+        isPublic: image.isPublic,
+        createdAt: image.createdAt,
+        updatedAt: image.updatedAt
+    };
+
+    // Add optional fields if they exist
+    if (image.tags) {
+        normalized.tags = image.tags;
+    }
+    if (image.taggedAt) {
+        normalized.taggedAt = image.taggedAt;
+    }
+    if (image.taggingMetadata) {
+        normalized.taggingMetadata = image.taggingMetadata;
+    }
+    if (username !== null) {
+        normalized.username = username;
+    }
+
+    return normalized;
+};
+
+// Extract config for shorter access
+const { CIRCUIT_BREAKERS, RATE_LIMITING, PAGINATION } = {
+    CIRCUIT_BREAKERS: {
+        AI_SERVICE_THRESHOLD: 2,
+        AI_SERVICE_TIMEOUT_MS: 30000, // 30 seconds
+        IMAGE_GENERATION_THRESHOLD: 3,
+        IMAGE_GENERATION_TIMEOUT_MS: 120000, // 2 minutes
+        DATABASE_THRESHOLD: 2,
+        DATABASE_TIMEOUT_MS: 10000, // 10 seconds
+        FILE_SYSTEM_THRESHOLD: 1,
+        FILE_SYSTEM_TIMEOUT_MS: 15000 // 15 seconds
+    },
+    RATE_LIMITING: {
+        WINDOW_MS: 60000, // 1 minute
+        MAX_REQUESTS: 10,
+        CLEANUP_THRESHOLD: 100 // Cleanup every N requests
+    },
+    PAGINATION: {
+        DEFAULT_LIMIT: 8,
+        PROFILE_LIMIT: 20,
+        USER_IMAGES_LIMIT: 50,
+        DEFAULT_PAGE: 0
+    }
+};
+
+export class EnhancedImageService {
+    // Configuration constants
+    static CONFIG = {
+        CIRCUIT_BREAKERS,
+        RATE_LIMITING,
+        PAGINATION
+    };
+
+    /**
+     * Constructor with Dependency Injection
+     * @param {Object} dependencies - Injected dependencies
+     * @param {Object} dependencies.imageRepository - Image repository instance (required)
+     * @param {Object} dependencies.aiService - AI service instance (required)
+     * @param {Object} dependencies.prismaClient - Prisma client instance (optional)
+     * @param {Object} dependencies.transactionService - Transaction service instance (optional)
+     * @param {Object} dependencies.creditService - Credit management service instance (optional)
+     * @param {Object} dependencies.imageManagementService - Image management service instance (optional)
+     * @param {Object} dependencies.circuitBreakerManager - Circuit breaker manager instance (optional)
+     * @param {Object} dependencies.config - Configuration overrides (optional)
+     */
+    constructor(...args) {
+        // Support both old and new constructor signatures for backward compatibility
+        let dependencies;
+
+        if (args.length === 2 && !args[0]?.imageRepository) {
+            // Old signature: constructor(imageRepository, aiService)
+            // Check if first arg looks like a repository (not a dependencies object)
+            console.warn('⚠️ DEPRECATED: EnhancedImageService constructor with positional args. Use dependency object instead.');
+            dependencies = {
+                imageRepository: args[0],
+                aiService: args[1]
+            };
+        } else if (args.length === 1 && typeof args[0] === 'object') {
+            // New signature: constructor({ ...dependencies })
+            [dependencies] = args;
+        } else if (args.length === 0) {
+            // No arguments provided
+            dependencies = {};
+        } else {
+            // Unclear pattern, default to object
+            [dependencies = {}] = args;
+        }
+
+        // Validate required dependencies
+        if (!dependencies.imageRepository) {
+            throw new Error('EnhancedImageService requires imageRepository');
+        }
+        if (!dependencies.aiService) {
+            throw new Error('EnhancedImageService requires aiService');
+        }
+
+        // Assign required dependencies
+        this.imageRepository = dependencies.imageRepository;
+        this.aiService = dependencies.aiService;
+
+        // Assign optional dependencies with fallbacks
+        this.prisma = dependencies.prismaClient || databaseClient.getClient();
+        this.transactionService = dependencies.transactionService || new TransactionService();
+        this.creditService = dependencies.creditService || new CreditManagementService();
+        this.imageService = dependencies.imageManagementService || new ImageManagementService();
+
+        // Optional circuit breaker manager
+        this.circuitBreaker = dependencies.circuitBreakerManager || circuitBreakerManager;
+
+        // Merge configuration with defaults
+        const config = { ...EnhancedImageService.CONFIG, ...dependencies.config };
+
+        // Circuit breaker configurations
         this.breakerConfigs = {
-            aiService: { failureThreshold: 2, timeout: 30000 }, // Reduced from 3 to 2
-            imageGeneration: { failureThreshold: 3, timeout: 120000 }, // Reduced from 5 to 3
-            database: { failureThreshold: 2, timeout: 10000 }, // Reduced from 3 to 2
-            fileSystem: { failureThreshold: 1, timeout: 15000 } // Reduced from 2 to 1
+            aiService: {
+                failureThreshold: config.CIRCUIT_BREAKERS.AI_SERVICE_THRESHOLD,
+                timeout: config.CIRCUIT_BREAKERS.AI_SERVICE_TIMEOUT_MS
+            },
+            imageGeneration: {
+                failureThreshold: config.CIRCUIT_BREAKERS.IMAGE_GENERATION_THRESHOLD,
+                timeout: config.CIRCUIT_BREAKERS.IMAGE_GENERATION_TIMEOUT_MS
+            },
+            database: {
+                failureThreshold: config.CIRCUIT_BREAKERS.DATABASE_THRESHOLD,
+                timeout: config.CIRCUIT_BREAKERS.DATABASE_TIMEOUT_MS
+            },
+            fileSystem: {
+                failureThreshold: config.CIRCUIT_BREAKERS.FILE_SYSTEM_THRESHOLD,
+                timeout: config.CIRCUIT_BREAKERS.FILE_SYSTEM_TIMEOUT_MS
+            }
         };
     }
 
     async generateImage(prompt, providers, guidance, userId, options = {}) {
         const startTime = Date.now();
         const requestId = this.generateRequestId();
+        let creditsDeducted = false;
+        let creditCost = 0;
 
         try {
             // Check and deduct credits BEFORE generation starts
@@ -69,16 +227,23 @@ export class EnhancedImageService {
                 throw error;
             }
 
+            // Track that credits were deducted
+            creditsDeducted = true;
+            creditCost = creditResult.cost;
+
             const result = await this.executeImageGeneration(prompt, providers, guidance, userId, options, requestId);
-            const duration = Date.now() - startTime;
+
+            // Check if generation was actually successful
+            if (!result.success || !result.id || !result.imageUrl) {
+                // Generation failed - throw error to trigger refund in catch block
+                const error = new Error(result.error || 'Image generation failed');
+
+                error.generationResult = result;
+                throw error;
+            }
 
             // Log transaction for successful generation
-            if (result.success && result.id && result.imageUrl) {
-                await this.logTransactionIfNeeded(userId, providers[0]);
-            } else {
-                // Refund credits if generation failed
-                await this.refundCreditsForGeneration(userId, creditResult.cost, requestId);
-            }
+            await this.logTransactionIfNeeded(userId, providers[0]);
 
             return result;
 
@@ -91,10 +256,18 @@ export class EnhancedImageService {
                 userId: userId || null
             });
 
-            // If credits were already deducted, refund them
-            await this.refundCreditsOnFailure(userId, providers, error, requestId);
+            // Refund credits only if they were deducted and haven't been refunded yet
+            if (creditsDeducted && creditCost > 0) {
+                try {
+                    await this.refundCreditsForGeneration(userId, creditCost, requestId);
+                    creditsDeducted = false; // Mark as refunded
+                } catch (refundError) {
+                    console.error(`❌ Failed to refund credits [${requestId}]:`, refundError);
+                    // Don't throw - we still want to return the error response
+                }
+            }
 
-            await this.cleanupOnFailure(error, requestId);
+            // Note: Additional cleanup (e.g., removing partial files) can be added here if needed
 
             return formatErrorResponse(error, requestId, Date.now() - startTime);
         }
@@ -237,7 +410,12 @@ export class EnhancedImageService {
 
                     ({ prompt: processedPrompt, promptId } = result);
                 } catch (error) {
-                    // Prompt processing failed, using original
+                    console.error('❌ Prompt processing failed, using original prompt:', {
+                        error: error.message,
+                        originalPrompt: prompt.substring(0, 100),
+                        hasVariables,
+                        hasPromptHelpers
+                    });
                     processedPrompt = prompt;
                 }
             }
@@ -250,7 +428,10 @@ export class EnhancedImageService {
 
                     processedPrompt = enhancedPrompt;
                 } catch (error) {
-                    // AI enhancement failed, using processed prompt
+                    console.error('❌ AI enhancement failed, using processed prompt:', {
+                        error: error.message,
+                        processedPrompt: processedPrompt.substring(0, 100)
+                    });
                     // Keep the processed prompt if enhancement fails
                 }
             }
@@ -281,7 +462,13 @@ export class EnhancedImageService {
                     }
 
                 } catch (error) {
-                    // Prompt modifications failed, using unmodified prompt
+                    console.error('❌ Prompt modifications failed, using unmodified prompt:', {
+                        error: error.message,
+                        multiplier,
+                        mixup,
+                        mashup,
+                        prompt: processedPrompt.substring(0, 100)
+                    });
                     // Keep the prompt without modifications if they fail
                 }
             }
@@ -304,7 +491,7 @@ export class EnhancedImageService {
             const generate = await import('../generate.js');
 
             // Set timeout for image generation
-            const timeout = 120000; // 2 minutes
+            const timeout = EnhancedImageService.CONFIG.CIRCUIT_BREAKERS.IMAGE_GENERATION_TIMEOUT_MS;
             const timeoutPromise = new Promise((_, reject) => {
                 setTimeout(() => {
                     reject(new ImageGenerationTimeoutError(providers[0], timeout));
@@ -363,19 +550,6 @@ export class EnhancedImageService {
         return resourceFailurePatterns.some(pattern => errorString.includes(pattern));
     }
 
-
-    async cleanupOnFailure(error, requestId) {
-        try {
-
-            // Add cleanup logic here (e.g., remove partial files)
-            // This will be implemented based on the specific failure type
-
-        } catch (cleanupError) {
-            console.error(`❌ Cleanup failed [${requestId}]:`, cleanupError.message);
-        }
-    }
-
-
     async extractImageResult(imageData, prompt, original, guidance, userId) {
         const firstResult = imageData.results && imageData.results.length > 0 ? imageData.results[0] : null;
         const actualImageId = firstResult?.imageId;
@@ -387,6 +561,7 @@ export class EnhancedImageService {
 
         // Use username from processed result if available, otherwise fetch it
         let username = 'Anonymous';
+
         if (firstResult?.username) {
             // Username already included from GenerationResultProcessor
             username = firstResult.username;
@@ -395,9 +570,10 @@ export class EnhancedImageService {
             try {
                 const user = await this.prisma.user.findUnique({
                     where: { id: userId },
-                    select: { username: true, email: true }
+                    select: { username: true }
                 });
-                username = user?.username || (user?.email ? user.email : 'Unknown User');
+
+                username = user?.username || 'User';
             } catch (error) {
                 console.error('❌ Failed to fetch username for userId:', userId, error);
                 username = 'Unknown User';
@@ -444,40 +620,45 @@ export class EnhancedImageService {
 
     /**
      * Fire-and-forget prompt saving (non-blocking)
+     * This method is synchronous and spawns async work without blocking the caller
      * @param {string} prompt - Prompt to save
      * @param {string} userId - User ID (can be null for anonymous)
+     * @returns {void} - Returns immediately without waiting for save to complete
      */
-    async savePromptAsync(prompt, userId) {
-        try {
+    savePromptAsync(prompt, userId) {
+        // Spawn async work without returning the promise (fire-and-forget)
+        (async () => {
+            try {
+                const generate = await import('../generate.js');
+                const req = { user: { id: userId } };
 
-            const generate = await import('../generate.js');
-            const req = { user: { id: userId } };
+                await generate.default.buildPrompt(
+                    prompt,
+                    {
+                        multiplier: '',
+                        mixup: false,
+                        mashup: false,
+                        customVariables: '',
+                        promptHelpers: { photogenic: false, artistic: false, avatar: false }
+                    },
+                    req
+                );
 
-            const savedPrompt = await generate.default.buildPrompt(
-                prompt,
-                {
-                    multiplier: '',
-                    mixup: false,
-                    mashup: false,
-                    customVariables: '',
-                    promptHelpers: { photogenic: false, artistic: false, avatar: false }
-                },
-                req
-            );
-
-            // Background prompt save completed
-        } catch (error) {
-            // Log error but don't throw - this is fire-and-forget
-            console.error('❌ Background prompt save failed:', error);
-        }
+                // Background prompt save completed
+            } catch (error) {
+                // Log error but don't throw - this is fire-and-forget
+                console.error('❌ Background prompt save failed:', error);
+            }
+        })();
+        // Return immediately without waiting
     }
 
     isRateLimited(userId) {
         // Simple in-memory rate limiting
         const key = userId || 'anonymous';
         const now = Date.now();
-        const windowMs = 60000; // 1 minute
-        const maxRequests = 10; // 10 requests per minute
+        const windowMs = EnhancedImageService.CONFIG.RATE_LIMITING.WINDOW_MS;
+        const maxRequests = EnhancedImageService.CONFIG.RATE_LIMITING.MAX_REQUESTS;
 
         if (!this.rateLimitMap) {
             this.rateLimitMap = new Map();
@@ -494,9 +675,40 @@ export class EnhancedImageService {
 
         // Add current request
         recentRequests.push(now);
-        this.rateLimitMap.set(key, recentRequests);
+
+        // Clean up: Remove stale entries to prevent memory leak
+        if (recentRequests.length === 0) {
+            this.rateLimitMap.delete(key);
+        } else {
+            this.rateLimitMap.set(key, recentRequests);
+        }
+
+        // Periodically clean up the entire map
+        if (!this.rateLimitCleanupCounter) {
+            this.rateLimitCleanupCounter = 0;
+        }
+
+        this.rateLimitCleanupCounter++;
+
+        if (this.rateLimitCleanupCounter >= EnhancedImageService.CONFIG.RATE_LIMITING.CLEANUP_THRESHOLD) {
+            this.cleanupRateLimitMap(now, windowMs);
+            this.rateLimitCleanupCounter = 0;
+        }
 
         return false;
+    }
+
+    cleanupRateLimitMap(now, windowMs) {
+        // Remove all stale entries from the map
+        for (const [key, requests] of this.rateLimitMap.entries()) {
+            const recentRequests = requests.filter(time => now - time < windowMs);
+
+            if (recentRequests.length === 0) {
+                this.rateLimitMap.delete(key);
+            } else if (recentRequests.length !== requests.length) {
+                this.rateLimitMap.set(key, recentRequests);
+            }
+        }
     }
 
     async updateRating(imageId, rating, userId) {
@@ -551,33 +763,22 @@ export class EnhancedImageService {
         if (image.userId) {
             const user = await this.prisma.user.findUnique({
                 where: { id: image.userId },
-                select: { id: true, username: true, email: true }
+                select: { id: true, username: true }
             });
 
             if (user) {
-                username = user.username || user.email || 'Unknown User';
+                username = user.username || 'User';
             } else {
-                username = image.userId ? 'Unknown User' : 'Anonymous';
+                username = 'Unknown User';
             }
         } else {
             username = 'Anonymous';
         }
 
-        // Normalize image data
+        // Normalize image data using shared helper and add username
         return {
-            id: image.id,
-            userId: image.userId,
-            username,
-            prompt: image.prompt,
-            original: image.original,
-            imageUrl: image.imageUrl,
-            provider: image.model || 'unknown', // Map database model column to frontend provider field (future use)
-            guidance: image.guidance,
-            model: image.provider || 'unknown', // Map database provider column to frontend model field
-            rating: image.rating,
-            isPublic: image.isPublic,
-            createdAt: image.createdAt,
-            updatedAt: image.updatedAt
+            ...normalizeImage(image),
+            username
         };
     }
 
@@ -641,7 +842,7 @@ export class EnhancedImageService {
         return { status: 'ok' };
     }
 
-    async getImages(userId, limit = 8, page = 0) {
+    async getImages(userId, limit = PAGINATION.DEFAULT_LIMIT, page = PAGINATION.DEFAULT_PAGE) {
         // Use optimized method for anonymous users
         const result = userId
             ? await this.imageRepository.findByUserId(userId, limit, page)
@@ -651,32 +852,14 @@ export class EnhancedImageService {
         const userIds = [...new Set(result.images.map(img => img.userId))];
         const users = await this.prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: { id: true, username: true, email: true }
+            select: { id: true, username: true }
         });
-        const userMap = new Map(users.map(user => [user.id, user.username || (user.email ? user.email : 'Unknown User')]));
+        const userMap = new Map(users.map(user => [user.id, user.username || 'User']));
 
         // Debug user lookup
 
-        // Normalize image data
-        // Map database fields: provider column -> model field, model column -> provider field (future use)
-        const normalizedImages = result.images.map(image => ({
-            id: image.id,
-            userId: image.userId, // ✅ Added userId for client-side filtering
-            username: userMap.get(image.userId) || (image.userId ? 'Unknown User' : 'Anonymous'), // ✅ Added username from user map (fallback to email)
-            prompt: image.prompt,
-            original: image.original,
-            imageUrl: image.imageUrl,
-            provider: image.model || 'unknown', // Map database model column to frontend provider field (future use)
-            guidance: image.guidance,
-            model: image.provider || 'unknown', // Map database provider column to frontend model field
-            rating: image.rating,
-            isPublic: image.isPublic,
-            tags: image.tags || [],
-            taggedAt: image.taggedAt,
-            taggingMetadata: image.taggingMetadata,
-            createdAt: image.createdAt,
-            updatedAt: image.updatedAt
-        }));
+        // Normalize image data using shared helper
+        const normalizedImages = result.images.map(image => normalizeImage(image, userMap));
 
         return {
             images: normalizedImages,
@@ -710,31 +893,25 @@ export class EnhancedImageService {
     }
 
     /**
-     * SECURITY: Validate that images are public-only
+     * Assert that all images are public (does not filter, only logs)
+     * Use this to detect database integrity issues, not to enforce security
      * @param {Array} images - Array of image objects
      * @param {string} context - Context for logging (e.g., 'profile', 'feed')
      */
-    validatePublicImagesOnly(images, context = 'unknown') {
+    assertPublicImages(images, context = 'unknown') {
         if (!images || !Array.isArray(images)) {
-            return images;
+            return;
         }
 
         const privateImages = images.filter(img => img.isPublic !== true);
 
         if (privateImages.length > 0) {
-            console.error(`🚨 PRIVACY VIOLATION: Non-public images found in ${context}!`, {
-                privateImageIds: privateImages.map(img => img.id),
-                totalImages: images.length,
+            console.error(`🚨 DATABASE INTEGRITY ERROR: Non-public images in ${context}!`, {
+                count: privateImages.length,
+                imageIds: privateImages.map(img => img.id),
                 context
             });
-
-            // Remove non-public images as safety measure
-            return images.filter(img => img.isPublic === true);
         }
-
-        console.log(`✅ SECURITY: All images are public in ${context}`);
-
-        return images;
     }
 
     /**
@@ -791,27 +968,19 @@ export class EnhancedImageService {
     }
 
     /**
-     * Normalize image data with cost information
+     * Normalize image data with cost information for billing pages
      */
     normalizeImagesWithCosts(images, modelCostMap) {
         return images.map(image => {
-            const modelKey = `${image.provider}-${image.model}`;
+            const normalized = normalizeImage(image);
+            const modelKey = `${normalized.provider}-${normalized.model}`;
             const modelInfo = modelCostMap.get(modelKey);
 
             return {
-                id: image.id,
-                userId: image.userId,
-                prompt: image.prompt,
-                url: image.imageUrl,
-                provider: image.provider,
-                model: image.provider || 'unknown', // Map database provider column to frontend model field
-                modelDisplayName: modelInfo?.displayName || image.model,
-                costPerImage: modelInfo?.costPerImage || 1.0,
-                rating: image.rating,
-                isPublic: image.isPublic,
-                tags: image.tags || [],
-                createdAt: image.createdAt,
-                updatedAt: image.updatedAt
+                ...normalized,
+                url: normalized.imageUrl, // Alias for backward compatibility
+                modelDisplayName: modelInfo?.displayName || normalized.model,
+                costPerImage: modelInfo?.costPerImage || 1.0
             };
         });
     }
@@ -824,7 +993,7 @@ export class EnhancedImageService {
      * @param {Array} tags - Optional tags filter
      * @returns {Object} Response with images and pagination
      */
-    async getUserImages(userId, limit = 50, page = 0, tags = []) {
+    async getUserImages(userId, limit = PAGINATION.USER_IMAGES_LIMIT, page = PAGINATION.DEFAULT_PAGE, tags = []) {
         this.validateUserInput(userId);
 
         const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
@@ -849,19 +1018,17 @@ export class EnhancedImageService {
      * @param {number} page - Page number (1-based)
      * @returns {Object} Response with images and pagination
      */
-    async getUserPublicImages(userId, limit = 20, page = 1) {
+    async getUserPublicImages(userId, limit = PAGINATION.PROFILE_LIMIT, page = 1) {
         this.validateUserInput(userId);
 
         const offset = (page - 1) * limit;
 
         try {
-            console.log(`🔒 PROFILE SECURITY: Fetching public images for user ${userId}, page ${page}, limit ${limit}`);
-
-            // SECURITY: Get user's public images ONLY - never private images
+            // Get user's public images - trust database constraints
             const images = await this.prisma.image.findMany({
                 where: {
                     userId,
-                    isPublic: true  // CRITICAL: Only public images for profile pages
+                    isPublic: true
                 },
                 select: {
                     id: true,
@@ -882,37 +1049,15 @@ export class EnhancedImageService {
                 take: limit
             });
 
-            // DEBUG: Log the actual isPublic values from database
-            console.log(`🔍 DEBUG: Raw database results for user ${userId}:`, images.map(img => ({
-                id: img.id,
-                isPublic: img.isPublic,
-                isPublicType: typeof img.isPublic,
-                prompt: img.prompt?.substring(0, 30) + '...'
-            })));
-
-            // DEBUG: Check if any images are not explicitly public
+            // Single assertion: Log if database returns unexpected data
             const nonPublicImages = images.filter(img => img.isPublic !== true);
+
             if (nonPublicImages.length > 0) {
-                console.error('🚨 DEBUG: Found non-public images in database query results!', nonPublicImages.map(img => ({
-                    id: img.id,
-                    isPublic: img.isPublic,
-                    isPublicType: typeof img.isPublic
-                })));
-            }
-
-            // SECURITY: Validate all images are public - CRITICAL SAFETY CHECK
-            const validatedImages = this.validatePublicImagesOnly(images, 'profile');
-
-            // DOUBLE-CHECK: Ensure no private images slipped through
-            if (validatedImages.some(img => img.isPublic !== true)) {
-                console.error('🚨 CRITICAL SECURITY VIOLATION: Private images in validated results!');
-                // Filter out any remaining private images as absolute safety measure
-                const safeImages = validatedImages.filter(img => img.isPublic === true);
-
-                console.log(`🔒 EMERGENCY FILTER: Removed ${validatedImages.length - safeImages.length} private images`);
-
-                validatedImages.length = 0;
-                validatedImages.push(...safeImages);
+                console.error('🚨 DATABASE INTEGRITY ERROR: Query with isPublic=true returned non-public images!', {
+                    userId,
+                    count: nonPublicImages.length,
+                    imageIds: nonPublicImages.map(img => img.id)
+                });
             }
 
             // Get total count for pagination
@@ -925,7 +1070,7 @@ export class EnhancedImageService {
 
             return {
                 success: true,
-                images: validatedImages,
+                images,
                 pagination: this.createPaginationMetadata(page, limit, totalCount)
             };
 
@@ -949,41 +1094,24 @@ export class EnhancedImageService {
      * @param {Array} tags - Optional tags filter
      * @returns {Object} Response with images and pagination
      */
-    async getFeed(userId, limit = 8, page = 0, tags = []) {
+    async getFeed(userId, limit = PAGINATION.DEFAULT_LIMIT, page = PAGINATION.DEFAULT_PAGE, tags = []) {
         // Site feed should always show only public images from all users
         // regardless of authentication status
         const result = await this.imageRepository.findPublicImages(limit, page, tags);
 
-        // SECURITY: Validate all images are public
-        result.images = this.validatePublicImagesOnly(result.images, 'feed');
+        // Assert: Log if repository returns non-public images (database integrity issue)
+        this.assertPublicImages(result.images, 'feed');
 
         // Get unique user IDs and fetch usernames
         const userIds = [...new Set(result.images.map(img => img.userId))];
         const users = await this.prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: { id: true, username: true, email: true }
+            select: { id: true, username: true }
         });
-        const userMap = new Map(users.map(user => [user.id, user.username || (user.email ? user.email : 'Unknown User')]));
+        const userMap = new Map(users.map(user => [user.id, user.username || 'User']));
 
-        // Normalize image data
-        const normalizedImages = result.images.map(image => ({
-            id: image.id,
-            userId: image.userId,
-            username: userMap.get(image.userId) || 'Unknown',
-            prompt: image.prompt,
-            original: image.original,
-            imageUrl: image.imageUrl,
-            provider: image.provider,
-            guidance: image.guidance,
-            model: image.model,
-            rating: image.rating,
-            isPublic: image.isPublic,
-            tags: image.tags || [],
-            taggedAt: image.taggedAt,
-            taggingMetadata: image.taggingMetadata,
-            createdAt: image.createdAt,
-            updatedAt: image.updatedAt
-        }));
+        // Normalize image data using shared helper
+        const normalizedImages = result.images.map(image => normalizeImage(image, userMap));
 
         return {
             images: normalizedImages,
@@ -992,7 +1120,7 @@ export class EnhancedImageService {
         };
     }
 
-    async getUserOwnImages(userId, limit = 8, page = 0, tags = []) {
+    async getUserOwnImages(userId, limit = PAGINATION.DEFAULT_LIMIT, page = PAGINATION.DEFAULT_PAGE, tags = []) {
         if (!userId) {
             throw new ValidationError('User ID is required for getting user own images');
         }
@@ -1001,14 +1129,15 @@ export class EnhancedImageService {
         // Get all images belonging to the user (both public and private for "mine" filter)
         const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
 
-        // Double-check that all returned images belong to the user
+        // Assert: Log if repository returns other users' images (database integrity issue)
         const otherUserImages = result.images.filter(img => img.userId !== userId);
 
         if (otherUserImages.length > 0) {
-            console.error('🚨 PRIVACY VIOLATION: Other users images found in user feed!', otherUserImages);
-            // Remove other users' images as a safety measure
-            result.images = result.images.filter(img => img.userId === userId);
-            result.totalCount = result.images.length;
+            console.error('🚨 DATABASE INTEGRITY ERROR: Repository returned images from other users!', {
+                requestedUserId: userId,
+                count: otherUserImages.length,
+                imageIds: otherUserImages.map(img => img.id)
+            });
         }
 
 
@@ -1017,31 +1146,14 @@ export class EnhancedImageService {
 
         const users = await this.prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: { id: true, username: true, email: true }
+            select: { id: true, username: true }
         });
 
-        const userMap = new Map(users.map(user => [user.id, user.username || (user.email ? user.email : 'Unknown User')]));
+        const userMap = new Map(users.map(user => [user.id, user.username || 'User']));
 
 
-        // Normalize image data
-        const normalizedImages = result.images.map(image => ({
-            id: image.id,
-            userId: image.userId,
-            username: userMap.get(image.userId) || 'Unknown', // ✅ Added username from user map
-            prompt: image.prompt,
-            original: image.original,
-            imageUrl: image.imageUrl,
-            provider: image.provider,
-            guidance: image.guidance,
-            model: image.model,
-            rating: image.rating,
-            isPublic: image.isPublic,
-            tags: image.tags || [],
-            taggedAt: image.taggedAt,
-            taggingMetadata: image.taggingMetadata,
-            createdAt: image.createdAt,
-            updatedAt: image.updatedAt
-        }));
+        // Normalize image data using shared helper
+        const normalizedImages = result.images.map(image => normalizeImage(image, userMap));
 
         return {
             images: normalizedImages,
@@ -1113,6 +1225,7 @@ export class EnhancedImageService {
         try {
             await this.prisma.$queryRaw`SELECT 1`;
         } catch (error) {
+            console.error('❌ Health check database connection failed:', error.message);
             health.database = 'disconnected';
             health.status = 'degraded';
         }

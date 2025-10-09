@@ -52,6 +52,7 @@ model Image {
   deletedAt       DateTime?
   deletedBy       String?   @db.VarChar(25)
 
+  // Existing indexes
   @@index([userId], map: "userId")
   @@index([isPublic], map: "isPublic")
   @@index([isHidden], map: "isHidden")
@@ -62,6 +63,13 @@ model Image {
   @@index([userId, isDeleted], map: "userId_isDeleted")
   @@index([modelId])
   @@index([taggedAt], map: "taggedAt")
+
+  // PERFORMANCE: New indexes for admin filtering (nice-to-have improvements)
+  @@index([provider], map: "provider")
+  @@index([createdAt], map: "createdAt")
+  @@index([userId, provider], map: "userId_provider")
+  @@index([provider, createdAt], map: "provider_createdAt")
+
   @@map("images")
 }
 

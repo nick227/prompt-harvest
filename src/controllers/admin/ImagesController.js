@@ -4,7 +4,7 @@
  */
 
 import databaseClient from '../../database/PrismaClient.js';
-import { AdminImageManagementService } from '../../services/admin/AdminImageManagementService.js';
+import { safeParseInt } from '../../utils/safeParseInt.js';
 
 const prisma = databaseClient.getClient();
 
@@ -29,6 +29,13 @@ class ImagesController {
                 includeDeleted = false
             } = req.query;
 
+            // Harden query params
+            const allowedSortFields = ['createdAt', 'updatedAt', 'cost', 'status', 'provider', 'isPublic', 'isHidden'];
+            const validSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+            const validSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
+            const validPage = Math.max(1, Math.min(10000, safeParseInt(page, 1)));
+            const validLimit = Math.max(1, Math.min(100, safeParseInt(limit, 20)));
+
             // Build where conditions
             const where = {};
 
@@ -46,32 +53,61 @@ class ImagesController {
             }
 
             if (userId) {
-                where.userId = userId; // Keep as string since IDs are CUIDs
+                where.userId = userId;
             }
 
             if (dateFrom || dateTo) {
                 where.createdAt = {};
+
                 if (dateFrom) {
-                    where.createdAt.gte = new Date(dateFrom);
+                    const fromDate = new Date(dateFrom);
+
+                    if (isNaN(fromDate.getTime())) {
+                        return res.status(400).json({
+                            success: false,
+                            error: 'Invalid dateFrom parameter'
+                        });
+                    }
+                    // Normalize to start of day
+                    fromDate.setHours(0, 0, 0, 0);
+                    where.createdAt.gte = fromDate;
                 }
+
                 if (dateTo) {
-                    where.createdAt.lte = new Date(dateTo);
+                    const toDate = new Date(dateTo);
+
+                    if (isNaN(toDate.getTime())) {
+                        return res.status(400).json({
+                            success: false,
+                            error: 'Invalid dateTo parameter'
+                        });
+                    }
+                    // Set to end of day
+                    toDate.setHours(23, 59, 59, 999);
+                    where.createdAt.lte = toDate;
                 }
             }
 
             if (search) {
                 where.OR = [
                     {
-                        prompt: {
-                            contains: search,
-                            mode: 'insensitive'
-                        }
+                        AND: [
+                            { prompt: { not: null } },
+                            {
+                                prompt: {
+                                    contains: search,
+                                    mode: 'insensitive'
+                                }
+                            }
+                        ]
                     },
                     {
                         user: {
-                            email: {
-                                contains: search,
-                                mode: 'insensitive'
+                            is: {
+                                email: {
+                                    contains: search,
+                                    mode: 'insensitive'
+                                }
                             }
                         }
                     }
@@ -81,11 +117,11 @@ class ImagesController {
             // Build order by
             const orderBy = {};
 
-            orderBy[sortBy] = sortOrder;
+            orderBy[validSortBy] = validSortOrder;
 
             // Calculate pagination
-            const skip = (parseInt(page) - 1) * parseInt(limit);
-            const take = parseInt(limit);
+            const skip = (validPage - 1) * validLimit;
+            const take = validLimit;
 
             // Get total count
             const total = await prisma.image.count({ where });
@@ -98,19 +134,28 @@ class ImagesController {
                 orderBy
             });
 
-            // Get user data for images manually
-            const userIds = [...new Set(images.map(img => img.userId))];
-            const users = await prisma.user.findMany({
-                where: { id: { in: userIds } },
-                select: { id: true, email: true, username: true }
-            });
+            // Empty result shortcut - skip user lookup when no images
+            let imagesWithUsers = [];
 
-            // Map users to images
-            const userMap = new Map(users.map(user => [user.id, user]));
-            const imagesWithUsers = images.map(image => ({
-                ...image,
-                user: userMap.get(image.userId) || { id: image.userId, email: 'Unknown User', username: 'Unknown' }
-            }));
+            if (images.length > 0) {
+                // Get user data for images manually
+                // Filter out falsy userIds to avoid Prisma in: [undefined] edge cases
+                const userIds = [...new Set(images.map(img => img.userId).filter(Boolean))];
+                const users = userIds.length > 0
+                    ? await prisma.user.findMany({
+                        where: { id: { in: userIds } },
+                        select: { id: true, email: true, username: true }
+                    })
+                    : [];
+
+                // Map users to images
+                const userMap = new Map(users.map(user => [user.id, user]));
+
+                imagesWithUsers = images.map(image => ({
+                    ...image,
+                    user: userMap.get(image.userId) || { id: image.userId, email: 'Unknown User', username: 'Unknown' }
+                }));
+            }
 
             // Transform data for frontend
             const transformedImages = imagesWithUsers.map(image => ({
@@ -136,7 +181,7 @@ class ImagesController {
             }));
 
             const totalPages = Math.ceil(total / take);
-            const start = skip + 1;
+            const start = total > 0 ? skip + 1 : 0;
             const end = Math.min(skip + take, total);
 
             res.json({
@@ -144,7 +189,7 @@ class ImagesController {
                 data: {
                     items: transformedImages,
                     pagination: {
-                        page: parseInt(page),
+                        page: validPage,
                         limit: take,
                         total,
                         totalPages,
@@ -158,8 +203,7 @@ class ImagesController {
             console.error('❌ ADMIN-IMAGES: Error getting images:', error);
             res.status(500).json({
                 success: false,
-                error: 'Failed to fetch images',
-                message: error.message
+                error: 'Failed to fetch images'
             });
         }
     }
@@ -173,7 +217,7 @@ class ImagesController {
             const { imageId } = req.params;
 
             const image = await prisma.image.findUnique({
-                where: { id: parseInt(imageId) }
+                where: { id: imageId }
             });
 
             if (!image) {
@@ -231,8 +275,7 @@ class ImagesController {
             console.error('❌ ADMIN-IMAGES: Error getting image details:', error);
             res.status(500).json({
                 success: false,
-                error: 'Failed to fetch image details',
-                message: error.message
+                error: 'Failed to fetch image details'
             });
         }
     }
@@ -246,7 +289,7 @@ class ImagesController {
             const { imageId } = req.params;
             const { permanent = false } = req.query; // Optional permanent delete flag
 
-            // Check if image exists and is not already deleted
+            // Check if image exists
             const existingImage = await prisma.image.findUnique({
                 where: { id: imageId }
             });
@@ -259,18 +302,9 @@ class ImagesController {
                 });
             }
 
-            if (existingImage.isDeleted) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Image already deleted',
-                    message: 'This image has already been deleted'
-                });
-            }
-
             if (permanent === 'true') {
-                // Permanent delete - remove from R2 and database
+                // Permanent delete - remove from R2 and database (even if already soft-deleted)
                 await this.permanentDeleteImage(imageId, existingImage);
-
 
                 res.json({
                     success: true,
@@ -279,12 +313,21 @@ class ImagesController {
                 });
             } else {
                 // Soft delete - mark as deleted but keep record
+                // Skip if already soft-deleted to avoid redundant updates
+                if (existingImage.isDeleted) {
+                    return res.status(400).json({
+                        success: false,
+                        error: 'Image already deleted',
+                        message: 'This image has already been soft-deleted'
+                    });
+                }
+
                 await prisma.image.update({
                     where: { id: imageId },
                     data: {
                         isDeleted: true,
                         deletedAt: new Date(),
-                        deletedBy: req.adminUser.id
+                        deletedBy: req.adminUser?.id || null
                     }
                 });
 
@@ -300,8 +343,7 @@ class ImagesController {
             console.error('❌ ADMIN-IMAGES: Error deleting image:', error);
             res.status(500).json({
                 success: false,
-                error: 'Failed to delete image',
-                message: error.message
+                error: 'Failed to delete image'
             });
         }
     }
@@ -323,8 +365,7 @@ class ImagesController {
                     const key = cloudflareR2Service.extractKeyFromUrl(imageRecord.imageUrl);
 
                     if (key) {
-                        const deleted = await cloudflareR2Service.deleteImage(key);
-
+                        await cloudflareR2Service.deleteImage(key);
                     }
                 } catch (r2Error) {
                     console.error('❌ R2: Failed to delete image:', r2Error.message);
@@ -362,7 +403,7 @@ class ImagesController {
 
             // Check if image exists
             const existingImage = await prisma.image.findUnique({
-                where: { id: parseInt(imageId) }
+                where: { id: imageId }
             });
 
             if (!existingImage) {
@@ -375,21 +416,23 @@ class ImagesController {
 
             // Update image moderation status
             const updatedImage = await prisma.image.update({
-                where: { id: parseInt(imageId) },
+                where: { id: imageId },
                 data: {
                     moderationStatus: action,
                     moderationReason: reason,
                     moderatedAt: new Date(),
-                    moderatedBy: req.adminUser.id
+                    moderatedBy: req.adminUser?.id || null
                 }
             });
 
+            // Fix grammar for message
+            const actionPastTense = action === 'flag' ? 'flagged' : `${action}d`;
 
             res.json({
                 success: true,
-                message: `Image ${action}d successfully`,
+                message: `Image ${actionPastTense} successfully`,
                 data: {
-                    id: parseInt(imageId),
+                    id: imageId,
                     moderationStatus: action,
                     moderationReason: reason,
                     moderatedAt: updatedImage.moderatedAt
@@ -400,8 +443,7 @@ class ImagesController {
             console.error('❌ ADMIN-IMAGES: Error moderating image:', error);
             res.status(500).json({
                 success: false,
-                error: 'Failed to moderate image',
-                message: error.message
+                error: 'Failed to moderate image'
             });
         }
     }
@@ -412,10 +454,15 @@ class ImagesController {
      */
     static async exportImages(req, res) {
         try {
-            const { status, provider, dateFrom, dateTo } = req.query;
+            const { status, provider, dateFrom, dateTo, includeDeleted = false } = req.query;
 
             // Build where conditions
             const where = {};
+
+            // Filter out soft-deleted images by default
+            if (includeDeleted !== 'true') {
+                where.isDeleted = false;
+            }
 
             if (status) {
                 where.status = status;
@@ -427,54 +474,98 @@ class ImagesController {
 
             if (dateFrom || dateTo) {
                 where.createdAt = {};
+
                 if (dateFrom) {
-                    where.createdAt.gte = new Date(dateFrom);
+                    const fromDate = new Date(dateFrom);
+
+                    if (isNaN(fromDate.getTime())) {
+                        return res.status(400).json({
+                            success: false,
+                            error: 'Invalid dateFrom parameter'
+                        });
+                    }
+                    // Normalize to start of day
+                    fromDate.setHours(0, 0, 0, 0);
+                    where.createdAt.gte = fromDate;
                 }
+
                 if (dateTo) {
-                    where.createdAt.lte = new Date(dateTo);
+                    const toDate = new Date(dateTo);
+
+                    if (isNaN(toDate.getTime())) {
+                        return res.status(400).json({
+                            success: false,
+                            error: 'Invalid dateTo parameter'
+                        });
+                    }
+                    // Set to end of day
+                    toDate.setHours(23, 59, 59, 999);
+                    where.createdAt.lte = toDate;
                 }
             }
 
-            // Get images for export
+            // Get images for export (limit to prevent OOM/timeout)
+            // TODO: Replace with cursor-based streaming for very large datasets
+            // See docs/NICE_TO_HAVE_IMPROVEMENTS.md for implementation
             const images = await prisma.image.findMany({
                 where,
-                orderBy: { createdAt: 'desc' }
+                orderBy: { createdAt: 'desc' },
+                take: 50000 // Safety limit - prevents OOM but caps at 50k records
             });
 
             // Get user data separately
-            const userIds = [...new Set(images.map(img => img.userId))];
-            const users = await prisma.user.findMany({
-                where: { id: { in: userIds } },
-                select: { id: true, email: true, username: true }
-            });
+            // Filter out falsy userIds to prevent Prisma errors
+            const userIds = [...new Set(images.map(img => img.userId).filter(Boolean))];
+            const users = userIds.length > 0
+                ? await prisma.user.findMany({
+                    where: { id: { in: userIds } },
+                    select: { id: true, email: true, username: true }
+                })
+                : [];
 
             const userMap = new Map(users.map(user => [user.id, user]));
 
-            // Convert to CSV format
+            // Helper function for CSV escaping - prevents injection and handles all special chars
+            const escapeCsvField = field => {
+                const str = String(field ?? '');
+                // Normalize newlines and escape quotes
+                const normalized = str
+                    .replace(/\r\n/g, ' ')
+                    .replace(/\n/g, ' ')
+                    .replace(/"/g, '""');
+
+                // Always quote fields to prevent formula injection (=, +, -, @)
+                return `"${normalized}"`;
+            };
+
+            // BOM for Excel UTF-8 compatibility
+            const BOM = '\uFEFF';
+
+            // Convert to CSV format - with robust escaping for all fields
             const csvHeader = 'Image ID,User Email,User Username,Prompt,Provider,Status,Cost,Created At,Image URL\n';
             const csvRows = images.map(image => {
                 const user = userMap.get(image.userId);
+
                 const row = [
-                    image.id,
-                    user?.email || 'Unknown',
-                    user?.username || 'Unknown',
-                    `"${image.prompt.replace(/"/g, '""')}"`, // Escape quotes in prompt
-                    image.provider,
-                    image.status || 'unknown',
-                    image.cost || 0,
-                    image.createdAt.toISOString(),
-                    image.imageUrl || ''
+                    escapeCsvField(image.id),
+                    escapeCsvField(user?.email || 'Unknown'),
+                    escapeCsvField(user?.username || 'Unknown'),
+                    escapeCsvField(image.prompt || ''),
+                    escapeCsvField(image.provider || ''),
+                    escapeCsvField(image.status || 'unknown'),
+                    escapeCsvField(image.cost || 0),
+                    escapeCsvField(image.createdAt.toISOString()),
+                    escapeCsvField(image.imageUrl || '')
                 ];
 
                 return row.join(',');
             });
 
-            const csvContent = csvHeader + csvRows.join('\n');
+            const csvContent = BOM + csvHeader + csvRows.join('\n');
 
-            // Set response headers for CSV download
-            res.setHeader('Content-Type', 'text/csv');
+            // Set response headers for CSV download with charset
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
             res.setHeader('Content-Disposition', `attachment; filename="images-export-${new Date().toISOString().split('T')[0]}.csv"`);
-
 
             res.send(csvContent);
 
@@ -482,8 +573,7 @@ class ImagesController {
             console.error('❌ ADMIN-IMAGES: Error exporting images:', error);
             res.status(500).json({
                 success: false,
-                error: 'Failed to export images',
-                message: error.message
+                error: 'Failed to export images'
             });
         }
     }
@@ -555,6 +645,17 @@ class ImagesController {
                 });
             }
 
+            // Skip if already hidden
+            if (image.isHidden) {
+                return res.json({
+                    success: true,
+                    data: {
+                        id: image.id,
+                        isHidden: image.isHidden
+                    }
+                });
+            }
+
             // Set isHidden to true
             const updatedImage = await prisma.image.update({
                 where: { id: imageId },
@@ -563,7 +664,6 @@ class ImagesController {
                     updatedAt: new Date()
                 }
             });
-
 
             res.json({
                 success: true,
@@ -602,6 +702,17 @@ class ImagesController {
                 });
             }
 
+            // Skip if already visible
+            if (!image.isHidden) {
+                return res.json({
+                    success: true,
+                    data: {
+                        id: image.id,
+                        isHidden: image.isHidden
+                    }
+                });
+            }
+
             // Set isHidden to false
             const updatedImage = await prisma.image.update({
                 where: { id: imageId },
@@ -610,7 +721,6 @@ class ImagesController {
                     updatedAt: new Date()
                 }
             });
-
 
             res.json({
                 success: true,
@@ -657,9 +767,8 @@ class ImagesController {
                 provider: image.provider,
                 userId: image.userId,
                 adminTriggered: true,
-                adminUser: req.adminUser.email
+                adminUser: req.adminUser?.email || 'unknown'
             });
-
 
             res.json({
                 success: true,
@@ -718,13 +827,12 @@ class ImagesController {
                     taggedAt: new Date(),
                     taggingMetadata: {
                         method: 'manual_admin',
-                        adminUser: req.adminUser.email,
+                        adminUser: req.adminUser?.email || 'unknown',
                         timestamp: new Date().toISOString(),
                         tagCount: cleanTags.length
                     }
                 }
             });
-
 
             res.json({
                 success: true,

@@ -3,11 +3,34 @@ import { ProfileController } from '../controllers/ProfileController.js';
 import { authenticateTokenRequired } from '../middleware/authMiddleware.js';
 import { sanitizeInput } from '../middleware/validation.js';
 import { enhancedRateLimit } from '../middleware/enhancedValidation.js';
+// import { csrfProtection } from '../middleware/csrfProtection.js'; // For session-based routes
 
 /**
  * Setup profile management routes
  * @param {Object} app - Express app instance
  * @param {Object} profileController - Profile controller instance
+ *
+ * CSRF PROTECTION PATTERN:
+ * These routes use Bearer token authentication (not session cookies),
+ * so CSRF protection is NOT needed.
+ *
+ * For session-cookie routes, apply CSRF protection like this:
+ *
+ * OPTION 1: Apply to entire router (all routes need CSRF)
+ * ```js
+ * import { csrfProtection } from '../middleware/csrfProtection.js';
+ * app.use('/api/profile', csrfProtection, router);
+ * ```
+ *
+ * OPTION 2: Apply per-route (selective CSRF)
+ * ```js
+ * router.post('/api/profile/update',
+ *     csrfProtection,  // ← Add CSRF protection here
+ *     authenticateTokenRequired,
+ *     sanitizeInput,
+ *     profileController.updateProfile.bind(profileController)
+ * );
+ * ```
  */
 export const setupProfileRoutes = (app, profileController) => {
     const router = express.Router();

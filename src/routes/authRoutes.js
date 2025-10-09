@@ -6,6 +6,7 @@ import passport from '../config/passport.js';
 import databaseClient from '../database/PrismaClient.js';
 import emailService from '../services/EmailService.js';
 import { rateLimitPasswordReset, rateLimitLogin } from '../middleware/rateLimitMiddleware.js';
+import { authRateLimit } from '../middleware/rateLimiting.js';
 import { authenticateTokenRequired } from '../middleware/authMiddleware.js';
 import SimplifiedCreditService from '../services/credit/SimplifiedCreditService.js';
 import systemSettingsService from '../services/SystemSettingsService.js';
@@ -461,14 +462,14 @@ export const googleCallback = [
 // Setup auth routes
 export const setupAuthRoutes = app => {
     try {
-        app.post('/api/auth/register', register);
-        app.post('/api/auth/login', rateLimitLogin, login);
+        app.post('/api/auth/register', authRateLimit, register);
+        app.post('/api/auth/login', authRateLimit, rateLimitLogin, login);
 
         app.get('/api/auth/profile', authenticateTokenRequired, getProfile);
         app.put('/api/auth/profile', authenticateTokenRequired, updateProfile);
         app.post('/api/auth/change-password', authenticateTokenRequired, changePassword);
-        app.post('/api/auth/forgot-password', rateLimitPasswordReset, requestPasswordReset);
-        app.post('/api/auth/reset-password', resetPassword);
+        app.post('/api/auth/forgot-password', authRateLimit, rateLimitPasswordReset, requestPasswordReset);
+        app.post('/api/auth/reset-password', authRateLimit, resetPassword);
         app.post('/api/auth/logout', logout);
 
         app.get('/api/auth/google', googleAuth);

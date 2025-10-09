@@ -1,147 +1,97 @@
 /**
  * Rate Limiting Middleware
- * Provides proper rate limiting for various endpoints
+ *
+ * Per-route rate limits to prevent abuse
  */
 
-import databaseClient from '../database/PrismaClient.js';
+import rateLimit from 'express-rate-limit';
 
-// In-memory store for rate limiting (can be replaced with Redis in production)
-const rateLimitStore = new Map();
+/**
+ * Auth routes (login, register, password reset)
+ * Tight limits to prevent brute force
+ */
+export const authRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts per window
+    message: { error: 'Too many authentication attempts, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: false
+});
 
-// Clean up old entries every 5 minutes
-setInterval(() => {
-    const now = Date.now();
+/**
+ * Upload routes (avatars, images)
+ * Moderate limits to prevent spam
+ */
+export const uploadRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20, // 20 uploads per window
+    message: { error: 'Too many uploads, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
 
-    for (const [key, data] of rateLimitStore.entries()) {
-        if (now - data.lastAttempt > data.windowMs) {
-            rateLimitStore.delete(key);
-        }
+/**
+ * Webhook routes (Stripe, external)
+ * Generous limits but still protected
+ */
+export const webhookRateLimit = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 100, // 100 webhooks per minute
+    message: { error: 'Webhook rate limit exceeded' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: req => {
+        // Skip rate limiting if signature verified (Stripe)
+        // Actual verification happens in route handler
+        return false; // Apply limit to all initially
     }
-}, 5 * 60 * 1000);
-
-/**
- * Create a rate limiting middleware
- * @param {Object} options - Rate limiting options
- * @param {number} options.windowMs - Time window in milliseconds
- * @param {number} options.maxRequests - Maximum requests per window
- * @param {string} options.message - Error message when limit exceeded
- * @param {Function} options.keyGenerator - Function to generate rate limit key
- * @returns {Function} Express middleware
- */
-export const createRateLimit = (options = {}) => {
-    const {
-        windowMs = 15 * 60 * 1000, // 15 minutes default
-        maxRequests = 100, // 100 requests default
-        message = 'Too many requests, please try again later',
-        keyGenerator = req => `rate_limit_${req.ip || 'unknown'}`
-    } = options;
-
-    return async (req, res, next) => {
-        try {
-            const key = keyGenerator(req);
-            const now = Date.now();
-
-            // Get or create rate limit data
-            let rateLimitData = rateLimitStore.get(key);
-
-            if (!rateLimitData) {
-                rateLimitData = {
-                    count: 0,
-                    firstAttempt: now,
-                    lastAttempt: now,
-                    windowMs
-                };
-                rateLimitStore.set(key, rateLimitData);
-            }
-
-            // Reset window if expired
-            if (now - rateLimitData.firstAttempt > windowMs) {
-                rateLimitData.count = 0;
-                rateLimitData.firstAttempt = now;
-            }
-
-            // Check if limit exceeded
-            if (rateLimitData.count >= maxRequests) {
-                const resetTime = new Date(rateLimitData.firstAttempt + windowMs);
-
-                return res.status(429).json({
-                    error: message,
-                    retryAfter: Math.ceil((rateLimitData.firstAttempt + windowMs - now) / 1000),
-                    resetTime: resetTime.toISOString()
-                });
-            }
-
-            // Increment counter
-            rateLimitData.count++;
-            rateLimitData.lastAttempt = now;
-
-            // Add rate limit headers
-            res.set({
-                'X-RateLimit-Limit': maxRequests,
-                'X-RateLimit-Remaining': Math.max(0, maxRequests - rateLimitData.count),
-                'X-RateLimit-Reset': new Date(rateLimitData.firstAttempt + windowMs).toISOString()
-            });
-
-            next();
-        } catch (error) {
-            console.error('❌ Rate limiting error:', error);
-            // Don't block requests if rate limiting fails
-            next();
-        }
-    };
-};
-
-/**
- * User-specific rate limiting (uses user ID instead of IP)
- * @param {Object} options - Rate limiting options
- * @returns {Function} Express middleware
- */
-export const createUserRateLimit = (options = {}) => createRateLimit({
-    ...options,
-    keyGenerator: req => `user_rate_limit_${req.user?.id || req.ip || 'anonymous'}`
 });
 
 /**
- * Checkout-specific rate limiting (stricter limits for payment operations)
+ * General API routes
+ * Standard limits for normal usage
  */
-export const checkoutRateLimit = createUserRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 3, // 3 checkout attempts per minute
-    message: 'Too many checkout attempts. Please wait a minute before trying again.'
-});
-
-/**
- * Promo code redemption rate limiting
- */
-export const promoRedemptionRateLimit = createUserRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 5, // 5 promo redemptions per minute
-    message: 'Too many promo code redemption attempts. Please wait a minute before trying again.'
-});
-
-/**
- * Image generation rate limiting
- */
-export const imageGenerationRateLimit = createUserRateLimit({
+export const apiRateLimit = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 50, // 50 generations per 15 minutes
-    message: 'Image generation rate limit exceeded. Please wait before generating more images.'
+    max: 100, // 100 requests per window
+    message: { error: 'Too many requests, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false
 });
 
 /**
- * General API rate limiting
+ * CSRF token endpoint
+ * Tight limit since only needed once per session
  */
-export const generalRateLimit = createRateLimit({
+export const csrfTokenRateLimit = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 1000, // 1000 requests per 15 minutes
-    message: 'API rate limit exceeded. Please slow down your requests.'
+    max: 10, // 10 token requests per window
+    message: { error: 'Too many token requests, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false
 });
 
-export default {
-    createRateLimit,
-    createUserRateLimit,
-    checkoutRateLimit,
-    promoRedemptionRateLimit,
-    imageGenerationRateLimit,
-    generalRateLimit
-};
+/**
+ * Promo code redemption
+ * Very tight limits to prevent abuse
+ */
+export const promoRedemptionRateLimit = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // 3 redemptions per hour
+    message: { error: 'Too many promo code attempts, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+/**
+ * Checkout session creation
+ * Moderate limits to prevent payment abuse
+ */
+export const checkoutRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 checkout attempts per window
+    message: { error: 'Too many checkout attempts, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false
+});

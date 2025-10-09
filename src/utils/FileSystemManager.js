@@ -3,7 +3,7 @@ import path from 'path';
 import sharp from 'sharp';
 
 export class FileSystemManager {
-    constructor(uploadDir = 'public/uploads') {
+    constructor(uploadDir = 'storage/uploads') {
         this.uploadDir = uploadDir;
         this.ensureUploadDirectory();
     }
@@ -16,8 +16,14 @@ export class FileSystemManager {
     }
 
     async saveImageAtomic(buffer, filename, options = {}) {
-        const tempPath = path.join(this.uploadDir, `temp_${filename}`);
-        const finalPath = path.join(this.uploadDir, filename);
+        // SECURITY: Prevent path traversal
+        const safeFilename = path.basename(filename);
+        if (safeFilename !== filename) {
+            throw new Error('Invalid filename: path traversal detected');
+        }
+
+        const tempPath = path.join(this.uploadDir, `temp_${safeFilename}`);
+        const finalPath = path.join(this.uploadDir, safeFilename);
 
         try {
             // Step 1: Write to temporary file
@@ -36,14 +42,14 @@ export class FileSystemManager {
             // Step 3: Verify final file exists and is valid
             await this.verifyImageFile(finalPath);
 
-            console.log(`✅ Image saved successfully: ${filename}`);
+            console.log(`✅ Image saved successfully: ${safeFilename}`);
 
-            return filename;
+            return safeFilename;
 
         } catch (error) {
             // Cleanup on failure
             await this.cleanupOnFailure(tempPath, finalPath);
-            throw new Error(`Failed to save image ${filename}: ${error.message}`);
+            throw new Error(`Failed to save image ${safeFilename}: ${error.message}`);
         }
     }
 
@@ -150,22 +156,34 @@ export class FileSystemManager {
     }
 
     async deleteImage(filename) {
-        const filePath = path.join(this.uploadDir, filename);
+        // SECURITY: Prevent path traversal
+        const safeFilename = path.basename(filename);
+        if (safeFilename !== filename) {
+            throw new Error('Invalid filename: path traversal detected');
+        }
+
+        const filePath = path.join(this.uploadDir, safeFilename);
 
         try {
             await this.deleteFile(filePath);
-            console.log(`✅ Image deleted: ${filename}`);
+            console.log(`✅ Image deleted: ${safeFilename}`);
 
             return true;
         } catch (error) {
-            console.error(`❌ Failed to delete image ${filename}:`, error.message);
+            console.error(`❌ Failed to delete image ${safeFilename}:`, error.message);
 
             return false;
         }
     }
 
     async getImageInfo(filename) {
-        const filePath = path.join(this.uploadDir, filename);
+        // SECURITY: Prevent path traversal
+        const safeFilename = path.basename(filename);
+        if (safeFilename !== filename) {
+            throw new Error('Invalid filename: path traversal detected');
+        }
+
+        const filePath = path.join(this.uploadDir, safeFilename);
 
         try {
             if (!fs.existsSync(filePath)) {
@@ -176,7 +194,7 @@ export class FileSystemManager {
             const metadata = await sharp(filePath).metadata();
 
             return {
-                filename,
+                filename: safeFilename,
                 size: stats.size,
                 created: stats.birthtime,
                 modified: stats.mtime,

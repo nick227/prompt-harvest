@@ -17,8 +17,8 @@ CREATE INDEX `userId_isDeleted` ON `images`(`userId`, `isDeleted`);
 -- Fix prompts table userId column
 ALTER TABLE `prompts` MODIFY `userId` VARCHAR(50);
 
--- Remove providerId index from models table (if it exists)
-DROP INDEX IF EXISTS `models_providerId_idx` ON `models`;
+-- Note: Skipping DROP INDEX IF EXISTS (not supported in all MySQL versions)
+-- If the index exists, it will be handled by Prisma schema sync
 
 -- CreateTable UserMedia
 CREATE TABLE `user_media` (

@@ -25,8 +25,11 @@ const isStripeIP = ip => _STRIPE_WEBHOOK_IPS.includes(ip);
  * Stripe webhook endpoint
  * POST /webhooks/stripe
  *
- * Important: This endpoint requires raw body parsing, not JSON
- * The raw body is needed for Stripe signature verification
+ * CRITICAL: This endpoint requires raw body parsing, NOT JSON
+ * - express.raw() must be used for Stripe signature verification
+ * - Signature is computed over the raw body bytes
+ * - Parsing to JSON before verification will fail signature check
+ * - type: 'application/json' ensures only JSON content-type is accepted
  */
 router.post('/stripe', express.raw({ type: 'application/json', limit: '1mb' }), async(req, res) => {
     try {
@@ -84,8 +87,10 @@ router.post('/stripe', express.raw({ type: 'application/json', limit: '1mb' }), 
 /**
  * Manual payment status check (alternative to webhooks)
  * POST /webhooks/check-payment
+ *
+ * Note: This route needs JSON parsing (not raw body like Stripe webhook)
  */
-router.post('/check-payment', async(req, res) => {
+router.post('/check-payment', express.json(), async(req, res) => {
     try {
         const { sessionId } = req.body;
 
