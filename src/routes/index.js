@@ -72,7 +72,10 @@ export const setupRoutes = async app => {
 
     try {
         aiService = getAIPromptService();
-        enhancedImageService = new EnhancedImageService(imageRepository, aiService);
+        enhancedImageService = new EnhancedImageService({
+            imageRepository,
+            aiService
+        });
         likeService = new LikeService();
         tagService = new TagService();
         blogService = new BlogService();

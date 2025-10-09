@@ -15,7 +15,10 @@ export class ProfileController {
         // Use databaseClient.getClient() when database access is needed
         this.imageRepository = new ImageRepository();
         this.aiService = getAIPromptService();
-        this.enhancedImageService = new EnhancedImageService(this.imageRepository, this.aiService);
+        this.enhancedImageService = new EnhancedImageService({
+            imageRepository: this.imageRepository,
+            aiService: this.aiService
+        });
         this.imageStorageService = new ImageStorageService('cdn'); // Use CDN storage for profile pictures
     }
 
