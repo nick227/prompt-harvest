@@ -443,24 +443,24 @@ const assignGlobalFunctions = () => {
 
     // User management functions
     if (window.AdminUserManager) {
-        window.viewPayment = window.AdminUserManager.viewPayment;
-        window.refundPayment = window.AdminUserManager.refundPayment;
-        window.exportPayments = window.AdminUserManager.exportPayments;
-        window.refreshPayments = window.AdminUserManager.refreshPayments;
-        window.viewUser = window.AdminUserManager.viewUser;
-        window.sendCredits = window.AdminUserManager.sendCredits;
-        window.suspendUser = window.AdminUserManager.suspendUser;
-        window.unsuspendUser = window.AdminUserManager.unsuspendUser;
-        window.exportUsers = window.AdminUserManager.exportUsers;
-        window.refreshUsers = window.AdminUserManager.refreshUsers;
+        window.viewPayment = window.AdminUserManager.viewPayment.bind(window.AdminUserManager);
+        window.refundPayment = window.AdminUserManager.refundPayment.bind(window.AdminUserManager);
+        window.exportPayments = window.AdminUserManager.exportPayments.bind(window.AdminUserManager);
+        window.refreshPayments = window.AdminUserManager.refreshPayments.bind(window.AdminUserManager);
+        window.viewUser = window.AdminUserManager.viewUser.bind(window.AdminUserManager);
+        window.sendCredits = window.AdminUserManager.sendCredits.bind(window.AdminUserManager);
+        window.suspendUser = window.AdminUserManager.suspendUser.bind(window.AdminUserManager);
+        window.unsuspendUser = window.AdminUserManager.unsuspendUser.bind(window.AdminUserManager);
+        window.exportUsers = window.AdminUserManager.exportUsers.bind(window.AdminUserManager);
+        window.refreshUsers = window.AdminUserManager.refreshUsers.bind(window.AdminUserManager);
     }
 
     // Promo code functions
     if (window.AdminPromoManager) {
-        window.generatePromoCode = window.AdminPromoManager.generatePromoCode;
-        window.viewPromoStats = window.AdminPromoManager.viewPromoStats;
-        window.editPromoCode = window.AdminPromoManager.editPromoCode;
-        window.deletePromoCode = window.AdminPromoManager.deletePromoCode;
+        window.generatePromoCode = window.AdminPromoManager.generatePromoCode.bind(window.AdminPromoManager);
+        window.viewPromoStats = window.AdminPromoManager.viewPromoStats.bind(window.AdminPromoManager);
+        window.editPromoCode = window.AdminPromoManager.editPromoCode.bind(window.AdminPromoManager);
+        window.deletePromoCode = window.AdminPromoManager.deletePromoCode.bind(window.AdminPromoManager);
     }
 };
 
