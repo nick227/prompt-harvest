@@ -71,7 +71,8 @@ export class GenerationResultProcessor {
         let username = 'Anonymous';
         if (userId) {
             try {
-                const user = await DatabaseService.getClient().user.findUnique({
+                const prisma = DatabaseService.getPrismaClient();
+                const user = await prisma.user.findUnique({
                     where: { id: userId },
                     select: { username: true, email: true }
                 });
