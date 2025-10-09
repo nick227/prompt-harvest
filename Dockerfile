@@ -13,7 +13,7 @@ RUN npm install --omit=dev --ignore-scripts
 # Copy source code
 COPY . .
 
-# Build the application
+# Generate Prisma Client (migrations run at startup in start.sh)
 RUN npm run build
 
 # Expose port

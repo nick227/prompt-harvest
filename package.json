@@ -82,7 +82,7 @@
     "quality": "npm run lint:strict && npm run test:coverage",
     "start": "sh start.sh",
     "dev": "nodemon server.js",
-    "build": "npm run db:deploy && npm run db:generate",
+    "build": "npm run db:generate",
     "postinstall": "npm run db:generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
