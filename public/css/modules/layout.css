@@ -73,6 +73,18 @@
     position: relative;
 }
 
+.prompt-output.loading {
+    position: relative;
+}
+
+.prompt-output.loading .image-wrapper {
+    opacity: 0;
+}
+
+.prompt-output.loading .image-wrapper .image-info {
+    opacity: 0;
+}
+
 .loading-overlay {
     position: absolute;
     width: 100%;
@@ -80,7 +92,8 @@
     z-index: 9999;
 }
 
-.loading-overlay::after {
+.loading-overlay::after,
+.prompt-output.loading::after {
     position: absolute;
     z-index: 99999;
     top: 0;

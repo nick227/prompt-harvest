@@ -63,6 +63,13 @@ class AdminEventHandler {
             });
         }
 
+        // Listen for EventBus table actions
+        if (window.AdminEventBus) {
+            window.AdminEventBus.on('table', 'create-model', () => {
+                this.uiRenderer.showModelModal();
+            });
+        }
+
         // Listen for table action events from shared table
         window.addEventListener('admin-table-action', e => {
             const { dataType, action, id } = e.detail;

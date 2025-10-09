@@ -120,6 +120,13 @@ class AdminSharedTable {
     render(dataType, data, container, options = {}) {
         const config = this.tableConfigs[dataType];
 
+        console.log('🔧 ADMIN-SHARED-TABLE: render called', {
+            dataType,
+            hasConfig: !!config,
+            dataLength: Array.isArray(data) ? data.length : (data?.items?.length || 0),
+            actions: config?.actions
+        });
+
         if (!config) {
             console.error(`❌ ADMIN-SHARED-TABLE: No configuration found for ${dataType}`);
 
@@ -141,6 +148,8 @@ class AdminSharedTable {
             // Store reference to container and data type
             this.container = container;
             this.dataType = dataType;
+
+            console.log('🔧 ADMIN-SHARED-TABLE: Set dataType to', this.dataType, 'with', this.originalData.length, 'items');
 
             // Generate table HTML
             const tableHTML = this.generateTableHTML(dataType, config, options);
@@ -637,6 +646,11 @@ class AdminSharedTable {
                 test: { icon: 'fas fa-vial', class: 'btn-sm btn-success', tooltip: 'Test Provider' },
                 disable: { icon: 'fas fa-ban', class: 'btn-sm btn-warning', tooltip: 'Disable Provider' }
             },
+            models: {
+                view: { icon: 'fas fa-eye', class: 'btn-sm btn-outline', tooltip: 'View Model' },
+                edit: { icon: 'fas fa-edit', class: 'btn-sm btn-primary', tooltip: 'Edit Model' },
+                delete: { icon: 'fas fa-trash', class: 'btn-sm btn-danger', tooltip: 'Delete Model' }
+            },
             'promo-cards': {
                 delete: { icon: 'fas fa-trash', class: 'btn-sm btn-danger', tooltip: 'Delete Promo Card' }
             }
@@ -644,10 +658,19 @@ class AdminSharedTable {
 
         const config = buttonConfigs[this.dataType] || {};
 
+        console.log('🔧 ADMIN-SHARED-TABLE: generateActionButtons', {
+            dataType: this.dataType,
+            actions,
+            config,
+            hasConfig: !!config,
+            itemId: item?.id
+        });
+
         return actions.map(action => {
             const buttonConfig = config[action];
 
             if (!buttonConfig) {
+                console.warn(`⚠️ ADMIN-SHARED-TABLE: No button config for action "${action}" in dataType "${this.dataType}"`);
                 return '';
             }
 

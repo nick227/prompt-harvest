@@ -511,11 +511,18 @@ class AdminUIRenderer {
             const response = await fetch('/api/providers/models/all');
             const data = await response.json();
 
+            console.log('🔧 ADMIN-UI: loadModelsData response:', {
+                success: data.success,
+                modelsCount: data.data?.models?.length,
+                firstModel: data.data?.models?.[0]
+            });
+
             if (data.success) {
                 // Use shared table system for models
                 const tableContainer = document.getElementById('models-table-container');
 
                 if (tableContainer && this.sharedTable) {
+                    console.log('🔧 ADMIN-UI: Rendering models table with', data.data.models.length, 'models');
                     this.sharedTable.render('models', data.data.models, tableContainer, {
                         addButton: {
                             action: 'create-model',
@@ -634,6 +641,41 @@ class AdminUIRenderer {
         } else {
             console.warn('⚠️ ADMIN-UI: Models renderer not available');
             this.showNotification('Model management not available', 'warning');
+        }
+    }
+
+    async deleteModel(modelId) {
+        if (!confirm('Are you sure you want to delete this model? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            // Check authentication
+            if (!window.AdminAuthUtils?.hasValidToken()) {
+                throw new Error('Authentication required');
+            }
+
+            const authToken = window.AdminAuthUtils.getAuthToken();
+            const response = await fetch(`/api/providers/models/${modelId}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showNotification('Model deleted successfully', 'success');
+                // Reload the models table
+                await this.loadModelsData();
+            } else {
+                throw new Error(data.error || 'Failed to delete model');
+            }
+        } catch (error) {
+            console.error('❌ ADMIN-UI: Error deleting model:', error);
+            this.showNotification(`Failed to delete model: ${error.message}`, 'danger');
         }
     }
 
