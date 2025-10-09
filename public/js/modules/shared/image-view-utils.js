@@ -127,8 +127,10 @@ class ImageViewUtils {
 
         const img = document.createElement('img');
 
-        img.src = imageData.url;
-        img.alt = imageData.title;
+        // Handle multiple URL property variations from different API endpoints
+        img.src = imageData.url || imageData.imageUrl || imageData.image || `uploads/${imageData.imageName || 'placeholder.png'}`;
+        img.alt = imageData.title || 'Generated Image';
+        img.loading = 'lazy';
 
         imageThumb.appendChild(img);
 
@@ -442,9 +444,12 @@ class ImageViewUtils {
         const textStyle = 'margin: 0; color: var(--color-text-tertiary); font-size: 14px;';
         const ratingStyle = 'margin: 4px 0 0 0; color: var(--color-text-tertiary); font-size: 14px;';
 
+        // Handle multiple URL property variations
+        const imgSrc = imageData.url || imageData.imageUrl || imageData.image || `uploads/${imageData.imageName || 'placeholder.png'}`;
+
         return `
             <div style="${containerStyle}">
-                <img src="${imageData.url}" alt="${imageData.title}" style="${imgStyle}">
+                <img src="${imgSrc}" alt="${imageData.title || 'Generated Image'}" style="${imgStyle}" loading="lazy">
                 <div style="flex: 1;">
                     <h3 style="${titleStyle}">${imageData.title || 'Generated Image'}</h3>
                     <p style="${textStyle}">${imageData.provider || 'Unknown'}</p>
