@@ -120,10 +120,8 @@ class SimpleDrawer {
     getFaqSection() {
         return `
             <div class="mb-8" data-section="faq">
-                <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-semibold text-yellow-400">AutoImage Pages</h3>
-                </div>
                 <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                    <h3 class="text-lg font-semibold text-yellow-400 mb-4">Pages</h3>
                     <div class="space-y-2">
                         <a href="/">Home</a>
                     </div>
@@ -144,10 +142,8 @@ class SimpleDrawer {
     getProvidersSection() {
         return `
             <div class="mb-8" data-section="providers">
-                <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-semibold text-green-400">Image Models</h3>
-                </div>
                 <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                    <h3 class="text-lg font-semibold text-green-400 mb-4">Models</h3>
                     <div id="provider-list" class="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
                         <!-- Providers will be populated by JavaScript -->
                     </div>
@@ -159,10 +155,8 @@ class SimpleDrawer {
     getSettingsSection() {
         return `
             <div class="mb-8" data-section="settings">
-                <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-semibold text-blue-400">Site Tools</h3>
-                </div>
                 <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                    <h3 class="text-lg font-semibold text-blue-400 mb-4">Tools</h3>
                     <div class="space-y-4">
                         ${this.getCheckboxGroup(['autoPublic', 'autoDownload', 'mixup', 'mashup'])}
 
@@ -191,10 +185,8 @@ class SimpleDrawer {
     getThemeSection() {
         return `
             <div class="mb-8" data-section="theme">
-                <div class="flex items-center gap-2">
-                    <h3 class="text-lg font-semibold text-purple-400">Theme</h3>
-                </div>
                 <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                    <h3 class="text-lg font-semibold text-purple-400 mb-4">Theme</h3>
                     <div class="space-y-3">
                         <label class="block text-sm font-medium text-gray-300">Choose Theme</label>
                         <select id="theme-select"

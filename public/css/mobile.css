@@ -232,10 +232,6 @@
         padding: 0.75rem;
     }
 
-    /* Smaller provider list */
-    #provider-list {
-        max-height: 150px;
-    }
 
     /* Smaller section spacing */
     #controls-drawer [data-section] {
