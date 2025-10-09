@@ -24,3 +24,5 @@ private
 .cursor
 playwright-report
 public/
+.cursor/
+.vscode/
