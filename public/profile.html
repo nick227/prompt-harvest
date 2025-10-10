@@ -158,7 +158,13 @@
 
     <!-- Shared Utilities (must be loaded first) -->
     <script src="/js/modules/shared/image-dom-utils.js"></script>
-    <!-- Load modular image-view dependencies first -->
+    
+    <!-- Centralized View System (load first) -->
+    <script src="/js/modules/views/ViewRegistry.js"></script>
+    <script src="/js/modules/views/ViewManager.js"></script>
+    <script src="/js/modules/views/ViewRenderer.js"></script>
+    
+    <!-- Load modular image-view dependencies -->
     <script src="/js/modules/shared/image-view/image-view-auth.js"></script>
     <script src="/js/modules/shared/image-view/image-view-data.js"></script>
     <script src="/js/modules/shared/image-view/image-view-tags.js"></script>

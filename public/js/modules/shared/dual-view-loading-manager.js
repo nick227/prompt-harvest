@@ -1,7 +1,10 @@
 /**
- * Dual-View Loading Manager
- * Centralized loading state management for dual-view image system
- * Coordinates loading states across compact and list views
+ * Multi-View Loading Manager (formerly Dual-View)
+ * Centralized loading state management for multi-view image system
+ * Coordinates loading states across all view types (compact, list, full, etc.)
+ *
+ * @class DualViewLoadingManager
+ * @deprecated Class name kept for backward compatibility. Internally supports multi-view.
  */
 
 class DualViewLoadingManager {
@@ -20,8 +23,7 @@ class DualViewLoadingManager {
         const loadingState = {
             imageId,
             wrapper,
-            compactView: wrapper.querySelector('.compact-view'),
-            listView: wrapper.querySelector('.list-view'),
+            views: this.findAllViews(wrapper),
             isImageLoaded: false,
             isPlaceholderReplaced: false,
             isFullyLoaded: false,
@@ -42,24 +44,62 @@ class DualViewLoadingManager {
     }
 
     /**
-     * Setup loading UI for both views
+     * Find all view elements in wrapper dynamically
+     * @param {HTMLElement} wrapper - Wrapper element
+     * @returns {Object} Map of viewType -> element
+     */
+    findAllViews(wrapper) {
+        if (!window.ViewRegistry) {
+            return {
+                compact: wrapper.querySelector('.compact-view'),
+                list: wrapper.querySelector('.list-view')
+            };
+        }
+
+        const views = {};
+
+        window.ViewRegistry.getViewTypes().forEach(viewType => {
+            const config = window.ViewRegistry.getViewConfig(viewType);
+
+            views[viewType] = wrapper.querySelector(config.selector);
+        });
+
+        return views;
+    }
+
+    /**
+     * Setup loading UI for all views
      * @param {Object} loadingState - Loading state object
      */
     setupLoadingUI(loadingState) {
-        const { compactView, listView, options } = loadingState;
+        const { views, options } = loadingState;
 
-        // Setup compact view loading
-        if (compactView) {
-            this.setupCompactViewLoading(compactView, options);
-        }
-
-        // Setup list view loading
-        if (listView) {
-            this.setupListViewLoading(listView, options);
-        }
+        // Setup loading for each view
+        Object.entries(views).forEach(([viewType, viewElement]) => {
+            if (viewElement) {
+                this.setupViewLoading(viewType, viewElement, options);
+            }
+        });
 
         // Add loading class to wrapper
-        loadingState.wrapper.classList.add('loading', 'dual-view-loading');
+        loadingState.wrapper.classList.add('loading', 'multi-view-loading');
+    }
+
+    /**
+     * Setup loading for a specific view type
+     * @param {string} viewType - View type (compact, list, full)
+     * @param {HTMLElement} viewElement - View element
+     * @param {Object} options - Loading options
+     */
+    setupViewLoading(viewType, viewElement, options) {
+        // Delegate to view-specific setup method
+        const setupMethod = `setup${viewType.charAt(0).toUpperCase() + viewType.slice(1)}ViewLoading`;
+
+        if (this[setupMethod]) {
+            this[setupMethod](viewElement, options);
+        } else {
+            console.warn(`⚠️ No setup method for view type: ${viewType}`);
+        }
     }
 
     /**
@@ -298,7 +338,7 @@ class DualViewLoadingManager {
      * @param {Object} imageData - Image data
      */
     updateCompactViewWithImage(loadingState, imageData) {
-        const { compactView } = loadingState;
+        const compactView = loadingState.views?.compact || loadingState.compactView;
 
         if (!compactView) {
             return;
@@ -338,7 +378,7 @@ class DualViewLoadingManager {
      * @param {Object} imageData - Image data
      */
     updateListViewWithImage(loadingState, imageData) {
-        const { listView } = loadingState;
+        const listView = loadingState.views?.list || loadingState.listView;
 
         if (!listView) {
             return;

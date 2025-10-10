@@ -24,6 +24,27 @@ class ImageViewManager {
     }
 
     /**
+     * Check if loading wrapper has all required views
+     * @param {HTMLElement} loadingWrapper - Loading wrapper element
+     * @returns {boolean} True if has all views
+     */
+    hasAllViews(loadingWrapper) {
+        if (!loadingWrapper) {
+            return false;
+        }
+
+        if (window.ViewRenderer) {
+            const renderer = new window.ViewRenderer();
+
+            return renderer.hasAllViews(loadingWrapper);
+        }
+
+        // Fallback to dual views check
+        return this.hasDualViews(loadingWrapper);
+    }
+
+    /**
+     * @deprecated Use hasAllViews() instead
      * Check if loading wrapper has dual views
      * @param {HTMLElement} loadingWrapper - Loading wrapper element
      * @returns {boolean} True if has dual views

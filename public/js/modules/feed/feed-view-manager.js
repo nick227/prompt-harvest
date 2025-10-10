@@ -1,9 +1,40 @@
-// Feed View Manager - Refactored to focus only on feed-level view management
+// Feed View Manager - Refactored to use centralized view system
 class FeedViewManager {
     constructor() {
-        this.supportedViews = ['list', 'compact'];
+        // Use centralized view management if available
+        if (window.ViewManager && window.ViewRenderer) {
+            this.viewManager = new window.ViewManager();
+            this.viewRenderer = new window.ViewRenderer();
+
+            // Listen for view changes
+            this.viewManager.addListener((newView, previousView) => {
+                this.onViewChange(newView, previousView);
+            });
+
+            this.currentView = this.viewManager.getCurrentView();
+        } else {
+            // Fallback to old system
+            this.supportedViews = ['list', 'compact'];
+            this.currentView = this.loadSavedView() || 'compact';
+        }
+
         this.isInitialized = false;
-        this.currentView = this.loadSavedView() || 'compact';
+    }
+
+    /**
+     * Get current view type
+     * @returns {string} Current view type
+     */
+    getCurrentView() {
+        return this.viewManager ? this.viewManager.getCurrentView() : this.currentView;
+    }
+
+    /**
+     * Get supported views
+     * @returns {Array<string>} Array of view types
+     */
+    getSupportedViews() {
+        return this.viewManager ? this.viewManager.getSupportedViews() : this.supportedViews;
     }
 
     /**
@@ -72,10 +103,9 @@ class FeedViewManager {
 
         imageWrappers.forEach((wrapper, _index) => {
             try {
-                const hasCompactView = wrapper.querySelector('.compact-view');
-                const hasListView = wrapper.querySelector('.list-view');
+                const hasViews = this.hasAllViews(wrapper);
 
-                if (!hasCompactView && !hasListView) {
+                if (!hasViews) {
                     this.enhanceImageWrapper(wrapper);
                     enhancedCount++;
                 } else {
@@ -189,9 +219,64 @@ class FeedViewManager {
 
     /**
      * Switch between view types
-     * @param {string} viewType - View type to switch to ('list' or 'compact')
+     * @param {string} viewType - View type to switch to ('list', 'compact', 'full')
      */
     switchView(viewType) {
+        // Use centralized system if available
+        if (this.viewManager) {
+            try {
+                this.viewManager.switchTo(viewType);
+
+                return;
+            } catch (error) {
+                console.error('❌ VIEW: Centralized switch failed, falling back:', error);
+            }
+        }
+
+        // Fallback to old system
+        this.switchViewOld(viewType);
+    }
+
+    /**
+     * Handle view change from centralized system
+     * @param {string} newView - New view type
+     * @param {string} _previousView - Previous view type
+     */
+    onViewChange(newView, _previousView) {
+        const promptOutput = document.querySelector('.prompt-output');
+
+        if (!promptOutput) {
+            console.error('❌ VIEW: Prompt output container not found');
+
+            return;
+        }
+
+        // Use renderer to apply view to all wrappers
+        this.viewRenderer.applyToAllWrappers(promptOutput, newView);
+
+        // Update current view
+        this.currentView = newView;
+
+        // Force update intersection observer to monitor new last image
+        if (window.feedManager && window.feedManager.uiManager) {
+            window.feedManager.uiManager.forceUpdateIntersectionObserver();
+        }
+
+        // Check and fill to bottom after view change
+        setTimeout(() => {
+            if (window.feedManager && window.feedManager.fillToBottomManager) {
+                const currentFilter = window.feedManager.getCurrentFilter();
+
+                window.feedManager.fillToBottomManager.checkAndFillToBottom(currentFilter);
+            }
+        }, 100);
+    }
+
+    /**
+     * @deprecated Legacy view switching for fallback
+     * @param {string} viewType - View type to switch to
+     */
+    switchViewOld(viewType) {
         if (viewType === this.currentView) {
             return;
         }
@@ -249,7 +334,24 @@ class FeedViewManager {
                 window.feedManager.fillToBottomManager.checkAndFillToBottom(currentFilter);
             }
         }, 100);
+    }
 
+    /**
+     * Check if wrapper has all views
+     * @param {HTMLElement} wrapper - Wrapper element
+     * @returns {boolean} True if has all views
+     */
+    hasAllViews(wrapper) {
+        if (!wrapper) {
+            return false;
+        }
+
+        if (this.viewRenderer) {
+            return this.viewRenderer.hasAllViews(wrapper);
+        }
+
+        // Fallback to manual check
+        return wrapper.querySelector('.compact-view') && wrapper.querySelector('.list-view');
     }
 
     /**
@@ -278,7 +380,7 @@ class FeedViewManager {
      */
     enhanceNewImageWrapper(wrapper) {
         // Check if already enhanced to prevent duplicate enhancement
-        if (wrapper.querySelector('.compact-view') && wrapper.querySelector('.list-view')) {
+        if (this.hasAllViews(wrapper)) {
             return; // Skip silently - no need to log every skip
         }
 

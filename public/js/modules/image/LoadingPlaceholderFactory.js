@@ -39,7 +39,7 @@ class LoadingPlaceholderFactory {
         wrapper.id = placeholderId;
 
         this.setupWrapperAttributes(wrapper);
-        this.createDualViews(wrapper, promptObj);
+        this.createAllViews(wrapper, promptObj);
         this.setInitialView(wrapper);
 
         return wrapper;
@@ -61,6 +61,43 @@ class LoadingPlaceholderFactory {
     }
 
     /**
+     * Create all views dynamically from ViewRegistry
+     * @param {HTMLElement} wrapper - Wrapper element
+     * @param {Object} promptObj - Prompt object
+     */
+    createAllViews(wrapper, promptObj) {
+        if (!window.ViewRegistry) {
+            return this.createDualViews(wrapper, promptObj);
+        }
+
+        const views = window.ViewRegistry.getViewsByPriority();
+
+        views.forEach(([viewType, config]) => {
+            const viewElement = this.createElement('div', config.className);
+
+            this.setupView(viewType, viewElement, promptObj);
+            wrapper.appendChild(viewElement);
+        });
+    }
+
+    /**
+     * Setup a view based on type
+     * @param {string} viewType - View type (compact, list, full)
+     * @param {HTMLElement} viewElement - View element
+     * @param {Object} promptObj - Prompt object
+     */
+    setupView(viewType, viewElement, promptObj) {
+        const setupMethod = `setup${viewType.charAt(0).toUpperCase() + viewType.slice(1)}View`;
+
+        if (this[setupMethod]) {
+            this[setupMethod](viewElement, promptObj);
+        } else {
+            console.warn(`⚠️ No setup method for view type: ${viewType}`);
+        }
+    }
+
+    /**
+     * @deprecated Use createAllViews() instead
      * Create dual view structure (compact and list)
      * @param {HTMLElement} wrapper - Wrapper element
      * @param {Object} promptObj - Prompt object
@@ -446,12 +483,29 @@ class LoadingPlaceholderFactory {
     }
 
     /**
-     * Set fallback view when view utils are not available
+     * Set view using centralized renderer or fallback
+     * @param {HTMLElement} wrapper - Wrapper element
+     * @param {string} viewType - View type ('compact', 'list', 'full')
+     * @private
+     */
+    setFallbackView(wrapper, viewType) {
+        if (!window.ViewRenderer) {
+            return this.setFallbackViewOld(wrapper, viewType);
+        }
+
+        const renderer = new window.ViewRenderer();
+
+        renderer.updateWrapper(wrapper, viewType);
+        renderer.updateContainerClasses(wrapper, viewType);
+    }
+
+    /**
+     * @deprecated Legacy fallback for when ViewRenderer not available
      * @param {HTMLElement} wrapper - Wrapper element
      * @param {string} viewType - View type ('compact' or 'list')
      * @private
      */
-    setFallbackView(wrapper, viewType) {
+    setFallbackViewOld(wrapper, viewType) {
         const compactView = wrapper.querySelector('.compact-view');
         const listView = wrapper.querySelector('.list-view');
 

@@ -369,7 +369,14 @@ class ImageViewUtils {
      */
     static enhanceImageWrapper(wrapper, imageData = null) {
         try {
-            if (wrapper.querySelector('.compact-view') && wrapper.querySelector('.list-view')) {
+            // Check if already enhanced
+            if (window.ViewRenderer) {
+                const renderer = new window.ViewRenderer();
+
+                if (renderer.hasAllViews(wrapper)) {
+                    return true;
+                }
+            } else if (wrapper.querySelector('.compact-view') && wrapper.querySelector('.list-view')) {
                 return true;
             }
 
@@ -382,17 +389,57 @@ class ImageViewUtils {
             }
 
             const extractedImageData = imageData || this.extractImageData(img, wrapper);
-            const compactView = this._createCompactView(wrapper);
-            const listView = this._createListView(extractedImageData);
 
-            wrapper.appendChild(compactView);
-            wrapper.appendChild(listView);
+            // Use dynamic view creation if registry available
+            if (window.ViewRegistry) {
+                const views = window.ViewRegistry.getViewsByPriority();
+
+                views.forEach(([viewType, _config]) => {
+                    const viewElement = this.createViewElement(viewType, wrapper, extractedImageData);
+
+                    if (viewElement) {
+                        wrapper.appendChild(viewElement);
+                    }
+                });
+            } else {
+                // Fallback to dual views
+                const compactView = this._createCompactView(wrapper);
+                const listView = this._createListView(extractedImageData);
+
+                wrapper.appendChild(compactView);
+                wrapper.appendChild(listView);
+            }
 
             return true;
         } catch (error) {
             console.error('❌ VIEW UTILS: Failed to enhance image wrapper:', error);
 
             return false;
+        }
+    }
+
+    /**
+     * Create a specific view element
+     * @param {string} viewType - View type (compact, list, full)
+     * @param {HTMLElement} wrapper - Wrapper element
+     * @param {Object} imageData - Image data
+     * @returns {HTMLElement|null} View element or null
+     */
+    static createViewElement(viewType, wrapper, imageData) {
+        switch (viewType) {
+            case 'compact':
+                return this._createCompactView(wrapper);
+            case 'list':
+                return this._createListView(imageData);
+            case 'full':
+                // TODO: Implement full view creation
+                console.warn('⚠️ Full view not yet implemented');
+
+                return null;
+            default:
+                console.warn(`⚠️ Unknown view type: ${viewType}`);
+
+                return null;
         }
     }
 
