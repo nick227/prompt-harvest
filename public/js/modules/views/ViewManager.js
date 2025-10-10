@@ -46,13 +46,6 @@
             return this.registry.isValidView(viewType);
         }
 
-        /**
-         * Get configuration for current view
-         * @returns {Object} View configuration
-         */
-        getCurrentConfig() {
-            return this.registry.getViewConfig(this.currentView);
-        }
 
         /**
          * Switch to a different view
@@ -144,26 +137,6 @@
             });
         }
 
-        /**
-         * Get next view in sequence (for toggle functionality)
-         * @returns {string} Next view type
-         */
-        getNextView() {
-            const views = this.getSupportedViews();
-            const currentIndex = views.indexOf(this.currentView);
-            const nextIndex = (currentIndex + 1) % views.length;
-
-            return views[nextIndex];
-        }
-
-        /**
-         * Toggle to next view
-         */
-        toggleNext() {
-            const nextView = this.getNextView();
-
-            this.switchTo(nextView);
-        }
     }
 
     // Export to window

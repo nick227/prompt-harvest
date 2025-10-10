@@ -24,12 +24,7 @@
             displayStyle: 'block',
             selector: '.compact-view',
             priority: 1,
-            enabled: true,
-            metadata: {
-                icon: '⊞',
-                label: 'Compact',
-                description: 'Grid view with thumbnails'
-            }
+            enabled: true
         },
 
         list: {
@@ -38,12 +33,7 @@
             displayStyle: 'flex',
             selector: '.list-view',
             priority: 2,
-            enabled: true,
-            metadata: {
-                icon: '☰',
-                label: 'List',
-                description: 'Detailed list with metadata'
-            }
+            enabled: true
         },
 
         full: {
@@ -52,12 +42,7 @@
             displayStyle: 'block',
             selector: '.full-view',
             priority: 3,
-            enabled: true, // ✅ ENABLED!
-            metadata: {
-                icon: '◫',
-                label: 'Full',
-                description: 'Full width image view'
-            }
+            enabled: true
         }
     };
 
@@ -101,13 +86,6 @@
         return VIEW_REGISTRY[viewType] || null;
     }
 
-    /**
-     * Get all class names for cleanup operations
-     * @returns {Array<string>} Array of all view class names
-     */
-    function getAllClassNames() {
-        return Object.values(VIEW_REGISTRY).map(config => config.className);
-    }
 
     /**
      * Get all container class names for cleanup operations
@@ -117,14 +95,6 @@
         return Object.values(VIEW_REGISTRY).map(config => config.containerClass);
     }
 
-    /**
-     * Get views sorted by priority
-     * @returns {Array<[string, Object]>} Sorted array of [key, config] pairs
-     */
-    function getViewsByPriority() {
-        return Object.entries(getEnabledViews())
-            .sort((a, b) => a[1].priority - b[1].priority);
-    }
 
     // Export to window
     if (typeof window !== 'undefined') {
@@ -137,9 +107,7 @@
             getViewTypes,
             isValidView,
             getViewConfig,
-            getAllClassNames,
             getAllContainerClasses,
-            getViewsByPriority,
 
             // Constants
             DEFAULT_VIEW: 'list',
