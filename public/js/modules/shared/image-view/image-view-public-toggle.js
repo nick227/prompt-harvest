@@ -88,7 +88,7 @@
                 });
 
                 if (success && !newStatus) {
-                // Remove from feed if made private in site view
+                // Remove from feed if made private in public view
                     removeImageFromFeedIfPrivate(imageId);
                 }
             } else {
@@ -105,15 +105,15 @@
     };
 
     /**
- * Remove image from feed if currently in site view (helper for status change)
+ * Remove image from feed if currently in public view (helper for status change)
  * @param {string} imageId - Image ID
  */
     const removeImageFromFeedIfPrivate = imageId => {
-    // Check if in site view
-        const siteButton = document.querySelector('input[name="owner"][value="site"]');
-        const isInSiteView = siteButton && siteButton.checked;
+    // Check if in public view
+        const ownerDropdown = document.querySelector('select[name="owner"]');
+        const isInPublicView = ownerDropdown && ownerDropdown.value === 'public';
 
-        if (isInSiteView && window.feedManager && window.feedManager.removeImageFromFeed) {
+        if (isInPublicView && window.feedManager && window.feedManager.removeImageFromFeed) {
             window.feedManager.removeImageFromFeed(imageId);
         }
     };

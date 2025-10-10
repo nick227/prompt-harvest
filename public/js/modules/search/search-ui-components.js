@@ -111,30 +111,20 @@ class SearchUIComponents {
 
     // Get count text based on filter
     getCountText(filter, counts) {
-        const { visible = 0, public: publicCount = 0, private: privateCount = 0 } = counts;
+        const { visible = 0, visiblePublic = 0, visiblePrivate = 0 } = counts;
 
-        // For public filter (or "site"), show public count
+        // For public filter: show count of visible PUBLIC images
         if (filter === 'public' || filter === 'site') {
             // When 0 results, show generic message
-            if (publicCount === 0) {
+            if (visiblePublic === 0) {
                 return '0 results';
             }
 
-            return publicCount === 1 ? '1 public result' : `${publicCount} public results`;
+            return visiblePublic === 1 ? '1 public result' : `${visiblePublic} public results`;
         }
 
-        // For private filter, show private count
-        if (filter === 'private') {
-            // When 0 results, show generic message
-            if (privateCount === 0) {
-                return '0 results';
-            }
-
-            return privateCount === 1 ? '1 private result' : `${privateCount} private results`;
-        }
-
-        // For "mine" or "user" filter, show visible count with "your" label
-        if (filter === 'mine' || filter === 'user') {
+        // For private filter: show count of visible user's own images (mix of public and private)
+        if (filter === 'private' || filter === 'user') {
             // When 0 results, show generic message
             if (visible === 0) {
                 return '0 results';

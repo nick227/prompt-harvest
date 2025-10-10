@@ -174,7 +174,7 @@ class SearchManager {
         }
 
         // Build search URL
-        const currentFilter = this.feedManager.filterManager?.getCurrentFilter() || 'site';
+        const currentFilter = this.feedManager.filterManager?.getCurrentFilter() || 'public';
         const url = `/api/search/images?q=${encodeURIComponent(query)}&page=${page}&filter=${currentFilter}`;
 
         // Get auth token

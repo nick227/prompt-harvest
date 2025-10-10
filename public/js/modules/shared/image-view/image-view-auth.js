@@ -31,18 +31,18 @@
     };
 
     /**
- * Check if currently viewing the site filter
- * @returns {boolean} True if in site view
+ * Check if currently viewing the public filter
+ * @returns {boolean} True if in public view
  */
-    const isCurrentlyInSiteView = () => {
+    const isCurrentlyInPublicView = () => {
         if (window.feedManager && window.feedManager.getCurrentFilter) {
-            return window.feedManager.getCurrentFilter() === 'site';
+            return window.feedManager.getCurrentFilter() === 'public';
         }
 
-        // Fallback: check DOM for active site button
-        const siteButton = document.querySelector('input[name="owner"][value="site"]');
+        // Fallback: check DOM for active public option
+        const ownerDropdown = document.querySelector('select[name="owner"]');
 
-        return siteButton && siteButton.checked;
+        return ownerDropdown && ownerDropdown.value === 'public';
     };
 
     /**
@@ -78,7 +78,8 @@
     if (typeof window !== 'undefined') {
         window.ImageViewAuth = {
             getAuthHeaders,
-            isCurrentlyInSiteView,
+            isCurrentlyInPublicView,
+            isCurrentlyInSiteView: isCurrentlyInPublicView, // Backward compatibility alias
             getCurrentUserId
         };
     }

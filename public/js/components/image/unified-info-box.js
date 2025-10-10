@@ -968,18 +968,23 @@ class UnifiedInfoBox {
     }
 
     /**
-     * Check if currently in site view
-     * @returns {boolean} Whether in site view
+     * Check if currently in public view
+     * @returns {boolean} Whether in public view
      */
-    isCurrentlyInSiteView() {
-        // Check if we're in site view by looking at the current filter
+    isCurrentlyInPublicView() {
+        // Check if we're in public view by looking at the current filter
         if (window.feedManager && window.feedManager.tabService) {
-            return window.feedManager.tabService.getCurrentFilter() === 'site';
+            return window.feedManager.tabService.getCurrentFilter() === 'public';
         }
 
         // Fallback: check URL or other indicators
-        return window.location.search.includes('filter=site') ||
-               document.querySelector('.site-filter.active') !== null;
+        return window.location.search.includes('filter=public') ||
+               document.querySelector('.public-filter.active') !== null;
+    }
+
+    // Backward compatibility alias
+    isCurrentlyInSiteView() {
+        return this.isCurrentlyInPublicView();
     }
 
     /**

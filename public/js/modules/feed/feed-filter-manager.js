@@ -195,7 +195,7 @@ class FeedFilterManager {
             // Clear cache for the relevant filter and refresh display
             if (imageData && imageData.isPublic !== undefined) {
                 // Determine which filter this image affects
-                const affectedFilter = imageData.isPublic ? 'site' : 'user';
+                const affectedFilter = imageData.isPublic ? 'public' : 'private';
 
                 // Clear cache and refresh display for the affected filter
                 this.clearImageCountCache(affectedFilter);

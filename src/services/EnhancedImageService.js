@@ -1126,7 +1126,7 @@ export class EnhancedImageService {
         }
 
 
-        // Get all images belonging to the user (both public and private for "mine" filter)
+        // Get all images belonging to the user (both public and private for "private" filter)
         const result = await this.imageRepository.findUserImages(userId, limit, page, tags);
 
         // Assert: Log if repository returns other users' images (database integrity issue)

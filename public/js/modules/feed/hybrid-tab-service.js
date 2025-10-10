@@ -167,7 +167,7 @@ class HybridTabService {
         // Re-evaluate visibility for current filter - no redundant data structures
         const { userId } = wrapper.dataset;
         const isPublic = wrapper.dataset.isPublic === 'true';
-        const shouldShow = this.currentFilter === 'site' ? isPublic : (String(userId) === String(this.currentUserId));
+        const shouldShow = this.currentFilter === 'public' ? isPublic : (String(userId) === String(this.currentUserId));
 
         if (shouldShow) {
             wrapper.classList.remove('hidden');
@@ -204,7 +204,7 @@ class HybridTabService {
                 const isPublic = wrapper.dataset.isPublic === 'true';
 
                 // Check if this image should be visible with current filter
-                const shouldShow = this.currentFilter === 'site' ? isPublic : (String(userId) === String(this.currentUserId));
+                const shouldShow = this.currentFilter === 'public' ? isPublic : (String(userId) === String(this.currentUserId));
 
                 if (shouldShow) {
                     visibleImages.push({
@@ -295,7 +295,7 @@ if (typeof window !== 'undefined') {
 
     window.testMineFilter = () => {
         if (window.feedManager && window.feedManager.tabService) {
-            window.feedManager.tabService.switchToFilter('user');
+            window.feedManager.tabService.switchToFilter('private');
         } else {
             console.warn('Feed manager or tab service not available');
         }

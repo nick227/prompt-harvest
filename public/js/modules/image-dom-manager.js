@@ -189,7 +189,7 @@ class ImageDOMManager {
         return {
             normalizeImageData: imageData => imageData || {},
             validateImageData: () => ({ isValid: true, errors: [], warnings: [] }),
-            getCurrentFilter: () => 'site',
+            getCurrentFilter: () => 'public',
             extractImageDataFromElement: img => ({
                 id: img.dataset.id || 'unknown',
                 url: img.src,
