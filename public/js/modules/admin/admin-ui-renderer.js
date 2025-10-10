@@ -719,8 +719,8 @@ class AdminUIRenderer {
      */
     updateQueueDisplay(queueData) {
         try {
-            if (this.summaryRenderer && this.summaryRenderer.updateQueueStatus) {
-                this.summaryRenderer.updateQueueStatus(queueData);
+            if (this.summaryRenderer && this.summaryRenderer.updateSummaryQueueStatus) {
+                this.summaryRenderer.updateSummaryQueueStatus(queueData);
             } else {
                 console.warn('⚠️ ADMIN-UI: Summary renderer not available for queue update');
             }
