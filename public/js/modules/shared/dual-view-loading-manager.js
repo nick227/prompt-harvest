@@ -449,27 +449,49 @@ class DualViewLoadingManager {
         // Views are just hidden with CSS, updating them is cheap
         // This prevents views from getting out of sync
 
-        // Update thumbnail
+        this._updateListViewThumbnail(listView, imageData);
+        this._updateListViewHeader(listView, imageData);
+        this._updateListViewPrompt(listView, imageData);
+        this._updateListViewMetadata(listView, imageData);
+        this._applyCurrentViewToWrapper(loadingState.wrapper);
+    }
+
+    /**
+     * Update list view thumbnail with image data
+     * @param {HTMLElement} listView - List view element
+     * @param {Object} imageData - Image data
+     * @private
+     */
+    _updateListViewThumbnail(listView, imageData) {
         const thumbnailContainer = listView.querySelector('.list-image-thumb');
 
-        if (thumbnailContainer) {
-            thumbnailContainer.innerHTML = '';
-
-            const thumbnailImg = document.createElement('img');
-
-            thumbnailImg.src = imageData.url;
-            thumbnailImg.alt = imageData.title || 'Generated Image';
-            thumbnailImg.style.cssText = `
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 8px;
-            `;
-
-            thumbnailContainer.appendChild(thumbnailImg);
+        if (!thumbnailContainer) {
+            return;
         }
 
-        // Update header title and remove loading indicator
+        thumbnailContainer.innerHTML = '';
+
+        const thumbnailImg = document.createElement('img');
+
+        thumbnailImg.src = imageData.url;
+        thumbnailImg.alt = imageData.title || 'Generated Image';
+        thumbnailImg.style.cssText = `
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        `;
+
+        thumbnailContainer.appendChild(thumbnailImg);
+    }
+
+    /**
+     * Update list view header (title and loading indicator)
+     * @param {HTMLElement} listView - List view element
+     * @param {Object} imageData - Image data
+     * @private
+     */
+    _updateListViewHeader(listView, imageData) {
         const titleElement = listView.querySelector('.list-title');
 
         if (titleElement) {
@@ -481,45 +503,64 @@ class DualViewLoadingManager {
         if (loadingIndicator) {
             loadingIndicator.remove();
         }
+    }
 
-        // Update prompt section with actual prompt data
+    /**
+     * Update list view prompt section
+     * @param {HTMLElement} listView - List view element
+     * @param {Object} imageData - Image data
+     * @private
+     */
+    _updateListViewPrompt(listView, imageData) {
         const promptSection = listView.querySelector('.list-prompt-section');
 
         if (promptSection) {
             window.ImageViewUtils.createListViewPromptSection(imageData, promptSection);
         }
+    }
 
-        // Update metadata with actual data
+    /**
+     * Update list view metadata section
+     * @param {HTMLElement} listView - List view element
+     * @param {Object} imageData - Image data
+     * @private
+     */
+    _updateListViewMetadata(listView, imageData) {
         const metadata = listView.querySelector('.list-metadata');
 
         if (metadata) {
             window.ImageViewUtils.createListViewMetadata(imageData, metadata);
         }
-
-        // ✅ OPTIMIZATION: Apply current view using ViewRenderer
-        const { wrapper } = loadingState;
-
-        if (wrapper && window.feedManager && window.feedManager.viewManager) {
-            const currentView = window.feedManager.viewManager.getCurrentView();
-
-            // Use ViewRenderer if available
-            if (window.ViewRenderer) {
-                const renderer = new window.ViewRenderer();
-
-                renderer.updateWrapper(wrapper, currentView);
-            } else if (currentView === 'list') {
-                wrapper.classList.add('list');
-                wrapper.classList.remove('compact', 'full');
-            } else if (currentView === 'compact') {
-                wrapper.classList.add('compact');
-                wrapper.classList.remove('list', 'full');
-            } else if (currentView === 'full') {
-                wrapper.classList.add('full');
-                wrapper.classList.remove('list', 'compact');
-            }
-        }
     }
 
+    /**
+     * Apply current view to wrapper using ViewRenderer
+     * @param {HTMLElement} wrapper - Image wrapper element
+     * @private
+     */
+    _applyCurrentViewToWrapper(wrapper) {
+        if (!wrapper || !window.feedManager?.viewManager) {
+            return;
+        }
+
+        const currentView = window.feedManager.viewManager.getCurrentView();
+
+        // Use ViewRenderer if available
+        if (window.ViewRenderer) {
+            const renderer = new window.ViewRenderer();
+
+            renderer.updateWrapper(wrapper, currentView);
+        } else if (currentView === 'list') {
+            wrapper.classList.add('list');
+            wrapper.classList.remove('compact', 'full');
+        } else if (currentView === 'compact') {
+            wrapper.classList.add('compact');
+            wrapper.classList.remove('list', 'full');
+        } else if (currentView === 'full') {
+            wrapper.classList.add('full');
+            wrapper.classList.remove('list', 'compact');
+        }
+    }
 
     /**
      * Update loading UI based on state
@@ -530,7 +571,7 @@ class DualViewLoadingManager {
         const { wrapper, options } = loadingState;
 
         // Update wrapper classes
-        wrapper.classList.remove('loading', 'dual-view-loading');
+        wrapper.classList.remove('loading', 'multi-view-loading');
 
         if (state === 'loaded') {
             wrapper.classList.add('loaded');

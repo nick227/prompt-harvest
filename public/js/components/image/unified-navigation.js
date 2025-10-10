@@ -350,7 +350,7 @@ class UnifiedNavigation {
             rating: parseInt(dataset.rating) || 0,
             isPublic: dataset.isPublic === 'true',
             userId: dataset.userId || currentUserId, // Use current user as fallback
-            username: dataset.username || 'Unknown User', // Provide fallback for username
+            username: dataset.username || null,
             createdAt: dataset.createdAt || new Date().toISOString(),
             tags: window.TagUtils ? window.TagUtils.parseTags(dataset.tags) : (dataset.tags ? JSON.parse(dataset.tags) : []) // ✅ Include tags with centralized parsing
         };

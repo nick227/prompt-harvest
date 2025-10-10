@@ -185,6 +185,17 @@
     flex-wrap: wrap;
 }
 
+.compact {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.compact .image-wrapper {
+    width: 160px;
+    height: 160px;
+}
+
 
 /* List view specific layouts - Table-like structure */
 .prompt-output.list-wrapper li {
@@ -302,15 +313,15 @@
     .full-view-image-wrapper {
         aspect-ratio: 4/3;
     }
-    
+
     .full-view-content {
         padding: 0.75rem;
     }
-    
+
     .full-view-content h3 {
         font-size: 1rem;
     }
-    
+
     .full-view-metadata {
         flex-direction: column;
         gap: 0.5rem;

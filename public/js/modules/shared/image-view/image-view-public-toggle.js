@@ -7,9 +7,9 @@
     'use strict';
 
     /**
-     * Create public checkbox for list or compact view
+     * Create public checkbox for list, compact, or full view
  * @param {Object} imageData - Image data object
- * @param {string} viewType - View type ('list' or 'compact')
+ * @param {string} viewType - View type ('list', 'compact', or 'full')
  * @param {Function} onStatusChange - Callback when status changes (receives imageId, newStatus)
  * @returns {HTMLElement} Public checkbox element
  */

@@ -55,16 +55,11 @@ class FeedViewManager {
 
     /**
      * Save view preference to localStorage
-     * @param {string} viewType - View type to save ('list' or 'compact')
+     * @param {string} viewType - View type to save ('list', 'compact', or 'full')
      */
     saveViewPreference(viewType) {
         try {
             localStorage.setItem('imageViewPreference', viewType);
-
-
-            // Verify the save worked
-            const _saved = localStorage.getItem('imageViewPreference');
-
         } catch (error) {
             console.warn('⚠️ VIEW: Failed to save view preference:', error);
         }
@@ -85,7 +80,7 @@ class FeedViewManager {
     }
 
     /**
-     * Enhance existing images with dual views
+     * Enhance existing images with all views (compact, list, full)
      */
     enhanceExistingImages() {
         const promptOutput = document.querySelector('.prompt-output');
@@ -361,7 +356,7 @@ class FeedViewManager {
     }
 
     /**
-     * Enhance a single image wrapper with dual views
+     * Enhance a single image wrapper with all views (compact, list, full)
      * @param {HTMLElement} wrapper - Wrapper element to enhance
      */
     enhanceImageWrapper(wrapper) {

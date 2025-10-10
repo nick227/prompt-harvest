@@ -88,13 +88,13 @@ const formatUsername = imageData => {
     let { username } = imageData;
 
     if (!username && imageData.userId) {
-        username = 'Unknown User';
+        username = 'User';
     } else if (!username) {
         username = 'Anonymous';
     }
 
     // Create hyperlink for username
-    if (username === 'Anonymous' || username === 'Unknown User') {
+    if (username === 'Anonymous' || username === 'User') {
         return username;
     }
 

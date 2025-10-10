@@ -362,7 +362,7 @@ class ImageViewUtils {
     }
 
     /**
-     * Enhance an image wrapper with dual views (compact and list)
+     * Enhance an image wrapper with all views (compact, list, and full)
      * @param {HTMLElement} wrapper - Wrapper element to enhance
      * @param {Object} imageData - Image data (optional, will be extracted if not provided)
      * @returns {boolean} Success status
@@ -402,7 +402,7 @@ class ImageViewUtils {
                     }
                 });
             } else {
-                // Fallback to dual views
+                // Fallback to legacy views
                 const compactView = this._createCompactView(wrapper);
                 const listView = this._createListView(extractedImageData);
 

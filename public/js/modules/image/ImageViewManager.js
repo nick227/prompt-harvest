@@ -39,15 +39,15 @@ class ImageViewManager {
             return renderer.hasAllViews(loadingWrapper);
         }
 
-        // Fallback to dual views check
+        // Fallback to legacy views check
         return this.hasDualViews(loadingWrapper);
     }
 
     /**
      * @deprecated Use hasAllViews() instead
-     * Check if loading wrapper has dual views
+     * Check if loading wrapper has legacy views (compact + list only)
      * @param {HTMLElement} loadingWrapper - Loading wrapper element
-     * @returns {boolean} True if has dual views
+     * @returns {boolean} True if has legacy views
      */
     hasDualViews(loadingWrapper) {
         return loadingWrapper &&
@@ -56,7 +56,7 @@ class ImageViewManager {
     }
 
     /**
-     * Replace dual view placeholder
+     * Replace multi-view placeholder
      * @param {HTMLElement} loadingWrapper - Loading wrapper element
      * @param {HTMLElement} listItem - New list item with image
      */

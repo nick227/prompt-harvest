@@ -228,7 +228,7 @@ class ImageDataManager {
                imageData.userName ||
                imageData.creator ||
                imageData.author ||
-               (imageData.userId ? 'Unknown User' : 'Anonymous');
+               null;
     }
 
     /**

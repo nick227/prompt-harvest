@@ -26,7 +26,7 @@ class LoadingPlaceholderFactory {
     }
 
     /**
-     * Create loading placeholder with dual views
+     * Create loading placeholder with all views (compact, list, full)
      * @param {Object} promptObj - Prompt object
      * @returns {HTMLElement} Created loading placeholder
      */
@@ -98,7 +98,7 @@ class LoadingPlaceholderFactory {
 
     /**
      * @deprecated Use createAllViews() instead
-     * Create dual view structure (compact and list)
+     * Create legacy view structure (compact and list only)
      * @param {HTMLElement} wrapper - Wrapper element
      * @param {Object} promptObj - Prompt object
      */

@@ -839,11 +839,24 @@ class UnifiedInfoBox {
      * @returns {string} Formatted created by string with hyperlink
      */
     formatCreatedBy(imageData) {
-        // Use username from server, fallback to appropriate message if not available
-        const { username } = imageData;
+        // Use centralized formatting if available
+        if (window.ImageViewData?.formatUsername) {
+            return window.ImageViewData.formatUsername(imageData);
+        }
 
+        // Fallback to local implementation
+        let { username } = imageData;
 
-        const _date = imageData.createdAt;
+        if (!username && imageData.userId) {
+            username = 'User';
+        } else if (!username) {
+            username = 'Anonymous';
+        }
+
+        // Don't create links for Anonymous users
+        if (username === 'Anonymous' || username === 'User') {
+            return username;
+        }
 
         // Create hyperlink for username
         const usernameLink = `<a href="/u/${encodeURIComponent(username)}" ` +
