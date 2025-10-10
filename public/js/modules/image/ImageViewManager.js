@@ -276,12 +276,31 @@ class ImageViewManager {
      * @param {Object} imageData - Image data
      */
     updateWrapperDataAttributes(wrapper, imageData) {
-        wrapper.dataset.imageId = imageData.id;
-        wrapper.dataset.isPublic = imageData.isPublic.toString();
-        wrapper.dataset.userId = imageData.userId || '';
-        wrapper.dataset.provider = imageData.provider || '';
-        wrapper.dataset.guidance = imageData.guidance || '';
-        wrapper.dataset.rating = imageData.rating.toString();
+        // Use standardized utility if available
+        if (window.WrapperDatasetUtils) {
+            window.WrapperDatasetUtils.setWrapperDataset(wrapper, imageData);
+        } else {
+            // Fallback to manual setting
+            wrapper.dataset.imageId = imageData.id;
+            wrapper.dataset.isPublic = (imageData.isPublic || false).toString();
+            wrapper.dataset.userId = imageData.userId || '';
+            wrapper.dataset.provider = imageData.provider || '';
+            wrapper.dataset.guidance = imageData.guidance || '';
+            wrapper.dataset.rating = (imageData.rating != null ? imageData.rating : 0).toString();
+
+            if (imageData.username) {
+                wrapper.dataset.username = imageData.username;
+            }
+            if (imageData.model) {
+                wrapper.dataset.model = imageData.model;
+            }
+            if (imageData.createdAt) {
+                wrapper.dataset.createdAt = imageData.createdAt;
+            }
+            if (imageData.tags) {
+                wrapper.dataset.tags = JSON.stringify(imageData.tags);
+            }
+        }
     }
 
     /**
@@ -325,10 +344,20 @@ class ImageViewManager {
     createFallbackListItem(imageData) {
         const wrapper = this.createFallbackWrapper();
 
-        wrapper.dataset.imageId = imageData.id || 'unknown';
-        wrapper.dataset.filter = 'user';
-        wrapper.dataset.userId = imageData.userId || '';
-        wrapper.dataset.isPublic = imageData.isPublic || 'false';
+        // Use standardized utility if available
+        if (window.WrapperDatasetUtils) {
+            window.WrapperDatasetUtils.setWrapperDataset(wrapper, imageData, 'user');
+        } else {
+            // Fallback to manual setting
+            wrapper.dataset.imageId = imageData.id || 'unknown';
+            wrapper.dataset.filter = 'user';
+            wrapper.dataset.userId = imageData.userId || '';
+            wrapper.dataset.isPublic = imageData.isPublic || 'false';
+
+            if (imageData.username) {
+                wrapper.dataset.username = imageData.username;
+            }
+        }
 
         return wrapper;
     }

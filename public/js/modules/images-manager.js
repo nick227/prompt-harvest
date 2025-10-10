@@ -40,6 +40,11 @@ class ImagesManager {
             // Generate image via API with options
             const imageData = await this.api.generateImage(prompt, providers, options);
 
+            // Clear search if active before adding new image to feed
+            if (window.searchManager?.state?.isSearchActive) {
+                await window.searchManager.clearSearch();
+            }
+
             // Add to DOM
             const img = this.dom.addImageToOutput(imageData, false);
 

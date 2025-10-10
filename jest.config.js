@@ -72,7 +72,7 @@ export default {
 
     // Module transformation ignores
     transformIgnorePatterns: [
-        'node_modules/'
+        'node_modules/(?!(p-queue|p-timeout|eventemitter3|yocto-queue)/)'
     ],
 
     // Test timeout

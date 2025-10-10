@@ -4,10 +4,8 @@
 
 .image-wrapper img {
     opacity: 0;
-    transition: opacity 0.2s ease;
-    animation: fadeIn 0.1s ease;
+    animation: fadeIn 1.2s ease;
     animation-fill-mode: forwards;
-    animation-delay: 0.5s;
 }
 
 /* Image Wrapper - Essential for image display */

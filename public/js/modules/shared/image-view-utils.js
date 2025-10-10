@@ -298,14 +298,29 @@ class ImageViewUtils {
      * @param {Object} _imageData - Image data object (unused - extracted dynamically)
      */
     static addListViewClickHandler(listView, _imageData) {
+        // Only add handler if this is actually a list view
+        if (!listView || !listView.classList.contains('list-view')) {
+            return;
+        }
+
         const imageThumb = listView.querySelector('.list-image-thumb');
 
         if (!imageThumb) {
-            console.warn('⚠️ LIST VIEW: No image thumbnail found for click handler');
+            // This can happen during view creation - thumbnail will be added by createListViewContent
+            // Only warn if the list view appears to be fully created
+            if (listView.querySelector('.list-content')) {
+                console.warn('⚠️ LIST VIEW: Fully created but missing thumbnail for click handler');
+            }
 
             return;
         }
 
+        // Check if handler already exists to avoid duplicates
+        if (imageThumb.dataset.clickHandlerAdded === 'true') {
+            return;
+        }
+
+        imageThumb.dataset.clickHandlerAdded = 'true';
         imageThumb.addEventListener('click', event => this._handleListViewClick(event, imageThumb));
     }
 
@@ -390,25 +405,22 @@ class ImageViewUtils {
 
             const extractedImageData = imageData || this.extractImageData(img, wrapper);
 
-            // Use dynamic view creation if registry available
-            if (window.ViewRegistry) {
-                const views = window.ViewRegistry.getViewsByPriority();
+            // Use dynamic view creation with registry
+            if (!window.ViewRegistry) {
+                console.error('❌ VIEW UTILS: ViewRegistry not available - cannot enhance wrapper');
 
-                views.forEach(([viewType, _config]) => {
-                    const viewElement = this.createViewElement(viewType, wrapper, extractedImageData);
-
-                    if (viewElement) {
-                        wrapper.appendChild(viewElement);
-                    }
-                });
-            } else {
-                // Fallback to legacy views
-                const compactView = this._createCompactView(wrapper);
-                const listView = this._createListView(extractedImageData);
-
-                wrapper.appendChild(compactView);
-                wrapper.appendChild(listView);
+                return false;
             }
+
+            const views = window.ViewRegistry.getViewsByPriority();
+
+            views.forEach(([viewType, _config]) => {
+                const viewElement = this.createViewElement(viewType, wrapper, extractedImageData);
+
+                if (viewElement) {
+                    wrapper.appendChild(viewElement);
+                }
+            });
 
             return true;
         } catch (error) {
@@ -491,8 +503,8 @@ class ImageViewUtils {
         fullView.innerHTML = `
             <div class="full-view-container">
                 <div class="full-view-image-wrapper">
-                    <img src="${imgSrc}" 
-                         alt="${imageData.title || 'Generated Image'}" 
+                    <img src="${imgSrc}"
+                         alt="${imageData.title || 'Generated Image'}"
                          loading="lazy">
                 </div>
                 <div class="full-view-content">
@@ -545,8 +557,8 @@ class ImageViewUtils {
             content.appendChild(publicCheckbox);
         }
 
-        // Add click handler for fullscreen
-        this.addListViewClickHandler(fullView, imageData);
+        // Full view doesn't need click handler (it's already fullscreen)
+        // Click handlers are added to compact and list views only
 
         return fullView;
     }

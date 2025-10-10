@@ -92,19 +92,17 @@
 
         <!-- Matches -->
         <ul id="matches" class="matches flex flex-wrap gap-2 max-h-32 overflow-y-auto"></ul>
-        </div>
 
         <!-- Tags in use -->
         <div id="tags-in-use" class="tags-in-use flex flex-wrap gap-2 max-h-32 overflow-y-auto hidden"></div>
-        </div>
 
         <!-- Image Display -->
         <div class="w-full flex flex-col min-w-0 mt-4 section-images">
             <div class="flex flex-col h-full">
                 <!-- Controls Bar -->
-                <div class="flex items-center justify-between mb-4 flex-wrap gap-4 flex-wrap">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-4 w-full">
 
-                    <div class="flex items-center gap-2 flex-wrap w-full">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <!-- View Switch -->
                         <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors">
                             <input type="radio" name="view" value="full"> Full</label>
@@ -116,17 +114,23 @@
                         <!-- Owner Filter Dropdown -->
                         <select name="owner"
                             class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="site">Public</option>
-                            <option value="user" selected>Private</option>
+                            <option value="public">Public</option>
+                            <option value="private" selected>Private</option>
                         </select>
                     </div>
+                    <!-- Search Container -->
+                    <div class="search-container">
+                        <input type="text" name="search" id="search" placeholder="Search"
+                            class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
                 </div>
+            </div>
 
                 <!-- Image Grid -->
                 <div id="image-container-main" class="prompt-output flex flex-wrap gap-2 pb-16 h-full overflow-y-auto">
                 </div>
             </div>
-        </div>
     </main>
 
     <!-- External Libraries -->
@@ -187,9 +191,17 @@
     <script src="js/components/image/navigation-controls.js"></script>
     <script src="js/components/mobile-table.js"></script>
 
+    <!-- Debug Configuration (load FIRST for all modules) -->
+    <script src="js/config/debug-config.js"></script>
+
     <!-- Prompt Helpers System -->
     <script src="js/config/prompt-helpers.js"></script>
     <script src="js/components/prompt-helpers-form.js"></script>
+
+    <!-- Centralized View System (load before feed-view-manager) -->
+    <script src="js/modules/views/ViewRegistry.js"></script>
+    <script src="js/modules/views/ViewManager.js"></script>
+    <script src="js/modules/views/ViewRenderer.js"></script>
 
     <!-- Feed System -->
     <script src="js/modules/feed/feed-constants.js"></script>
@@ -232,6 +244,9 @@
     <script src="js/modules/textarea/search-replace.js"></script>
     <script src="js/modules/textarea/textarea-manager.js"></script>
     <script src="js/modules/textarea.js"></script>
+
+    <!-- Wrapper Dataset Utilities - Must load before feed/image handlers -->
+    <script src="js/utils/wrapper-dataset-utils.js"></script>
     <script src="js/modules/guidance/guidance-manager.js"></script>
     <script src="js/modules/rating/rating-manager.js"></script>
     <script src="js/modules/stats/stats-manager.js"></script>
@@ -240,10 +255,6 @@
     <script src="js/modules/image/LoadingPlaceholderFactory.js"></script>
     <script src="js/modules/image/ImageViewManager.js"></script>
     <script src="js/modules/image/ImageDataManager.js"></script>
-    <!-- Centralized View System (load first) -->
-    <script src="js/modules/views/ViewRegistry.js"></script>
-    <script src="js/modules/views/ViewManager.js"></script>
-    <script src="js/modules/views/ViewRenderer.js"></script>
 
     <!-- Load modular image-view dependencies -->
     <script src="js/modules/shared/image-view/image-view-auth.js"></script>
@@ -258,6 +269,9 @@
     <script src="js/modules/image-dom-manager.js"></script>
     <script src="js/modules/image-ui-state.js"></script>
     <script src="js/modules/images-manager.js"></script>
+    <!-- Search helper modules (loaded before main search.js) -->
+    <script src="js/modules/search/search-filter-helpers.js"></script>
+    <script src="js/modules/search/search-ui-components.js"></script>
     <script src="js/modules/search.js"></script>
     <script src="js/modules/providers/provider-manager.js"></script>
     <script src="js/utils/tag-router.js"></script>

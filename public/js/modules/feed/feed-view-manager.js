@@ -1,23 +1,16 @@
 // Feed View Manager - Refactored to use centralized view system
 class FeedViewManager {
     constructor() {
-        // Use centralized view management if available
-        if (window.ViewManager && window.ViewRenderer) {
-            this.viewManager = new window.ViewManager();
-            this.viewRenderer = new window.ViewRenderer();
+        // Use centralized view management (always available)
+        this.viewManager = new window.ViewManager();
+        this.viewRenderer = new window.ViewRenderer();
 
-            // Listen for view changes
-            this.viewManager.addListener((newView, previousView) => {
-                this.onViewChange(newView, previousView);
-            });
+        // Listen for view changes
+        this.viewManager.addListener((newView, previousView) => {
+            this.onViewChange(newView, previousView);
+        });
 
-            this.currentView = this.viewManager.getCurrentView();
-        } else {
-            // Fallback to old system
-            this.supportedViews = ['list', 'compact'];
-            this.currentView = this.loadSavedView() || 'compact';
-        }
-
+        this.currentView = this.viewManager.getCurrentView();
         this.isInitialized = false;
     }
 
@@ -26,7 +19,7 @@ class FeedViewManager {
      * @returns {string} Current view type
      */
     getCurrentView() {
-        return this.viewManager ? this.viewManager.getCurrentView() : this.currentView;
+        return this.viewManager.getCurrentView();
     }
 
     /**
@@ -34,35 +27,7 @@ class FeedViewManager {
      * @returns {Array<string>} Array of view types
      */
     getSupportedViews() {
-        return this.viewManager ? this.viewManager.getSupportedViews() : this.supportedViews;
-    }
-
-    /**
-     * Load saved view preference from localStorage
-     * @returns {string|null} Saved view preference or null
-     */
-    loadSavedView() {
-        try {
-            const savedView = localStorage.getItem('imageViewPreference');
-
-            return savedView && this.supportedViews.includes(savedView) ? savedView : null;
-        } catch (error) {
-            console.warn('⚠️ VIEW: Failed to load saved view preference:', error);
-
-            return null;
-        }
-    }
-
-    /**
-     * Save view preference to localStorage
-     * @param {string} viewType - View type to save ('list', 'compact', or 'full')
-     */
-    saveViewPreference(viewType) {
-        try {
-            localStorage.setItem('imageViewPreference', viewType);
-        } catch (error) {
-            console.warn('⚠️ VIEW: Failed to save view preference:', error);
-        }
+        return this.viewManager.getSupportedViews();
     }
 
     /**
@@ -201,20 +166,9 @@ class FeedViewManager {
             return;
         }
 
-        if (this.viewRenderer) {
-            // Use centralized renderer
-            this.viewRenderer.updateContainerClasses(promptOutput, this.currentView);
-            this.viewRenderer.applyToAllWrappers(promptOutput, this.currentView);
-        } else {
-            // Fallback to manual classes
-            promptOutput.classList.remove('list-wrapper', 'compact-view');
-
-            if (this.currentView === 'list') {
-                promptOutput.classList.add('list-wrapper');
-            } else if (this.currentView === 'compact') {
-                promptOutput.classList.add('compact-view');
-            }
-        }
+        // Use centralized renderer (always available)
+        this.viewRenderer.updateContainerClasses(promptOutput, this.currentView);
+        this.viewRenderer.applyToAllWrappers(promptOutput, this.currentView);
     }
 
     /**
@@ -222,19 +176,8 @@ class FeedViewManager {
      * @param {string} viewType - View type to switch to ('list', 'compact', 'full')
      */
     switchView(viewType) {
-        // Use centralized system if available
-        if (this.viewManager) {
-            try {
-                this.viewManager.switchTo(viewType);
-
-                return;
-            } catch (error) {
-                console.error('❌ VIEW: Centralized switch failed, falling back:', error);
-            }
-        }
-
-        // Fallback to old system
-        this.switchViewOld(viewType);
+        // Use centralized system (always available)
+        this.viewManager.switchTo(viewType);
     }
 
     /**
@@ -273,69 +216,6 @@ class FeedViewManager {
         }, 100);
     }
 
-    /**
-     * @deprecated Legacy view switching for fallback
-     * @param {string} viewType - View type to switch to
-     */
-    switchViewOld(viewType) {
-        if (viewType === this.currentView) {
-            return;
-        }
-
-        // Validate view type
-        if (!this.supportedViews.includes(viewType)) {
-            console.error('❌ VIEW: Unsupported view type:', viewType);
-
-            return;
-        }
-
-        const promptOutput = document.querySelector('.prompt-output');
-
-        if (!promptOutput) {
-            console.error('❌ VIEW: Prompt output container not found');
-
-            return;
-        }
-
-        // Update container classes for layout
-        promptOutput.classList.remove('list-wrapper', 'compact-view');
-
-        if (viewType === 'list') {
-            promptOutput.classList.add('list-wrapper');
-        } else if (viewType === 'compact') {
-            promptOutput.classList.add('compact-view');
-        }
-
-        // Update all image wrappers to show/hide appropriate views
-        const imageWrappers = promptOutput.querySelectorAll('.image-wrapper');
-
-        imageWrappers.forEach(wrapper => {
-            try {
-                window.ImageViewUtils.updateWrapperView(wrapper, viewType);
-            } catch (error) {
-                console.error('❌ VIEW: Failed to update wrapper view:', error, wrapper);
-            }
-        });
-
-        this.currentView = viewType;
-
-        // Save the new view preference
-        this.saveViewPreference(viewType);
-
-        // Force update intersection observer to monitor new last image
-        if (window.feedManager && window.feedManager.uiManager) {
-            window.feedManager.uiManager.forceUpdateIntersectionObserver();
-        }
-
-        // Check and fill to bottom after view change
-        setTimeout(() => {
-            if (window.feedManager && window.feedManager.fillToBottomManager) {
-                const currentFilter = window.feedManager.getCurrentFilter();
-
-                window.feedManager.fillToBottomManager.checkAndFillToBottom(currentFilter);
-            }
-        }, 100);
-    }
 
     /**
      * Check if wrapper has all views
@@ -347,12 +227,8 @@ class FeedViewManager {
             return false;
         }
 
-        if (this.viewRenderer) {
-            return this.viewRenderer.hasAllViews(wrapper);
-        }
-
-        // Fallback to manual check
-        return wrapper.querySelector('.compact-view') && wrapper.querySelector('.list-view');
+        // Use centralized renderer (always available)
+        return this.viewRenderer.hasAllViews(wrapper);
     }
 
     /**
@@ -405,39 +281,10 @@ class FeedViewManager {
      * Force re-application of current view to all images
      */
     forceReapplyView() {
-        // Add a small delay to ensure DOM is ready
-        setTimeout(() => {
-            // Only enhance images that aren't already enhanced
-            this.enhanceExistingImages();
-
-            // Apply the current view to all images (this is the main purpose of forceReapplyView)
-            this.applyCurrentViewToAllImages();
-
-            // Also ensure the container has the right classes
-            this.applyInitialView();
-
-        }, 100);
+        // Just apply the current view to all images
+        this.applyCurrentViewToAllImages();
     }
 
-    /**
-     * Ensure view is applied (useful for when images are added)
-     */
-    ensureViewApplied() {
-        const promptOutput = document.querySelector('.prompt-output');
-
-        if (!promptOutput) {
-            return;
-        }
-
-        // Check if the correct view class is applied
-        const hasCorrectClass = (this.currentView === 'list' && promptOutput.classList.contains('list-wrapper')) ||
-                               (this.currentView === 'compact' && promptOutput.classList.contains('compact-view'));
-
-        if (!hasCorrectClass) {
-
-            this.applyInitialView();
-        }
-    }
 
     /**
      * Update an existing image in both views

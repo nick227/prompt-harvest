@@ -322,6 +322,10 @@ class UnifiedNavigation {
 
         const { dataset } = imageElement;
 
+        // Also check wrapper for additional data (especially username)
+        const wrapper = imageElement.closest('.image-wrapper');
+        const wrapperDataset = wrapper?.dataset || {};
+
         // Get current user ID as fallback for missing userId
         const currentUserId = this.getCurrentUserId();
 
@@ -349,8 +353,8 @@ class UnifiedNavigation {
             seed: dataset.seed || 'N/A',
             rating: parseInt(dataset.rating) || 0,
             isPublic: dataset.isPublic === 'true',
-            userId: dataset.userId || currentUserId, // Use current user as fallback
-            username: dataset.username || null,
+            userId: dataset.userId || wrapperDataset.userId || currentUserId,
+            username: dataset.username || wrapperDataset.username || null,
             createdAt: dataset.createdAt || new Date().toISOString(),
             tags: window.TagUtils ? window.TagUtils.parseTags(dataset.tags) : (dataset.tags ? JSON.parse(dataset.tags) : []) // ✅ Include tags with centralized parsing
         };

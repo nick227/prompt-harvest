@@ -167,12 +167,31 @@ class ImageElements {
      * @param {Object} imageData - Image data object
      */
     setWrapperAttributes(wrapper, imageData) {
-        // Set data attributes for wrapper
-        wrapper.setAttribute('data-image-id', imageData.id);
-        wrapper.setAttribute('data-provider', imageData.provider || '');
-        wrapper.setAttribute('data-model', imageData.model || '');
-        wrapper.setAttribute('data-rating', imageData.rating || '0');
-        wrapper.setAttribute('data-is-public', imageData.isPublic || 'false');
+        // Use standardized utility if available, otherwise set manually
+        if (window.WrapperDatasetUtils) {
+            window.WrapperDatasetUtils.setWrapperDataset(wrapper, imageData);
+        } else {
+            // Fallback: Set data attributes using camelCase (NOT dashed!)
+            wrapper.dataset.imageId = imageData.id;
+            wrapper.dataset.userId = imageData.userId || '';
+            wrapper.dataset.isPublic = (imageData.isPublic || false).toString();
+            wrapper.dataset.provider = imageData.provider || '';
+            wrapper.dataset.model = imageData.model || '';
+            wrapper.dataset.rating = (imageData.rating || 0).toString();
+
+            if (imageData.username) {
+                wrapper.dataset.username = imageData.username;
+            }
+            if (imageData.guidance) {
+                wrapper.dataset.guidance = imageData.guidance;
+            }
+            if (imageData.createdAt) {
+                wrapper.dataset.createdAt = imageData.createdAt;
+            }
+            if (imageData.tags) {
+                wrapper.dataset.tags = JSON.stringify(imageData.tags);
+            }
+        }
 
         // Set accessibility attributes
         wrapper.setAttribute('role', 'group');

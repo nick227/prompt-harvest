@@ -16,9 +16,6 @@ class FeedDOMOperations {
             promptOutput: document.querySelector(FEED_CONSTANTS.SELECTORS.PROMPT_OUTPUT),
             feedContainer: document.querySelector(FEED_CONSTANTS.SELECTORS.FEED_CONTAINER),
             ownerDropdown: document.querySelector(FEED_CONSTANTS.SELECTORS.OWNER_DROPDOWN),
-            ownerButtons: document.querySelectorAll(FEED_CONSTANTS.SELECTORS.OWNER_BUTTONS),
-            siteButton: document.querySelector(FEED_CONSTANTS.SELECTORS.SITE_BUTTON),
-            userButton: document.querySelector(FEED_CONSTANTS.SELECTORS.USER_BUTTON),
             loadingSpinner: document.querySelector(FEED_CONSTANTS.SELECTORS.LOADING_SPINNER),
             filterStats: document.querySelector(FEED_CONSTANTS.SELECTORS.FILTER_STATS)
         };
@@ -136,10 +133,12 @@ class FeedDOMOperations {
                     <p>${FEED_CONSTANTS.MESSAGES.LOGIN_PROMPT}</p>
                 </div>
                 <div class="flex gap-4">
-                    <a href="/login.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                    <a href="/login.html"
+                       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
                         Login
                     </a>
-                    <a href="/register.html" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors">
+                    <a href="/register.html"
+                       class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors">
                         Register
                     </a>
                 </div>
@@ -183,32 +182,22 @@ class FeedDOMOperations {
         `;
     }
 
-    // Update filter button states
+    // Update filter button states (for dropdown)
     updateFilterButtonStates(availableFilters) {
-        const siteButton = this.getElement('siteButton');
-        const userButton = this.getElement('userButton');
+        const ownerDropdown = this.getElement('ownerDropdown');
 
-        if (siteButton) {
-            siteButton.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.SITE);
-        }
+        if (ownerDropdown) {
+            const publicOption = ownerDropdown.querySelector('option[value="public"]');
+            const privateOption = ownerDropdown.querySelector('option[value="private"]');
 
-        if (userButton) {
-            userButton.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.USER);
-        }
-    }
-
-    // Set filter button as active
-    setFilterButtonActive(filter) {
-        const buttons = this.getElement('ownerButtons');
-
-        buttons.forEach(button => {
-            if (button.value === filter) {
-                button.checked = true;
-                button.classList.add(FEED_CONSTANTS.CLASSES.FILTER_ACTIVE);
-            } else {
-                button.classList.remove(FEED_CONSTANTS.CLASSES.FILTER_ACTIVE);
+            if (publicOption) {
+                publicOption.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.PUBLIC);
             }
-        });
+
+            if (privateOption) {
+                privateOption.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.PRIVATE);
+            }
+        }
     }
 
     // Get scroll position
@@ -248,7 +237,6 @@ class FeedDOMOperations {
         if (validRoot) {
             // Use custom scroll container bounds with margin
             const containerRect = validRoot.getBoundingClientRect();
-            const containerSize = { width: containerRect.width, height: containerRect.height };
 
             // Parse rootMargin (simplified - assumes format like '300px 0px')
             const margins = rootMargin.split(' ').map(m => parseInt(m) || 0);

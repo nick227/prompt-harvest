@@ -23,6 +23,7 @@ import providersRouter from './providers.js';
 import stripeModule from '../stripe.js';
 import adminRouter from './admin.js';
 import messageRouter from './messageRoutes.js';
+import searchRouter from './search.js';
 import express from 'express';
 import { EnhancedImageController } from '../controllers/EnhancedImageController.js';
 import { AIController } from '../controllers/AIController.js';
@@ -135,6 +136,7 @@ export const setupRoutes = async app => {
     app.use('/api/providers', providersRouter); // Provider and model management routes
     app.use('/api/admin', adminRouter); // Admin dashboard routes
     app.use('/api/messages', messageRouter); // User-admin messaging routes
+    app.use('/api/search', searchRouter); // Image search routes
 
     // Note: /webhooks routes are mounted in server.js BEFORE express.json() middleware
     stripeModule.init(app, express); // Stripe payment routes (includes legacy webhook at /webhook)

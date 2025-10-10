@@ -192,8 +192,8 @@
 }
 
 .compact .image-wrapper {
-    width: 160px;
-    height: 160px;
+    width: 147px;
+    height: 147px;
 }
 
 
@@ -377,6 +377,11 @@
 .compact-view.loading-content {
     margin-top: 25%;
     transform: scale(0.4);
+}
+
+.full .loading-content,
+.list-wrapper .loading-content {
+    display: none !important;
 }
 
 .list-header {

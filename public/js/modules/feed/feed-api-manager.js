@@ -57,10 +57,11 @@ class FeedAPIManager {
 
             if (customEndpoint) {
                 url = customEndpoint;
-            } else if (filter === 'user') {
+            } else if (filter === 'private') {
+                // Private filter: load user's own images
                 url = `/api/feed/user?page=${page}`;
             } else {
-                // Use dedicated site feed endpoint to ensure only public images
+                // Public filter: load public images from all users
                 url = `/api/feed/site?page=${page}`;
             }
 

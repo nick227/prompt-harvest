@@ -95,6 +95,15 @@
         return Object.values(VIEW_REGISTRY).map(config => config.containerClass);
     }
 
+    /**
+     * Get views sorted by priority
+     * @returns {Array<[string, Object]>} Array of [viewType, config] tuples sorted by priority
+     */
+    function getViewsByPriority() {
+        return Object.entries(VIEW_REGISTRY)
+            .filter(([_, config]) => config.enabled)
+            .sort((a, b) => a[1].priority - b[1].priority);
+    }
 
     // Export to window
     if (typeof window !== 'undefined') {
@@ -108,6 +117,7 @@
             isValidView,
             getViewConfig,
             getAllContainerClasses,
+            getViewsByPriority,
 
             // Constants
             DEFAULT_VIEW: 'list',

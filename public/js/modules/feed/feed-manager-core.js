@@ -85,10 +85,19 @@ class FeedManager {
         this.filterManager = new window.FeedFilterManager(this.cacheManager, this);
         this.tabService = new window.HybridTabService();
         this.viewManager = new window.FeedViewManager();
-        this.fillToBottomManager = new window.FillToBottomManager(this.domOperations, this.apiManager, this.cacheManager);
 
-        // Initialize image handler with dependencies
+        // Initialize image handler with dependencies (before fillToBottomManager)
         this.imageHandler = new window.FeedImageHandler(this.domOperations, this.viewManager, this.downloadManager);
+
+        // Initialize fillToBottomManager with dependencies object
+        this.fillToBottomManager = new window.FillToBottomManager({
+            imageHandler: this.imageHandler,
+            apiManager: this.apiManager,
+            cacheManager: this.cacheManager,
+            tagRouter: this.tagRouter,
+            feedManager: this, // Reference for rate limiting check
+            uiManager: this.uiManager // Reference for loading state coordination
+        });
 
         this.domOperations.init();
         this.uiManager.init();
@@ -281,7 +290,7 @@ class FeedManager {
     async loadFilterImages(filter) {
         try {
             // Check if user can access user filter
-            if (filter === FEED_CONSTANTS.FILTERS.USER && !this.apiManager.isUserAuthenticated()) {
+            if (filter === FEED_CONSTANTS.FILTERS.PRIVATE && !this.apiManager.isUserAuthenticated()) {
                 this.domOperations.showLoginPrompt();
 
                 return;
@@ -313,7 +322,7 @@ class FeedManager {
 
             if (result.images && Array.isArray(result.images)) {
                 // Additional frontend filtering for site feed to ensure only public images
-                const filteredImages = filter === FEED_CONSTANTS.FILTERS.SITE
+                const filteredImages = filter === FEED_CONSTANTS.FILTERS.PUBLIC
                     ? result.images.filter(image => image.isPublic === true)
                     : result.images;
 

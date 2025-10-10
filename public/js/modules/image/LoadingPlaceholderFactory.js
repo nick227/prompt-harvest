@@ -134,13 +134,13 @@ class LoadingPlaceholderFactory {
     createCompactLoadingContent(_promptObj) {
         const loadingContent = this.createElement('div', 'loading-content');
 
-        // Create a more sophisticated skeleton loader for compact view
-        const skeletonContainer = this.createElement('div', 'compact-skeleton animate-pulse');
+        // Minimal static skeleton loader for compact view
+        const skeletonContainer = this.createElement('div', 'compact-skeleton');
 
         skeletonContainer.innerHTML = `
-            <div class="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-3"></div>
-            <div class="w-16 h-2 bg-gray-300 rounded mx-auto mb-2"></div>
-            <div class="w-20 h-1.5 bg-gray-200 rounded mx-auto"></div>
+            <div class="w-12 h-12 bg-gray-700 rounded mx-auto mb-3"></div>
+            <div class="w-16 h-2 bg-gray-700 rounded mx-auto mb-2"></div>
+            <div class="w-20 h-1.5 bg-gray-800 rounded mx-auto"></div>
         `;
 
         loadingContent.appendChild(skeletonContainer);
@@ -154,28 +154,28 @@ class LoadingPlaceholderFactory {
      * @param {Object} promptObj - Prompt object
      */
     addLoadingElements(container, promptObj) {
-        const spinner = this.createSpinner();
+        const skeleton = this.createSkeletonLoader();
         const text = this.createLoadingText();
         const promptPreview = this.createPromptPreview(promptObj);
 
-        container.appendChild(spinner);
+        container.appendChild(skeleton);
         container.appendChild(text);
         container.appendChild(promptPreview);
     }
 
     /**
-     * Create skeleton loader element
+     * Create minimal skeleton loader element
      * @returns {HTMLElement} Skeleton loader element
      */
-    createSpinner() {
-        const spinner = this.createElement('div', 'animate-pulse');
+    createSkeletonLoader() {
+        const skeleton = this.createElement('div', 'skeleton-loader');
 
-        spinner.innerHTML = `
-            <div class="w-8 h-8 bg-gray-300 rounded-full mx-auto mb-2"></div>
-            <div class="w-6 h-2 bg-gray-300 rounded mx-auto"></div>
+        skeleton.innerHTML = `
+            <div class="w-full h-2 bg-gray-700 rounded mb-2"></div>
+            <div class="w-3/4 h-2 bg-gray-800 rounded"></div>
         `;
 
-        return spinner;
+        return skeleton;
     }
 
     /**
@@ -232,7 +232,16 @@ class LoadingPlaceholderFactory {
             gap: 1rem;
         `;
 
-        const spinner = this.createLoadingSpinner('full');
+        const skeletonBox = document.createElement('div');
+
+        skeletonBox.style.cssText = `
+            width: 120px;
+            height: 120px;
+            background: var(--color-surface-secondary, #2a2a2a);
+            border: 2px solid var(--color-border-primary, #444);
+            border-radius: 4px;
+        `;
+
         const promptText = document.createElement('div');
 
         promptText.className = 'full-loading-prompt';
@@ -243,18 +252,20 @@ class LoadingPlaceholderFactory {
             max-width: 600px;
             line-height: 1.6;
         `;
-        promptText.textContent = promptObj.prompt || 'Generating full width image...';
+        promptText.textContent = promptObj.prompt || 'Generating...';
 
         const statusText = document.createElement('div');
 
         statusText.className = 'full-loading-status';
         statusText.style.cssText = `
-            color: var(--color-text-tertiary, #999);
-            font-size: 14px;
+            color: var(--color-text-tertiary, #666);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         `;
-        statusText.textContent = 'Please wait...';
+        statusText.textContent = 'PROCESSING';
 
-        loadingContent.appendChild(spinner);
+        loadingContent.appendChild(skeletonBox);
         loadingContent.appendChild(promptText);
         loadingContent.appendChild(statusText);
         fullView.appendChild(loadingContent);
@@ -281,12 +292,10 @@ class LoadingPlaceholderFactory {
      * @returns {HTMLElement} Thumbnail element
      */
     createLoadingThumbnail() {
-        const imageThumb = this.createElement('div', 'list-image-thumb animate-pulse');
+        const imageThumb = this.createElement('div', 'list-image-thumb');
 
         imageThumb.innerHTML = `
-            <div class="w-20 h-20 bg-gray-300 rounded-lg flex items-center justify-center">
-                <div class="w-8 h-8 bg-gray-400 rounded-full"></div>
-            </div>
+            <div class="w-20 h-20 bg-gray-800 rounded border border-gray-700"></div>
         `;
 
         return imageThumb;
@@ -320,12 +329,12 @@ class LoadingPlaceholderFactory {
 
         const title = this.createElement('h3', 'list-title');
 
-        title.textContent = 'Generating Image...';
+        title.textContent = 'Generating...';
 
-        const loadingIndicator = this.createElement('div', 'list-loading animate-pulse');
+        const loadingIndicator = this.createElement('div', 'list-loading');
 
         loadingIndicator.innerHTML = `
-            <div class="w-4 h-4 bg-green-400 rounded-full"></div>
+            <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
         `;
 
         header.appendChild(title);
@@ -340,9 +349,9 @@ class LoadingPlaceholderFactory {
      * @returns {HTMLElement} Prompt section element
      */
     createListViewPromptSection(_promptObj) {
-        const promptSection = this.createElement('div', 'list-prompt-section animate-pulse');
+        const promptSection = this.createElement('div', 'list-prompt-section');
 
-        // Create skeleton lines for prompt text
+        // Create static skeleton lines for prompt text
         const skeletonLines = this.createSkeletonLines(3);
 
         promptSection.appendChild(skeletonLines);
@@ -362,7 +371,7 @@ class LoadingPlaceholderFactory {
             const line = this.createElement('div', 'skeleton-line');
             const width = i === count - 1 ? '60%' : '100%'; // Last line is shorter
 
-            line.innerHTML = `<div class="h-3 bg-gray-600 rounded" style="width: ${width};"></div>`;
+            line.innerHTML = `<div class="h-2 bg-gray-800 rounded" style="width: ${width}; margin-bottom: 6px;"></div>`;
             container.appendChild(line);
         }
 
@@ -441,7 +450,7 @@ class LoadingPlaceholderFactory {
      * @returns {HTMLElement} Metadata element
      */
     createListViewMetadata(_promptObj) {
-        const metadata = this.createElement('div', 'list-metadata animate-pulse');
+        const metadata = this.createElement('div', 'list-metadata');
 
         // Create skeleton rows that match the new grid structure
         const createSkeletonRow = (label, width) => {
@@ -453,7 +462,7 @@ class LoadingPlaceholderFactory {
 
             const valueElement = this.createElement('span', 'metadata-value');
 
-            valueElement.innerHTML = `<div class="w-${width} h-3 bg-gray-600 rounded animate-pulse"></div>`;
+            valueElement.innerHTML = `<div class="w-${width} h-2 bg-gray-800 rounded"></div>`;
 
             row.appendChild(labelElement);
             row.appendChild(valueElement);
@@ -463,11 +472,8 @@ class LoadingPlaceholderFactory {
 
         // Add skeleton rows for each metadata field (focused fields only)
         metadata.appendChild(createSkeletonRow('Model', '12'));
-
         metadata.appendChild(createSkeletonRow('Rating', '10'));
-
         metadata.appendChild(createSkeletonRow('Creator', '16'));
-
         metadata.appendChild(createSkeletonRow('Visibility', '12'));
 
         return metadata;

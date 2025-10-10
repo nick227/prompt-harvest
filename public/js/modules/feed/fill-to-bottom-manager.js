@@ -1,9 +1,21 @@
 // Fill to Bottom Manager - Ensures page is always filled to bottom
 class FillToBottomManager {
-    constructor(domManager, apiManager, cacheManager) {
-        this.domManager = domManager;
+    constructor(dependencies) {
+        const {
+            imageHandler,
+            apiManager,
+            cacheManager,
+            tagRouter = null,
+            feedManager = null,
+            uiManager = null
+        } = dependencies;
+
+        this.imageHandler = imageHandler;
         this.apiManager = apiManager;
         this.cacheManager = cacheManager;
+        this.tagRouter = tagRouter;
+        this.feedManager = feedManager; // Reference to parent for rate limiting check
+        this.uiManager = uiManager; // Reference for loading state coordination
         this.isChecking = false;
         this.checkTimeout = null;
         this.minFillHeight = 100; // Minimum pixels to fill below viewport
@@ -54,35 +66,63 @@ class FillToBottomManager {
     }
 
     /**
+     * Check if loading is blocked by various conditions
+     * @returns {boolean} - True if loading should be blocked
+     */
+    isLoadingBlocked() {
+        return this.uiManager?.getLoading?.() ||
+               this.feedManager?.isRateLimited ||
+               this.feedManager?.isLoadingMore;
+    }
+
+    /**
+     * Add loaded images to cache and DOM
+     * @param {Object} options - Options object
+     * @param {string} options.filter - Current filter
+     * @param {Array} options.images - Images to add
+     * @param {Array} options.tags - Active tags
+     * @param {number} options.nextPage - Next page number
+     * @param {boolean} options.hasMore - Whether more pages exist
+     */
+    addLoadedImages({ filter, images, tags, nextPage, hasMore }) {
+        this.cacheManager.addImagesToCache(filter, images, tags);
+        this.cacheManager.updatePagination(filter, nextPage, hasMore, tags);
+
+        images.forEach(image => {
+            this.imageHandler.addImageToFeed(image, filter);
+        });
+    }
+
+    /**
      * Load more content to fill the page
      * @param {string} filter - Current filter
      * @returns {Promise<boolean>} - True if content was loaded
      */
     async loadMoreContent(filter) {
-        const cache = this.cacheManager.getCache(filter);
-
-        if (!cache || !cache.hasMore) {
-            // No more content available to load
+        if (this.isLoadingBlocked()) {
             return false;
         }
 
-        // Loading more content to fill page
+        const activeTags = this.tagRouter ? this.tagRouter.getActiveTags() : [];
+        const cache = this.cacheManager.getCache(filter, activeTags);
+
+        if (!cache || !cache.hasMore) {
+            return false;
+        }
 
         try {
             const nextPage = cache.currentPage + 1;
-            const result = await this.apiManager.loadMoreImages(filter, nextPage);
+            const result = await this.apiManager.loadMoreImages(filter, nextPage, activeTags);
 
             if (result.images && result.images.length > 0) {
-                // Add new images to cache
-                this.cacheManager.addImagesToCache(filter, result.images);
-                this.cacheManager.updatePagination(filter, nextPage, result.hasMore);
-
-                // Add new images to DOM
-                result.images.forEach(image => {
-                    this.domManager.addImageToFeed(image, filter);
+                this.addLoadedImages({
+                    filter,
+                    images: result.images,
+                    tags: activeTags,
+                    nextPage,
+                    hasMore: result.hasMore
                 });
 
-                // Added images to fill page
                 return true;
             }
 

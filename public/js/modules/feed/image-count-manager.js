@@ -92,11 +92,11 @@ class ImageCountManager {
         try {
             let response;
 
-            if (filter === FEED_CONSTANTS.FILTERS.SITE) {
-                // For site filter, get count of public images from all users
+            if (filter === FEED_CONSTANTS.FILTERS.PUBLIC) {
+                // For public filter, get count of public images from all users
                 response = await this.fetchSiteImageCount();
-            } else if (filter === FEED_CONSTANTS.FILTERS.USER) {
-                // For user filter, get count of user's own images
+            } else if (filter === FEED_CONSTANTS.FILTERS.PRIVATE) {
+                // For private filter, get count of user's own images
                 response = await this.fetchUserImageCount();
             } else {
                 console.error(`📊 COUNT: Unknown filter type: ${filter}`);

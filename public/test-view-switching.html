@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .success { border-color: #4CAF50; background: #f1f8f4; }
+        .error { border-color: #f44336; background: #fef1f0; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .view-box {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            display: none;
+        }
+        .compact-view { background: #e3f2fd; }
+        .list-view { background: #f3e5f5; }
+        .full-view { background: #fff3e0; }
+        .status {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 View System Test</h1>
+
+    <div class="test-section" id="test-1">
+        <h2>Test 1: ViewRegistry Loads</h2>
+        <p id="registry-status">Testing...</p>
+    </div>
+
+    <div class="test-section" id="test-2">
+        <h2>Test 2: ViewManager Initializes</h2>
+        <p id="manager-status">Testing...</p>
+    </div>
+
+    <div class="test-section" id="test-3">
+        <h2>Test 3: ViewRenderer Works</h2>
+        <p id="renderer-status">Testing...</p>
+    </div>
+
+    <div class="test-section" id="test-4">
+        <h2>Test 4: View Switching</h2>
+        <button onclick="switchView('compact')">Compact</button>
+        <button onclick="switchView('list')">List</button>
+        <button onclick="switchView('full')">Full</button>
+
+        <div class="image-wrapper" style="margin-top: 20px;">
+            <div class="compact-view view-box">📦 Compact View Content</div>
+            <div class="list-view view-box">📋 List View Content</div>
+            <div class="full-view view-box">🖼️ Full View Content</div>
+        </div>
+
+        <p class="status" id="switch-status">Click buttons to test switching</p>
+    </div>
+
+    <div class="test-section" id="test-5">
+        <h2>Test 5: Removed Methods Don't Exist</h2>
+        <p id="removed-status">Testing...</p>
+    </div>
+
+    <script src="js/modules/views/ViewRegistry.js"></script>
+    <script src="js/modules/views/ViewManager.js"></script>
+    <script src="js/modules/views/ViewRenderer.js"></script>
+
+    <script>
+        let manager, renderer;
+
+        // Test 1: ViewRegistry
+        try {
+            if (!window.ViewRegistry) throw new Error('ViewRegistry not found');
+            if (!window.ViewRegistry.VIEWS) throw new Error('VIEWS not found');
+            if (!window.ViewRegistry.getViewTypes) throw new Error('getViewTypes not found');
+
+            const types = window.ViewRegistry.getViewTypes();
+            if (types.length !== 3) throw new Error('Expected 3 view types');
+
+            document.getElementById('registry-status').innerHTML =
+                `✅ <strong>PASS</strong><br>Views: ${types.join(', ')}`;
+            document.getElementById('test-1').classList.add('success');
+        } catch (error) {
+            document.getElementById('registry-status').innerHTML =
+                `❌ <strong>FAIL</strong><br>${error.message}`;
+            document.getElementById('test-1').classList.add('error');
+        }
+
+        // Test 2: ViewManager
+        try {
+            manager = new ViewManager();
+            if (!manager.getCurrentView) throw new Error('getCurrentView not found');
+            if (!manager.switchTo) throw new Error('switchTo not found');
+
+            const current = manager.getCurrentView();
+
+            document.getElementById('manager-status').innerHTML =
+                `✅ <strong>PASS</strong><br>Current view: ${current}`;
+            document.getElementById('test-2').classList.add('success');
+        } catch (error) {
+            document.getElementById('manager-status').innerHTML =
+                `❌ <strong>FAIL</strong><br>${error.message}`;
+            document.getElementById('test-2').classList.add('error');
+        }
+
+        // Test 3: ViewRenderer
+        try {
+            renderer = new ViewRenderer();
+            if (!renderer.updateWrapper) throw new Error('updateWrapper not found');
+            if (!renderer.hasAllViews) throw new Error('hasAllViews not found');
+
+            document.getElementById('renderer-status').innerHTML =
+                `✅ <strong>PASS</strong><br>Renderer initialized`;
+            document.getElementById('test-3').classList.add('success');
+        } catch (error) {
+            document.getElementById('renderer-status').innerHTML =
+                `❌ <strong>FAIL</strong><br>${error.message}`;
+            document.getElementById('test-3').classList.add('error');
+        }
+
+        // Test 5: Removed methods don't exist
+        try {
+            const removed = [];
+            if (window.ViewRegistry.getAllClassNames) removed.push('ViewRegistry.getAllClassNames');
+            if (window.ViewRegistry.getViewsByPriority) removed.push('ViewRegistry.getViewsByPriority');
+            if (manager.getCurrentConfig) removed.push('ViewManager.getCurrentConfig');
+            if (manager.getNextView) removed.push('ViewManager.getNextView');
+            if (manager.toggleNext) removed.push('ViewManager.toggleNext');
+            if (window.ViewRegistry.VIEWS.compact.metadata) removed.push('metadata objects');
+
+            if (removed.length > 0) {
+                throw new Error('Dead code still exists: ' + removed.join(', '));
+            }
+
+            document.getElementById('removed-status').innerHTML =
+                `✅ <strong>PASS</strong><br>All dead code removed`;
+            document.getElementById('test-5').classList.add('success');
+        } catch (error) {
+            document.getElementById('removed-status').innerHTML =
+                `❌ <strong>FAIL</strong><br>${error.message}`;
+            document.getElementById('test-5').classList.add('error');
+        }
+
+        // Test 4: View switching function
+        function switchView(viewType) {
+            try {
+                manager.switchTo(viewType);
+
+                const wrapper = document.querySelector('.image-wrapper');
+                renderer.updateWrapper(wrapper, viewType);
+
+                // Show active view
+                document.querySelectorAll('.view-box').forEach(el => {
+                    el.style.display = 'none';
+                });
+                const activeView = wrapper.querySelector(`.${viewType}-view`);
+                if (activeView) {
+                    activeView.style.display = 'block';
+                }
+
+                document.getElementById('switch-status').innerHTML =
+                    `✅ Switched to <strong>${viewType}</strong> view`;
+                document.getElementById('test-4').classList.add('success');
+            } catch (error) {
+                document.getElementById('switch-status').innerHTML =
+                    `❌ Error: ${error.message}`;
+                document.getElementById('test-4').classList.add('error');
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            switchView('compact');
+        });
+    </script>
+</body>
+</html>
+

@@ -29,10 +29,37 @@ class FeedFilterManager {
             ownerDropdown.addEventListener('change', e => {
                 const newFilter = e.target.value;
 
+                if (!this.isValidFilter(newFilter)) {
+                    console.error(`❌ Invalid filter value: "${newFilter}"`);
+
+                    return;
+                }
+
                 // Save user's manual choice
                 this.saveFilter(newFilter);
-                this.switchFilter(newFilter);
+
+                // Check if search is active
+                const isSearchActive = window.searchManager?.state?.isSearchActive;
+
+                if (isSearchActive) {
+                    // When search is active, just filter the search results (don't load new feed images)
+                    if (window.feedManager?.tabService) {
+                        window.feedManager.tabService.switchToFilter(newFilter);
+
+                        // Update state for search case (since we're not calling this.switchFilter)
+                        this.currentFilter = newFilter;
+                        this.syncFilterWithHybridTabService();
+                    } else {
+                        console.error('❌ TabService not available!');
+                    }
+                } else {
+                    // Normal feed: load new images for the selected filter
+                    // NOTE: switchFilter() will update currentFilter internally
+                    this.switchFilter(newFilter);
+                }
             });
+        } else {
+            console.error('❌ FILTER MANAGER: Owner dropdown not found!');
         }
 
     }
@@ -45,9 +72,9 @@ class FeedFilterManager {
 
         if (savedFilter && this.isValidFilter(savedFilter)) {
             // Check if user can access the saved filter
-            if (savedFilter === FEED_CONSTANTS.FILTERS.USER && !this.canAccessUserFilter()) {
-                this.setFilterSelection(FEED_CONSTANTS.FILTERS.SITE);
-                this.currentFilter = FEED_CONSTANTS.FILTERS.SITE;
+            if (savedFilter === FEED_CONSTANTS.FILTERS.PRIVATE && !this.canAccessUserFilter()) {
+                this.setFilterSelection(FEED_CONSTANTS.FILTERS.PUBLIC);
+                this.currentFilter = FEED_CONSTANTS.FILTERS.PUBLIC;
             } else {
                 this.setFilterSelection(savedFilter);
                 this.currentFilter = savedFilter;
@@ -56,17 +83,27 @@ class FeedFilterManager {
             // Use default filter, but check if user can access it
             const defaultFilter = FEED_CONSTANTS.DEFAULTS.CURRENT_FILTER;
 
-            if (defaultFilter === FEED_CONSTANTS.FILTERS.USER && !this.canAccessUserFilter()) {
-                this.setFilterSelection(FEED_CONSTANTS.FILTERS.SITE);
-                this.currentFilter = FEED_CONSTANTS.FILTERS.SITE;
+            if (defaultFilter === FEED_CONSTANTS.FILTERS.PRIVATE && !this.canAccessUserFilter()) {
+                this.setFilterSelection(FEED_CONSTANTS.FILTERS.PUBLIC);
+                this.currentFilter = FEED_CONSTANTS.FILTERS.PUBLIC;
             } else {
                 this.setFilterSelection(defaultFilter);
                 this.currentFilter = defaultFilter;
             }
         }
 
+        // Sync with HybridTabService (P0 fix)
+        this.syncFilterWithHybridTabService();
+
         // Notify that filter is ready
         this.dispatchFilterReadyEvent();
+    }
+
+    // Sync filter state with HybridTabService
+    syncFilterWithHybridTabService() {
+        if (window.feedManager?.tabService) {
+            window.feedManager.tabService.setFilter(this.currentFilter);
+        }
     }
 
     // Dispatch filter ready event
@@ -92,7 +129,18 @@ class FeedFilterManager {
     // Get saved filter from localStorage
     getSavedFilter() {
         try {
-            return localStorage.getItem(FEED_CONSTANTS.LOCALSTORAGE.SELECTED_FILTER);
+            let savedFilter = localStorage.getItem(FEED_CONSTANTS.LOCALSTORAGE.SELECTED_FILTER);
+
+            // Migrate legacy values (site → public, user → private)
+            if (savedFilter === 'site') {
+                savedFilter = 'public';
+                this.saveFilter('public'); // Update localStorage
+            } else if (savedFilter === 'user') {
+                savedFilter = 'private';
+                this.saveFilter('private'); // Update localStorage
+            }
+
+            return savedFilter;
         } catch (error) {
             console.warn('Failed to get saved filter from localStorage:', error);
 
@@ -162,25 +210,25 @@ class FeedFilterManager {
 
     // Handle authentication state changes
     handleAuthStateChange(user) {
-        if (!user && this.currentFilter === FEED_CONSTANTS.FILTERS.USER) {
-            // User logged out while viewing "Mine" filter, switch to "Site"
-            this.switchToSiteFilter();
+        if (!user && this.currentFilter === FEED_CONSTANTS.FILTERS.PRIVATE) {
+            // User logged out while viewing "Private" filter, switch to "Public"
+            this.switchToPublicFilter();
         } else if (user && this.currentFilter === FEED_CONSTANTS.DEFAULTS.CURRENT_FILTER &&
-                   FEED_CONSTANTS.DEFAULTS.CURRENT_FILTER === FEED_CONSTANTS.FILTERS.USER) {
-            // User logged in and we're still on default filter, switch to user filter
-            // Only switch if we're not already on the user filter
-            if (this.currentFilter !== FEED_CONSTANTS.FILTERS.USER) {
-                this.setFilterSelection(FEED_CONSTANTS.FILTERS.USER);
-                this.currentFilter = FEED_CONSTANTS.FILTERS.USER;
-                this.switchFilter(FEED_CONSTANTS.FILTERS.USER);
+                   FEED_CONSTANTS.DEFAULTS.CURRENT_FILTER === FEED_CONSTANTS.FILTERS.PRIVATE) {
+            // User logged in and we're still on default filter, switch to private filter
+            // Only switch if we're not already on the private filter
+            if (this.currentFilter !== FEED_CONSTANTS.FILTERS.PRIVATE) {
+                this.setFilterSelection(FEED_CONSTANTS.FILTERS.PRIVATE);
+                this.currentFilter = FEED_CONSTANTS.FILTERS.PRIVATE;
+                this.switchFilter(FEED_CONSTANTS.FILTERS.PRIVATE);
             }
         }
     }
 
-    // Switch to site filter
-    switchToSiteFilter() {
-        this.setFilterSelection(FEED_CONSTANTS.FILTERS.SITE);
-        this.switchFilter(FEED_CONSTANTS.FILTERS.SITE);
+    // Switch to public filter
+    switchToPublicFilter() {
+        this.setFilterSelection(FEED_CONSTANTS.FILTERS.PUBLIC);
+        this.switchFilter(FEED_CONSTANTS.FILTERS.PUBLIC);
     }
 
     // Get current filter
@@ -197,7 +245,6 @@ class FeedFilterManager {
     async switchFilter(newFilter) {
         // Prevent unnecessary switches to the same filter
         if (this.currentFilter === newFilter) {
-
             return;
         }
 
@@ -210,6 +257,10 @@ class FeedFilterManager {
 
         this.currentFilter = newFilter;
         this.saveFilter(newFilter);
+
+        // Sync with TabService after switchFilter updates state
+        this.syncFilterWithHybridTabService();
+
         await this.handleFilterImages(newFilter);
         this.updateImageCountDisplay(newFilter);
         this.dispatchFilterChangedEvent(newFilter);
@@ -226,6 +277,15 @@ class FeedFilterManager {
             }, 600);
         } else {
             console.error('❌ LOADING: Prompt output element not found');
+        }
+    }
+
+    // Hide loading overlay
+    hideLoadingOverlay() {
+        const promptOutput = document.querySelector(FEED_CONSTANTS.SELECTORS.PROMPT_OUTPUT);
+
+        if (promptOutput) {
+            promptOutput.classList.remove('loading');
         }
     }
 
@@ -249,7 +309,7 @@ class FeedFilterManager {
     // Perform the actual filter switch
     async performFilterSwitch(newFilter, tabServiceAvailable) {
         if (tabServiceAvailable) {
-            const result = window.feedManager.tabService.switchToFilter(newFilter);
+            window.feedManager.tabService.switchToFilter(newFilter);
         } else {
             this.hideFilterImages(this.currentFilter);
             this.showFilterImages(newFilter);
@@ -258,11 +318,15 @@ class FeedFilterManager {
 
     // Handle loading or restoring filter images
     async handleFilterImages(newFilter) {
-        if (!this.cacheManager.isFilterLoaded(newFilter)) {
+        const isLoaded = this.cacheManager.isFilterLoaded(newFilter);
+
+        if (!isLoaded) {
             await this.loadFilterImages(newFilter);
         } else {
             this.cacheManager.restoreScrollPosition(newFilter);
         }
+
+        this.hideLoadingOverlay();
     }
 
     // Hide images for specific filter
@@ -340,10 +404,10 @@ class FeedFilterManager {
 
     // Get available filters based on authentication
     getAvailableFilters() {
-        const filters = [FEED_CONSTANTS.FILTERS.SITE];
+        const filters = [FEED_CONSTANTS.FILTERS.PUBLIC];
 
         if (this.canAccessUserFilter()) {
-            filters.push(FEED_CONSTANTS.FILTERS.USER);
+            filters.push(FEED_CONSTANTS.FILTERS.PRIVATE);
         }
 
         return filters;
@@ -357,15 +421,15 @@ class FeedFilterManager {
         const ownerDropdown = document.querySelector(FEED_CONSTANTS.SELECTORS.OWNER_DROPDOWN);
 
         if (ownerDropdown) {
-            const siteOption = ownerDropdown.querySelector('option[value="site"]');
-            const userOption = ownerDropdown.querySelector('option[value="user"]');
+            const publicOption = ownerDropdown.querySelector('option[value="public"]');
+            const privateOption = ownerDropdown.querySelector('option[value="private"]');
 
-            if (siteOption) {
-                siteOption.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.SITE);
+            if (publicOption) {
+                publicOption.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.PUBLIC);
             }
 
-            if (userOption) {
-                userOption.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.USER);
+            if (privateOption) {
+                privateOption.disabled = !availableFilters.includes(FEED_CONSTANTS.FILTERS.PRIVATE);
             }
         }
 

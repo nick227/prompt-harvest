@@ -7,19 +7,21 @@ const FEED_CONSTANTS = {
         FEED_CONTAINER: 'section.images',
         IMAGE_WRAPPERS: '.image-wrapper',
         LOADING_SPINNER: '.loading-spinner',
-        FILTER_STATS: '.filter-stats',
-        IMAGES_SECTION: 'section.images'
+        FILTER_STATS: '.filter-stats'
     },
 
     // Filter Types
     FILTERS: {
-        SITE: 'site',
-        USER: 'user'
+        PUBLIC: 'public',
+        PRIVATE: 'private',
+        // Legacy aliases for backward compatibility
+        SITE: 'public',
+        USER: 'private'
     },
 
     // Default Values
     DEFAULTS: {
-        CURRENT_FILTER: 'user',
+        CURRENT_FILTER: 'private',
         PAGE_SIZE: 20,
         RETRY_DELAY: 50,
         SCROLL_THRESHOLD: 100,

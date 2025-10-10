@@ -39,11 +39,6 @@ class FeedImageHandler {
             console.error('❌ IMAGE HANDLER: createImageWrapper returned null/undefined');
         }
 
-        // Ensure view is applied after adding image
-        if (this.viewManager) {
-            this.viewManager.ensureViewApplied();
-        }
-
         return true;
     }
 
@@ -52,12 +47,49 @@ class FeedImageHandler {
         const wrapper = document.createElement('div');
 
         wrapper.className = FEED_CONSTANTS.CLASSES.IMAGE_WRAPPER;
-        wrapper.dataset.filter = filter;
-        wrapper.dataset.imageId = imageData.id;
-        wrapper.dataset.userId = imageData.userId || '';
-        wrapper.dataset.isPublic = (imageData.isPublic || false).toString();
-        wrapper.dataset.tags = imageData.tags ? (window.TagUtils ? window.TagUtils.stringifyTags(imageData.tags) : JSON.stringify(imageData.tags)) : '';
-        wrapper.dataset.taggedAt = imageData.taggedAt || '';
+
+        // Mark search results for isolated filtering
+        if (filter === 'search') {
+            wrapper.dataset.source = 'search';
+        }
+
+        // Use standardized utility to set all wrapper dataset attributes
+        if (window.WrapperDatasetUtils) {
+            window.WrapperDatasetUtils.setWrapperDataset(wrapper, imageData, filter);
+        } else {
+            // Fallback to manual setting
+            wrapper.dataset.filter = filter;
+            wrapper.dataset.imageId = imageData.id;
+            wrapper.dataset.userId = imageData.userId || '';
+            wrapper.dataset.isPublic = (imageData.isPublic || false).toString();
+
+            // Handle tags with utility or fallback
+            let tagsString = '';
+
+            if (imageData.tags) {
+                tagsString = window.TagUtils
+                    ? window.TagUtils.stringifyTags(imageData.tags)
+                    : JSON.stringify(imageData.tags);
+            }
+            wrapper.dataset.tags = tagsString;
+            wrapper.dataset.taggedAt = imageData.taggedAt || '';
+
+            if (imageData.username) {
+                wrapper.dataset.username = imageData.username;
+            }
+            if (imageData.provider) {
+                wrapper.dataset.provider = imageData.provider;
+            }
+            if (imageData.model) {
+                wrapper.dataset.model = imageData.model;
+            }
+            if (imageData.rating !== null && imageData.rating !== undefined) {
+                wrapper.dataset.rating = imageData.rating.toString();
+            }
+            if (imageData.createdAt) {
+                wrapper.dataset.createdAt = imageData.createdAt;
+            }
+        }
 
         if (window.imageComponent) {
             const imageElement = window.imageComponent.createImageElement(imageData);

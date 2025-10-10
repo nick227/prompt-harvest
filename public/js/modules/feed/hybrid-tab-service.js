@@ -2,14 +2,35 @@
 class HybridTabService {
     constructor() {
         this.currentUserId = null;
-        this.currentFilter = 'site';
+        // Don't hardcode filter - let FeedFilterManager set it (P0 fix)
+        this.currentFilter = null;
         this.isInitialized = false;
     }
 
     // Initialize - minimal setup
     async init() {
         this.currentUserId = this.getCurrentUserId();
+
+        // If filter not set yet, try to get from FeedFilterManager (P0 fix)
+        if (!this.currentFilter && window.feedManager?.filterManager) {
+            this.currentFilter = window.feedManager.filterManager.currentFilter || 'public';
+        }
+
+        // Final fallback
+        if (!this.currentFilter) {
+            this.currentFilter = 'public';
+        }
+
         this.isInitialized = true;
+
+        return this;
+    }
+
+    // Set filter from external source (P0 fix)
+    setFilter(filter) {
+        if (filter && (filter === 'public' || filter === 'private')) {
+            this.currentFilter = filter;
+        }
     }
 
     // Get current user ID - single source of truth
@@ -35,29 +56,52 @@ class HybridTabService {
 
         this.currentFilter = filter;
 
-        // Single DOM query, single loop - no data structures needed
-        const images = document.querySelectorAll('.image-wrapper');
+        // Check if search is active - if so, filter only search results
+        const isSearchActive = window.searchManager?.state?.isSearchActive;
+        const selector = isSearchActive
+            ? '.image-wrapper[data-source="search"]'  // Filter search results only
+            : '.image-wrapper';                       // Filter all images (normal feed)
+
+        const images = document.querySelectorAll(selector);
+
+        // Track statistics for logging
+        const stats = {
+            total: images.length,
+            public: 0,
+            private: 0,
+            willShowPublic: 0,
+            willShowPrivate: 0,
+            currentUserImages: 0,
+            otherUserImages: 0
+        };
+
+        // P3: Conditional debug logging
+        const debugEnabled = window.isDebugEnabled ? window.isDebugEnabled('SEARCH_FILTERING') : false;
+
+        if (debugEnabled) {
+            console.log(`\n🔄 OWNER FILTER SWITCH: "${filter}" (Search Active: ${isSearchActive})`);
+            console.log(`Current User ID: "${this.currentUserId}"`);
+            console.log(`Total Images to Filter: ${images.length}`);
+        }
 
         images.forEach(wrapper => {
-            const { userId } = wrapper.dataset;
-            const isPublic = wrapper.dataset.isPublic === 'true';
+            const { userId, isPublic: isPublicStr } = wrapper.dataset;
+            const isPublic = isPublicStr === 'true';
+            const isCurrentUser = String(userId) === String(this.currentUserId);
+
+            // Update stats
+            if (isPublic) { stats.public++; } else { stats.private++; }
+
+            if (isCurrentUser) { stats.currentUserImages++; } else { stats.otherUserImages++; }
 
             // Pure logic - no pre-computed lists needed
-            // For 'site' filter: show all public images
-            // For 'user'/'mine' filter: show only user's own images
-            const shouldShow = filter === 'site' ? isPublic : (String(userId) === String(this.currentUserId));
+            // For 'public' filter: show all public images
+            // For 'private' filter: show only user's own images
+            const shouldShow = filter === 'public' ? isPublic : isCurrentUser;
 
-            // Debug logging for troubleshooting
-            if (filter === 'user' || filter === 'mine') {
-                console.log('🔍 MINE FILTER DEBUG:', {
-                    imageId: wrapper.dataset.imageId,
-                    userId,
-                    currentUserId: this.currentUserId,
-                    userIdMatch: String(userId) === String(this.currentUserId),
-                    isPublic,
-                    shouldShow,
-                    filter
-                });
+            // Update stats for what will be shown
+            if (shouldShow) {
+                if (isPublic) { stats.willShowPublic++; } else { stats.willShowPrivate++; }
             }
 
             // Use CSS class for consistency with existing system
@@ -68,14 +112,40 @@ class HybridTabService {
             }
         });
 
+        // P3: Conditional debug logging
+        if (debugEnabled) {
+            console.log('\n📊 IMAGE BREAKDOWN:');
+            console.log(`  Total: ${stats.total}`);
+            console.log(`  Public: ${stats.public} | Private: ${stats.private}`);
+            console.log(`  Current User: ${stats.currentUserImages} | Other Users: ${stats.otherUserImages}`);
+            console.log(`\n✅ FILTER RESULT (${filter}):`);
+
+            const totalShow = stats.willShowPublic + stats.willShowPrivate;
+            const totalHide = stats.total - totalShow;
+
+            if (filter === 'public') {
+                console.log(`  Will Show: ${totalShow} images (${stats.willShowPublic} public)`);
+                console.log(`  Will Hide: ${totalHide} images (${stats.private - stats.willShowPrivate} private)`);
+            } else {
+                const showText = `${stats.willShowPrivate} your private, ${stats.willShowPublic} your public`;
+
+                console.log(`  Will Show: ${totalShow} images (${showText})`);
+                console.log(`  Will Hide: ${totalHide} images (other users)`);
+            }
+        }
+
         const endTime = performance.now();
 
+        // Notify search manager to update counts if search is active
+        if (isSearchActive && window.searchManager?.updateSearchCounts) {
+            window.searchManager.updateSearchCounts();
+        }
 
         return { filter, operationTime: endTime - startTime };
     }
 
     // Add new image - minimal overhead, no redundant data structures
-    addImage(imageData) {
+    addImage(_imageData) {
         // No need to maintain separate lists - DOM is the source of truth
         // Just ensure the image has proper dataset attributes
     }
@@ -119,7 +189,13 @@ class HybridTabService {
 
     // Get visible images for current filter - computed on demand
     getVisibleImages() {
-        const images = document.querySelectorAll('.image-wrapper');
+        // Check if search is active - if so, count only search results
+        const isSearchActive = window.searchManager?.state?.isSearchActive;
+        const selector = isSearchActive
+            ? '.image-wrapper[data-source="search"]'
+            : '.image-wrapper';
+
+        const images = document.querySelectorAll(selector);
         const visibleImages = [];
 
         images.forEach(wrapper => {
@@ -193,20 +269,13 @@ class HybridTabService {
 
         const images = document.querySelectorAll('.image-wrapper');
 
-
-        images.forEach((wrapper, index) => {
-            const { userId } = wrapper.dataset;
-            const isPublic = wrapper.dataset.isPublic === 'true';
-            const { imageId } = wrapper.dataset;
-            const isVisible = !wrapper.classList.contains('hidden');
-
-            console.log(`Image ${index + 1}:`, {
-                imageId,
-                userId,
-                isPublic,
-                isVisible,
-                shouldBeVisible: this.currentFilter === 'site' ? isPublic : (String(userId) === String(this.currentUserId))
-            });
+        // Debug logging (variables for future debugging)
+        images.forEach((wrapper, _index) => {
+            const _userId = wrapper.dataset.userId;
+            const _isPublic = wrapper.dataset.isPublic === 'true';
+            const _imageId = wrapper.dataset.imageId;
+            const _isVisible = !wrapper.classList.contains('hidden');
+            // Debug variables available for console inspection if needed
         });
     }
 }

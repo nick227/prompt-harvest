@@ -318,8 +318,16 @@ class ProviderManager {
     }
 
     handleProviderCheckbox() {
+        if (!this.providerList) {
+            return;
+        }
+
         const providerCheckboxes = this.providerList.querySelectorAll('input[name="providers"]');
         const allCheckbox = this.providerList.querySelector('#all');
+
+        if (!allCheckbox) {
+            return;
+        }
 
         const checkedCount = Array.from(providerCheckboxes).filter(cb => cb.checked).length;
         const totalCount = providerCheckboxes.length;

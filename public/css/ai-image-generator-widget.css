@@ -334,7 +334,7 @@
     border: 3px solid var(--color-gray-200, #e5e7eb);
     border-top: 3px solid var(--color-primary, #3b82f6);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: pulse 1s linear infinite;
 }
 
 .loading-text {
@@ -352,6 +352,15 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
 }
 
 /* Compact Theme */
