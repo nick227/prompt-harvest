@@ -57,7 +57,7 @@ class AdminSharedTable {
                     { field: 'created_at', title: 'Created', sortable: true, filterable: false, type: 'datetime', formatter: 'datetime' },
                     { field: 'actions', title: 'Actions', sortable: false, filterable: false, type: 'actions' }
                 ],
-                actions: ['delete']
+                actions: ['view', 'edit', 'activate', 'deactivate', 'delete']
             },
             providers: {
                 columns: [
@@ -615,6 +615,10 @@ class AdminSharedTable {
                 moderate: { icon: 'fas fa-shield-alt', class: 'btn-sm btn-warning', tooltip: 'Moderate Content' }
             },
             packages: {
+                view: { icon: 'fas fa-eye', class: 'btn-sm btn-outline', tooltip: 'View Package' },
+                edit: { icon: 'fas fa-edit', class: 'btn-sm btn-primary', tooltip: 'Edit Package' },
+                activate: { icon: 'fas fa-check', class: 'btn-sm btn-success', tooltip: 'Activate Package' },
+                deactivate: { icon: 'fas fa-ban', class: 'btn-sm btn-warning', tooltip: 'Deactivate Package' },
                 delete: { icon: 'fas fa-trash', class: 'btn-sm btn-danger', tooltip: 'Delete Package' }
             },
             providers: {

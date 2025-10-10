@@ -171,6 +171,37 @@ export class QueueAnalytics {
             isNearCapacity: (queueSize + activeJobs) > (maxQueueSize * backpressureConfig.nearCapacityThreshold)
         };
 
+        // Calculate performance metrics from trends
+        const completedTasks = trends.filter(t => t.action === 'task_complete');
+        const errorTasks = trends.filter(t => t.action === 'task_error');
+        const totalTasks = completedTasks.length + errorTasks.length;
+
+        // Calculate average processing time from completed tasks
+        const avgProcessingTime = completedTasks.length > 0
+            ? completedTasks.reduce((sum, t) => sum + (t.duration || 0), 0) / completedTasks.length
+            : (backpressureConfig.avgProcessingTimeEWMA || 0);
+
+        // Calculate rates (as fractions 0.0-1.0)
+        const successRate = totalTasks > 0 ? completedTasks.length / totalTasks : 0;
+        const errorRate = totalTasks > 0 ? errorTasks.length / totalTasks : 0;
+
+        // Calculate tasks per minute (from last hour of trends)
+        const oneMinuteAgo = Date.now() - 60000;
+        const recentTasks = trends.filter(t =>
+            (t.action === 'task_complete' || t.action === 'task_error') &&
+            t.timestamp > oneMinuteAgo
+        );
+        const tasksPerMinute = recentTasks.length;
+
+        const performance = {
+            avgProcessingTime: Math.round(avgProcessingTime),
+            successRate,
+            errorRate,
+            tasksPerMinute,
+            throughput: tasksPerMinute,
+            retryRate: 0 // TODO: Calculate retry rate if needed
+        };
+
         return {
             ...baseMetrics,
             trends: {
@@ -179,6 +210,7 @@ export class QueueAnalytics {
                 timeWindow: 3600000 // 1 hour
             },
             capacity,
+            performance,
             backpressure: {
                 config: backpressureConfig,
                 observability: capObservability

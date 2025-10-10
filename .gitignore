@@ -28,3 +28,4 @@ Thumbs.db
 prisma/archive/
 scripts/archive/
 .cursorrules
+public/js/modules/textarea/__tests__/

@@ -819,6 +819,60 @@ router.put('/queue/concurrency', requireAdmin, logAdminActionMiddleware('update_
     }
 });
 
+/**
+ * Pause queue processing
+ * POST /api/admin/queue/pause
+ */
+router.post('/queue/pause', requireAdmin, logAdminActionMiddleware('pause_queue'), async (req, res) => {
+    try {
+        const QueueManager = await import('../services/generate/QueueManager.js');
+
+        QueueManager.default().pause();
+
+        res.json({
+            success: true,
+            data: {
+                message: 'Queue paused successfully',
+                isPaused: true
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue pause error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to pause queue',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Resume queue processing
+ * POST /api/admin/queue/resume
+ */
+router.post('/queue/resume', requireAdmin, logAdminActionMiddleware('resume_queue'), async (req, res) => {
+    try {
+        const QueueManager = await import('../services/generate/QueueManager.js');
+
+        QueueManager.default().resume();
+
+        res.json({
+            success: true,
+            data: {
+                message: 'Queue resumed successfully',
+                isPaused: false
+            }
+        });
+    } catch (error) {
+        console.error('❌ ADMIN: Queue resume error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to resume queue',
+            message: error.message
+        });
+    }
+});
+
 // Simple queue monitoring - no complex configuration endpoints needed
 
 /**

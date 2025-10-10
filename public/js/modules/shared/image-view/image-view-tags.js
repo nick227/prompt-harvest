@@ -12,15 +12,15 @@
      * @returns {HTMLElement} Tags container element
      */
     const createTagsContainer = tags => {
-    const tagsContainer = document.createElement('div');
+        const tagsContainer = document.createElement('div');
 
-    tagsContainer.className = 'list-tags-container';
+        tagsContainer.className = 'list-tags-container';
 
-    tags.forEach(tag => {
-        const tagElement = document.createElement('span');
+        tags.forEach(tag => {
+            const tagElement = document.createElement('span');
 
-        tagElement.textContent = tag;
-        tagElement.style.cssText = `
+            tagElement.textContent = tag;
+            tagElement.style.cssText = `
             display: inline-block;
             background: rgba(59, 130, 246, 0.2);
             color: #60a5fa;
@@ -34,58 +34,58 @@
             transition: all 0.2s ease;
         `;
 
-        // Add active class if tag is currently active
-        if (window.tagRouter && window.tagRouter.isTagActive(tag)) {
-            tagElement.classList.add('tag-chip-active');
-            tagElement.style.background = 'rgba(34, 197, 94, 0.3)';
-            tagElement.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-            tagElement.style.color = '#22c55e';
-        }
-
-        // Add hover effects
-        tagElement.addEventListener('mouseenter', () => {
-            if (!tagElement.classList.contains('tag-chip-active')) {
-                tagElement.style.background = 'rgba(59, 130, 246, 0.3)';
-                tagElement.style.transform = 'scale(1.05)';
+            // Add active class if tag is currently active
+            if (window.tagRouter && window.tagRouter.isTagActive(tag)) {
+                tagElement.classList.add('tag-chip-active');
+                tagElement.style.background = 'rgba(34, 197, 94, 0.3)';
+                tagElement.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                tagElement.style.color = '#22c55e';
             }
-        });
 
-        tagElement.addEventListener('mouseleave', () => {
-            if (!tagElement.classList.contains('tag-chip-active')) {
-                tagElement.style.background = 'rgba(59, 130, 246, 0.2)';
-                tagElement.style.transform = 'scale(1)';
-            }
-        });
+            // Add hover effects
+            tagElement.addEventListener('mouseenter', () => {
+                if (!tagElement.classList.contains('tag-chip-active')) {
+                    tagElement.style.background = 'rgba(59, 130, 246, 0.3)';
+                    tagElement.style.transform = 'scale(1.05)';
+                }
+            });
 
-        // Add click handler to filter by tag
-        tagElement.addEventListener('click', e => {
-            e.preventDefault();
-            e.stopPropagation();
+            tagElement.addEventListener('mouseleave', () => {
+                if (!tagElement.classList.contains('tag-chip-active')) {
+                    tagElement.style.background = 'rgba(59, 130, 246, 0.2)';
+                    tagElement.style.transform = 'scale(1)';
+                }
+            });
+
+            // Add click handler to filter by tag
+            tagElement.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
 
 
-            // Use tag router if available
-            if (window.TagRouter && window.tagRouter) {
-                window.tagRouter.addTag(tag);
-            } else {
+                // Use tag router if available
+                if (window.TagRouter && window.tagRouter) {
+                    window.tagRouter.addTag(tag);
+                } else {
                 // Fallback: update URL directly
-                const url = new URL(window.location);
+                    const url = new URL(window.location);
 
-                url.searchParams.set('tag', tag);
-                window.location.href = url.toString();
-            }
+                    url.searchParams.set('tag', tag);
+                    window.location.href = url.toString();
+                }
+            });
+
+            tagsContainer.appendChild(tagElement);
         });
 
-        tagsContainer.appendChild(tagElement);
-    });
-
-    return tagsContainer;
-};
-
-// Export to window
-if (typeof window !== 'undefined') {
-    window.ImageViewTags = {
-        createTagsContainer
+        return tagsContainer;
     };
-}
+
+    // Export to window
+    if (typeof window !== 'undefined') {
+        window.ImageViewTags = {
+            createTagsContainer
+        };
+    }
 })();
 

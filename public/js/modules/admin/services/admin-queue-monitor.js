@@ -28,6 +28,11 @@ class AdminQueueMonitor {
         this.maxChartRetries = AdminQueueMonitor.MAX_CHART_RETRIES;
         this.chartRetryTimer = null;
         this.chartPollingTimer = null;
+        this._chartLoadedHandler = null;
+        this._handlersAttached = false;
+        this._abortController = null;
+        this._visibilityHandler = null;
+        this._handlers = {};
 
         // Queue health thresholds
         this.thresholds = {
@@ -42,63 +47,97 @@ class AdminQueueMonitor {
      * Initialize the queue monitoring dashboard
      */
     init() {
-        this.createQueueDashboard();
-        this.startRealTimeMonitoring();
-        this.setupEventHandlers();
-        this.loadLogs(); // Load initial logs
+        this._initializeCore();
     }
 
     /**
      * Initialize when tab becomes active
      */
     initWhenActive() {
-
-        // Stop any existing monitoring
         this.stopRealTimeMonitoring();
+        this._initializeCore();
+        this._initializeChartLoading();
+    }
 
+    /**
+     * Core initialization shared by init() and initWhenActive()
+     * @private
+     */
+    _initializeCore() {
         this.createQueueDashboard();
         this.startRealTimeMonitoring();
         this.setupEventHandlers();
-        this.loadLogs(); // Load initial logs
+        this.loadLogs();
+    }
 
-        // Listen for Chart.js loaded event
-        window.addEventListener('chartjs-loaded', () => {
-            // Reset retry count when Chart.js is loaded
+    /**
+     * Initialize Chart.js loading with proper cleanup (unified path)
+     * @private
+     */
+    _initializeChartLoading() {
+        // Remove old Chart.js event listener if exists
+        if (this._chartLoadedHandler) {
+            window.removeEventListener('chartjs-loaded', this._chartLoadedHandler);
+        }
+
+        // Listen for Chart.js loaded event with stored reference
+        this._chartLoadedHandler = () => {
             this.chartRetryCount = 0;
-            // Wait a bit for Chart to be fully available
-            setTimeout(() => {
-                this.initializeCharts();
-            }, 100);
-        });
+            this._clearAllChartTimers();
+            this.initializeCharts();
+        };
+
+        window.addEventListener('chartjs-loaded', this._chartLoadedHandler);
 
         // Check if Chart.js is already loaded
         if (typeof Chart !== 'undefined') {
             this.initializeCharts();
         } else {
-            // Start polling for Chart.js availability
-            this.startChartJSPolling();
+            // Use single polling mechanism (not retry timer)
+            this._startChartPolling();
         }
     }
 
     /**
-     * Start polling for Chart.js availability
+     * Start polling for Chart.js availability (single path)
+     * @private
      */
-    startChartJSPolling() {
+    _startChartPolling() {
+        // Clear any existing polling timer
+        if (this.chartPollingTimer) {
+            clearInterval(this.chartPollingTimer);
+        }
+
         let pollCount = 0;
 
         this.chartPollingTimer = setInterval(() => {
             pollCount++;
 
             if (typeof Chart !== 'undefined') {
-                clearInterval(this.chartPollingTimer);
-                this.chartPollingTimer = null;
+                this._clearAllChartTimers();
                 this.initializeCharts();
             } else if (pollCount >= AdminQueueMonitor.MAX_POLLING_ATTEMPTS) {
                 console.warn('⚠️ ADMIN-QUEUE: Chart.js polling timeout, charts will not be available');
-                clearInterval(this.chartPollingTimer);
-                this.chartPollingTimer = null;
+                this._clearAllChartTimers();
+                this.showAlert('Chart.js library failed to load', 'warning');
             }
         }, AdminQueueMonitor.CHART_POLLING_INTERVAL);
+    }
+
+    /**
+     * Clear all chart-related timers (unified cleanup)
+     * @private
+     */
+    _clearAllChartTimers() {
+        if (this.chartRetryTimer) {
+            clearTimeout(this.chartRetryTimer);
+            this.chartRetryTimer = null;
+        }
+
+        if (this.chartPollingTimer) {
+            clearInterval(this.chartPollingTimer);
+            this.chartPollingTimer = null;
+        }
     }
 
     /**
@@ -175,7 +214,21 @@ class AdminQueueMonitor {
      * Create the comprehensive queue monitoring dashboard
      */
     createQueueDashboard() {
-        const dashboardHTML = `
+        const tabPanel = document.getElementById('queue-monitor-tab');
+
+        if (tabPanel) {
+            tabPanel.innerHTML = this._getDashboardTemplate();
+            this.initializeCharts();
+        }
+    }
+
+    /**
+     * Get dashboard HTML template
+     * @returns {string} Dashboard HTML
+     * @private
+     */
+    _getDashboardTemplate() {
+        return `
             <div id="queue-monitor-dashboard" class="queue-monitor-dashboard">
                 <!-- Alert Container -->
                 <div id="queue-alerts" class="queue-alerts-container"></div>
@@ -432,94 +485,59 @@ class AdminQueueMonitor {
                 </div>
             </div>
         `;
-
-        // Insert the dashboard into the queue monitor tab panel
-        const tabPanel = document.getElementById('queue-monitor-tab');
-
-        if (tabPanel) {
-            tabPanel.innerHTML = dashboardHTML;
-            this.initializeCharts();
-        }
     }
 
     /**
      * Initialize Chart.js charts for real-time monitoring
      */
     initializeCharts() {
-        // Check if Chart.js is available
         if (typeof Chart === 'undefined') {
-            this.chartRetryCount++;
-            if (this.chartRetryCount <= this.maxChartRetries) {
-                console.warn(
-                    `⚠️ ADMIN-QUEUE: Chart.js not loaded yet. Retrying in 1 second... (${this.chartRetryCount}/${this.maxChartRetries})`
-                );
-                // Retry after a short delay
-                this.chartRetryTimer = setTimeout(() => {
-                    this.initializeCharts();
-                }, 1000);
+            console.warn('⚠️ ADMIN-QUEUE: Chart.js not available, skipping chart initialization');
 
-                return;
-            } else {
-                console.error('❌ ADMIN-QUEUE: Chart.js failed to load after maximum retries. Charts will not be available.');
-                this.showAlert('Chart.js library failed to load. Charts will not be available.', 'error');
-
-                return;
-            }
+            return;
         }
 
-
-        // Stop any existing retry timers
-        if (this.chartRetryTimer) {
-            clearTimeout(this.chartRetryTimer);
-            this.chartRetryTimer = null;
-        }
-
-        // Destroy existing charts before reinitializing
+        this._clearAllChartTimers();
         this.destroyExistingCharts();
+        this._createAllCharts();
+    }
 
-        // Queue Size Chart
-        if (!this.charts.queueSize) {
-            this.charts.queueSize = this.createChart(
-                'queue-size-chart',
-                'Queue Size',
-                'rgb(59, 130, 246)'
-            );
-        }
+    /**
+     * Create all dashboard charts
+     * @private
+     */
+    _createAllCharts() {
+        this.charts.queueSize = this.createChart(
+            'queue-size-chart',
+            'Queue Size',
+            'rgb(59, 130, 246)'
+        );
 
-        // Processing Rate Chart
-        if (!this.charts.processingRate) {
-            this.charts.processingRate = this.createChart(
-                'processing-rate-chart',
-                'Tasks/Minute',
-                'rgb(34, 197, 94)'
-            );
-        }
+        this.charts.processingRate = this.createChart(
+            'processing-rate-chart',
+            'Tasks/Minute',
+            'rgb(34, 197, 94)'
+        );
 
-        // Error Rate Chart
-        if (!this.charts.errorRate) {
-            this.charts.errorRate = this.createChart(
-                'error-rate-chart',
-                'Error Rate %',
-                'rgb(239, 68, 68)',
-                {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100
-                        }
+        this.charts.errorRate = this.createChart(
+            'error-rate-chart',
+            'Error Rate %',
+            'rgb(239, 68, 68)',
+            {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
                     }
                 }
-            );
-        }
+            }
+        );
 
-        // Processing Time Chart
-        if (!this.charts.processingTime) {
-            this.charts.processingTime = this.createChart(
-                'processing-time-chart',
-                'Avg Time (ms)',
-                'rgb(168, 85, 247)'
-            );
-        }
+        this.charts.processingTime = this.createChart(
+            'processing-time-chart',
+            'Avg Time (ms)',
+            'rgb(168, 85, 247)'
+        );
     }
 
     /**
@@ -538,13 +556,20 @@ class AdminQueueMonitor {
 
         // Set up periodic refresh
         this.refreshTimer = setInterval(() => {
-            // Only refresh if the queue monitor tab is visible
+            // Only refresh if page is visible and tab is active
+            if (document.hidden) {
+                return;
+            }
+
             const queueMonitorTab = document.getElementById('queue-monitor-tab');
 
             if (queueMonitorTab && queueMonitorTab.style.display !== 'none') {
                 this.refreshQueueData();
             }
         }, this.refreshInterval);
+
+        // Setup Page Visibility API to pause polling when tab hidden
+        this._setupVisibilityHandling();
     }
 
     /**
@@ -556,8 +581,35 @@ class AdminQueueMonitor {
             this.refreshTimer = null;
         }
 
+        // Cancel any in-flight fetches
+        if (this._abortController) {
+            this._abortController.abort();
+            this._abortController = null;
+        }
+
         this.isMonitoring = false;
         this.updateMonitoringStatus();
+    }
+
+    /**
+     * Setup Page Visibility API handling
+     * @private
+     */
+    _setupVisibilityHandling() {
+        if (this._visibilityHandler) {
+            document.removeEventListener('visibilitychange', this._visibilityHandler);
+        }
+
+        this._visibilityHandler = () => {
+            if (document.hidden) {
+                console.log('📴 ADMIN-QUEUE: Page hidden, pausing polling');
+            } else if (this.isMonitoring) {
+                console.log('👁️ ADMIN-QUEUE: Page visible, resuming polling');
+                this.refreshQueueData();
+            }
+        };
+
+        document.addEventListener('visibilitychange', this._visibilityHandler);
     }
 
     /**
@@ -581,16 +633,32 @@ class AdminQueueMonitor {
 
             this.lastUpdateTime = now;
 
+            // Cancel any in-flight request to prevent race conditions
+            if (this._abortController) {
+                this._abortController.abort();
+            }
+
+            // Create new AbortController for this request
+            this._abortController = new AbortController();
+
             // Use consolidated dashboard endpoint for optimal performance
             const response = await fetch(`${this.apiBaseUrl}/queue/dashboard`, {
                 headers: {
                     Authorization: `Bearer ${this.getAuthToken()}`
-                }
+                },
+                signal: this._abortController.signal
             });
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    throw new Error('Authentication failed. Please refresh the page and log in again.');
+                    // Stop monitoring and show actionable error
+                    this.stopRealTimeMonitoring();
+                    this.showAlert(
+                        'Authentication expired. Please refresh the page and log in again.',
+                        'error'
+                    );
+
+                    return;
                 }
                 throw new Error(`Failed to fetch queue data: ${response.status} ${response.statusText}`);
             }
@@ -598,11 +666,18 @@ class AdminQueueMonitor {
             const dashboardData = await response.json();
 
             if (dashboardData.success) {
-                this.updateDashboard(dashboardData.data.overview, dashboardData.data.metrics);
-                this.updateCharts(dashboardData.data.metrics);
-                this.checkAlerts(dashboardData.data.overview, dashboardData.data.metrics);
+                const { overview, metrics } = dashboardData.data;
+
+                this.updateDashboard(overview, metrics);
+                this.updateCharts(overview, metrics);
+                this.checkAlerts(overview, metrics);
             }
         } catch (error) {
+            // Ignore aborted requests (they're intentional cancellations)
+            if (error.name === 'AbortError') {
+                return;
+            }
+
             console.error('❌ ADMIN-QUEUE: Error refreshing queue data:', error);
             this.showAlert('Failed to refresh queue data', 'error');
         }
@@ -612,31 +687,36 @@ class AdminQueueMonitor {
      * Update dashboard with fresh data
      */
     updateDashboard(statusData, metricsData) {
-        // Update status cards
-        this.updateStatusCard('queue-size-value', statusData.current?.queueSize ?? 0);
-        this.updateStatusCard('active-jobs-value', statusData.current?.activeJobs ?? 0);
-        this.updateStatusCard('concurrency-value', statusData.current?.concurrency ?? 2);
+        // Update status cards - statusData is the overview object
+        this.updateStatusCard('queue-size-value', statusData?.queueSize ?? 0);
+        this.updateStatusCard('active-jobs-value', statusData?.activeJobs ?? 0);
+        this.updateStatusCard('concurrency-value', statusData?.concurrency ?? 2);
 
-        // Update health status
-        this.updateHealthStatus(statusData.health?.status ?? 'unknown');
+        // Update health status - use status from overview or default
+        this.updateHealthStatus(statusData?.status ?? 'unknown');
 
-        // Update initialization status
-        this.updateStatusCard('init-status', statusData.initialization?.isInitialized ? 'Initialized' : 'Not Initialized');
-        this.updateStatusCard('last-init-time', statusData.initialization?.lastInitTime || 'Never');
-        this.updateStatusCard('last-error', statusData.initialization?.lastError || 'None');
+        // Update initialization status - overview has these fields
+        this.updateStatusCard('init-status', statusData?.isInitialized ? 'Initialized' : 'Not Initialized');
+        this.updateStatusCard('last-init-time', statusData?.lastInitTime || 'Never');
+        this.updateStatusCard('last-error', statusData?.lastError || 'None');
 
-        // Update backpressure status
-        if (metricsData.backpressure) {
-            this.updateStatusCard('max-queue-size', metricsData.backpressure.maxQueueSize || 'N/A');
-            this.updateStatusCard('waiting-room-cap', metricsData.backpressure.waitingRoomCap || 'N/A');
-            this.updateStatusCard('utilization', `${Math.round(metricsData.backpressure.utilization || 0)}%`);
+        // Update backpressure status - from metrics.capacity
+        if (metricsData?.capacity) {
+            this.updateStatusCard('max-queue-size', metricsData.capacity.maxQueueSize || 'N/A');
+            this.updateStatusCard('waiting-room-cap', 'N/A'); // Not available in current structure
+            this.updateStatusCard('utilization', `${Math.round(metricsData.capacity.currentUtilization || 0)}%`);
         }
 
-        // Update performance metrics
-        if (metricsData.performance) {
-            this.updateStatusCard('avg-processing-time', `${Math.round(metricsData.performance.avgProcessingTime || 0)}ms`);
-            this.updateStatusCard('success-rate', `${Math.round((metricsData.performance.successRate || 0) * 100)}%`);
-            this.updateStatusCard('retry-rate', `${Math.round((metricsData.performance.retryRate || 0) * 100)}%`);
+        // Update performance metrics - from metrics.performance
+        if (metricsData?.performance) {
+            const avgTime = metricsData.performance.avgProcessingTime || 0;
+            const successRate = metricsData.performance.successRate || 0;
+            const errorRate = metricsData.performance.errorRate || 0;
+
+            this.updateStatusCard('avg-processing-time', `${Math.round(avgTime)}ms`);
+            // Backend returns fractions (0.0-1.0), convert to percentage
+            this.updateStatusCard('success-rate', `${Math.round(successRate * 100)}%`);
+            this.updateStatusCard('retry-rate', `${Math.round(errorRate * 100)}%`);
         }
     }
 
@@ -678,27 +758,33 @@ class AdminQueueMonitor {
     /**
      * Update charts with new data
      */
-    updateCharts(metricsData) {
+    updateCharts(overviewData, metricsData) {
         const now = new Date().toLocaleTimeString();
 
-        // Update queue size chart
+        // Update queue size chart - from overview
         if (this.charts.queueSize) {
-            this.updateChart(this.charts.queueSize, now, metricsData.current?.queueSize || 0);
+            this.updateChart(this.charts.queueSize, now, overviewData?.queueSize || 0);
         }
 
-        // Update processing rate chart
+        // Update processing rate chart - from metrics.performance
         if (this.charts.processingRate) {
-            this.updateChart(this.charts.processingRate, now, metricsData.performance?.tasksPerMinute || 0);
+            const tasksPerMinute = metricsData?.performance?.tasksPerMinute || 0;
+
+            this.updateChart(this.charts.processingRate, now, tasksPerMinute);
         }
 
-        // Update error rate chart
+        // Update error rate chart - from metrics.performance (convert to percentage)
         if (this.charts.errorRate) {
-            this.updateChart(this.charts.errorRate, now, (metricsData.performance?.errorRate || 0) * 100);
+            const errorRate = (metricsData?.performance?.errorRate || 0) * 100;
+
+            this.updateChart(this.charts.errorRate, now, errorRate);
         }
 
-        // Update processing time chart
+        // Update processing time chart - from metrics.performance
         if (this.charts.processingTime) {
-            this.updateChart(this.charts.processingTime, now, metricsData.performance?.avgProcessingTime || 0);
+            const avgTime = metricsData?.performance?.avgProcessingTime || 0;
+
+            this.updateChart(this.charts.processingTime, now, avgTime);
         }
     }
 
@@ -762,8 +848,8 @@ class AdminQueueMonitor {
     checkAlerts(statusData, metricsData) {
         const alerts = [];
 
-        // Queue size alerts
-        const queueSize = statusData.current?.queueSize || 0;
+        // Queue size alerts - statusData IS the overview, has queueSize directly
+        const queueSize = statusData?.queueSize || 0;
 
         if (queueSize >= this.thresholds.queueSize.critical) {
             alerts.push({
@@ -779,8 +865,8 @@ class AdminQueueMonitor {
             });
         }
 
-        // Active jobs alerts
-        const activeJobs = statusData.current?.activeJobs || 0;
+        // Active jobs alerts - from overview
+        const activeJobs = statusData?.activeJobs || 0;
 
         if (activeJobs >= this.thresholds.activeJobs.critical) {
             alerts.push({
@@ -790,8 +876,8 @@ class AdminQueueMonitor {
             });
         }
 
-        // Error rate alerts
-        const errorRate = metricsData.performance?.errorRate || 0;
+        // Error rate alerts - from metrics.performance (already a fraction 0.0-1.0)
+        const errorRate = metricsData?.performance?.errorRate || 0;
 
         if (errorRate >= this.thresholds.errorRate.critical) {
             alerts.push({
@@ -807,8 +893,8 @@ class AdminQueueMonitor {
             });
         }
 
-        // Processing time alerts
-        const avgProcessingTime = metricsData.performance?.avgProcessingTime || 0;
+        // Processing time alerts - from metrics.performance
+        const avgProcessingTime = metricsData?.performance?.avgProcessingTime || 0;
 
         if (avgProcessingTime >= this.thresholds.avgProcessingTime.critical) {
             alerts.push({
@@ -830,50 +916,88 @@ class AdminQueueMonitor {
         if (!container) { return; }
 
         if (alerts.length === 0) {
-            container.innerHTML = '<div class="no-alerts">No active alerts</div>';
+            container.textContent = '';
+            const noAlerts = document.createElement('div');
+
+            noAlerts.className = 'no-alerts';
+            noAlerts.textContent = 'No active alerts';
+            container.appendChild(noAlerts);
 
             return;
         }
 
-        const alertsHTML = alerts.map(alert => `
-            <div class="alert alert-${alert.type}">
-                <i class="${alert.icon}"></i>
-                <span>${alert.message}</span>
-            </div>
-        `).join('');
+        // Create alerts safely without innerHTML to prevent XSS
+        container.textContent = '';
+        alerts.forEach(alert => {
+            const alertDiv = document.createElement('div');
 
-        container.innerHTML = alertsHTML;
+            alertDiv.className = `alert alert-${this._sanitizeAlertType(alert.type)}`;
+
+            const icon = document.createElement('i');
+
+            icon.className = alert.icon;
+            alertDiv.appendChild(icon);
+
+            const message = document.createElement('span');
+
+            message.textContent = alert.message;
+            alertDiv.appendChild(message);
+
+            container.appendChild(alertDiv);
+        });
     }
 
     /**
-     * Show temporary alert with visual feedback
+     * Sanitize alert type to prevent XSS
+     * @param {string} type - Alert type
+     * @returns {string} Sanitized type
+     * @private
+     */
+    _sanitizeAlertType(type) {
+        const validTypes = ['critical', 'warning', 'info', 'success', 'error'];
+
+        return validTypes.includes(type) ? type : 'info';
+    }
+
+    /**
+     * Show temporary alert with visual feedback (XSS-safe)
      */
     showAlert(message, type = 'info') {
-
-        // Create visual alert if alert container exists
         const alertContainer = document.getElementById('queue-alerts');
 
-        if (alertContainer) {
-            const alertId = `alert-${Date.now()}`;
-            const alertHTML = `
-                <div id="${alertId}" class="queue-alert queue-alert-${type}">
-                    <i class="fas fa-${this.getAlertIcon(type)}"></i>
-                    <span>${message}</span>
-                    <button onclick="this.parentElement.remove()" class="alert-close">&times;</button>
-                </div>
-            `;
+        if (!alertContainer) { return; }
 
-            alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+        const alertId = `alert-${Date.now()}`;
+        const alertDiv = document.createElement('div');
 
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                const alert = document.getElementById(alertId);
+        alertDiv.id = alertId;
+        alertDiv.className = `queue-alert queue-alert-${this._sanitizeAlertType(type)}`;
 
-                if (alert) {
-                    alert.remove();
-                }
-            }, 5000);
-        }
+        const icon = document.createElement('i');
+
+        icon.className = `fas fa-${this.getAlertIcon(type)}`;
+        alertDiv.appendChild(icon);
+
+        const messageSpan = document.createElement('span');
+
+        messageSpan.textContent = message;
+        alertDiv.appendChild(messageSpan);
+
+        const closeBtn = document.createElement('button');
+
+        closeBtn.className = 'alert-close';
+        closeBtn.textContent = '×';
+        closeBtn.onclick = () => alertDiv.remove();
+        alertDiv.appendChild(closeBtn);
+
+        alertContainer.appendChild(alertDiv);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (document.getElementById(alertId)) {
+                alertDiv.remove();
+            }
+        }, 5000);
     }
 
     /**
@@ -912,71 +1036,166 @@ class AdminQueueMonitor {
      * Setup event handlers
      */
     setupEventHandlers() {
-        // Concurrency slider
+        if (this._handlersAttached) {
+            return;
+        }
+
+        this._setupConcurrencyHandlers();
+        this._setupQueueControlHandlers();
+        this._setupMonitoringHandlers();
+        this._setupLogHandlers();
+
+        this._handlersAttached = true;
+    }
+
+    /**
+     * Setup concurrency control handlers
+     * @private
+     */
+    _setupConcurrencyHandlers() {
         const concurrencySlider = document.getElementById('concurrency-slider');
         const concurrencyDisplay = document.getElementById('concurrency-display');
-
-        if (concurrencySlider && concurrencyDisplay) {
-            concurrencySlider.addEventListener('input', e => {
-                concurrencyDisplay.textContent = e.target.value;
-            });
-        }
-
-        // Update concurrency button
         const updateConcurrencyBtn = document.getElementById('update-concurrency-btn');
 
-        if (updateConcurrencyBtn) {
-            updateConcurrencyBtn.addEventListener('click', () => {
-                this.updateConcurrency();
-            });
+        if (concurrencySlider && concurrencyDisplay) {
+            this._handlers.concurrencyInput = e => {
+                concurrencyDisplay.textContent = e.target.value;
+            };
+            concurrencySlider.addEventListener('input', this._handlers.concurrencyInput);
         }
 
-        // Queue control buttons
+        if (updateConcurrencyBtn) {
+            this._handlers.updateConcurrency = () => this.updateConcurrency();
+            updateConcurrencyBtn.addEventListener('click', this._handlers.updateConcurrency);
+        }
+    }
+
+    /**
+     * Setup queue control button handlers
+     * @private
+     */
+    _setupQueueControlHandlers() {
         const pauseBtn = document.getElementById('pause-queue-btn');
         const resumeBtn = document.getElementById('resume-queue-btn');
         const clearBtn = document.getElementById('clear-queue-btn');
 
         if (pauseBtn) {
-            pauseBtn.addEventListener('click', () => this.pauseQueue());
-        }
-        if (resumeBtn) {
-            resumeBtn.addEventListener('click', () => this.resumeQueue());
-        }
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => this.clearQueue());
+            this._handlers.pauseQueue = () => this.pauseQueue();
+            pauseBtn.addEventListener('click', this._handlers.pauseQueue);
         }
 
-        // Monitoring controls
+        if (resumeBtn) {
+            this._handlers.resumeQueue = () => this.resumeQueue();
+            resumeBtn.addEventListener('click', this._handlers.resumeQueue);
+        }
+
+        if (clearBtn) {
+            this._handlers.clearQueue = () => this.clearQueue();
+            clearBtn.addEventListener('click', this._handlers.clearQueue);
+        }
+    }
+
+    /**
+     * Setup monitoring control handlers
+     * @private
+     */
+    _setupMonitoringHandlers() {
         const toggleMonitoringBtn = document.getElementById('toggle-monitoring-btn');
         const refreshDataBtn = document.getElementById('refresh-data-btn');
 
         if (toggleMonitoringBtn) {
-            toggleMonitoringBtn.addEventListener('click', () => {
+            this._handlers.toggleMonitoring = () => {
                 if (this.isMonitoring) {
                     this.stopRealTimeMonitoring();
                 } else {
                     this.startRealTimeMonitoring();
                 }
-            });
+            };
+            toggleMonitoringBtn.addEventListener('click', this._handlers.toggleMonitoring);
         }
 
         if (refreshDataBtn) {
-            refreshDataBtn.addEventListener('click', () => {
-                this.refreshQueueData();
-            });
+            this._handlers.refreshData = () => this.refreshQueueData();
+            refreshDataBtn.addEventListener('click', this._handlers.refreshData);
         }
+    }
 
-        // Log controls
+    /**
+     * Setup log control handlers
+     * @private
+     */
+    _setupLogHandlers() {
         const logLevelFilter = document.getElementById('log-level-filter');
         const refreshLogsBtn = document.getElementById('refresh-logs-btn');
 
         if (logLevelFilter) {
-            logLevelFilter.addEventListener('change', () => this.loadLogs());
+            this._handlers.logLevelChange = () => this.loadLogs();
+            logLevelFilter.addEventListener('change', this._handlers.logLevelChange);
         }
 
         if (refreshLogsBtn) {
-            refreshLogsBtn.addEventListener('click', () => this.loadLogs());
+            this._handlers.refreshLogs = () => this.loadLogs();
+            refreshLogsBtn.addEventListener('click', this._handlers.refreshLogs);
         }
+    }
+
+    /**
+     * Detach event handlers (for safe re-renders)
+     * @private
+     */
+    _detachEventHandlers() {
+        if (!this._handlers) {
+            return;
+        }
+
+        const concurrencySlider = document.getElementById('concurrency-slider');
+        const updateConcurrencyBtn = document.getElementById('update-concurrency-btn');
+        const pauseBtn = document.getElementById('pause-queue-btn');
+        const resumeBtn = document.getElementById('resume-queue-btn');
+        const clearBtn = document.getElementById('clear-queue-btn');
+        const toggleMonitoringBtn = document.getElementById('toggle-monitoring-btn');
+        const refreshDataBtn = document.getElementById('refresh-data-btn');
+        const logLevelFilter = document.getElementById('log-level-filter');
+        const refreshLogsBtn = document.getElementById('refresh-logs-btn');
+
+        if (concurrencySlider && this._handlers.concurrencyInput) {
+            concurrencySlider.removeEventListener('input', this._handlers.concurrencyInput);
+        }
+
+        if (updateConcurrencyBtn && this._handlers.updateConcurrency) {
+            updateConcurrencyBtn.removeEventListener('click', this._handlers.updateConcurrency);
+        }
+
+        if (pauseBtn && this._handlers.pauseQueue) {
+            pauseBtn.removeEventListener('click', this._handlers.pauseQueue);
+        }
+
+        if (resumeBtn && this._handlers.resumeQueue) {
+            resumeBtn.removeEventListener('click', this._handlers.resumeQueue);
+        }
+
+        if (clearBtn && this._handlers.clearQueue) {
+            clearBtn.removeEventListener('click', this._handlers.clearQueue);
+        }
+
+        if (toggleMonitoringBtn && this._handlers.toggleMonitoring) {
+            toggleMonitoringBtn.removeEventListener('click', this._handlers.toggleMonitoring);
+        }
+
+        if (refreshDataBtn && this._handlers.refreshData) {
+            refreshDataBtn.removeEventListener('click', this._handlers.refreshData);
+        }
+
+        if (logLevelFilter && this._handlers.logLevelChange) {
+            logLevelFilter.removeEventListener('change', this._handlers.logLevelChange);
+        }
+
+        if (refreshLogsBtn && this._handlers.refreshLogs) {
+            refreshLogsBtn.removeEventListener('click', this._handlers.refreshLogs);
+        }
+
+        // Clear handler references
+        this._handlers = {};
     }
 
     /**
@@ -1035,40 +1254,102 @@ class AdminQueueMonitor {
     }
 
     /**
-     * Display logs in the UI
+     * Display logs in the UI (XSS-safe)
      */
     displayLogs(logs) {
         const logsList = document.getElementById('logs-list');
 
         if (!logsList) { return; }
 
+        // Clear existing logs
+        logsList.textContent = '';
+
         if (logs.length === 0) {
-            logsList.innerHTML = '<div class="log-entry placeholder">No logs available</div>';
+            const placeholder = document.createElement('div');
+
+            placeholder.className = 'log-entry placeholder';
+            placeholder.textContent = 'No logs available';
+            logsList.appendChild(placeholder);
 
             return;
         }
 
-        const logsHTML = logs.map(log => {
-            const levelClass = `log-${log.level}`;
-            const timestamp = new Date(log.timestamp).toLocaleString();
-            const contextStr = log.context ? JSON.stringify(log.context, null, 2) : '';
-            const errorStr = log.error ? JSON.stringify(log.error, null, 2) : '';
+        // Create log entries safely without innerHTML
+        logs.forEach(log => {
+            const logEntry = this._createLogEntry(log);
 
-            return `
-                <div class="log-entry ${levelClass}">
-                    <div class="log-header">
-                        <span class="log-level">${log.level.toUpperCase()}</span>
-                        <span class="log-timestamp">${timestamp}</span>
-                        <span class="log-id">${log.id}</span>
-                    </div>
-                    <div class="log-message">${log.message}</div>
-                    ${contextStr ? `<div class="log-context"><pre>${contextStr}</pre></div>` : ''}
-                    ${errorStr ? `<div class="log-error"><pre>${errorStr}</pre></div>` : ''}
-                </div>
-            `;
-        }).join('');
+            logsList.appendChild(logEntry);
+        });
+    }
 
-        logsList.innerHTML = logsHTML;
+    /**
+     * Create a single log entry element (XSS-safe)
+     * @param {Object} log - Log data
+     * @returns {HTMLElement} Log entry element
+     * @private
+     */
+    _createLogEntry(log) {
+        const logEntry = document.createElement('div');
+
+        logEntry.className = `log-entry log-${log.level}`;
+
+        // Log header
+        const header = document.createElement('div');
+
+        header.className = 'log-header';
+
+        const level = document.createElement('span');
+
+        level.className = 'log-level';
+        level.textContent = log.level.toUpperCase();
+        header.appendChild(level);
+
+        const timestamp = document.createElement('span');
+
+        timestamp.className = 'log-timestamp';
+        timestamp.textContent = new Date(log.timestamp).toLocaleString();
+        header.appendChild(timestamp);
+
+        const logId = document.createElement('span');
+
+        logId.className = 'log-id';
+        logId.textContent = log.id;
+        header.appendChild(logId);
+
+        logEntry.appendChild(header);
+
+        // Log message
+        const message = document.createElement('div');
+
+        message.className = 'log-message';
+        message.textContent = log.message;
+        logEntry.appendChild(message);
+
+        // Context (if exists)
+        if (log.context) {
+            const contextDiv = document.createElement('div');
+
+            contextDiv.className = 'log-context';
+            const contextPre = document.createElement('pre');
+
+            contextPre.textContent = JSON.stringify(log.context, null, 2);
+            contextDiv.appendChild(contextPre);
+            logEntry.appendChild(contextDiv);
+        }
+
+        // Error (if exists)
+        if (log.error) {
+            const errorDiv = document.createElement('div');
+
+            errorDiv.className = 'log-error';
+            const errorPre = document.createElement('pre');
+
+            errorPre.textContent = JSON.stringify(log.error, null, 2);
+            errorDiv.appendChild(errorPre);
+            logEntry.appendChild(errorDiv);
+        }
+
+        return logEntry;
     }
 
     /**
@@ -1126,19 +1407,65 @@ class AdminQueueMonitor {
     }
 
     /**
-     * Pause queue
+     * Pause queue processing
      */
     async pauseQueue() {
-        // Implementation for pausing queue
-        this.showAlert('Queue pause functionality not yet implemented', 'info');
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/queue/pause`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${this.getAuthToken()}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to pause queue');
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showAlert('Queue paused successfully', 'success');
+                this.refreshQueueData();
+            } else {
+                throw new Error(result.error || 'Pause failed');
+            }
+        } catch (error) {
+            console.error('❌ ADMIN-QUEUE: Error pausing queue:', error);
+            this.showAlert(`Failed to pause queue: ${error.message}`, 'error');
+        }
     }
 
     /**
-     * Resume queue
+     * Resume queue processing
      */
     async resumeQueue() {
-        // Implementation for resuming queue
-        this.showAlert('Queue resume functionality not yet implemented', 'info');
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/queue/resume`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${this.getAuthToken()}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to resume queue');
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showAlert('Queue resumed successfully', 'success');
+                this.refreshQueueData();
+            } else {
+                throw new Error(result.error || 'Resume failed');
+            }
+        } catch (error) {
+            console.error('❌ ADMIN-QUEUE: Error resuming queue:', error);
+            this.showAlert(`Failed to resume queue: ${error.message}`, 'error');
+        }
     }
 
     /**
@@ -1196,22 +1523,53 @@ class AdminQueueMonitor {
      * Cleanup when component is destroyed
      */
     destroy() {
+        // Stop monitoring (clears refreshTimer and aborts in-flight requests)
         this.stopRealTimeMonitoring();
 
-        // Clear retry timer
+        // Clear ALL timers
+        if (this.refreshTimer) {
+            clearInterval(this.refreshTimer);
+            this.refreshTimer = null;
+        }
+
         if (this.chartRetryTimer) {
             clearTimeout(this.chartRetryTimer);
             this.chartRetryTimer = null;
         }
 
-        // Clear polling timer
         if (this.chartPollingTimer) {
             clearInterval(this.chartPollingTimer);
             this.chartPollingTimer = null;
         }
 
+        // Cancel any in-flight requests
+        if (this._abortController) {
+            this._abortController.abort();
+            this._abortController = null;
+        }
+
+        // Remove event listeners
+        if (this._chartLoadedHandler) {
+            window.removeEventListener('chartjs-loaded', this._chartLoadedHandler);
+            this._chartLoadedHandler = null;
+        }
+
+        if (this._visibilityHandler) {
+            document.removeEventListener('visibilitychange', this._visibilityHandler);
+            this._visibilityHandler = null;
+        }
+
         // Destroy charts
         this.destroyExistingCharts();
+
+        // Detach event handlers before cleanup
+        this._detachEventHandlers();
+
+        // Reset handler attachment flag
+        this._handlersAttached = false;
+
+        // Clear debounce state
+        this.lastUpdateTime = 0;
     }
 }
 

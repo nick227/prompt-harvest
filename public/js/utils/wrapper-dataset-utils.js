@@ -14,6 +14,7 @@ class WrapperDatasetUtils {
     static setWrapperDataset(wrapper, imageData, filter = null) {
         if (!wrapper || !imageData) {
             console.error('❌ WRAPPER DATASET: Invalid wrapper or imageData');
+
             return;
         }
 

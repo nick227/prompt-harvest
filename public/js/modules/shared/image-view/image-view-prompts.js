@@ -14,22 +14,22 @@
      * @param {string} borderColor - Border color for the prompt
      */
     const addPromptToSection = (section, label, text, borderColor) => {
-    const promptLabel = document.createElement('span');
+        const promptLabel = document.createElement('span');
 
-    promptLabel.className = 'list-prompt-label';
-    promptLabel.textContent = `${label}:`;
-    promptLabel.style.cssText = `
+        promptLabel.className = 'list-prompt-label';
+        promptLabel.textContent = `${label}:`;
+        promptLabel.style.cssText = `
         color: #9ca3af;
         font-size: 12px;
         font-weight: bold;
         margin-right: 8px;
     `;
 
-    const promptText = document.createElement('div');
+        const promptText = document.createElement('div');
 
-    promptText.className = 'list-prompt-text';
-    promptText.textContent = text;
-    promptText.style.cssText = `
+        promptText.className = 'list-prompt-text';
+        promptText.textContent = text;
+        promptText.style.cssText = `
         color: #d1d5db;
         font-size: 14px;
         line-height: 1.5;
@@ -40,46 +40,46 @@
         border-left: 3px solid ${borderColor};
     `;
 
-    section.appendChild(promptLabel);
-    section.appendChild(promptText);
-};
+        section.appendChild(promptLabel);
+        section.appendChild(promptText);
+    };
 
-/**
+    /**
  * Add fallback prompt when no prompts are available
  * @param {HTMLElement} section - Prompt section element
  */
-const addFallbackPrompt = section => {
-    const fallbackLabel = document.createElement('span');
+    const addFallbackPrompt = section => {
+        const fallbackLabel = document.createElement('span');
 
-    fallbackLabel.className = 'list-prompt-label';
-    fallbackLabel.textContent = 'Prompt:';
-    fallbackLabel.style.cssText = `
+        fallbackLabel.className = 'list-prompt-label';
+        fallbackLabel.textContent = 'Prompt:';
+        fallbackLabel.style.cssText = `
         color: #9ca3af;
         font-size: 12px;
         font-weight: bold;
         margin-right: 8px;
     `;
 
-    const fallbackText = document.createElement('div');
+        const fallbackText = document.createElement('div');
 
-    fallbackText.className = 'list-prompt-text';
-    fallbackText.textContent = 'No prompt available';
-    fallbackText.style.cssText = `
+        fallbackText.className = 'list-prompt-text';
+        fallbackText.textContent = 'No prompt available';
+        fallbackText.style.cssText = `
         color: #d1d5db;
         font-size: 14px;
         margin-top: 4px;
     `;
 
-    section.appendChild(fallbackLabel);
-    section.appendChild(fallbackText);
-};
-
-// Export to window
-if (typeof window !== 'undefined') {
-    window.ImageViewPrompts = {
-        addPromptToSection,
-        addFallbackPrompt
+        section.appendChild(fallbackLabel);
+        section.appendChild(fallbackText);
     };
-}
+
+    // Export to window
+    if (typeof window !== 'undefined') {
+        window.ImageViewPrompts = {
+            addPromptToSection,
+            addFallbackPrompt
+        };
+    }
 })();
 

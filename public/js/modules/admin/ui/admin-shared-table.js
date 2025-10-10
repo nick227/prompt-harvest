@@ -671,6 +671,7 @@ class AdminSharedTable {
 
             if (!buttonConfig) {
                 console.warn(`⚠️ ADMIN-SHARED-TABLE: No button config for action "${action}" in dataType "${this.dataType}"`);
+
                 return '';
             }
 

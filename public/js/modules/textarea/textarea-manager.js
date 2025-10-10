@@ -10,11 +10,16 @@
  * @property {typeof AutoResizeManager} [AutoResizeManager] - AutoResizeManager class
  * @property {typeof MatchManager} [MatchManager] - MatchManager class
  * @property {typeof EventManager} [EventManager] - EventManager class
- * @property {typeof SearchReplaceManager} [SearchReplaceManager] - SearchReplaceManager class
+ * @property {typeof SearchReplaceManager} [SearchReplaceManager] - SearchReplaceManager class (optional)
  */
 
 /**
  * @typedef {'idle' | 'init' | 'bound' | 'destroyed'} TextAreaManagerState
+ */
+
+/**
+ * @typedef {Function} LifecycleCallback
+ * @param {TextAreaManagerState} state - The new state
  */
 
 /**
@@ -63,28 +68,7 @@ class TextAreaManager {
             return;
         }
 
-        this.isInitialized = false;
-        this.initialHeight = null;
-        this.destroyed = false;
-        this.state = 'idle'; // 'idle' | 'init' | 'bound' | 'destroyed'
-        this.domReadyHandler = null;
-        this.domReadyFired = false;
-        this.onHeightChangeCallback = null;
-        this.ariaLiveRegion = null;
-        this.lastAnnouncedHeightLevel = 0;
-        this.isMatchClick = false;
-        this.pendingTimeouts = new Set();
-        this.eventsBound = false;
-
-        // Initialize component managers
-        this.textArea = null;
-        this.matchesEl = null;
-        this.autoResizeManager = null;
-        this.matchManager = null;
-        this.eventManager = null;
-        this.textAreaUtils = new this.TextAreaUtils();
-        this.searchReplaceManager = null;
-
+        this._initializeProperties();
         this.init();
         this._ensureEventsOnDOMReady();
     }
@@ -93,6 +77,31 @@ class TextAreaManager {
     // PRIVATE UTILITY METHODS
     // ============================================================================
 
+    _initializeProperties() {
+        this.isInitialized = false;
+        this.initialHeight = null;
+        this.destroyed = false;
+        this.state = 'idle';
+        this.domReadyHandler = null;
+        this.domReadyFired = false;
+        this.retryBindScheduled = false;
+        this.onHeightChangeCallback = null;
+        this.ariaLiveRegion = null;
+        this.lastAnnouncedHeightLevel = 0;
+        this.isMatchClick = false;
+        this.scheduledWork = new Map();
+        this.eventsBound = false;
+        this.resizeObserver = null;
+        this.lifecycleCallbacks = new Set();
+        this.textArea = null;
+        this.matchesEl = null;
+        this.autoResizeManager = null;
+        this.matchManager = null;
+        this.eventManager = null;
+        this.textAreaUtils = new this.TextAreaUtils();
+        this.searchReplaceManager = null;
+    }
+
     _requireDependencies() {
         const required = {
             TextAreaUtils: this.TextAreaUtils,
@@ -100,8 +109,7 @@ class TextAreaManager {
             TEXTAREA_CONFIG: this.TEXTAREA_CONFIG,
             AutoResizeManager: this.AutoResizeManager,
             MatchManager: this.MatchManager,
-            EventManager: this.EventManager,
-            SearchReplaceManager: this.SearchReplaceManager
+            EventManager: this.EventManager
         };
 
         for (const [name, value] of Object.entries(required)) {
@@ -112,14 +120,72 @@ class TextAreaManager {
             }
         }
 
+        // SearchReplaceManager is optional
+        if (!this.SearchReplaceManager) {
+            console.warn('TextAreaManager: SearchReplaceManager not found. Search/replace features will be disabled.');
+        }
+
         return true;
     }
 
-    _clearAllTimers() {
-        this.pendingTimeouts.forEach(timeoutId => {
-            clearTimeout(timeoutId);
+    _cancelScheduledWork(key) {
+        if (!this.scheduledWork.has(key)) {
+            return;
+        }
+
+        const { type, id } = this.scheduledWork.get(key);
+
+        if (type === 'timeout') {
+            clearTimeout(id);
+        } else if (type === 'raf') {
+            cancelAnimationFrame(id);
+        }
+
+        this.scheduledWork.delete(key);
+    }
+
+    _cancelAllScheduledWork() {
+        this.scheduledWork.forEach(({ type, id }) => {
+            if (type === 'timeout') {
+                clearTimeout(id);
+            } else if (type === 'raf') {
+                cancelAnimationFrame(id);
+            }
         });
-        this.pendingTimeouts.clear();
+        this.scheduledWork.clear();
+    }
+
+    _scheduleWork(key, type, callback, delay) {
+        // Cancel any existing work with this key
+        this._cancelScheduledWork(key);
+
+        let id;
+
+        if (type === 'timeout') {
+            id = setTimeout(() => {
+                this.scheduledWork.delete(key);
+                callback();
+            }, delay);
+        } else if (type === 'raf') {
+            id = requestAnimationFrame(() => {
+                this.scheduledWork.delete(key);
+                callback();
+            });
+        }
+
+        this.scheduledWork.set(key, { type, id });
+
+        return id;
+    }
+
+    _emitLifecycle(state) {
+        this.lifecycleCallbacks.forEach(callback => {
+            try {
+                callback(state);
+            } catch (err) {
+                console.error('TextAreaManager lifecycle callback error:', err);
+            }
+        });
     }
 
     // ============================================================================
@@ -132,6 +198,7 @@ class TextAreaManager {
         }
 
         this.state = 'init';
+        this._emitLifecycle('init');
 
         this.textArea = this.Utils.dom.get(this.TEXTAREA_CONFIG.selectors.textArea);
         this.matchesEl = this.Utils.dom.get(this.TEXTAREA_CONFIG.selectors.matches);
@@ -157,11 +224,17 @@ class TextAreaManager {
             this.autoResizeManager.onHeightChangeCallback = this.onHeightChangeCallback;
         }
 
-        this.textAreaUtils.loadSavedHeight(this.textArea, this.initialHeight);
+        if (this.textArea) {
+            this.textAreaUtils.loadSavedHeight(this.textArea, this.initialHeight);
+        }
+
         this.Utils.dom.init(this.TEXTAREA_CONFIG.selectors);
 
-        this.autoResizeManager.applyViewportClamp();
+        if (this.autoResizeManager) {
+            this.autoResizeManager.applyViewportClamp();
+        }
 
+        // Use rAF for initial height measurement after layout stabilizes
         if (this.textArea && this.initialHeight === null) {
             // Try immediate capture first
             if (this.textArea.offsetHeight > 0) {
@@ -170,26 +243,23 @@ class TextAreaManager {
                     this.autoResizeManager.initialHeight = this.initialHeight;
                 }
             } else {
-                // Fallback to timeout only if immediate capture failed
-                const timeoutId = setTimeout(() => {
-                    this.pendingTimeouts.delete(timeoutId);
+                // Use requestAnimationFrame for stable layout measurement
+                this._scheduleWork('init-height', 'raf', () => {
                     if (this.destroyed || !this.textArea || this.initialHeight !== null) {
                         return;
                     }
-                    // Double-check the element is still valid and has dimensions
                     if (this.textArea.offsetHeight > 0) {
                         this.initialHeight = this.textArea.offsetHeight;
                         if (this.autoResizeManager) {
                             this.autoResizeManager.initialHeight = this.initialHeight;
                         }
                     }
-                }, 0);
-
-                this.pendingTimeouts.add(timeoutId);
+                });
             }
         }
 
-        if (this.textArea) {
+        // Initialize SearchReplaceManager if available
+        if (this.textArea && this.SearchReplaceManager) {
             this.searchReplaceManager = new this.SearchReplaceManager(this.textArea);
             this.setupSearchReplace();
         }
@@ -203,7 +273,7 @@ class TextAreaManager {
      * @returns {void}
      */
     loadSavedHeight() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         this.textAreaUtils.loadSavedHeight(this.textArea, this.initialHeight);
@@ -215,7 +285,7 @@ class TextAreaManager {
      * @returns {boolean} True if events were bound successfully
      */
     bindEvents() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea || !this.matchesEl) {
             return false;
         }
         if (!this.eventManager) {
@@ -227,11 +297,19 @@ class TextAreaManager {
             return true;
         }
 
+        // Double-check EventManager hasn't already bound
+        if (this.eventManager.isBound?.() === true) {
+            this.eventsBound = true;
+
+            return true;
+        }
+
         const success = this.eventManager.bindEvents();
 
         if (success) {
             this.eventsBound = true;
             this.state = 'bound';
+            this._emitLifecycle('bound');
         }
 
         return success;
@@ -261,12 +339,20 @@ class TextAreaManager {
 
         // 3. Set destroyed state
         this.destroyed = true;
+        this.isInitialized = false;
         this.state = 'destroyed';
+        this._emitLifecycle('destroyed');
 
-        // 4. Cancel all pending timeouts
-        this._clearAllTimers();
+        // 4. Cancel all scheduled work (timeouts + rAF)
+        this._cancelAllScheduledWork();
 
-        // 5. Destroy managers
+        // 5. Disconnect ResizeObserver
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+
+        // 6. Destroy managers
         if (this.eventManager) {
             this.eventManager.destroy();
         }
@@ -288,13 +374,16 @@ class TextAreaManager {
             this.searchReplaceManager.destroy();
         }
 
-        // 6. Clean up aria-live region
+        // 7. Clean up aria-live region
         if (this.ariaLiveRegion) {
             this.ariaLiveRegion.remove();
             this.ariaLiveRegion = null;
         }
 
-        // 7. Null out all references
+        // 8. Clear lifecycle callbacks
+        this.lifecycleCallbacks.clear();
+
+        // 9. Null out all references
         this.textArea = null;
         this.matchesEl = null;
         this.onHeightChangeCallback = null;
@@ -334,21 +423,21 @@ class TextAreaManager {
             document.addEventListener('DOMContentLoaded', this.domReadyHandler);
         } else {
             this.domReadyFired = true;
-            const timeoutId = setTimeout(() => {
-                this.pendingTimeouts.delete(timeoutId);
+            this._scheduleWork('dom-ready', 'timeout', () => {
                 if (!this.destroyed) {
                     this._retryInitAndBind();
                 }
             }, 0);
-
-            this.pendingTimeouts.add(timeoutId);
         }
     }
 
     _retryInitAndBind() {
-        if (this.destroyed) {
+        // Prevent double-init race
+        if (this.destroyed || this.retryBindScheduled) {
             return;
         }
+
+        this.retryBindScheduled = true;
 
         if (!this.textArea || !this.matchesEl) {
             this.textArea = this.Utils.dom.get(this.TEXTAREA_CONFIG.selectors.textArea);
@@ -360,27 +449,51 @@ class TextAreaManager {
         }
 
         if (this.destroyed) {
+            this.retryBindScheduled = false;
+
             return;
         }
 
         const success = this.bindEvents();
 
-        if (success && !this.destroyed) {
-            const resizeDelays = [100, 500, 1000, 2000];
+        if (success && !this.destroyed && this.autoResizeManager) {
+            // Use ResizeObserver instead of staged timeouts for better responsiveness
+            this._setupResizeObserver();
 
-            resizeDelays.forEach(delay => {
-                const timeoutId = setTimeout(() => {
-                    this.pendingTimeouts.delete(timeoutId);
-                    if (this.destroyed || !this.textArea || !this.autoResizeManager) {
-                        return;
-                    }
+            // Still do one initial stabilization pass
+            this._scheduleWork('resize-stabilize', 'timeout', () => {
+                if (!this.destroyed && this.autoResizeManager) {
                     this.autoResizeManager.clearResizeCache();
                     this.autoResizeManager.ensureInitialHeight();
                     this.autoResizeManager.autoResize();
-                }, delay);
+                }
+            }, 100);
+        }
 
-                this.pendingTimeouts.add(timeoutId);
+        this.retryBindScheduled = false;
+    }
+
+    _setupResizeObserver() {
+        if (!window.ResizeObserver || this.resizeObserver || this.destroyed || !this.textArea) {
+            return;
+        }
+
+        try {
+            this.resizeObserver = new ResizeObserver(() => {
+                if (this.destroyed || !this.autoResizeManager) {
+                    return;
+                }
+                // Debounce resize with rAF
+                this._scheduleWork('resize-observe', 'raf', () => {
+                    if (!this.destroyed && this.autoResizeManager) {
+                        this.autoResizeManager.applyViewportClamp();
+                    }
+                });
             });
+
+            this.resizeObserver.observe(this.textArea.parentElement || this.textArea);
+        } catch (err) {
+            console.warn('TextAreaManager: Failed to setup ResizeObserver:', err);
         }
     }
 
@@ -389,16 +502,20 @@ class TextAreaManager {
     // ============================================================================
 
     async handleInput(e) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.eventManager) {
-            await this.eventManager.handleInput(e);
+            try {
+                await this.eventManager.handleInput(e);
+            } catch (err) {
+                console.error('TextAreaManager: handleInput error:', err);
+            }
         }
     }
 
     handleCompositionStart() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.eventManager) {
@@ -407,7 +524,7 @@ class TextAreaManager {
     }
 
     handleCompositionEnd() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.eventManager) {
@@ -416,7 +533,7 @@ class TextAreaManager {
     }
 
     handleMatchListItemClick(e) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.eventManager) {
@@ -425,7 +542,7 @@ class TextAreaManager {
     }
 
     handleResize() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.eventManager) {
@@ -434,7 +551,7 @@ class TextAreaManager {
     }
 
     handleWindowResize() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.eventManager) {
@@ -447,16 +564,20 @@ class TextAreaManager {
     // ============================================================================
 
     async updateMatches(value, cursorPosition) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.matchManager) {
-            await this.matchManager.updateMatches(value, cursorPosition);
+            try {
+                await this.matchManager.updateMatches(value, cursorPosition);
+            } catch (err) {
+                console.error('TextAreaManager: updateMatches error:', err);
+            }
         }
     }
 
     clearMatches() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.matchManager) {
@@ -465,7 +586,7 @@ class TextAreaManager {
     }
 
     resetMatchState() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.matchManager) {
@@ -478,7 +599,7 @@ class TextAreaManager {
     // ============================================================================
 
     insertText(text) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.matchManager) {
@@ -487,7 +608,7 @@ class TextAreaManager {
     }
 
     appendToEnd(text) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.matchManager) {
@@ -496,7 +617,7 @@ class TextAreaManager {
     }
 
     replaceTriggeringWord(replacement) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.matchManager) {
@@ -505,7 +626,7 @@ class TextAreaManager {
     }
 
     triggerInputEvent() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.matchManager) {
@@ -518,6 +639,9 @@ class TextAreaManager {
     // ============================================================================
 
     setupSearchReplace() {
+        if (this.destroyed || !this.textArea) {
+            return;
+        }
         if (this.searchReplaceManager) {
             this.searchReplaceManager.setupSearchReplace();
         }
@@ -532,7 +656,7 @@ class TextAreaManager {
      * @returns {string} The textarea value
      */
     getValue() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return '';
         }
         if (this.textAreaUtils) {
@@ -549,7 +673,7 @@ class TextAreaManager {
      * @returns {void}
      */
     setValue(value, options = {}) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -562,7 +686,7 @@ class TextAreaManager {
     }
 
     getCursorPosition() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return 0;
         }
         if (this.textAreaUtils) {
@@ -573,7 +697,7 @@ class TextAreaManager {
     }
 
     setCursorPosition(position) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -582,7 +706,7 @@ class TextAreaManager {
     }
 
     focus() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -591,7 +715,7 @@ class TextAreaManager {
     }
 
     blur() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -600,7 +724,7 @@ class TextAreaManager {
     }
 
     select() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -609,7 +733,7 @@ class TextAreaManager {
     }
 
     clear() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -618,7 +742,7 @@ class TextAreaManager {
     }
 
     getWordAtCursor() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return '';
         }
         if (this.textAreaUtils) {
@@ -629,7 +753,7 @@ class TextAreaManager {
     }
 
     replaceWordAtCursor(newWord) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -638,7 +762,7 @@ class TextAreaManager {
     }
 
     getTextBeforeCursor() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return '';
         }
         if (this.textAreaUtils) {
@@ -649,7 +773,7 @@ class TextAreaManager {
     }
 
     getTextAfterCursor() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return '';
         }
         if (this.textAreaUtils) {
@@ -660,7 +784,7 @@ class TextAreaManager {
     }
 
     insertAtCursor(text, options = {}) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -669,7 +793,7 @@ class TextAreaManager {
     }
 
     autoResize() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.autoResizeManager) {
@@ -682,7 +806,7 @@ class TextAreaManager {
     // ============================================================================
 
     updateResizeCache(content) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.autoResizeManager) {
@@ -691,7 +815,7 @@ class TextAreaManager {
     }
 
     clearResizeCache() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.autoResizeManager) {
@@ -700,7 +824,7 @@ class TextAreaManager {
     }
 
     clearStyleCache() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.autoResizeManager) {
@@ -709,7 +833,7 @@ class TextAreaManager {
     }
 
     ensureInitialHeight() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.autoResizeManager) {
@@ -718,7 +842,7 @@ class TextAreaManager {
     }
 
     resetToInitialHeight() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.autoResizeManager) {
@@ -727,7 +851,7 @@ class TextAreaManager {
     }
 
     resetInitialHeight() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.autoResizeManager) {
@@ -736,7 +860,7 @@ class TextAreaManager {
     }
 
     getCurrentHeightLevel() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return 0;
         }
         if (this.autoResizeManager) {
@@ -747,7 +871,7 @@ class TextAreaManager {
     }
 
     applyViewportClamp() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.autoResizeManager) {
@@ -760,7 +884,7 @@ class TextAreaManager {
     // ============================================================================
 
     getCharacterCount() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return 0;
         }
         if (this.textAreaUtils) {
@@ -771,7 +895,7 @@ class TextAreaManager {
     }
 
     getWordCount() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return 0;
         }
         if (this.textAreaUtils) {
@@ -782,7 +906,7 @@ class TextAreaManager {
     }
 
     isEmpty() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return true;
         }
         if (this.textAreaUtils) {
@@ -793,7 +917,7 @@ class TextAreaManager {
     }
 
     isTooLong(maxLength) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return false;
         }
         if (this.textAreaUtils) {
@@ -808,7 +932,7 @@ class TextAreaManager {
     // ============================================================================
 
     saveToHistory() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -828,7 +952,7 @@ class TextAreaManager {
     }
 
     loadFromHistory(index) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.textAreaUtils) {
@@ -886,13 +1010,22 @@ class TextAreaManager {
         if (this.destroyed) {
             return;
         }
+
+        if (!enabled && this.ariaLiveRegion) {
+            // Clean up DOM when disabling
+            this.ariaLiveRegion.remove();
+            this.ariaLiveRegion = null;
+
+            return;
+        }
+
         if (this.textAreaUtils) {
             this.ariaLiveRegion = this.textAreaUtils.enableA11yAnnouncements(this.ariaLiveRegion, enabled);
         }
     }
 
     announceHeightLevel(heightLevel) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.ariaLiveRegion) {
             return;
         }
         if (this.textAreaUtils) {
@@ -905,20 +1038,24 @@ class TextAreaManager {
         if (this.destroyed) {
             return;
         }
-        if (this.textAreaUtils) {
+        // Safe fallback if debug method is missing
+        if (this.textAreaUtils?.debug) {
             this.textAreaUtils.debug(...args);
         }
     }
 
     getMetrics() {
         if (this.destroyed) {
-            return {};
+            return Object.freeze({});
         }
         if (this.textAreaUtils) {
-            return this.textAreaUtils.getMetrics();
+            const metrics = this.textAreaUtils.getMetrics();
+
+            // Return frozen copy to prevent external mutation
+            return Object.freeze({ ...metrics });
         }
 
-        return {};
+        return Object.freeze({});
     }
 
     resetMetrics() {
@@ -935,7 +1072,7 @@ class TextAreaManager {
     // ============================================================================
 
     getResizeInfo() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return null;
         }
         if (this.autoResizeManager) {
@@ -946,12 +1083,51 @@ class TextAreaManager {
     }
 
     resetMatchClickFlag() {
-        if (this.destroyed) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
         if (this.matchManager) {
             this.matchManager.resetMatchClickFlag();
         }
+    }
+
+    // ============================================================================
+    // LIFECYCLE CALLBACK MANAGEMENT
+    // ============================================================================
+
+    /**
+     * Register a lifecycle callback
+     * @param {LifecycleCallback} callback - Callback function
+     * @returns {Function} Unregister function
+     */
+    onLifecycle(callback) {
+        if (typeof callback !== 'function') {
+            console.warn('onLifecycle: callback must be a function');
+
+            return () => {};
+        }
+
+        this.lifecycleCallbacks.add(callback);
+
+        // Return unregister function
+        return () => {
+            this.lifecycleCallbacks.delete(callback);
+        };
+    }
+
+    /**
+     * Remove a lifecycle callback
+     * @param {LifecycleCallback} callback - Callback to remove
+     */
+    offLifecycle(callback) {
+        this.lifecycleCallbacks.delete(callback);
+    }
+
+    /**
+     * Clear all lifecycle callbacks
+     */
+    clearLifecycleCallbacks() {
+        this.lifecycleCallbacks.clear();
     }
 
     // ============================================================================
@@ -963,10 +1139,16 @@ class TextAreaManager {
             return false;
         }
 
-        // 1. Clear all timers first
-        this._clearAllTimers();
+        // 1. Cancel all scheduled work
+        this._cancelAllScheduledWork();
 
-        // 2. Clear manager instances to ensure clean rebuild
+        // 2. Disconnect ResizeObserver
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+
+        // 3. Clear manager instances to ensure clean rebuild
         if (this.autoResizeManager) {
             this.autoResizeManager.destroy();
             this.autoResizeManager = null;
@@ -979,28 +1161,29 @@ class TextAreaManager {
             this.eventManager.destroy();
             this.eventManager = null;
         }
-        if (this.searchReplaceManager) {
+        if (this.searchReplaceManager?.destroy) {
             this.searchReplaceManager.destroy();
             this.searchReplaceManager = null;
         }
 
-        // 3. Reset state and DOM-ready flags
+        // 4. Reset state and DOM-ready flags
         this.isInitialized = false;
         this.eventsBound = false;
         this.domReadyFired = false;
+        this.retryBindScheduled = false;
         this.textArea = null;
         this.matchesEl = null;
 
-        // 4. Reinitialize
+        // 5. Reinitialize
         this.init();
 
-        // 5. Clear any old DOM-ready listener before re-adding
+        // 6. Clear any old DOM-ready listener before re-adding
         if (this.domReadyHandler && !this.domReadyFired) {
             document.removeEventListener('DOMContentLoaded', this.domReadyHandler);
             this.domReadyHandler = null;
         }
 
-        // 6. If DOM is already ready, bind immediately
+        // 7. If DOM is already ready, bind immediately
         if (document.readyState !== 'loading') {
             this._retryInitAndBind();
         } else {
@@ -1027,7 +1210,13 @@ class TextAreaManager {
             this.unbindEvents();
         }
 
-        // 2. Destroy old managers to prevent leaks
+        // 2. Disconnect ResizeObserver
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+
+        // 3. Destroy old managers to prevent leaks
         if (this.autoResizeManager) {
             this.autoResizeManager.destroy();
         }
@@ -1037,15 +1226,15 @@ class TextAreaManager {
         if (this.eventManager) {
             this.eventManager.destroy();
         }
-        if (this.searchReplaceManager) {
+        if (this.searchReplaceManager?.destroy) {
             this.searchReplaceManager.destroy();
         }
 
-        // 3. Update targets
+        // 4. Update targets
         this.textArea = newTextArea;
         this.matchesEl = newMatchesEl;
 
-        // 4. Rebuild managers with new targets
+        // 5. Rebuild managers with new targets
         if (this.textArea && this.matchesEl) {
             this.autoResizeManager = new this.AutoResizeManager(this.textArea, this.initialHeight);
             this.matchManager = new this.MatchManager(this.textArea, this.matchesEl);
@@ -1055,27 +1244,42 @@ class TextAreaManager {
                 this.matchManager,
                 this.autoResizeManager
             );
-            this.searchReplaceManager = new this.SearchReplaceManager(this.textArea);
 
-            // 5. Set up height change callback
+            // Initialize SearchReplaceManager if available
+            if (this.SearchReplaceManager) {
+                this.searchReplaceManager = new this.SearchReplaceManager(this.textArea);
+            }
+
+            // 6. Set up height change callback
             if (this.autoResizeManager && this.onHeightChangeCallback) {
                 this.autoResizeManager.onHeightChangeCallback = this.onHeightChangeCallback;
             }
 
-            // 6. Reapply sizing and saved height
-            this.autoResizeManager.applyViewportClamp();
-            this.textAreaUtils.loadSavedHeight(this.textArea, this.initialHeight);
+            // 7. Reapply sizing and saved height
+            if (this.autoResizeManager) {
+                this.autoResizeManager.applyViewportClamp();
+            }
+
+            if (this.textArea) {
+                this.textAreaUtils.loadSavedHeight(this.textArea, this.initialHeight);
+            }
+
             this.setupSearchReplace();
 
-            // 7. Stabilize layout after retarget
-            this.autoResizeManager.ensureInitialHeight();
-            this.autoResizeManager.autoResize();
+            // 8. Stabilize layout after retarget
+            if (this.autoResizeManager) {
+                this.autoResizeManager.ensureInitialHeight();
+                this.autoResizeManager.autoResize();
+            }
 
-            // 8. Bind events and mark as initialized if successful
+            // 9. Bind events and mark as initialized if successful
             const bindSuccess = this.bindEvents();
 
             if (bindSuccess) {
                 this.isInitialized = true;
+
+                // Setup ResizeObserver for new element
+                this._setupResizeObserver();
             }
 
             return bindSuccess;
@@ -1093,7 +1297,48 @@ class TextAreaManager {
      * @returns {boolean} True if manager is initialized and bound
      */
     isReady() {
-        return !this.destroyed && this.isInitialized && this.eventsBound;
+        return !this.destroyed && this.isInitialized && this.eventsBound && !!this.textArea;
+    }
+
+    /**
+     * Update configuration dynamically
+     * @param {Object} newConfig - New configuration object
+     * @returns {boolean} True if config was updated successfully
+     */
+    setConfig(newConfig) {
+        if (this.destroyed || !newConfig) {
+            return false;
+        }
+
+        // Update config reference
+        this.TEXTAREA_CONFIG = { ...this.TEXTAREA_CONFIG, ...newConfig };
+
+        // If selectors changed, may need to re-query DOM
+        if (newConfig.selectors) {
+            // Optionally re-initialize DOM if selectors changed
+            if (this.isInitialized) {
+                const oldTextArea = this.textArea;
+                const oldMatchesEl = this.matchesEl;
+
+                this.textArea = this.Utils.dom.get(this.TEXTAREA_CONFIG.selectors.textArea);
+                this.matchesEl = this.Utils.dom.get(this.TEXTAREA_CONFIG.selectors.matches);
+
+                // If elements changed, update targets
+                if (this.textArea !== oldTextArea || this.matchesEl !== oldMatchesEl) {
+                    return this.updateTargets(this.textArea, this.matchesEl);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get current state of the manager
+     * @returns {TextAreaManagerState} Current state
+     */
+    getState() {
+        return this.state;
     }
 }
 

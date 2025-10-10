@@ -1,6 +1,15 @@
 // ============================================================================
 // MATCH MANAGER - Handles textarea match processing functionality
 // ============================================================================
+//
+// USAGE NOTES:
+// - Consider debouncing updateMatches() calls at 50-100ms to reduce async churn
+// - Host should call handleBlur() on textarea blur events to reset session state
+// - For accessibility: match list container should have role="listbox" and items
+//   should have role="option" with keyboard navigation (up/down/enter)
+// - Use getMetrics() to monitor droppedMatches for observability
+//
+// ============================================================================
 
 class MatchManager {
     constructor(textArea, matchesEl) {
@@ -8,13 +17,19 @@ class MatchManager {
         this.matchesEl = matchesEl;
         this.matchProcessor = new window.MatchProcessor();
         this.currentMatchRequestId = 0;
-        this.matchSessionKey = Date.now();
+        this.matchSessionKey = performance.now();
         this.lastTriggeringWord = null;
         this.hasReplacedTrigger = false;
-        this.isMatchClick = false;
-        this.isComposing = false;
+        this.lastMatchSession = null;
         this.destroyed = false;
-        this.metrics = { droppedMatches: 0 };
+        this.droppedMatches = 0;
+        this.sampleMatchCache = null;
+    }
+
+    getMetrics() {
+        return {
+            droppedMatches: this.droppedMatches
+        };
     }
 
     async updateMatches(value, cursorPosition) {
@@ -26,28 +41,45 @@ class MatchManager {
         const textBeforeCursor = window.TextUtils.getTextBeforeCursor(value, cursorPosition);
 
         if (!this.matchProcessor.isReadyForMatching(textBeforeCursor)) {
-            const sampleMatches = await this.matchProcessor.getSampleMatches();
+            await this.showSampleMatches(requestId);
 
-            if (this.destroyed || !this.matchesEl) {
+            return;
+        }
+
+        await this.showRealMatches(textBeforeCursor, requestId);
+    }
+
+    async showSampleMatches(requestId) {
+        if (this.sampleMatchCache) {
+            if (this.destroyed || !this.matchesEl || requestId !== this.currentMatchRequestId) {
                 return;
             }
 
-            this.matchesEl.innerHTML = this.sanitizeMatchesHTML(sampleMatches);
-            this.hasReplacedTrigger = false;
-            this.matchSessionKey = Date.now();
+            this.matchesEl.innerHTML = this.sampleMatchCache;
 
             return;
         }
 
+        const sampleMatches = await this.matchProcessor.getSampleMatches();
+
+        if (this.destroyed || !this.matchesEl || requestId !== this.currentMatchRequestId) {
+            return;
+        }
+
+        const sanitized = this.sanitizeMatchesHTML(sampleMatches);
+
+        this.sampleMatchCache = sanitized;
+        this.matchesEl.innerHTML = sanitized;
+    }
+
+    async showRealMatches(textBeforeCursor, requestId) {
         const matches = await this.matchProcessor.findMatches(textBeforeCursor);
 
-        if (requestId !== this.currentMatchRequestId) {
-            this.metrics.droppedMatches++;
+        if (this.destroyed || !this.matchesEl || requestId !== this.currentMatchRequestId) {
+            if (!this.destroyed && requestId !== this.currentMatchRequestId) {
+                this.droppedMatches++;
+            }
 
-            return;
-        }
-
-        if (this.destroyed || !this.matchesEl) {
             return;
         }
 
@@ -56,7 +88,8 @@ class MatchManager {
         if (currentTriggeringWord && currentTriggeringWord !== this.lastTriggeringWord) {
             this.hasReplacedTrigger = false;
             this.lastTriggeringWord = currentTriggeringWord;
-            this.matchSessionKey = Date.now();
+            this.matchSessionKey = performance.now();
+            this.sampleMatchCache = null;
         }
 
         const sanitizedMatches = this.sanitizeMatchesHTML(
@@ -80,36 +113,38 @@ class MatchManager {
             const textContent = temp.textContent || '';
 
             if (textContent.trim()) {
-                return `<li>${this.escapeHTML(textContent)}</li>`;
+                const li = document.createElement('li');
+
+                li.textContent = textContent;
+
+                return li.outerHTML;
             }
 
             return '';
         }
 
+        const whitelistedAttrs = ['class', 'title', 'data-value', 'data-id'];
         const sanitized = Array.from(liElements).map(li => {
-            const text = li.textContent || '';
-            const className = li.className || '';
-            const title = li.title || '';
+            const newLi = document.createElement('li');
 
-            return `<li class="${this.escapeHTML(className)}" title="${this.escapeHTML(title)}">${this.escapeHTML(text)}</li>`;
+            whitelistedAttrs.forEach(attr => {
+                const value = li.getAttribute(attr);
+
+                if (value !== null) {
+                    newLi.setAttribute(attr, value);
+                }
+            });
+
+            newLi.innerHTML = li.innerHTML;
+
+            return newLi.outerHTML;
         }).join('');
 
         return sanitized;
     }
 
-    escapeHTML(text) {
-        if (typeof text !== 'string') {
-            return '';
-        }
-        const div = document.createElement('div');
-
-        div.textContent = text;
-
-        return div.innerHTML;
-    }
-
     handleMatchListItemClick(e) {
-        if (this.destroyed) {
+        if (this.destroyed || !this.matchProcessor) {
             return;
         }
 
@@ -120,9 +155,8 @@ class MatchManager {
         }
 
         const isSample = listItem.classList.contains('sample');
-        const replacement = window.MatchProcessorUtils.processMatchSelection(listItem.innerText, isSample);
-
-        this.isMatchClick = true;
+        const matchText = listItem.dataset.value || listItem.textContent;
+        const replacement = window.MatchProcessorUtils.processMatchSelection(matchText, isSample);
         const currentSession = this.matchSessionKey;
 
         if (this.hasReplacedTrigger && this.lastMatchSession === currentSession) {
@@ -135,7 +169,7 @@ class MatchManager {
     }
 
     insertText(text) {
-        if (!this.textArea) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
 
@@ -155,7 +189,7 @@ class MatchManager {
     }
 
     appendToEnd(text) {
-        if (!this.textArea) {
+        if (this.destroyed || !this.textArea) {
             return;
         }
 
@@ -167,14 +201,19 @@ class MatchManager {
     }
 
     replaceTriggeringWord(replacement) {
-        if (!this.textArea || !this.matchProcessor.getLastMatchedWord()) {
+        if (this.destroyed || !this.textArea || !this.matchProcessor) {
+            return;
+        }
+
+        const triggeringWord = this.matchProcessor.getLastMatchedWord();
+
+        if (!triggeringWord) {
             this.insertText(replacement);
 
             return;
         }
 
         const snapshotCursorPosition = this.textArea.selectionStart;
-        const triggeringWord = this.matchProcessor.getLastMatchedWord();
 
         if (this.shouldAppendInsteadOfReplace()) {
             this.appendToEnd(replacement);
@@ -197,7 +236,7 @@ class MatchManager {
     }
 
     isRTLContext() {
-        if (!this.textArea) {
+        if (this.destroyed || !this.textArea) {
             return false;
         }
 
@@ -209,7 +248,9 @@ class MatchManager {
 
         const startPos = Math.max(0, this.textArea.selectionStart - 64);
         const textBeforeCursor = this.textArea.value.slice(startPos, this.textArea.selectionStart);
-        const rtlPattern = /[\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+        const rtlChars = '\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u08A0-\u08FF' +
+            '\uFB50-\uFDFF\uFE70-\uFEFF\u200F\u202B\u202E\u061C';
+        const rtlPattern = new RegExp(`[${rtlChars}]`);
 
         return rtlPattern.test(textBeforeCursor);
     }
@@ -219,6 +260,10 @@ class MatchManager {
     }
 
     attemptTriggeringWordReplacement(triggeringWord, replacement, snapshotCursorPosition) {
+        if (this.destroyed || !this.textArea) {
+            return false;
+        }
+
         const cursorPos = snapshotCursorPosition !== undefined
             ? snapshotCursorPosition
             : this.textArea.selectionStart;
@@ -249,25 +294,38 @@ class MatchManager {
     }
 
     triggerInputEvent() {
-        if (this.textArea) {
-            this.textArea.dispatchEvent(new Event('input', { bubbles: true }));
+        if (this.destroyed || !this.textArea) {
+            return;
         }
-    }
 
-    resetMatchClickFlag() {
-        setTimeout(() => {
-            this.isMatchClick = false;
-            this.hasReplacedTrigger = false;
-        }, 100);
+        this.textArea.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     resetMatchState() {
+        if (this.destroyed) {
+            return;
+        }
+
         this.hasReplacedTrigger = false;
         this.lastTriggeringWord = null;
-        this.matchProcessor.resetMatchState();
+        this.lastMatchSession = null;
+        this.matchSessionKey = performance.now();
+        this.sampleMatchCache = null;
+
+        if (this.matchProcessor) {
+            this.matchProcessor.resetMatchState();
+        }
+    }
+
+    handleBlur() {
+        this.resetMatchState();
     }
 
     clearMatches() {
+        if (this.destroyed) {
+            return;
+        }
+
         if (this.matchesEl) {
             this.matchesEl.innerHTML = '';
         }
@@ -279,6 +337,7 @@ class MatchManager {
         this.matchProcessor = null;
         this.textArea = null;
         this.matchesEl = null;
+        this.sampleMatchCache = null;
     }
 }
 
