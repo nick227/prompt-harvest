@@ -507,18 +507,15 @@ class DualViewLoadingManager {
                 const renderer = new window.ViewRenderer();
 
                 renderer.updateWrapper(wrapper, currentView);
-            } else {
-                // Fallback to manual class updates
-                if (currentView === 'list') {
-                    wrapper.classList.add('list');
-                    wrapper.classList.remove('compact', 'full');
-                } else if (currentView === 'compact') {
-                    wrapper.classList.add('compact');
-                    wrapper.classList.remove('list', 'full');
-                } else if (currentView === 'full') {
-                    wrapper.classList.add('full');
-                    wrapper.classList.remove('list', 'compact');
-                }
+            } else if (currentView === 'list') {
+                wrapper.classList.add('list');
+                wrapper.classList.remove('compact', 'full');
+            } else if (currentView === 'compact') {
+                wrapper.classList.add('compact');
+                wrapper.classList.remove('list', 'full');
+            } else if (currentView === 'full') {
+                wrapper.classList.add('full');
+                wrapper.classList.remove('list', 'compact');
             }
         }
     }

@@ -489,54 +489,16 @@ class ImageViewUtils {
         const imgSrc = imageData.url || imageData.imageUrl || imageData.image || `uploads/${imageData.imageName || 'placeholder.png'}`;
 
         fullView.innerHTML = `
-            <div class="full-view-container" style="
-                width: 100%;
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-                background: var(--color-surface-primary, #1a1a1a);
-                border: 1px solid var(--color-border-primary, #333);
-                border-radius: 8px;
-                overflow: hidden;
-            ">
-                <div class="full-view-image-wrapper" style="
-                    width: 100%;
-                    aspect-ratio: 16/9;
-                    position: relative;
-                    background: #000;
-                ">
+            <div class="full-view-container">
+                <div class="full-view-image-wrapper">
                     <img src="${imgSrc}" 
                          alt="${imageData.title || 'Generated Image'}" 
-                         loading="lazy"
-                         style="
-                            width: 100%;
-                            height: 100%;
-                            object-fit: contain;
-                         ">
+                         loading="lazy">
                 </div>
-                <div class="full-view-content" style="
-                    padding: 16px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                ">
-                    <h3 style="
-                        margin: 0;
-                        color: var(--color-text-primary, #fff);
-                        font-size: 18px;
-                        font-weight: 600;
-                    ">${imageData.title || 'Generated Image'}</h3>
-                    <div style="
-                        color: var(--color-text-secondary, #ccc);
-                        font-size: 14px;
-                        line-height: 1.6;
-                    ">${imageData.prompt || ''}</div>
-                    <div class="full-view-metadata" style="
-                        display: flex;
-                        gap: 16px;
-                        color: var(--color-text-tertiary, #999);
-                        font-size: 13px;
-                    ">
+                <div class="full-view-content">
+                    <h3>${imageData.title || 'Generated Image'}</h3>
+                    <div class="full-view-prompt">${imageData.prompt || ''}</div>
+                    <div class="full-view-metadata">
                         <span>Provider: ${imageData.provider || 'Unknown'}</span>
                         <span>Rating: ★ ${imageData.rating || 0}</span>
                         ${imageData.username ? `<span>By: ${imageData.username}</span>` : ''}
@@ -545,7 +507,45 @@ class ImageViewUtils {
             </div>
         `;
 
-        // Add click handler for list view
+        // Add data attributes to image element
+        const img = fullView.querySelector('img');
+
+        if (img) {
+            img.dataset.id = imageData.id || imageData._id || '';
+            img.dataset.imageId = imageData.id || imageData._id || '';
+            img.dataset.userId = imageData.userId || '';
+            img.dataset.prompt = imageData.prompt || '';
+            img.dataset.provider = imageData.provider || '';
+            img.dataset.rating = imageData.rating || 0;
+            img.dataset.isPublic = imageData.isPublic || false;
+            img.dataset.title = imageData.title || 'Generated Image';
+
+            if (imageData.tags) {
+                img.dataset.tags = typeof imageData.tags === 'string'
+                    ? imageData.tags
+                    : JSON.stringify(imageData.tags);
+            }
+        }
+
+        // Add tags display if available
+        if (imageData.tags && imageData.tags.length > 0) {
+            const content = fullView.querySelector('.full-view-content');
+            const tagsContainer = this.createTagsContainer(imageData.tags);
+
+            tagsContainer.style.cssText = 'margin-top: 0.5rem;';
+            content.appendChild(tagsContainer);
+        }
+
+        // Add public/private toggle if user owns the image
+        const publicCheckbox = this.createPublicCheckbox(imageData, 'full');
+
+        if (publicCheckbox) {
+            const content = fullView.querySelector('.full-view-content');
+
+            content.appendChild(publicCheckbox);
+        }
+
+        // Add click handler for fullscreen
         this.addListViewClickHandler(fullView, imageData);
 
         return fullView;
