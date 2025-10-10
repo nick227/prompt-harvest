@@ -120,13 +120,6 @@ class AdminSharedTable {
     render(dataType, data, container, options = {}) {
         const config = this.tableConfigs[dataType];
 
-        console.log('🔧 ADMIN-SHARED-TABLE: render called', {
-            dataType,
-            hasConfig: !!config,
-            dataLength: Array.isArray(data) ? data.length : (data?.items?.length || 0),
-            actions: config?.actions
-        });
-
         if (!config) {
             console.error(`❌ ADMIN-SHARED-TABLE: No configuration found for ${dataType}`);
 
@@ -148,8 +141,6 @@ class AdminSharedTable {
             // Store reference to container and data type
             this.container = container;
             this.dataType = dataType;
-
-            console.log('🔧 ADMIN-SHARED-TABLE: Set dataType to', this.dataType, 'with', this.originalData.length, 'items');
 
             // Generate table HTML
             const tableHTML = this.generateTableHTML(dataType, config, options);
@@ -364,17 +355,8 @@ class AdminSharedTable {
 
 
         addButtons.forEach((button, index) => {
-            console.log(`🔧 ADMIN-SHARED-TABLE: Button ${index}:`, {
-                text: button.textContent,
-                action: button.dataset.action,
-                class: button.className
-            });
 
             button.addEventListener('click', e => {
-                console.log('🔧 ADMIN-SHARED-TABLE: Add button clicked:', {
-                    text: button.textContent,
-                    action: button.dataset.action
-                });
                 e.stopPropagation();
                 const { action } = button.dataset;
 
@@ -661,14 +643,6 @@ class AdminSharedTable {
         };
 
         const config = buttonConfigs[this.dataType] || {};
-
-        console.log('🔧 ADMIN-SHARED-TABLE: generateActionButtons', {
-            dataType: this.dataType,
-            actions,
-            config,
-            hasConfig: !!config,
-            itemId: item?.id
-        });
 
         return actions.map(action => {
             const buttonConfig = config[action];
