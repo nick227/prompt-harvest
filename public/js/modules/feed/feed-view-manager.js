@@ -257,6 +257,7 @@ class FeedViewManager {
         }
 
         // Use renderer to apply view to all wrappers
+        // (This also updates container classes internally)
         this.viewRenderer.applyToAllWrappers(promptOutput, newView);
 
         // Update current view

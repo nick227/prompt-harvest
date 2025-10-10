@@ -122,12 +122,15 @@
          */
         updateContainerClasses(container, viewType) {
             if (!container) {
+                console.warn('⚠️ VIEW RENDERER: No container provided for updateContainerClasses');
+
                 return;
             }
 
             // Remove all view-related classes
             const allClasses = this.registry.getAllContainerClasses();
 
+            console.log(`🎨 VIEW RENDERER: Removing classes:`, allClasses);
             allClasses.forEach(className => {
                 container.classList.remove(className);
             });
@@ -136,7 +139,12 @@
             const config = this.registry.getViewConfig(viewType);
 
             if (config) {
+                console.log(`🎨 VIEW RENDERER: Adding class '${config.containerClass}' to container`);
                 container.classList.add(config.containerClass);
+
+                console.log(`🎨 VIEW RENDERER: Container classes now:`, container.className);
+            } else {
+                console.error(`❌ VIEW RENDERER: No config found for view type: ${viewType}`);
             }
         }
 
