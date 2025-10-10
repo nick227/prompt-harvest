@@ -349,13 +349,13 @@ class ImageViewUtils {
         if (!extractedData) {
             console.error('❌ LIST VIEW: No data extracted');
 
-            return;
-        }
+                    return;
+                }
 
         if (window.imageComponent?.openFullscreen) {
-            window.imageComponent.openFullscreen(extractedData);
+                        window.imageComponent.openFullscreen(extractedData);
         } else if (window.imageManager?.openFullscreen) {
-            window.imageManager.openFullscreen(extractedData);
+                        window.imageManager.openFullscreen(extractedData);
         } else {
             console.error('❌ LIST VIEW: Cannot open fullscreen - no fullscreen methods available');
         }
@@ -432,10 +432,7 @@ class ImageViewUtils {
             case 'list':
                 return this._createListView(imageData);
             case 'full':
-                // TODO: Implement full view creation
-                console.warn('⚠️ Full view not yet implemented');
-
-                return null;
+                return this._createFullView(imageData);
             default:
                 console.warn(`⚠️ Unknown view type: ${viewType}`);
 
@@ -480,6 +477,78 @@ class ImageViewUtils {
         }
 
         return listView;
+    }
+
+    static _createFullView(imageData) {
+        const fullView = document.createElement('div');
+
+        fullView.className = 'full-view';
+        fullView.style.display = 'none';
+
+        // Full-width image display
+        const imgSrc = imageData.url || imageData.imageUrl || imageData.image || `uploads/${imageData.imageName || 'placeholder.png'}`;
+
+        fullView.innerHTML = `
+            <div class="full-view-container" style="
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                background: var(--color-surface-primary, #1a1a1a);
+                border: 1px solid var(--color-border-primary, #333);
+                border-radius: 8px;
+                overflow: hidden;
+            ">
+                <div class="full-view-image-wrapper" style="
+                    width: 100%;
+                    aspect-ratio: 16/9;
+                    position: relative;
+                    background: #000;
+                ">
+                    <img src="${imgSrc}" 
+                         alt="${imageData.title || 'Generated Image'}" 
+                         loading="lazy"
+                         style="
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                         ">
+                </div>
+                <div class="full-view-content" style="
+                    padding: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                ">
+                    <h3 style="
+                        margin: 0;
+                        color: var(--color-text-primary, #fff);
+                        font-size: 18px;
+                        font-weight: 600;
+                    ">${imageData.title || 'Generated Image'}</h3>
+                    <div style="
+                        color: var(--color-text-secondary, #ccc);
+                        font-size: 14px;
+                        line-height: 1.6;
+                    ">${imageData.prompt || ''}</div>
+                    <div class="full-view-metadata" style="
+                        display: flex;
+                        gap: 16px;
+                        color: var(--color-text-tertiary, #999);
+                        font-size: 13px;
+                    ">
+                        <span>Provider: ${imageData.provider || 'Unknown'}</span>
+                        <span>Rating: ★ ${imageData.rating || 0}</span>
+                        ${imageData.username ? `<span>By: ${imageData.username}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add click handler for list view
+        this.addListViewClickHandler(fullView, imageData);
+
+        return fullView;
     }
 
     static _getFallbackListContent(imageData) {

@@ -16,7 +16,7 @@ coverage/
 private
 .cursor
 playwright-report
-public/
+public/uploads
 .cursor/
 .vscode/
 dist/

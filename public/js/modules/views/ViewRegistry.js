@@ -52,11 +52,11 @@
             displayStyle: 'block',
             selector: '.full-view',
             priority: 3,
-            enabled: false, // Not yet implemented
+            enabled: true, // ✅ ENABLED!
             metadata: {
                 icon: '◫',
                 label: 'Full',
-                description: 'Full screen immersive view'
+                description: 'Full width image view'
             }
         }
     };

@@ -142,12 +142,7 @@
         display: none !important;
     }
 
-    .view-switch {
-        width: 100% !important;
-        justify-content: space-between !important;
-    }
-
-    .view-switch label {
+    label {
         flex: 1;
         white-space: nowrap;
     }

@@ -253,13 +253,13 @@ input[type="radio"]:checked + span {
     color: var(--color-text-primary) !important;
 }
 
-.view-switch label {
+label {
     background-color: var(--color-surface-secondary) !important;
     color: var(--color-text-primary) !important;
     border-color: var(--color-border-primary) !important;
 }
 
-.view-switch label:hover {
+label:hover {
     background-color: var(--color-surface-tertiary) !important;
 }
 

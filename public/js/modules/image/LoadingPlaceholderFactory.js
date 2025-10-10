@@ -208,6 +208,59 @@ class LoadingPlaceholderFactory {
     }
 
     /**
+     * Setup full view for loading placeholder
+     * @param {HTMLElement} fullView - Full view element
+     * @param {Object} promptObj - Prompt object
+     */
+    setupFullView(fullView, promptObj) {
+        fullView.classList.add('loading-placeholder-content');
+
+        const loadingContent = document.createElement('div');
+
+        loadingContent.className = 'full-loading-container';
+        loadingContent.style.cssText = `
+            width: 100%;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-surface-primary, #1a1a1a);
+            border: 1px solid var(--color-border-primary, #333);
+            border-radius: 8px;
+            padding: 2rem;
+            gap: 1rem;
+        `;
+
+        const spinner = this.createLoadingSpinner('full');
+        const promptText = document.createElement('div');
+
+        promptText.className = 'full-loading-prompt';
+        promptText.style.cssText = `
+            color: var(--color-text-secondary, #ccc);
+            font-size: 16px;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.6;
+        `;
+        promptText.textContent = promptObj.prompt || 'Generating full width image...';
+
+        const statusText = document.createElement('div');
+
+        statusText.className = 'full-loading-status';
+        statusText.style.cssText = `
+            color: var(--color-text-tertiary, #999);
+            font-size: 14px;
+        `;
+        statusText.textContent = 'Please wait...';
+
+        loadingContent.appendChild(spinner);
+        loadingContent.appendChild(promptText);
+        loadingContent.appendChild(statusText);
+        fullView.appendChild(loadingContent);
+    }
+
+    /**
      * Setup list view for loading placeholder
      * @param {HTMLElement} listView - List view element
      * @param {Object} promptObj - Prompt object

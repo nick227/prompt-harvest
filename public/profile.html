@@ -64,8 +64,10 @@
             <div class="flex flex-col h-full">
                 <!-- Controls Bar -->
                 <div class="flex items-center justify-between mb-4 flex-wrap gap-4 flex-wrap">
-                    <div class="view-switch flex items-center gap-2 flex-wrap w-full">
+                    <div class="flex items-center gap-2 flex-wrap w-full">
                         <!-- View Switch -->
+                        <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors">
+                            <input type="radio" name="view" value="full"> Full</label>
                         <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors">
                             <input type="radio" name="view" value="list"> List</label>
                         <label class="bg-gray-700 text-yellow-400 px-3 py-1 rounded hover:bg-gray-600 transition-colors"
@@ -158,12 +160,12 @@
 
     <!-- Shared Utilities (must be loaded first) -->
     <script src="/js/modules/shared/image-dom-utils.js"></script>
-    
+
     <!-- Centralized View System (load first) -->
     <script src="/js/modules/views/ViewRegistry.js"></script>
     <script src="/js/modules/views/ViewManager.js"></script>
     <script src="/js/modules/views/ViewRenderer.js"></script>
-    
+
     <!-- Load modular image-view dependencies -->
     <script src="/js/modules/shared/image-view/image-view-auth.js"></script>
     <script src="/js/modules/shared/image-view/image-view-data.js"></script>
