@@ -1293,7 +1293,25 @@ class AdminQueueMonitor {
 
         logEntry.className = `log-entry log-${log.level}`;
 
-        // Log header
+        logEntry.appendChild(this._createLogHeader(log));
+        logEntry.appendChild(this._createLogMessage(log.message));
+
+        if (log.context) {
+            logEntry.appendChild(this._createLogSection(log.context, 'log-context'));
+        }
+
+        if (log.error) {
+            logEntry.appendChild(this._createLogSection(log.error, 'log-error'));
+        }
+
+        return logEntry;
+    }
+
+    /**
+     * Create log header element
+     * @private
+     */
+    _createLogHeader(log) {
         const header = document.createElement('div');
 
         header.className = 'log-header';
@@ -1316,40 +1334,37 @@ class AdminQueueMonitor {
         logId.textContent = log.id;
         header.appendChild(logId);
 
-        logEntry.appendChild(header);
+        return header;
+    }
 
-        // Log message
+    /**
+     * Create log message element
+     * @private
+     */
+    _createLogMessage(messageText) {
         const message = document.createElement('div');
 
         message.className = 'log-message';
-        message.textContent = log.message;
-        logEntry.appendChild(message);
+        message.textContent = messageText;
 
-        // Context (if exists)
-        if (log.context) {
-            const contextDiv = document.createElement('div');
+        return message;
+    }
 
-            contextDiv.className = 'log-context';
-            const contextPre = document.createElement('pre');
+    /**
+     * Create log section (context/error)
+     * @private
+     */
+    _createLogSection(data, className) {
+        const section = document.createElement('div');
 
-            contextPre.textContent = JSON.stringify(log.context, null, 2);
-            contextDiv.appendChild(contextPre);
-            logEntry.appendChild(contextDiv);
-        }
+        section.className = className;
 
-        // Error (if exists)
-        if (log.error) {
-            const errorDiv = document.createElement('div');
+        const pre = document.createElement('pre');
 
-            errorDiv.className = 'log-error';
-            const errorPre = document.createElement('pre');
+        pre.textContent = JSON.stringify(data, null, 2);
+        section.appendChild(pre);
 
-            errorPre.textContent = JSON.stringify(log.error, null, 2);
-            errorDiv.appendChild(errorPre);
-            logEntry.appendChild(errorDiv);
-        }
-
-        return logEntry;
+        return section;
     }
 
     /**
