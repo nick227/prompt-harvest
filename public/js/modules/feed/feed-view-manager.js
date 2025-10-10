@@ -206,15 +206,20 @@ class FeedViewManager {
             return;
         }
 
-        // Apply the initial view classes
-        promptOutput.classList.remove('list-wrapper', 'compact-view');
+        if (this.viewRenderer) {
+            // Use centralized renderer
+            this.viewRenderer.updateContainerClasses(promptOutput, this.currentView);
+            this.viewRenderer.applyToAllWrappers(promptOutput, this.currentView);
+        } else {
+            // Fallback to manual classes
+            promptOutput.classList.remove('list-wrapper', 'compact-view');
 
-        if (this.currentView === 'list') {
-            promptOutput.classList.add('list-wrapper');
-        } else if (this.currentView === 'compact') {
-            promptOutput.classList.add('compact-view');
+            if (this.currentView === 'list') {
+                promptOutput.classList.add('list-wrapper');
+            } else if (this.currentView === 'compact') {
+                promptOutput.classList.add('compact-view');
+            }
         }
-
     }
 
     /**
