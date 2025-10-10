@@ -618,7 +618,7 @@ class DualViewLoadingManager {
         const listeners = this.eventListeners.get(imageId);
 
         if (listeners) {
-            const { onLoad, onError } = listeners;
+            const { onLoad: _onLoad, onError: _onError } = listeners;
 
             // Note: In a real implementation, you'd need to store the imgElement reference
             // to properly remove event listeners

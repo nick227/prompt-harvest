@@ -349,13 +349,13 @@ class ImageViewUtils {
         if (!extractedData) {
             console.error('❌ LIST VIEW: No data extracted');
 
-                    return;
-                }
+            return;
+        }
 
         if (window.imageComponent?.openFullscreen) {
-                        window.imageComponent.openFullscreen(extractedData);
+            window.imageComponent.openFullscreen(extractedData);
         } else if (window.imageManager?.openFullscreen) {
-                        window.imageManager.openFullscreen(extractedData);
+            window.imageManager.openFullscreen(extractedData);
         } else {
             console.error('❌ LIST VIEW: Cannot open fullscreen - no fullscreen methods available');
         }

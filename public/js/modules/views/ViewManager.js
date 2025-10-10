@@ -62,6 +62,7 @@
         switchTo(viewType) {
             if (viewType === this.currentView) {
                 console.log('🎨 VIEW MANAGER: Already in view:', viewType);
+
                 return;
             }
 
@@ -88,6 +89,7 @@
 
                 if (saved && this.registry.isValidView(saved)) {
                     console.log('🎨 VIEW MANAGER: Loaded preference:', saved);
+
                     return saved;
                 }
             } catch (error) {

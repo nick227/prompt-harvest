@@ -27,6 +27,7 @@
 
             if (!config) {
                 console.warn(`⚠️ VIEW RENDERER: Unknown view type: ${viewType}`);
+
                 return;
             }
 

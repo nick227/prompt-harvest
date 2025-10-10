@@ -70,6 +70,7 @@
             .filter(([_, config]) => config.enabled)
             .reduce((acc, [key, config]) => {
                 acc[key] = config;
+
                 return acc;
             }, {});
     }
