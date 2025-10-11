@@ -161,6 +161,33 @@ export const formatErrorResponse = (error, requestId, duration = 0) => {
                 statusCode: 408
             };
 
+        case 'AllProvidersFailedError':
+            return {
+                ...baseResponse,
+                error: {
+                    type: 'ALL_PROVIDERS_FAILED',
+                    message: error.message || 'All image providers failed',
+                    providers: error.providers || [],
+                    errors: error.errors || [], // Array of {provider, error, type, statusCode}
+                    attemptedCount: error.providers?.length || 0
+                },
+                statusCode: 503
+            };
+
+        case 'InsufficientCreditsError':
+            return {
+                ...baseResponse,
+                error: {
+                    type: 'INSUFFICIENT_CREDITS',
+                    message: error.message || 'Insufficient credits',
+                    required: error.required || error.cost || 0,
+                    available: error.available || error.balance || 0,
+                    shortfall: (error.required || error.cost || 0) - (error.available || error.balance || 0)
+                },
+                status: 402, // Payment Required
+                statusCode: 402
+            };
+
         case 'AuthenticationError':
             return {
                 ...baseResponse,

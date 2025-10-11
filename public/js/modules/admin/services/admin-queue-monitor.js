@@ -833,13 +833,13 @@ class AdminQueueMonitor {
      * @returns {boolean} True if chart is valid
      */
     isValidChart(chart) {
-        return chart &&
+        return !!(chart &&
                chart.data &&
                chart.data.labels &&
                chart.data.datasets &&
                chart.data.datasets[0] &&
                Array.isArray(chart.data.labels) &&
-               Array.isArray(chart.data.datasets[0].data);
+               Array.isArray(chart.data.datasets[0].data));
     }
 
     /**
@@ -1590,7 +1590,7 @@ class AdminQueueMonitor {
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = AdminQueueMonitor;
+    module.exports = { AdminQueueMonitor };
 } else {
     window.AdminQueueMonitor = AdminQueueMonitor;
 }

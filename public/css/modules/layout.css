@@ -15,12 +15,6 @@
     border-bottom: 1px solid var(--color-gray-700);
 }
 
-.admin-header-actions {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-}
-
 .admin-add-button {
     display: inline-flex;
     align-items: center;
@@ -81,10 +75,6 @@
     opacity: 0;
 }
 
-.prompt-output.loading .image-wrapper .image-info {
-    opacity: 0;
-}
-
 .loading-overlay {
     position: absolute;
     width: 100%;
@@ -128,27 +118,8 @@
     margin: 0 auto;
 }
 
-
-.prompt-output.list-wrapper .image-wrapper {
-    width: 100%;
-    max-width: none;
-    height: auto;
-    margin-bottom: 0.75rem;
-}
-
-.list-content .metadata-table {
-    grid-template-columns: 1fr;
-    gap: 0.25rem;
-}
-
-
 .list-content h3 {
     font-size: 1rem;
-    margin-bottom: 0.5rem;
-}
-
-.list-content .image-description {
-    font-size: 0.75rem;
     margin-bottom: 0.5rem;
 }
 
@@ -196,7 +167,6 @@
     height: 147px;
 }
 
-
 /* List view specific layouts - Table-like structure */
 .prompt-output.list-wrapper li {
     width: 100%;
@@ -238,27 +208,6 @@
     position: relative;
 }
 
-.full-view-container {
-    width: 100%;
-    background: var(--color-surface-primary, #1a1a1a);
-    border: 1px solid var(--color-border-primary, #333);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.full-view-image-wrapper {
-    width: 100%;
-    aspect-ratio: 16/9;
-    background: #000;
-    position: relative;
-}
-
-.full-view-image-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
 .full-view-content {
     padding: 1rem;
     display: flex;
@@ -271,27 +220,6 @@
     color: var(--color-text-primary, #fff);
     font-size: 1.125rem;
     font-weight: 600;
-}
-
-.full-view-prompt {
-    color: var(--color-text-secondary, #ccc);
-    font-size: 0.875rem;
-    line-height: 1.6;
-    margin-bottom: 0.5rem;
-}
-
-.full-view-metadata {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    color: var(--color-text-tertiary, #999);
-    font-size: 0.813rem;
-}
-
-.full-view-metadata span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
 }
 
 /* Full view hover effects */
@@ -379,11 +307,6 @@
     transform: scale(0.4);
 }
 
-.full .loading-content,
-.list-wrapper .loading-content {
-    display: none !important;
-}
-
 .list-header {
     display: flex;
     justify-content: space-between;
@@ -399,12 +322,6 @@
 
 .list-prompt-section {
     margin-bottom: 8px;
-}
-
-.skeleton-lines {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
 }
 
 .skeleton-line {
@@ -578,33 +495,6 @@
     margin: 0 5px 5px 0;
 }
 
-.prompt-output.compact-view .image-info {
-    width: 100%;
-    padding: 0.25rem 0;
-    text-align: center;
-    overflow: hidden;
-}
-
-.prompt-output.compact-view .image-info h3,
-.prompt-output.compact-view .image-info p {
-    margin: 0;
-    padding: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.75rem;
-}
-
-.prompt-output.compact-view .image-info h3 {
-    font-weight: 600;
-    color: var(--color-gray-200);
-    margin-bottom: 0.125rem;
-}
-
-.prompt-output.compact-view .image-info p {
-    color: var(--color-gray-400);
-}
-
 /* ==========================================================================
    LIST ITEM CONTENT STYLES - Metadata, titles, descriptions, etc.
    ========================================================================== */
@@ -617,13 +507,6 @@
     margin-top: 0.5rem;
     font-size: 0.75rem;
     color: var(--color-gray-400);
-}
-
-.image-meta span {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.125rem 0.375rem;
-    border-radius: 4px;
-    white-space: nowrap;
 }
 
 /* Image title styles */
@@ -720,26 +603,6 @@
     align-items: center;
 }
 
-.image-actions button {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: var(--color-gray-200);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.image-actions button:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.image-actions button:active {
-    transform: translateY(1px);
-}
-
 /* List item status indicators */
 .image-status,
 .list-content .image-status {
@@ -750,18 +613,6 @@
     padding: 0.125rem 0.375rem;
     border-radius: 4px;
     margin-top: 0.25rem;
-}
-
-.image-status.public {
-    background: rgba(34, 197, 94, 0.2);
-    color: var(--color-green-500);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.image-status.private {
-    background: rgba(156, 163, 175, 0.2);
-    color: var(--color-gray-400);
-    border: 1px solid rgba(156, 163, 175, 0.3);
 }
 
 .image-status.processing {
@@ -778,15 +629,6 @@
     margin-top: 0.5rem;
 }
 
-.image-tags .tag {
-    background: rgba(84, 147, 240, 0.2);
-    color: var(--color-primary);
-    padding: 0.125rem 0.375rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    border: 1px solid rgba(84, 147, 240, 0.3);
-}
-
 /* List item progress indicators */
 .image-progress {
     width: 100%;
@@ -795,13 +637,6 @@
     border-radius: 1px;
     overflow: hidden;
     margin-top: 0.5rem;
-}
-
-.image-progress-bar {
-    height: 100%;
-    background: var(--color-primary);
-    transition: width 0.3s ease;
-    border-radius: 1px;
 }
 
 /* List item selection states */
@@ -813,4 +648,108 @@
 
 .prompt-output li.selected .image-wrapper {
     border: 2px solid var(--color-primary);
+}
+
+/* ============================================================================
+   LIST VIEW - ENHANCED INTERACTIONS (Added for image-view-utils refactor)
+   ============================================================================ */
+
+/* Hover styles (replaces JavaScript inline styles) */
+.list-view-hoverable {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.list-view-hoverable:hover {
+    background-color: var(--color-surface-secondary);
+    border-color: var(--color-border-secondary);
+}
+
+/* Keyboard accessibility - focus styles for interactive thumbnails */
+.list-image-thumb[role="button"] {
+    cursor: pointer;
+    position: relative;
+}
+
+.list-image-thumb[role="button"]:focus {
+    outline: 2px solid var(--color-primary, #3b82f6);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Hide focus ring when not using keyboard (mouse clicks) */
+.list-image-thumb[role="button"]:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Visible focus for keyboard users only */
+.list-image-thumb[role="button"]:focus-visible {
+    outline: 2px solid var(--color-primary, #3b82f6);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Active state for keyboard activation */
+.list-image-thumb[role="button"]:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .list-image-thumb[role="button"]:focus-visible {
+        outline-width: 3px;
+        outline-offset: 3px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .list-view-hoverable,
+    .list-image-thumb[role="button"] {
+        transition: none;
+    }
+}
+
+/* ============================================================================
+   LIST VIEW - FALLBACK RENDERING
+   ============================================================================ */
+
+/* Used when normal list view rendering fails (error handling) */
+.list-view-fallback {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-border-primary);
+    border-radius: 8px;
+}
+
+.list-view-fallback img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.list-view-fallback-content {
+    flex: 1;
+    min-width: 0; /* Allow text truncation */
+}
+
+.list-view-fallback-content h3 {
+    margin: 0 0 8px 0;
+    color: var(--color-text-primary);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.list-view-fallback-content p {
+    margin: 0;
+    color: var(--color-text-tertiary);
+    font-size: 14px;
+}
+
+.list-view-fallback-content p.rating {
+    margin-top: 4px;
 }

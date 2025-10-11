@@ -29,3 +29,18 @@ prisma/archive/
 scripts/archive/
 .cursorrules
 public/js/modules/textarea/__tests__/
+src/services/__tests__
+
+# Temporary files and reports
+*-report.json
+*-report.txt
+test-results.txt
+integration-test-output.txt
+PRECOMMIT_*.md
+CSS_FOR_*.css
+
+# Backup folders
+backup-before-*/
+*-backup/
+tools
+src/scripts/

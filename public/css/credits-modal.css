@@ -15,19 +15,6 @@
     animation: fadeIn 0.3s ease-out;
 }
 
-.credits-modal {
-    background: var(--color-surface-primary);
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    max-width: 800px;
-    width: 90%;
-    max-height: 85vh;
-    overflow: hidden;
-    animation: slideUp 0.3s ease-out;
-    position: relative;
-    border: 1px solid var(--color-border-primary);
-}
-
 /* Removed decorative overlay for better readability */
 
 .credits-modal-header {
@@ -39,41 +26,6 @@
     border-bottom: 1px solid var(--color-border-primary);
 }
 
-.credits-modal-header h2 {
-    color: var(--color-text-primary);
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.credits-modal-close {
-    background: none;
-    border: none;
-    color: var(--color-text-primary);
-    font-size: 28px;
-    cursor: pointer;
-    padding: 4px;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-.credits-modal-content {
-    padding: 30px;
-}
-
-.credits-packages-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
-    margin-bottom: 25px;
-    max-height: 350px;
-    overflow-y: auto;
-}
-
 .credits-package-card {
     background: var(--color-surface-primary);
     border: 2px solid var(--color-border-primary);
@@ -81,23 +33,6 @@
     padding: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
-}
-
-.credits-loading {
-    text-align: center;
-    color: var(--color-text-primary);
-    padding: 30px;
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.credits-error {
-    text-align: center;
-    color: var(--color-status-error);
-    padding: 20px;
-    background: var(--color-surface-secondary);
-    border-radius: 4px;
-    font-size: 14px;
 }
 
 /* Animations */

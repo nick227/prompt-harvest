@@ -326,6 +326,63 @@ export class ImageRepository extends PrismaBaseRepository {
         };
     }
 
+    /**
+     * Find public images for a specific user (for profile display)
+     * @param {string} userId - User ID
+     * @param {number} limit - Number of images per page
+     * @param {number} page - Page number (0-based)
+     * @returns {Promise<Object>} Images with pagination metadata
+     */
+    async findUserPublicImages(userId, limit = 20, page = 0) {
+        const skip = page * limit;
+
+        const whereClause = {
+            userId,
+            isPublic: true
+        };
+
+        const [images, totalCount] = await Promise.all([
+            this.prisma.image.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    prompt: true,
+                    original: true,
+                    imageUrl: true,
+                    provider: true,
+                    rating: true,
+                    isPublic: true,
+                    userId: true,
+                    createdAt: true,
+                    updatedAt: true
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                skip,
+                take: limit
+            }),
+            this.prisma.image.count({ where: whereClause })
+        ]);
+
+        // Validation: Log if database returns non-public images
+        const nonPublicImages = images.filter(img => img.isPublic !== true);
+
+        if (nonPublicImages.length > 0) {
+            console.error('🚨 REPOSITORY INTEGRITY ERROR: findUserPublicImages returned non-public images!', {
+                userId,
+                count: nonPublicImages.length,
+                imageIds: nonPublicImages.map(img => img.id)
+            });
+        }
+
+        return {
+            images,
+            totalCount,
+            hasMore: skip + limit < totalCount
+        };
+    }
+
     async deleteById(id) {
         return await this.prisma.image.delete({
             where: { id }

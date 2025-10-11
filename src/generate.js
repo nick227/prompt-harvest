@@ -21,7 +21,7 @@ import dotenv from 'dotenv';
 
 // Service imports
 import PromptProcessor from './services/generate/PromptProcessor.js';
-import ImageGenerator from './services/generate/ImageGenerator.js';
+import ImageGenerator from './services/generate/refactored/ImageGenerator.js';
 import getQueueManager from './services/generate/QueueManager.js';
 import DatabaseService from './services/generate/DatabaseService.js';
 import GenerateUtils from './utils/GenerateUtils.js';
@@ -128,6 +128,24 @@ const _validateAndSetupGeneration = options => {
 };
 
 /**
+ * Adapt refactored result to legacy format (preserves both shapes)
+ */
+const _adaptResultToLegacyFormat = (result, effectiveGuidance) => ({
+    // Preserve unified shape from refactored ImageGenerator
+    ok: true,
+    imageBase64: result.imageBase64,
+    meta: result.meta,
+    // Legacy compatibility for GenerationResultProcessor
+    success: true,
+    data: result.imageBase64,
+    provider: result.meta?.provider || 'unknown',
+    model: result.meta?.model,
+    guidance: effectiveGuidance,
+    durationMs: result.meta?.durationMs,
+    requestId: result.meta?.requestId
+});
+
+/**
  * Generate images using single or multi-provider approach
  */
 const _generateImages = async generationParams => {
@@ -143,16 +161,19 @@ const _generateImages = async generationParams => {
             { signal }
         );
 
-        const successfulResults = multiResults.filter(r => r.success);
+        const successfulResults = multiResults.filter(r => r.ok === true);
 
         if (successfulResults.length === 0) {
+            const failureInfo = multiResults
+                .filter(r => !r.ok)
+                .map(r => `${r.meta?.provider || 'unknown'}: ${r.message || r.code}`)
+                .join('; ');
+
+            console.error(`❌ All providers failed: ${failureInfo}`);
             throw new Error('All providers failed to generate images');
         }
 
-        return successfulResults.map(r => ({
-            provider: r.provider,
-            ...r.data
-        }));
+        return successfulResults.map(r => _adaptResultToLegacyFormat(r, effectiveGuidance));
     }
 
     const singleResult = await ImageGenerator.generateRandomProviderImage(
@@ -163,7 +184,15 @@ const _generateImages = async generationParams => {
         { signal }
     );
 
-    return [singleResult];
+    if (!singleResult.ok) {
+        const provider = singleResult.meta?.provider || 'unknown';
+        const error = singleResult.message || singleResult.code || 'Unknown error';
+
+        console.error(`❌ Generation failed for provider ${provider}: ${error}`);
+        throw new Error(`Generation failed: ${error}`);
+    }
+
+    return [_adaptResultToLegacyFormat(singleResult, effectiveGuidance)];
 };
 
 /**

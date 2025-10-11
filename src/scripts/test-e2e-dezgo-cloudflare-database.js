@@ -16,7 +16,7 @@ import { PrismaClient } from '@prisma/client';
 import { imageStorageService } from '../src/services/ImageStorageService.js';
 import { cloudflareR2Service } from '../src/services/CloudflareR2Service.js';
 import { cloudflareR2Config } from '../src/services/CloudflareR2Config.js';
-import ImageGenerator from '../src/services/generate/ImageGenerator.js';
+import ImageGenerator from '../src/services/generate/refactored/ImageGenerator.js';
 import DatabaseService from '../src/services/generate/DatabaseService.js';
 
 // Load environment variables from project root

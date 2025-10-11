@@ -7,7 +7,7 @@
  */
 
 import dotenv from 'dotenv';
-import ImageGenerator from '../services/generate/ImageGenerator.js';
+import ImageGenerator from '../services/generate/refactored/ImageGenerator.js';
 
 // Load environment variables from project root
 dotenv.config({ path: '../.env' });

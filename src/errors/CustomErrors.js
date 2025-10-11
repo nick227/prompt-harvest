@@ -49,6 +49,17 @@ export class RateLimitError extends Error {
     }
 }
 
+export class InsufficientCreditsError extends Error {
+    constructor(message = 'Insufficient credits', required = 0, current = 0) {
+        super(message);
+        this.name = 'InsufficientCreditsError';
+        this.statusCode = 402;
+        this.required = required;
+        this.current = current;
+        this.shortfall = Math.max(0, required - current);
+    }
+}
+
 export class DatabaseError extends Error {
     constructor(message = 'Database operation failed', operation = null) {
         super(message);

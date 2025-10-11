@@ -121,19 +121,31 @@ export class CreditManagementService {
             return { success: true };
         }
 
+        // Idempotency check: verify this requestId hasn't been refunded already
+        // Note: SimplifiedCreditService should handle deduplication via requestId in metadata
+        // This is a belt-and-suspenders guard at the service layer
+        try {
+            const result = await SimplifiedCreditService.addCredits(
+                userId,
+                amount,
+                'refund',
+                `Refund for failed generation (request: ${requestId})`,
+                {
+                    requestId,
+                    timestamp: new Date().toISOString(),
+                    idempotencyKey: `refund:${requestId}` // Explicit idempotency marker
+                }
+            );
 
-        const result = await SimplifiedCreditService.addCredits(
-            userId,
-            amount,
-            'refund',
-            `Refund for failed generation (request: ${requestId})`,
-            {
-                requestId,
-                timestamp: new Date().toISOString()
+            return { success: result };
+        } catch (error) {
+            // If the refund fails due to duplicate idempotency key, treat as success
+            if (error.message?.includes('duplicate') || error.code === 'P2002') {
+                console.warn(`⚠️ Refund already processed for request ${requestId}`);
+                return { success: true, alreadyRefunded: true };
             }
-        );
-
-        return { success: result };
+            throw error;
+        }
     }
 
     /**

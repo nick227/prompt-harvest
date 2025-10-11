@@ -8,6 +8,62 @@ import { safeParseInt } from '../../utils/safeParseInt.js';
 
 const prisma = databaseClient.getClient();
 
+// Validation helpers
+const VALID_STATUSES = ['pending', 'processing', 'completed', 'failed'];
+const VALID_PROVIDERS = ['dezgo', 'openai', 'google-imagen'];
+const VALID_SORT_FIELDS = ['createdAt', 'updatedAt', 'cost', 'status', 'provider', 'isPublic', 'isHidden'];
+
+const parseBooleanParam = value => {
+    if (typeof value === 'boolean') {
+        return value;
+    }
+
+    if (typeof value === 'string') {
+        const lower = value.toLowerCase();
+
+        return lower === 'true' || lower === '1' || lower === 'yes';
+    }
+
+    return false;
+};
+
+const parseISODate = dateString => {
+    // Accept YYYY-MM-DD format only for predictability
+    const isoMatch = (/^(\d{4})-(\d{2})-(\d{2})$/).exec(dateString);
+
+    if (!isoMatch) {
+        return null;
+    }
+
+    const date = new Date(`${dateString}T00:00:00.000Z`);
+
+    return isNaN(date.getTime()) ? null : date;
+};
+
+const isValidUUID = str => (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).test(str);
+
+// Shared user hydration helper
+const hydrateImagesWithUsers = async(images, prismaClient) => {
+    if (images.length === 0) {
+        return [];
+    }
+
+    const userIds = [...new Set(images.map(img => img.userId).filter(Boolean))];
+    const users = userIds.length > 0
+        ? await prismaClient.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, email: true, username: true }
+        })
+        : [];
+
+    const userMap = new Map(users.map(user => [user.id, user]));
+
+    return images.map(image => ({
+        ...image,
+        user: userMap.get(image.userId) || { id: image.userId, email: 'Unknown User', username: 'Unknown' }
+    }));
+};
+
 class ImagesController {
     /**
      * Get images with filtering and pagination
@@ -29,18 +85,40 @@ class ImagesController {
                 includeDeleted = false
             } = req.query;
 
+            // Validate enum params
+            if (status && !VALID_STATUSES.includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`
+                });
+            }
+
+            if (provider && !VALID_PROVIDERS.includes(provider)) {
+                return res.status(400).json({
+                    success: false,
+                    error: `Invalid provider. Must be one of: ${VALID_PROVIDERS.join(', ')}`
+                });
+            }
+
+            if (userId && !isValidUUID(userId)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid userId format'
+                });
+            }
+
             // Harden query params
-            const allowedSortFields = ['createdAt', 'updatedAt', 'cost', 'status', 'provider', 'isPublic', 'isHidden'];
-            const validSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+            const validSortBy = VALID_SORT_FIELDS.includes(sortBy) ? sortBy : 'createdAt';
             const validSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
             const validPage = Math.max(1, Math.min(10000, safeParseInt(page, 1)));
             const validLimit = Math.max(1, Math.min(100, safeParseInt(limit, 20)));
+            const shouldIncludeDeleted = parseBooleanParam(includeDeleted);
 
             // Build where conditions
             const where = {};
 
             // Filter out soft-deleted images by default
-            if (includeDeleted !== 'true') {
+            if (!shouldIncludeDeleted) {
                 where.isDeleted = false;
             }
 
@@ -56,35 +134,42 @@ class ImagesController {
                 where.userId = userId;
             }
 
+            // Date range validation with UTC normalization
             if (dateFrom || dateTo) {
                 where.createdAt = {};
 
                 if (dateFrom) {
-                    const fromDate = new Date(dateFrom);
+                    const fromDate = parseISODate(dateFrom);
 
-                    if (isNaN(fromDate.getTime())) {
+                    if (!fromDate) {
                         return res.status(400).json({
                             success: false,
-                            error: 'Invalid dateFrom parameter'
+                            error: 'Invalid dateFrom. Use YYYY-MM-DD format'
                         });
                     }
-                    // Normalize to start of day
-                    fromDate.setHours(0, 0, 0, 0);
                     where.createdAt.gte = fromDate;
                 }
 
                 if (dateTo) {
-                    const toDate = new Date(dateTo);
+                    const toDate = parseISODate(dateTo);
 
-                    if (isNaN(toDate.getTime())) {
+                    if (!toDate) {
                         return res.status(400).json({
                             success: false,
-                            error: 'Invalid dateTo parameter'
+                            error: 'Invalid dateTo. Use YYYY-MM-DD format'
                         });
                     }
-                    // Set to end of day
-                    toDate.setHours(23, 59, 59, 999);
+                    // Set to end of day UTC
+                    toDate.setUTCHours(23, 59, 59, 999);
                     where.createdAt.lte = toDate;
+                }
+
+                // Validate date range
+                if (where.createdAt.gte && where.createdAt.lte && where.createdAt.gte > where.createdAt.lte) {
+                    return res.status(400).json({
+                        success: false,
+                        error: 'dateFrom cannot be after dateTo'
+                    });
                 }
             }
 
@@ -115,47 +200,25 @@ class ImagesController {
             }
 
             // Build order by
-            const orderBy = {};
-
-            orderBy[validSortBy] = validSortOrder;
+            const orderBy = { [validSortBy]: validSortOrder };
 
             // Calculate pagination
             const skip = (validPage - 1) * validLimit;
             const take = validLimit;
 
-            // Get total count
-            const total = await prisma.image.count({ where });
+            // Run count & list concurrently for better performance
+            const [total, images] = await Promise.all([
+                prisma.image.count({ where }),
+                prisma.image.findMany({
+                    where,
+                    skip,
+                    take,
+                    orderBy
+                })
+            ]);
 
-            // Get images without relations (to avoid orphaned data issues)
-            const images = await prisma.image.findMany({
-                where,
-                skip,
-                take,
-                orderBy
-            });
-
-            // Empty result shortcut - skip user lookup when no images
-            let imagesWithUsers = [];
-
-            if (images.length > 0) {
-                // Get user data for images manually
-                // Filter out falsy userIds to avoid Prisma in: [undefined] edge cases
-                const userIds = [...new Set(images.map(img => img.userId).filter(Boolean))];
-                const users = userIds.length > 0
-                    ? await prisma.user.findMany({
-                        where: { id: { in: userIds } },
-                        select: { id: true, email: true, username: true }
-                    })
-                    : [];
-
-                // Map users to images
-                const userMap = new Map(users.map(user => [user.id, user]));
-
-                imagesWithUsers = images.map(image => ({
-                    ...image,
-                    user: userMap.get(image.userId) || { id: image.userId, email: 'Unknown User', username: 'Unknown' }
-                }));
-            }
+            // Hydrate users
+            const imagesWithUsers = await hydrateImagesWithUsers(images, prisma);
 
             // Transform data for frontend
             const transformedImages = imagesWithUsers.map(image => ({
@@ -313,9 +376,9 @@ class ImagesController {
                 });
             } else {
                 // Soft delete - mark as deleted but keep record
-                // Skip if already soft-deleted to avoid redundant updates
+                // Use 409 Conflict if already soft-deleted
                 if (existingImage.isDeleted) {
-                    return res.status(400).json({
+                    return res.status(409).json({
                         success: false,
                         error: 'Image already deleted',
                         message: 'This image has already been soft-deleted'
@@ -371,12 +434,19 @@ class ImagesController {
                     console.error('❌ R2: Failed to delete image:', r2Error.message);
                     // Continue with database deletion even if R2 deletion fails
                 }
+            } else if (!imageRecord.imageUrl) {
+                console.warn(`⚠️ ADMIN-IMAGES: Image ${imageId} has no imageUrl, skipping R2 deletion`);
             }
 
-            // Delete from database
-            await prisma.image.delete({
-                where: { id: imageId }
-            });
+            // Delete from database - separate try/catch for precise error reporting
+            try {
+                await prisma.image.delete({
+                    where: { id: imageId }
+                });
+            } catch (dbError) {
+                console.error('❌ ADMIN-IMAGES: Database deletion failed for image:', imageId, dbError);
+                throw dbError;
+            }
 
         } catch (error) {
             console.error('❌ ADMIN-IMAGES: Error in permanent delete:', error);
@@ -425,8 +495,12 @@ class ImagesController {
                 }
             });
 
-            // Fix grammar for message
-            const actionPastTense = action === 'flag' ? 'flagged' : `${action}d`;
+            // Proper past tense for action
+            const actionPastTense = {
+                approve: 'approved',
+                reject: 'rejected',
+                flag: 'flagged'
+            }[action];
 
             res.json({
                 success: true,
@@ -456,11 +530,28 @@ class ImagesController {
         try {
             const { status, provider, dateFrom, dateTo, includeDeleted = false } = req.query;
 
+            // Validate enum params
+            if (status && !VALID_STATUSES.includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`
+                });
+            }
+
+            if (provider && !VALID_PROVIDERS.includes(provider)) {
+                return res.status(400).json({
+                    success: false,
+                    error: `Invalid provider. Must be one of: ${VALID_PROVIDERS.join(', ')}`
+                });
+            }
+
             // Build where conditions
             const where = {};
 
             // Filter out soft-deleted images by default
-            if (includeDeleted !== 'true') {
+            const shouldIncludeDeleted = parseBooleanParam(includeDeleted);
+
+            if (!shouldIncludeDeleted) {
                 where.isDeleted = false;
             }
 
@@ -472,35 +563,42 @@ class ImagesController {
                 where.provider = provider;
             }
 
+            // Date range validation with UTC normalization
             if (dateFrom || dateTo) {
                 where.createdAt = {};
 
                 if (dateFrom) {
-                    const fromDate = new Date(dateFrom);
+                    const fromDate = parseISODate(dateFrom);
 
-                    if (isNaN(fromDate.getTime())) {
+                    if (!fromDate) {
                         return res.status(400).json({
                             success: false,
-                            error: 'Invalid dateFrom parameter'
+                            error: 'Invalid dateFrom. Use YYYY-MM-DD format'
                         });
                     }
-                    // Normalize to start of day
-                    fromDate.setHours(0, 0, 0, 0);
                     where.createdAt.gte = fromDate;
                 }
 
                 if (dateTo) {
-                    const toDate = new Date(dateTo);
+                    const toDate = parseISODate(dateTo);
 
-                    if (isNaN(toDate.getTime())) {
+                    if (!toDate) {
                         return res.status(400).json({
                             success: false,
-                            error: 'Invalid dateTo parameter'
+                            error: 'Invalid dateTo. Use YYYY-MM-DD format'
                         });
                     }
-                    // Set to end of day
-                    toDate.setHours(23, 59, 59, 999);
+                    // Set to end of day UTC
+                    toDate.setUTCHours(23, 59, 59, 999);
                     where.createdAt.lte = toDate;
+                }
+
+                // Validate date range
+                if (where.createdAt.gte && where.createdAt.lte && where.createdAt.gte > where.createdAt.lte) {
+                    return res.status(400).json({
+                        success: false,
+                        error: 'dateFrom cannot be after dateTo'
+                    });
                 }
             }
 
@@ -513,17 +611,8 @@ class ImagesController {
                 take: 50000 // Safety limit - prevents OOM but caps at 50k records
             });
 
-            // Get user data separately
-            // Filter out falsy userIds to prevent Prisma errors
-            const userIds = [...new Set(images.map(img => img.userId).filter(Boolean))];
-            const users = userIds.length > 0
-                ? await prisma.user.findMany({
-                    where: { id: { in: userIds } },
-                    select: { id: true, email: true, username: true }
-                })
-                : [];
-
-            const userMap = new Map(users.map(user => [user.id, user]));
+            // Hydrate users using shared helper
+            const imagesWithUsers = await hydrateImagesWithUsers(images, prisma);
 
             // Helper function for CSV escaping - prevents injection and handles all special chars
             const escapeCsvField = field => {
@@ -543,13 +632,11 @@ class ImagesController {
 
             // Convert to CSV format - with robust escaping for all fields
             const csvHeader = 'Image ID,User Email,User Username,Prompt,Provider,Status,Cost,Created At,Image URL\n';
-            const csvRows = images.map(image => {
-                const user = userMap.get(image.userId);
-
+            const csvRows = imagesWithUsers.map(image => {
                 const row = [
                     escapeCsvField(image.id),
-                    escapeCsvField(user?.email || 'Unknown'),
-                    escapeCsvField(user?.username || 'Unknown'),
+                    escapeCsvField(image.user.email),
+                    escapeCsvField(image.user.username),
                     escapeCsvField(image.prompt || ''),
                     escapeCsvField(image.provider || ''),
                     escapeCsvField(image.status || 'unknown'),
@@ -563,9 +650,10 @@ class ImagesController {
 
             const csvContent = BOM + csvHeader + csvRows.join('\n');
 
-            // Set response headers for CSV download with charset
+            // Set response headers for CSV download with charset and no-store
             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
             res.setHeader('Content-Disposition', `attachment; filename="images-export-${new Date().toISOString().split('T')[0]}.csv"`);
+            res.setHeader('Cache-Control', 'no-store');
 
             res.send(csvContent);
 
@@ -612,7 +700,8 @@ class ImagesController {
                 success: true,
                 data: {
                     id: updatedImage.id,
-                    isPublic: updatedImage.isPublic
+                    isPublic: updatedImage.isPublic,
+                    updated_at: updatedImage.updatedAt
                 }
             });
 
@@ -759,6 +848,21 @@ class ImagesController {
                 });
             }
 
+            // Store taggingRequestedAt timestamp for progress tracking
+            const requestedAt = new Date();
+
+            await prisma.image.update({
+                where: { id: imageId },
+                data: {
+                    taggingMetadata: {
+                        ...image.taggingMetadata,
+                        requestedAt: requestedAt.toISOString(),
+                        requestedBy: req.adminUser?.email || 'unknown',
+                        status: 'pending'
+                    }
+                }
+            });
+
             // Import tagging service
             const { taggingService } = await import('../../services/TaggingService.js');
 
@@ -772,7 +876,10 @@ class ImagesController {
 
             res.json({
                 success: true,
-                message: 'AI tag generation started. Tags will be updated when ready.'
+                message: 'AI tag generation started. Tags will be updated when ready.',
+                data: {
+                    requestedAt
+                }
             });
 
         } catch (error) {

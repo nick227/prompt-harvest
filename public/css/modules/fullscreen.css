@@ -72,13 +72,6 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-.fullscreen-controls .spacer {
-    width: 1px;
-    height: 20px;
-    background: rgba(255, 255, 255, 0.2);
-    margin: 0 8px;
-}
-
 /* Fullscreen info box */
 .fullscreen-info-box {
     position: fixed;
@@ -92,30 +85,6 @@
     z-index: 1000;
     border: 1px solid var(--color-border-primary);
     backdrop-filter: blur(10px);
-}
-
-.fullscreen-info-box h3 {
-    margin: 0 0 12px 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--color-text-primary);
-}
-
-.fullscreen-info-box .info-grid {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 8px 12px;
-    font-size: 14px;
-}
-
-.fullscreen-info-box .info-label {
-    color: var(--color-text-tertiary);
-    font-weight: 500;
-}
-
-.fullscreen-info-box .info-value {
-    color: var(--color-text-secondary);
-    word-break: break-word;
 }
 
 /* Modern Info Box - collapsible widget */
@@ -132,30 +101,6 @@
     width: 400px;
     height: auto;
     box-shadow: var(--color-card-shadow);
-}
-
-.info-box-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    background: var(--color-surface-secondary);
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.2s ease;
-    border-bottom: 1px solid var(--color-border-primary);
-}
-
-.info-box-header:hover {
-    background: var(--color-surface-tertiary);
-}
-
-.info-box-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin: 0;
-    letter-spacing: 0.025em;
 }
 
 .info-box-toggle {
@@ -211,11 +156,6 @@
 
 /* Override to keep info boxes open by default */
 .info-box-content.keep-open {
-    max-height: 100%;
-    opacity: 1;
-}
-
-.info-box-content.keep-open.collapsed {
     max-height: 100%;
     opacity: 1;
 }
@@ -293,17 +233,6 @@
     color: var(--color-green-500);
     margin: 0;
     cursor: pointer;
-}
-
-.info-box-public-display {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 6px 10px;
-    border-radius: 4px;
-    text-align: center;
-    background: rgba(107, 114, 128, 0.2);
-    color: var(--color-gray-400);
-    border: 1px solid rgba(107, 114, 128, 0.3);
 }
 
 /* Prompts Section - Clean Card Layout */
