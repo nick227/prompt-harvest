@@ -311,13 +311,14 @@ export class EnhancedImageController {
             const duration = Date.now() - startTime;
             const response = formatPaginatedResponse(
                 result.images || [],
-                { ...pagination, total: result.totalCount || 0 },
+                { ...pagination, total: result.pagination?.totalCount || 0 },
                 requestId,
                 duration
             );
 
             logRequestSuccess(requestId, 'Get Images', duration, {
                 count: result.images?.length || 0,
+                total: result.pagination?.totalCount || 0,
                 userId: userId || 'anonymous'
             });
 
@@ -523,13 +524,14 @@ export class EnhancedImageController {
             const duration = Date.now() - startTime;
             const response = formatPaginatedResponse(
                 result.images || [],
-                { ...pagination, total: result.totalCount || 0 },
+                { ...pagination, total: result.pagination?.totalCount || 0 },
                 requestId,
                 duration
             );
 
             logRequestSuccess(requestId, 'Get Feed', duration, {
                 count: result.images?.length || 0,
+                total: result.pagination?.totalCount || 0,
                 userId: userId || 'anonymous'
             });
 
@@ -586,21 +588,34 @@ export class EnhancedImageController {
 
         try {
             const userId = req.user?.id;
-            const { page = 0, limit = 20 } = req.query;
+            const { page = 1, limit = 20 } = req.query; // Changed default from 0 to 1 (1-based)
             const tags = this.extractTagFilters(req.query.tags);
             const pagination = { limit: parseInt(limit), page: parseInt(page) };
+
+            console.log('🔍 CONTROLLER: getUserOwnImages called with:', { userId, page: pagination.page, limit: pagination.limit, tags });
 
             if (!this.validateUserAuthentication(userId, res)) {
                 return;
             }
 
             const result = await this.imageService.getUserOwnImages(userId, pagination.limit, pagination.page, tags);
+
+            console.log('📦 CONTROLLER: Received from service:', {
+                imageCount: result.images.length,
+                pagination: result.pagination
+            });
+
             const response = this.formatGetUserOwnImagesResponse(result, page, limit, requestId, startTime);
+
+            console.log('📤 CONTROLLER: Sending response:', {
+                imageCount: response.data.items.length,
+                pagination: response.data.pagination
+            });
 
             logRequestSuccess(requestId, 'Get User Own Images', Date.now() - startTime, {
                 userId,
                 count: result.images.length,
-                totalCount: result.totalCount
+                totalCount: result.pagination?.totalCount || 0
             });
 
             res.json(response);
@@ -649,15 +664,38 @@ export class EnhancedImageController {
      * Format getUserOwnImages response
      */
     formatGetUserOwnImagesResponse(result, page, limit, requestId, startTime) {
-        return formatSuccessResponse({
+        // Use pagination from result if available, otherwise build it
+        const paginationData = result.pagination || {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalCount: result.totalCount || 0,
+            hasMore: false
+        };
+
+        // Calculate hasMore based on pagination metadata
+        const hasMore = paginationData.hasMore ?? (paginationData.page * paginationData.limit < paginationData.totalCount);
+
+        const responseData = {
             items: result.images,
             pagination: {
-                page: parseInt(page),
-                limit: parseInt(limit),
-                total: result.totalCount,
-                count: result.images.length
-            }
-        }, requestId, Date.now() - startTime);
+                page: paginationData.page,
+                limit: paginationData.limit,
+                total: paginationData.totalCount, // Frontend expects 'total' not 'totalCount'
+                totalCount: paginationData.totalCount, // Keep for backward compatibility
+                count: result.images.length,
+                hasMore: hasMore
+            },
+            hasMore: hasMore // Add hasMore at data level for consistency with formatPaginatedResponse
+        };
+
+        console.log('📤 CONTROLLER formatGetUserOwnImagesResponse:', {
+            imageCount: result.images.length,
+            paginationData,
+            calculatedHasMore: hasMore,
+            responseData: responseData
+        });
+
+        return formatSuccessResponse(responseData, requestId, Date.now() - startTime);
     }
 
     // ============================================================================

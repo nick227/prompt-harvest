@@ -59,6 +59,19 @@ class FeedDOMOperations {
                 this.overlayManager.showOverlay();
             }
         }
+
+        // CRITICAL FIX: Hide all feed images (not search images) during search
+        // Search should only show images with data-source="search"
+        const feedImages = document.querySelectorAll('.image-wrapper:not([data-source="search"])');
+
+        feedImages.forEach(img => img.classList.add('hidden'));
+    }
+
+    // Restore feed images visibility (called when search is cleared)
+    restoreFeedImages() {
+        const feedImages = document.querySelectorAll('.image-wrapper:not([data-source="search"])');
+
+        feedImages.forEach(img => img.classList.remove('hidden'));
     }
 
     // Remove specific image from feed

@@ -1,0 +1,140 @@
+/**
+ * Search UI Components Styles
+ * Extracted from inline styles for better maintainability
+ */
+
+/* Keyframe animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Search message container */
+.search-message {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary, #9ca3af);
+}
+
+.search-message__icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.search-message__title {
+    margin-bottom: 8px;
+    color: var(--text-primary, #e5e7eb);
+}
+
+.search-message__text {
+    margin: 0;
+}
+
+.search-message__button {
+    margin-top: 16px;
+    padding: 8px 16px;
+    border: 1px solid;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.search-message__button:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.search-message__button--primary {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+}
+
+.search-message__button--primary:hover {
+    background: rgba(59, 130, 246, 0.3);
+}
+
+.search-message__button--danger {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+.search-message__button--danger:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Search active indicator */
+.search-active-indicator {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-primary, #e5e7eb);
+    animation: fadeIn 0.3s ease;
+}
+
+.search-active-indicator__content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-active-indicator__query {
+    font-family: 'Courier New', Courier, monospace;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 6px;
+    border-radius: 3px;
+    word-break: break-word;
+}
+
+.search-active-indicator__count {
+    opacity: 0.7;
+}
+
+.search-active-indicator__button {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.search-active-indicator__button:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+.search-active-indicator__button:focus {
+    outline: 2px solid #ef4444;
+    outline-offset: 2px;
+}
+
+/* Search indicator warning variant */
+.search-active-indicator--warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.search-active-indicator--warning .search-active-indicator__content {
+    color: #f59e0b;
+}
+
+.search-active-indicator__warning-text {
+    opacity: 0.8;
+}
+

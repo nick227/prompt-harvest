@@ -302,8 +302,8 @@ class FeedManager {
             // Get current active tags from tag router
             const activeTags = this.tagRouter ? this.tagRouter.getActiveTags() : [];
 
-            // Load images from API with tag filtering
-            const result = await this.apiManager.loadFeedImages(filter, 0, activeTags);
+            // Load images from API with tag filtering (page 1 for initial load)
+            const result = await this.apiManager.loadFeedImages(filter, 1, activeTags);
 
             // Extract hasMore from multiple possible locations in API response
             // Priority: result.hasMore > result.data.hasMore > result.pagination.hasMore > default true
@@ -313,7 +313,7 @@ class FeedManager {
             this.cacheManager.setCache(filter, {
                 images: result.images,
                 hasMore,
-                currentPage: 0,
+                currentPage: 1, // Changed to 1-based pagination (we just loaded page 1)
                 isLoaded: true
             }, activeTags);
 
@@ -489,10 +489,10 @@ class FeedManager {
     async loadImagesForContext(context, options = {}) {
         if (context === 'profile') {
             // For profile pages, only load public images
-            return await this.apiManager.loadFeedImages('site', options.page || 0, options.tags || [], options.customEndpoint);
+            return await this.apiManager.loadFeedImages('site', options.page || 1, options.tags || [], options.customEndpoint);
         } else if (context === 'home') {
             // For home page, load user's own images (public and private)
-            return await this.apiManager.loadFeedImages('user', options.page || 0, options.tags || []);
+            return await this.apiManager.loadFeedImages('user', options.page || 1, options.tags || []);
         } else {
             console.error(`❌ FEED MANAGER: Unknown context: ${context}`);
             throw new Error(`Unknown context: ${context}`);

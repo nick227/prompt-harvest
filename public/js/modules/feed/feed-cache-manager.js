@@ -4,14 +4,14 @@ class FeedCacheManager {
         this.cache = {
             site: {
                 images: [],
-                currentPage: 0,
+                currentPage: 1, // Changed to 1-based pagination
                 hasMore: true,
                 isLoaded: false,
                 scrollPosition: 0
             },
             user: {
                 images: [],
-                currentPage: 0,
+                currentPage: 1, // Changed to 1-based pagination
                 hasMore: true,
                 isLoaded: false,
                 scrollPosition: 0
@@ -43,7 +43,7 @@ class FeedCacheManager {
         if (!this.cache[key]) {
             this.cache[key] = {
                 images: [],
-                currentPage: 0,
+                currentPage: 1, // Changed to 1-based pagination
                 hasMore: true,
                 isLoaded: false,
                 scrollPosition: 0
@@ -81,7 +81,7 @@ class FeedCacheManager {
         if (this.cache[filter]) {
             this.cache[filter] = {
                 images: [],
-                currentPage: 0,
+                currentPage: 1, // Changed to 1-based pagination
                 hasMore: true,
                 isLoaded: false,
                 scrollPosition: 0

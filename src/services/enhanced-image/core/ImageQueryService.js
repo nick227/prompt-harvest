@@ -165,10 +165,20 @@ export class ImageQueryService {
             throw new ValidationError('User ID is required for getting user own images');
         }
 
+        console.log('🔍 SERVICE: getUserOwnImages called with:', { userId, limit, page, tags });
+
         const zeroBasedPage = convertPageToOffset(page);
         const normalizedTags = normalizeTags(tags);
 
+        console.log('🔍 SERVICE: Converted to 0-based page:', zeroBasedPage);
+
         const result = await this.imageRepository.findUserImages(userId, limit, zeroBasedPage, normalizedTags);
+
+        console.log('📦 SERVICE: Received from repository:', {
+            imageCount: result.images.length,
+            totalCount: result.totalCount,
+            hasMore: result.hasMore
+        });
 
         const otherUserImages = result.images.filter(img => img.userId !== userId);
 
@@ -189,9 +199,16 @@ export class ImageQueryService {
 
         const normalizedImages = result.images.map(image => normalizeImage(image, userMap));
 
+        const paginationMetadata = createPaginationMetadata(page, limit, result.totalCount);
+
+        console.log('✅ SERVICE: Returning:', {
+            imageCount: normalizedImages.length,
+            pagination: paginationMetadata
+        });
+
         return {
             images: normalizedImages,
-            pagination: createPaginationMetadata(page, limit, result.totalCount)
+            pagination: paginationMetadata
         };
     }
 

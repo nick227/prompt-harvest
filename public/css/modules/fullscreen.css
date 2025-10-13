@@ -132,6 +132,13 @@
     background: var(--color-surface-primary);
 }
 
+.info-box-header {
+  background: black;
+  padding: 1em;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
 /* Mobile-specific overrides */
 @media screen and (max-width: 768px) {
     .info-box-content {

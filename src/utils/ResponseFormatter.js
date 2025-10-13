@@ -49,7 +49,8 @@ export const formatPaginatedResponse = (items, pagination, requestId, duration) 
     const count = items.length;
 
     // Calculate hasMore: there are more items if we haven't reached the total yet
-    const hasMore = (page + 1) * limit < total;
+    // For 1-based pages: if page * limit < total, there are more pages
+    const hasMore = page * limit < total;
 
     return {
         success: true,

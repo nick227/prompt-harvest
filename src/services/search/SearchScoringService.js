@@ -232,6 +232,11 @@ class SearchScoringService {
                 searchScore: this.calculateScore(image, searchTerm)
             }))
             .filter(img => {
+                // Always filter out zero scores (no match at all)
+                if (img.searchScore <= 0) {
+                    return false;
+                }
+
                 // Score filtering
                 if (exactOnly) {
                     // Only exact matches (prompt or tag)
@@ -239,7 +244,7 @@ class SearchScoringService {
                     return img.searchScore >= this.config.EXACT_TAG;
                 }
 
-                if (img.searchScore <= minScore) {
+                if (img.searchScore < minScore) {
                     return false;
                 }
 

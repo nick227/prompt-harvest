@@ -185,10 +185,10 @@ export const SCORE_THRESHOLDS = {
  * }
  */
 export const DEFAULT_SEARCH_OPTIONS = {
-    matchType: MATCH_TYPES.CONTAINS,           // Flexible matching
-    tagFilter: TAG_FILTERS.ANY,                // No tag filtering
-    minScore: SCORE_THRESHOLDS.LOW_RELEVANCE,  // Accept any match
-    specificTags: []                           // For SPECIFIC_TAGS filter
+    matchType: MATCH_TYPES.CONTAINS,            // Flexible matching
+    tagFilter: TAG_FILTERS.ANY,                 // No tag filtering
+    minScore: SCORE_THRESHOLDS.HIGH_RELEVANCE,  // Only high-quality matches (filters out provider/model-only)
+    specificTags: []                            // For SPECIFIC_TAGS filter
 };
 
 /**

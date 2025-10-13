@@ -53,16 +53,35 @@ class SearchFilterHelpers {
             hiddenPrivate: 0
         };
 
+        // Track each image's state for debugging
+        const imageStates = [];
+
         searchImages.forEach(wrapper => {
             const isPublic = wrapper.dataset.isPublic === 'true';
             const isVisible = !wrapper.classList.contains('hidden');
+            const imageId = wrapper.dataset.imageId;
+
+            imageStates.push({
+                id: imageId,
+                isPublic,
+                isVisible,
+                classes: Array.from(wrapper.classList)
+            });
 
             if (isPublic) {
                 counts.public++;
-                if (isVisible) { counts.visiblePublic++; } else { counts.hiddenPublic++; }
+                if (isVisible) {
+                    counts.visiblePublic++;
+                } else {
+                    counts.hiddenPublic++;
+                }
             } else {
                 counts.private++;
-                if (isVisible) { counts.visiblePrivate++; } else { counts.hiddenPrivate++; }
+                if (isVisible) {
+                    counts.visiblePrivate++;
+                } else {
+                    counts.hiddenPrivate++;
+                }
             }
 
             if (isVisible) {
@@ -70,17 +89,14 @@ class SearchFilterHelpers {
             }
         });
 
-        // P3: Conditional debug logging
-        const debugEnabled = window.isDebugEnabled ? window.isDebugEnabled('SEARCH_FILTERING') : false;
+        // Debug logging for search image states
+        console.log('🔎 DOM SEARCH IMAGE STATES:', imageStates);
+        console.log('\n📈 SEARCH COUNTS UPDATED:');
+        console.log(`  Total: ${counts.total} (${counts.public} public, ${counts.private} private)`);
+        console.log(`  Visible: ${counts.visible} (${counts.visiblePublic} public, ${counts.visiblePrivate} private)`);
+        const hiddenCount = counts.total - counts.visible;
 
-        if (debugEnabled) {
-            console.log('\n📈 SEARCH COUNTS UPDATED:');
-            console.log(`  Total: ${counts.total} (${counts.public} public, ${counts.private} private)`);
-            console.log(`  Visible: ${counts.visible} (${counts.visiblePublic} public, ${counts.visiblePrivate} private)`);
-            const hiddenCount = counts.total - counts.visible;
-
-            console.log(`  Hidden: ${hiddenCount} (${counts.hiddenPublic} public, ${counts.hiddenPrivate} private)`);
-        }
+        console.log(`  Hidden: ${hiddenCount} (${counts.hiddenPublic} public, ${counts.hiddenPrivate} private)`);
 
         return counts;
     }

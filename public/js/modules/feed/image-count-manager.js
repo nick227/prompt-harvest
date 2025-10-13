@@ -149,7 +149,7 @@ class ImageCountManager {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await fetch('/api/feed/site?page=0&limit=1', {
+            const response = await fetch('/api/feed/site?page=1&limit=1', {
                 headers
             });
 
@@ -209,7 +209,7 @@ class ImageCountManager {
             }
 
             // Use the user feed endpoint to get total count of user's images
-            const response = await fetch('/api/feed/user?page=0&limit=1', {
+            const response = await fetch('/api/feed/user?page=1&limit=1', {
                 headers
             });
 

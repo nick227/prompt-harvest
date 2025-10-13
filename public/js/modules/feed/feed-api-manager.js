@@ -72,13 +72,13 @@ class FeedAPIManager {
                 url += `&tags=${encodeURIComponent(tagsParam)}`;
             }
 
-
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${this.getAuthToken()}`
-                }
+                },
+                cache: 'no-store' // Disable caching to ensure fresh requests
             });
 
 
@@ -108,7 +108,11 @@ class FeedAPIManager {
             }
 
             // Extract hasMore from multiple possible locations
-            const hasMore = data.hasMore ?? data.data?.hasMore ?? data.pagination?.hasMore;
+            // Check data.data.pagination.hasMore first (from formatGetUserOwnImagesResponse)
+            const hasMore = data.hasMore ??
+                           data.data?.hasMore ??
+                           data.data?.pagination?.hasMore ??
+                           data.pagination?.hasMore;
 
             // Return in consistent format
             const result = {
@@ -123,17 +127,15 @@ class FeedAPIManager {
                 result.user = data.user || data.data.user;
             }
 
-
-            if (window.DEBUG_MODE) {
-                console.log(`🔍 FEED: Returning result for ${filter}:`, {
-                    imageCount: result.images.length,
-                    sampleImages: result.images.slice(0, 2).map(img => ({ id: img.id, isPublic: img.isPublic, userId: img.userId }))
-                });
-            }
-
             return result;
         } catch (error) {
-            console.error('❌ FEED: Error loading feed images:', error);
+            console.error('❌ FEED API: Error loading feed images:', {
+                filter,
+                page,
+                tags,
+                error: error.message,
+                stack: error.stack
+            });
             throw error;
         }
     }

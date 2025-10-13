@@ -58,11 +58,20 @@ class HybridTabService {
 
         // Check if search is active - if so, filter only search results
         const isSearchActive = window.searchManager?.state?.isSearchActive;
+
         const selector = isSearchActive
             ? '.image-wrapper[data-source="search"]'  // Filter search results only
             : '.image-wrapper';                       // Filter all images (normal feed)
 
         const images = document.querySelectorAll(selector);
+
+        // P3: Conditional debug logging
+        const debugEnabled = window.isDebugEnabled ? window.isDebugEnabled('SEARCH_FILTERING') : false;
+
+        if (debugEnabled) {
+            console.log(`🔄 HybridTabService.switchToFilter("${filter}") - Search Active: ${isSearchActive}`);
+            console.log(`  → Filtering ${images.length} images with selector: ${selector}`);
+        }
 
         // Track statistics for logging
         const stats = {
@@ -74,9 +83,6 @@ class HybridTabService {
             currentUserImages: 0,
             otherUserImages: 0
         };
-
-        // P3: Conditional debug logging
-        const debugEnabled = window.isDebugEnabled ? window.isDebugEnabled('SEARCH_FILTERING') : false;
 
         if (debugEnabled) {
             console.log(`\n🔄 OWNER FILTER SWITCH: "${filter}" (Search Active: ${isSearchActive})`);

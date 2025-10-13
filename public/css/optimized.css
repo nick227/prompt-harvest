@@ -22,6 +22,9 @@
 /* 4.1. Rating buttons - Plus/minus rating buttons */
 @import url('./modules/rating-buttons.css');
 
+/* 4.2. Search UI - Search indicators and messages */
+@import url('./modules/search-ui.css');
+
 /* 5. Image styles - Image display and image-related components */
 @import url('./modules/images.css');
 

@@ -247,7 +247,9 @@ export class ImageRepository extends PrismaBaseRepository {
      * Fetch images and count with pagination
      */
     async fetchUserImagesWithPagination(whereClause, limit, skip) {
-        return await Promise.all([
+        console.log('🔍 REPO fetchUserImagesWithPagination:', { whereClause, limit, skip });
+
+        const result = await Promise.all([
             this.prisma.image.findMany({
                 where: whereClause,
                 orderBy: { createdAt: 'desc' },
@@ -256,6 +258,14 @@ export class ImageRepository extends PrismaBaseRepository {
             }),
             this.prisma.image.count({ where: whereClause })
         ]);
+
+        console.log('📦 REPO fetchUserImagesWithPagination result:', {
+            imagesReturned: result[0].length,
+            totalCount: result[1],
+            firstImageId: result[0][0]?.id
+        });
+
+        return result;
     }
 
     /**
@@ -301,21 +311,29 @@ export class ImageRepository extends PrismaBaseRepository {
     async findUserImages(userId, limit = 8, page = 0, tags = []) {
         const skip = page * limit;
 
+        console.log('🔍 REPO: findUserImages called with:', { userId, limit, page, skip, tags });
 
         // Check total images for user
         const totalImagesForUser = await this.prisma.image.count({ where: { userId } });
 
+        console.log('📊 REPO: Total images for user in DB:', totalImagesForUser);
 
         // Build where clause and fetch data
         const whereClause = this.buildUserImagesWhereClause(userId, tags);
 
+        console.log('🔍 REPO: Where clause:', whereClause);
+
 
         const [images, totalCount] = await this.fetchUserImagesWithPagination(whereClause, limit, skip);
+
+        console.log('📦 REPO: Fetched from DB:', { imageCount: images.length, totalCount });
 
         // Validate privacy and filter
         const { images: safeImages, totalCount: safeTotalCount } = this.validateAndFilterUserImages(images, userId, totalCount);
 
         const hasMore = skip + limit < safeTotalCount;
+
+        console.log('✅ REPO: Returning:', { safeImageCount: safeImages.length, safeTotalCount, hasMore, skip, limit });
 
         this.logUserImagesResults(safeImages, safeTotalCount, hasMore, tags, skip, limit);
 
