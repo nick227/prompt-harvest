@@ -163,8 +163,76 @@
 }
 
 .compact .image-wrapper {
-    width: 147px;
-    height: 147px;
+    width: 5vw;
+    height: 5vw;
+}
+
+.magic-container {
+    max-width: 1080px;
+}
+
+@media (min-width: 1761px) {
+    .magic-container {
+        width: 1080px !important;
+    }
+
+    .compact .image-wrapper {
+        width: 147px;
+        height: 147px;
+    }
+}
+
+@media (max-width: 1760px) {
+    .magic-container {
+        width: 800px !important;
+    }
+
+    .compact .image-wrapper {
+        width: 13.4%;
+        height: auto;
+    }
+}
+
+@media (max-width: 1460px) {
+    .magic-container {
+        width: 640px !important;
+    }
+
+    .compact .image-wrapper {
+        width: 15%;
+        height: auto;
+    }
+}
+
+@media (max-width: 1265px) {
+    .magic-container {
+        width: 440px !important;
+    }
+}
+
+@media (max-width: 1025px) {
+    .magic-container {
+        width: 440px !important;
+    }
+
+    .compact .image-wrapper {
+        width: 23.5%;
+        height: auto;
+    }
+}
+
+@media (max-width: 785px) {
+    .magic-container {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 585px) {
+
+    .compact .image-wrapper {
+        width: 31.9%;
+        height: auto;
+    }
 }
 
 /* List view specific layouts - Table-like structure */

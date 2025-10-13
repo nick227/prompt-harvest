@@ -117,17 +117,17 @@ export const TAG_FILTERS = {
 export const DEFAULT_SCORING = {
     // Prompt field weights
     exactMatch: 100,    // Prompt exactly matches search term
-    startsWith: 80,     // Prompt starts with search term
-    contains: 50,       // Prompt contains search term
+    startsWith: 100,     // Prompt starts with search term
+    contains: 0,       // Prompt contains search term
 
     // Tag field weights
     exactTag: 70,       // Tag exactly matches search term
     tagStarts: 40,      // Tag starts with search term
-    tagContains: 20,    // Tag contains search term
+    tagContains: 0,    // Tag contains search term
 
     // Other fields
-    providerModel: 30,  // Provider or model name matches
-    originalBonus: 25   // Original (unenhanced) prompt bonus
+    providerModel: 0,  // Provider or model name matches
+    originalBonus: 0   // Original (unenhanced) prompt bonus
 };
 
 /**

@@ -24,7 +24,7 @@
 
     <!-- Profile page uses header component for auth widget (no drawer needed) -->
 
-    <main class="flex-col gap-4 h-full max-w-[1080px] mx-auto main-container">
+    <main class="flex-col gap-4 h-full max-w-[1080px] mx-auto main-container magic-container">
         <!-- Profile Header -->
         <div id="profile-header" class="w-full mb-6 p-6 bg-gray-800/50 rounded-xl border border-gray-700/50">
             <div class="flex items-center gap-4 mb-4">
@@ -66,7 +66,7 @@
                 <div class="flex items-center justify-between mb-4 flex-wrap gap-4 flex-wrap">
                     <div class="flex items-center gap-2 flex-wrap w-full">
                         <!-- View Switch -->
-                        <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors">
+                        <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors hide-on-mobile">
                             <input type="radio" name="view" value="full"> Full</label>
                         <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors">
                             <input type="radio" name="view" value="list"> List</label>

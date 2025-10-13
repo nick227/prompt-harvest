@@ -31,7 +31,7 @@ class HeaderComponent {
 
         // Create new header
         const header = document.createElement('header');
-        const headerClass = window.location.pathname.includes('admin.html') ? 'px-12' : 'max-w-[1080px] mx-auto';
+        const headerClass = window.location.pathname.includes('admin.html') ? 'px-12' : 'max-w-[1080px] mx-auto magic-container';
 
 
         // Check if this is the billing page and apply fixed positioning

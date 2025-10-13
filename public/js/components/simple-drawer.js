@@ -194,10 +194,10 @@ class SimpleDrawer {
                                    focus:outline-none focus:ring-2 focus:ring-purple-500
                                    focus:border-transparent transition-all">
                             <option value="default">🌙 Default Dark</option>
-                            <option value="apple">🍎 Apple Light</option>
+                            <option value="apple">🍎 Default Light</option>
                             <option value="monokai">🎨 Monokai</option>
                             <option value="highcontrast">⚫ High Contrast</option>
-                            <option value="discord">💜 Discord</option>
+                            <option value="discord">💜 Secondary Dark</option>
                         </select>
                     </div>
                 </div>

@@ -4,7 +4,7 @@
 
 /* CSS Custom Properties for responsive breakpoints */
 :root {
-    --mobile-breakpoint: 768px;
+    --mobile-breakpoint: 1080px;
     --tablet-breakpoint: 1024px;
     --desktop-breakpoint: 1400px;
     --drawer-width: 320px;
@@ -24,29 +24,16 @@
         --drawer-width: 280px;
     }
 
-    /* Adjust main content padding */
-    body:not(.drawer-collapsed) main {
-        padding-left: 280px;
-    }
-
-    /* Ensure no overlap on tablets */
-    .prompt-output {
-        max-width: calc(100vw - 40px);
-        min-width: calc(100vw - 40px);
-        width: calc(100vw - 40px);
-        margin: 0 auto;
-    }
-
     .hide-on-mobile, .hide-mobile {
         display: none !important;
     }
 }
 
 /* ==========================================================================
-   MOBILE BREAKPOINT (768px and below)
+   MOBILE BREAKPOINT (1080px and below)
    ========================================================================== */
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1080px) {
 
     .logo-main-text {
         font-size: 18px;
@@ -263,7 +250,7 @@
    ========================================================================== */
 
 /* Focus indicators for mobile */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1080px) {
 
     button:focus,
     input:focus,
@@ -294,7 +281,7 @@
     display: block;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1080px) {
     .mobile-hidden {
         display: none !important;
     }
@@ -305,14 +292,14 @@
     display: none;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1080px) {
     .mobile-only {
         display: block !important;
     }
 }
 
 /* Mobile hamburger button positioning */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1080px) {
     #mobile-hamburger {
         position: fixed;
         top: 1rem;
@@ -326,7 +313,7 @@
 }
 
 /* Mobile controls overlay */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1080px) {
     #mobile-controls-overlay {
         position: fixed;
         top: 0;

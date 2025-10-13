@@ -139,6 +139,15 @@
   border-top-right-radius: 15px;
 }
 
+.info-box-title {
+  line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 /* Mobile-specific overrides */
 @media screen and (max-width: 768px) {
     .info-box-content {
@@ -158,7 +167,7 @@
     height: 100vh;
     opacity: 1;
     background: transparent;
-    padding-bottom: 8em;
+    padding-bottom: 10em;
 }
 
 /* Override to keep info boxes open by default */
@@ -228,6 +237,10 @@
     background: rgba(34, 197, 94, 0.1);
     border: 1px solid rgba(34, 197, 94, 0.2);
     border-radius: 6px;
+}
+
+.public-parent {
+    grid-column: 1 / -1;
 }
 
 .info-box-public-toggle .public-status-checkbox {

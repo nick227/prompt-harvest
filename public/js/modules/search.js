@@ -1,49 +1,11 @@
 /* global SearchIDGenerator, SearchCacheManager, SearchRetryStrategy, SearchEventEmitter */
 /* global SearchAPIUtils, SearchPaginationManager, SearchFilterManager, SearchUIManager */
-/* global SearchExecutionManager, SearchStateManager */
-
-/**
- * @typedef {Object} ImageItem
- * @property {string} id - Unique image identifier
- * @property {string} url - Image URL
- * @property {string} [src] - Alternative image source
- * @property {string} [prompt] - Generation prompt
- * @property {boolean} [isPublic] - Public visibility flag
- * @property {string[]} [tags] - Image tags
- */
-
-/**
- * @typedef {Object} SearchResponse
- * @property {ImageItem[]} images - Array of image items
- * @property {boolean} hasMore - Whether more results exist
- * @property {number} total - Total result count
- * @property {Object} [meta] - Additional metadata
- */
-
-/**
- * @typedef {Object} SearchCounts
- * @property {number} total - Total search results loaded
- * @property {number} public - Public search results
- * @property {number} private - Private search results
- * @property {number} visible - Currently visible (after filtering)
- */
-
-/**
- * @typedef {Object} FeedManager
- * @property {Object} apiManager - API manager instance
- * @property {Object} [tabService] - Tab/filter service
- * @property {Object} [imageHandler] - Image handling service
- * @property {Object} [viewManager] - View management service
- * @property {Object} [domOperations] - DOM operations helper
- * @property {Object} [uiManager] - UI management helper
- * @property {Object} [filterManager] - Filter management
- * @property {Function} [refreshFeed] - Refresh feed method
- */
+/* global SearchExecutionManager, SearchStateManager, SearchDisplayManager */
+/* global SearchResultProcessor, SearchFeedIntegration, SearchCoordinator, SearchFilterCoordinator */
+/* global SearchResultDisplay, SearchEventHandler, SearchPaginationHandler */
 
 /**
  * SearchManager - Site-wide image search with modular architecture
- * Orchestrates specialized modules for execution, pagination, filtering, and UI
- *
  * @class SearchManager
  */
 class SearchManager {
@@ -69,7 +31,6 @@ class SearchManager {
         this._alive = true;
         this._initialized = false;
         this.feedManager = null;
-        this.eventListeners = [];
 
         // Debug configuration
         this.debugEnabled = window.isDebugEnabled ? window.isDebugEnabled('SEARCH_FILTERING') : false;
@@ -80,7 +41,17 @@ class SearchManager {
     }
 
     _initializeModules() {
-        // Core utilities
+        this._initializeCoreUtilities();
+        this._initializeManagers();
+        this._initializeCoordinators();
+
+        // Placeholder modules (initialized after feedManager is available)
+        this.displayManager = null;
+        this.resultProcessor = null;
+        this.feedIntegration = null;
+    }
+
+    _initializeCoreUtilities() {
         this.idGenerator = new window.SearchIDGenerator(
             `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
         );
@@ -106,8 +77,9 @@ class SearchManager {
         this.eventEmitter = new window.SearchEventEmitter(
             () => this.isDebugEnabled()
         );
+    }
 
-        // State and business logic
+    _initializeManagers() {
         this.stateManager = new window.SearchStateManager();
 
         this.paginationManager = new window.SearchPaginationManager(
@@ -135,12 +107,41 @@ class SearchManager {
         );
     }
 
+    _initializeCoordinators() {
+        this.searchCoordinator = new window.SearchCoordinator(
+            this.stateManager,
+            this.executionManager,
+            this.cacheManager,
+            this.paginationManager,
+            this.eventEmitter,
+            () => this.isDebugEnabled()
+        );
+
+        this.filterCoordinator = new window.SearchFilterCoordinator(
+            this.filterManager,
+            this.stateManager,
+            () => this.isDebugEnabled()
+        );
+
+        this.resultDisplay = new window.SearchResultDisplay(
+            () => this.isDebugEnabled()
+        );
+
+        this.paginationHandler = new window.SearchPaginationHandler(
+            this.stateManager,
+            this.paginationManager
+        );
+    }
+
     _initializeDOM() {
         // Cached DOM elements
         this.domCache = {
             searchInput: null,
             promptOutput: null
         };
+
+        // Event handler
+        this.eventHandler = new window.SearchEventHandler(this.domCache);
 
         // UI components
         this.uiComponents = new window.SearchUIComponents(
@@ -183,12 +184,16 @@ class SearchManager {
         this.domCache.promptOutput = document.querySelector('.prompt-output');
     }
 
-    async waitForFeedManager(maxRetries = SearchManager.DEFAULTS.MAX_RETRIES, retryDelay = SearchManager.DEFAULTS.RETRY_DELAY_MS) {
+    async waitForFeedManager(
+        maxRetries = SearchManager.DEFAULTS.MAX_RETRIES,
+        retryDelay = SearchManager.DEFAULTS.RETRY_DELAY_MS
+    ) {
         let retries = 0;
 
         while (retries < maxRetries && this._alive) {
             if (window.feedManager?.apiManager) {
                 this.feedManager = window.feedManager;
+                this._initializeHelperModules();
                 this.setupSearchEventListeners();
 
                 return;
@@ -209,21 +214,34 @@ class SearchManager {
         console.warn('⚠️ SEARCH: Feed manager not available, search functionality limited');
     }
 
-    setupSearchEventListeners() {
-        const hasScrollListener = this.eventListeners.some(
-            listener => listener.target === window && listener.event === 'lastImageVisible'
+    _initializeHelperModules() {
+        this.displayManager = new window.SearchDisplayManager(
+            this.feedManager,
+            this.uiManager,
+            () => this.isDebugEnabled()
         );
 
-        if (hasScrollListener) { return; }
+        this.resultProcessor = new window.SearchResultProcessor(
+            this.stateManager,
+            this.paginationManager,
+            this.executionManager,
+            this.eventEmitter,
+            () => this.isDebugEnabled()
+        );
 
+        this.feedIntegration = new window.SearchFeedIntegration(
+            this.feedManager,
+            this.paginationManager,
+            () => this.isDebugEnabled()
+        );
+    }
+
+    setupSearchEventListeners() {
         const scrollHandler = () => {
             if (this.state.isSearchActive && this.state.hasMore && !this.state.isLoading) {
                 this.loadMoreResults();
             }
         };
-
-        window.addEventListener('lastImageVisible', scrollHandler);
-        this.eventListeners.push({ target: window, event: 'lastImageVisible', handler: scrollHandler });
 
         const tagChangeHandler = event => {
             if (this.state.isSearchActive) {
@@ -231,61 +249,19 @@ class SearchManager {
             }
         };
 
-        window.addEventListener('tagsChanged', tagChangeHandler);
-        this.eventListeners.push({ target: window, event: 'tagsChanged', handler: tagChangeHandler });
+        this.eventHandler.setupSearchEventListeners(scrollHandler, tagChangeHandler);
     }
 
     setupImageSearch() {
-        if (!this.domCache.searchInput) {
-            console.warn('⚠️ SEARCH: Search input not found');
-
-            return;
-        }
-
-        const hasInputListener = this.eventListeners.some(
-            listener => listener.target === this.domCache.searchInput && listener.event === 'input'
-        );
-
-        if (hasInputListener) { return; }
-
-        this.debouncedSearch = Utils.async.debounce(
+        this.eventHandler.setupImageSearch(
             event => this.handleImageSearch(event),
+            event => this.eventHandler.handleKeyboardShortcuts(
+                event,
+                () => this.clearSearch(),
+                (value, force) => this.performSearch(value, force)
+            ),
             SearchManager.DEFAULTS.DEBOUNCE_MS
         );
-
-        this.domCache.searchInput.addEventListener('input', this.debouncedSearch);
-        this.eventListeners.push({
-            target: this.domCache.searchInput,
-            event: 'input',
-            handler: this.debouncedSearch
-        });
-
-        const keydownHandler = event => this.handleKeyboardShortcuts(event);
-
-        this.domCache.searchInput.addEventListener('keydown', keydownHandler);
-        this.eventListeners.push({
-            target: this.domCache.searchInput,
-            event: 'keydown',
-            handler: keydownHandler
-        });
-    }
-
-    handleKeyboardShortcuts(event) {
-        if (event.key === 'Escape') {
-            this.clearSearch();
-        } else if (event.key === 'Enter') {
-            event.preventDefault();
-
-            if (this.debouncedSearch?.cancel) {
-                this.debouncedSearch.cancel();
-            }
-
-            const searchValue = event.target.value.trim();
-
-            if (searchValue) {
-                this.performSearch(searchValue, true);
-            }
-        }
     }
 
     async handleImageSearch(event) {
@@ -301,405 +277,159 @@ class SearchManager {
     }
 
     async performSearch(query, forceRefresh = false) {
-        if (!this.feedManager) {
-            console.error('❌ SEARCH: Feed manager not available');
+        // Update URL via SearchRouter if available
+        if (window.searchRouter && window.searchRouter.isInitialized) {
+            const currentRouterQuery = window.searchRouter.getQuery();
 
-            return;
-        }
-
-        // Check for duplicate
-        if (this.stateManager.isDuplicateSearch(query, SearchManager.DEFAULTS.DUPLICATE_SEARCH_TTL_MS) && !forceRefresh) {
-            if (this.isDebugEnabled()) {
-                console.log(`🔄 SEARCH: Skipping duplicate search for "${query}" (use Enter to force)`);
+            if (currentRouterQuery !== query) {
+                window.searchRouter.currentQuery = query;
+                window.searchRouter.updateURL();
             }
-
-            return;
         }
 
-        this.stateManager.updateLastSearch(query);
+        const processResults = (results, q) => this.resultProcessor.processSearchResults(
+            results, q, (r, q2) => this.displaySearchResults(r, q2)
+        );
+        const scheduleFill = () => this.feedIntegration.scheduleFillToBottom(
+            () => this.loadMoreResults(), this._alive
+        );
+        const handleError = (error, requestId, q) => this.resultProcessor.handleSearchError(
+            error, requestId, q, q2 => this.displayManager.showSearchError(q2)
+        );
+        const finalize = requestId => this.resultProcessor.finalizeSearch(
+            requestId, loading => this.displayManager.setLoadingState(loading)
+        );
 
-        const requestId = this.stateManager.initializeSearch(query);
-
-        this.paginationManager.clearSeenIds();
-        this.cacheManager.clearCacheFor(query);
-        this.setLoadingState(true);
-        this.clearFeedContent();
-
-        this.eventEmitter.emitSearchEvent('search:start', { query, requestId }, this.state);
-
-        try {
-            const results = await this.executionManager.searchImages(this.feedManager, query, 1);
-
-            if (this.stateManager.isStaleResponse(requestId)) {
-                return;
-            }
-
-            await this.processSearchResults(results, query);
-            this.scheduleFillToBottom();
-
-            this.eventEmitter.emitSearchEvent('search:complete', {
-                query,
-                requestId,
-                totalResults: results.total,
-                page: 1
-            }, this.state);
-
-        } catch (error) {
-            this.eventEmitter.emitSearchEvent('search:error', { query, requestId, error: error.message }, this.state);
-            this.handleSearchError(error, requestId, query);
-        } finally {
-            this.finalizeSearch(requestId);
-            this.eventEmitter.emitSearchEvent('search:end', { query, requestId }, this.state);
-        }
-    }
-
-    async processSearchResults(results, query) {
-        if (!SearchAPIUtils.validateSearchResults(results)) {
-            throw new Error('Invalid search response');
-        }
-
-        this.updateState({ hasMore: results.hasMore ?? false });
-        await this.displaySearchResults(results, query);
-    }
-
-    handleSearchError(error, requestId, query) {
-        if (error.name !== 'AbortError' && requestId === this.currentRequestId) {
-            console.error('❌ SEARCH: Search failed:', error);
-            this.showSearchError(query);
-        }
-    }
-
-    finalizeSearch(requestId) {
-        if (requestId === this.currentRequestId) {
-            this.updateState({ isLoading: false });
-            this.setLoadingState(false);
-        }
+        await this.searchCoordinator.performSearch(
+            query,
+            forceRefresh,
+            this.feedManager,
+            SearchManager.DEFAULTS.DUPLICATE_SEARCH_TTL_MS,
+            processResults,
+            scheduleFill,
+            handleError,
+            finalize,
+            loading => this.displayManager.setLoadingState(loading),
+            () => this.displayManager.clearFeedContent()
+        );
     }
 
     async loadMoreResults() {
-        await this.paginationManager.loadMoreResults(
+        await this.paginationHandler.loadMoreResults(
             this.state,
             () => this.loadNextPage(),
             updates => this.updateState(updates),
-            error => this.handleLoadMoreError(error)
+            error => this.resultProcessor.handleLoadMoreError(error)
         );
     }
 
     async loadNextPage() {
-        this.updateState({ isLoading: true });
+        const result = await this.resultProcessor.loadNextPage(
+            this.feedManager, this.state, this.currentRequestId
+        );
 
-        const nextPage = this.state.currentPage + 1;
-        const searchRequestId = this.currentRequestId;
+        if (result) {
+            const autoLoad = () => this.paginationHandler.autoLoadUntilVisible(
+                this.state,
+                () => this.loadNextPage(),
+                updates => this.updateState(updates),
+                error => this.resultProcessor.handleLoadMoreError(error),
+                this._alive
+            );
 
-        this.eventEmitter.emitSearchEvent('search:page', {
-            query: this.state.currentSearchTerm,
-            page: nextPage,
-            requestId: searchRequestId
-        }, this.state);
-
-        const results = await this.executionManager.searchImages(this.feedManager, this.state.currentSearchTerm, nextPage);
-
-        if (searchRequestId !== this.currentRequestId) {
-            return;
-        }
-
-        await this.processPageResults(results, nextPage);
-    }
-
-    async processPageResults(results, nextPage) {
-        if (!results.images?.length) {
-            this.updateState({ hasMore: false });
-
-            return;
-        }
-
-        const newImages = this.paginationManager.deduplicateImages(results.images);
-
-        if (this.isDebugEnabled()) {
-            const publicCount = newImages.filter(img => img.isPublic).length;
-            const privateCount = newImages.length - publicCount;
-
-            console.log(`📄 PAGE ${nextPage}: Loaded ${newImages.length} new images`, {
-                totalImages: results.images.length,
-                newImages: newImages.length,
-                duplicatesRemoved: results.images.length - newImages.length,
-                publicImages: publicCount,
-                privateImages: privateCount,
-                hasMore: results.hasMore
-            });
-        }
-
-        if (newImages.length > 0) {
-            await this.addPaginatedResults(newImages, results.hasMore, nextPage);
-        } else {
-            this.updateState({ hasMore: false });
-        }
-    }
-
-    async addPaginatedResults(newImages, hasMore, nextPage) {
-        this.updateState({
-            currentPage: nextPage,
-            hasMore: hasMore ?? false
-        });
-
-        this.appendImagesToFeed(newImages);
-        await this.applyFilterToResults(null, false);
-        await this.autoLoadUntilVisible();
-    }
-
-    handleLoadMoreError(error) {
-        if (error.name !== 'AbortError') {
-            console.error('❌ SEARCH: Failed to load more results:', error);
+            await this.resultProcessor.processPageResults(
+                result.results,
+                result.nextPage,
+                (imgs, more, page) => this.paginationHandler.addPaginatedResults(
+                    imgs,
+                    more,
+                    page,
+                    imgs2 => this.feedIntegration.appendImagesToFeed(imgs2),
+                    (q, show) => this.applyFilterToResults(q, show),
+                    autoLoad
+                )
+            );
         }
     }
 
     async displaySearchResults(results, query) {
-        if (results.images.length === 0) {
-            this.showNoResults(query);
-        } else {
-            const publicCount = results.images.filter(img => img.isPublic).length;
-            const privateCount = results.images.length - publicCount;
-
-            if (this.isDebugEnabled()) {
-                console.log(`\n🎨 DISPLAYING SEARCH RESULTS FOR: "${query}"`, {
-                    totalImages: results.images.length,
-                    publicImages: publicCount,
-                    privateImages: privateCount,
-                    breakdown: results.images.map(img => ({
-                        id: img.id,
-                        isPublic: img.isPublic,
-                        prompt: img.prompt?.substring(0, 40)
-                    }))
-                });
-            }
-
-            this.appendImagesToFeed(results.images);
-            await this.applyFilterToResults(query);
-
-            // CRITICAL: Hide feed images AFTER search results are displayed
-            this.hideFeedImages();
-
-            await this.autoLoadUntilVisible();
-
-            // Final check: hide any feed images that loaded during search
-            this.hideFeedImages();
-
-            // Start continuous monitoring to hide feed images during search
-            this.startFeedImageMonitoring();
-        }
-    }
-
-    startFeedImageMonitoring() {
-        // Clear any existing monitor
-        if (this._feedMonitorInterval) {
-            clearInterval(this._feedMonitorInterval);
-        }
-
-        // Check every 500ms for new feed images and hide them
-        this._feedMonitorInterval = setInterval(() => {
-            if (!this.state.isSearchActive) {
-                clearInterval(this._feedMonitorInterval);
-                this._feedMonitorInterval = null;
-
-                return;
-            }
-
-            const feedImages = document.querySelectorAll('.image-wrapper:not([data-source="search"]):not(.hidden)');
-
-            if (feedImages.length > 0) {
-                if (this.isDebugEnabled()) {
-                    console.log(`⚠️ Found ${feedImages.length} unhidden feed images, hiding them...`);
-                }
-                feedImages.forEach(img => img.classList.add('hidden'));
-            }
-        }, 500);
-    }
-
-    async autoLoadUntilVisible() {
-        await this.paginationManager.autoLoadUntilVisible(
+        const autoLoad = () => this.paginationHandler.autoLoadUntilVisible(
             this.state,
             () => this.loadNextPage(),
             updates => this.updateState(updates),
-            error => this.handleLoadMoreError(error),
+            error => this.resultProcessor.handleLoadMoreError(error),
             this._alive
+        );
+
+        await this.resultDisplay.displaySearchResults(
+            results,
+            query,
+            q => this.displayManager.showNoResults(q, () => this.displayManager.clearFeedContent()),
+            imgs => this.feedIntegration.appendImagesToFeed(imgs),
+            q => this.applyFilterToResults(q),
+            () => this.displayManager.hideFeedImages(),
+            autoLoad,
+            () => this.displayManager.startFeedImageMonitoring(() => this.state.isSearchActive)
         );
     }
 
     async applyFilterToResults(query = null, showIndicator = true) {
-        await this.filterManager.applyFilterToResults(
+        await this.filterCoordinator.applyFilterToResults(
             this.feedManager,
             query,
             showIndicator,
-            () => this.updateSearchCounts(),
-            q => this.showSearchActiveIndicator(q),
+            () => {
+                this.filterCoordinator.updateSearchCounts(this.feedManager);
+                this.displayManager.updateSearchIndicatorCounts(
+                    this.state.currentSearchTerm,
+                    this.state.searchCounts,
+                    this.filterCoordinator.getCurrentFilter(this.feedManager)
+                );
+            },
+            q => this.displayManager.showSearchActiveIndicator(
+                q,
+                this.state.searchCounts,
+                this.filterCoordinator.getCurrentFilter(this.feedManager)
+            ),
             q => this.uiManager.showWarningIndicator(q)
         );
     }
 
     async handleTagFilterChange(activeTags) {
-        await this.filterManager.handleTagFilterChange(
+        await this.filterCoordinator.handleTagFilterChange(
             this.feedManager,
             activeTags,
-            () => this.updateSearchCounts()
-        );
-    }
-
-    updateSearchCounts() {
-        const counts = this.filterManager.updateSearchCounts();
-
-        if (this.isDebugEnabled()) {
-            console.log('🔢 SEARCH COUNTS UPDATED:', {
-                total: counts.total,
-                visible: counts.visible,
-                public: counts.public,
-                private: counts.private,
-                currentFilter: this.filterManager.getCurrentFilter(this.feedManager)
-            });
-        }
-
-        this.stateManager.updateSearchCounts(counts);
-
-        // Debug verification
-        if (this.isDebugEnabled()) {
-            const actualVisible = document.querySelectorAll('.image-wrapper[data-source="search"]:not(.hidden)').length;
-
-            if (actualVisible !== counts.visible) {
-                console.error('⚠️ COUNT MISMATCH:', {
-                    reported: counts.visible,
-                    actual: actualVisible,
-                    difference: counts.visible - actualVisible // eslint-disable-line
-                });
+            () => {
+                this.filterCoordinator.updateSearchCounts(this.feedManager);
+                this.displayManager.updateSearchIndicatorCounts(
+                    this.state.currentSearchTerm,
+                    this.state.searchCounts,
+                    this.filterCoordinator.getCurrentFilter(this.feedManager)
+                );
             }
-        }
-
-        this.updateSearchIndicatorCounts();
-    }
-
-    showSearchActiveIndicator(query) {
-        this.uiManager.showSearchActiveIndicator(
-            query,
-            this.state.searchCounts,
-            this.filterManager.getCurrentFilter(this.feedManager)
         );
-    }
-
-    updateSearchIndicatorCounts() {
-        this.uiManager.updateSearchIndicatorCounts(
-            this.state.currentSearchTerm,
-            this.state.searchCounts,
-            this.filterManager.getCurrentFilter(this.feedManager)
-        );
-    }
-
-    appendImagesToFeed(images) {
-        if (this.isDebugEnabled()) {
-            console.log(`📌 APPENDING ${images.length} IMAGES TO FEED:`, {
-                publicImages: images.filter(img => img.isPublic).length,
-                privateImages: images.filter(img => !img.isPublic).length,
-                imageIds: images.map(img => `${img.id}(${img.isPublic ? 'public' : 'private'})`)
-            });
-        }
-
-        images.forEach(image => {
-            this.paginationManager.addSeenImageId(image.id);
-            this.feedManager.imageHandler.addImageToFeed(image, 'search');
-        });
-
-        this.reapplyView();
-    }
-
-    reapplyView() {
-        if (this.feedManager.viewManager?.forceReapplyView) {
-            this.feedManager.viewManager.forceReapplyView();
-        }
-    }
-
-    scheduleFillToBottom() {
-        this.paginationManager.scheduleFillToBottom(() => {
-            if (!this.feedManager?.fillToBottomManager) {
-                return;
-            }
-
-            const lastImage = this.feedManager.domOperations?.getLastImageElement();
-
-            if (lastImage && this.feedManager.uiManager?.isElementInViewport(lastImage)) {
-                this.loadMoreResults();
-            }
-        }, this._alive);
     }
 
     async clearSearch() {
+        // Clear URL via SearchRouter if available
+        if (window.searchRouter && window.searchRouter.isInitialized) {
+            window.searchRouter.currentQuery = '';
+            window.searchRouter.updateURL();
+        }
+
         if (this.domCache.searchInput) {
             this.domCache.searchInput.value = '';
         }
-
         this.executionManager.cancelAllSearches();
         this.stateManager.resetState();
         this.cacheManager.clearAll();
         this.paginationManager.clearSeenIds();
-        this.uiManager.hideSearchActiveIndicator();
-
-        // Restore feed images before refreshing
-        if (this.feedManager?.domOperations) {
-            this.feedManager.domOperations.restoreFeedImages();
-        }
+        this.displayManager.hideSearchActiveIndicator();
+        this.feedIntegration.restoreFeedImages();
 
         if (this.feedManager) {
             await this.feedManager.refreshFeed();
         }
-    }
-
-    // UI helper methods (delegate to feedManager)
-    setLoadingState(isLoading) {
-        if (this.feedManager?.uiManager) {
-            this.feedManager.uiManager.setLoading(isLoading);
-        }
-    }
-
-    clearFeedContent() {
-        if (this.feedManager?.domOperations) {
-            this.feedManager.domOperations.clearFeedContent();
-        }
-
-        // Hide any existing feed images
-        this.hideFeedImages();
-    }
-
-    hideFeedImages() {
-        // Hide ALL feed images (those without data-source="search")
-        const feedImages = document.querySelectorAll('.image-wrapper:not([data-source="search"])');
-
-        if (this.isDebugEnabled()) {
-            const allImages = document.querySelectorAll('.image-wrapper');
-            const searchImages = document.querySelectorAll('.image-wrapper[data-source="search"]');
-
-            console.log('🙈 HIDING FEED IMAGES:');
-            console.log(`  → Total images in DOM: ${allImages.length}`);
-            console.log(`  → Feed images (not search): ${feedImages.length}`);
-            console.log(`  → Search images: ${searchImages.length}`);
-        }
-
-        let hiddenCount = 0;
-
-        feedImages.forEach(img => {
-            if (!img.classList.contains('hidden')) {
-                img.classList.add('hidden');
-                hiddenCount++;
-            }
-        });
-
-        if (this.isDebugEnabled() && hiddenCount > 0) {
-            console.log(`  → Total hidden: ${hiddenCount}`);
-        }
-    }
-
-    // Delegate to UI manager
-    showNoResults(query) {
-        this.uiManager.showNoResults(query, () => this.clearFeedContent());
-    }
-
-    showSearchError(query) {
-        this.uiManager.showSearchError(query);
     }
 
     // Security
@@ -747,20 +477,14 @@ class SearchManager {
     cleanup() {
         this._alive = false;
 
-        // Clear feed monitor
-        if (this._feedMonitorInterval) {
-            clearInterval(this._feedMonitorInterval);
-            this._feedMonitorInterval = null;
+        if (this.displayManager) {
+            this.displayManager.cleanup();
         }
 
+        this.eventHandler.cleanup();
         this.paginationManager.cleanup();
         this.executionManager.cleanup();
         this.uiManager.cleanup();
-
-        this.eventListeners.forEach(({ target, event, handler }) => {
-            target.removeEventListener(event, handler);
-        });
-        this.eventListeners = [];
 
         this.cacheManager.clearAll();
         this.stateManager.resetState();
@@ -791,4 +515,3 @@ if (typeof document !== 'undefined' && !document.getElementById('search-manager-
 // Export for global access
 window.SearchManager = SearchManager;
 window.searchManager = new SearchManager();
-

@@ -478,10 +478,11 @@ class UnifiedInfoBox {
 
         // Create metadata items
         const metadataItems = [
-            { label: 'Model', value: imageData.model || imageData.provider || 'Unknown' },
-            { label: '', value: this.createPublicToggle(imageData, config) },
-            { label: 'Rating', value: this.formatRating(imageData.rating) },
-            { label: 'Created', value: this.formatCreatedBy(imageData) }
+            { label: '', value: this.createPublicToggle(imageData, config), className: 'public-parent' },
+            { label: 'Model', value: imageData.model || imageData.provider || 'Unknown', className: 'model-parent' },
+            { label: 'Rating', value: this.formatRating(imageData.rating), className: 'rating-parent' },
+            { label: 'Creator', value: this.formatCreatedBy(imageData), className: 'creator-parent' },
+            { label: 'Date', value: this.formatCreatedWhen(imageData), className: 'date-parent' }
         ];
 
         metadataItems.forEach(item => {
@@ -490,7 +491,7 @@ class UnifiedInfoBox {
             }
 
             const itemConfig = { ...config, imageData };
-            const itemElement = this.createMetadataItem(item.label, item.value, itemConfig);
+            const itemElement = this.createMetadataItem(item.label, item.value, item.className, itemConfig);
 
             metadata.appendChild(itemElement);
         });
@@ -505,10 +506,11 @@ class UnifiedInfoBox {
      * @param {Object} config - Configuration
      * @returns {HTMLElement} Metadata item
      */
-    createMetadataItem(label, value, config) {
+    createMetadataItem(label, value, className, config) {
         const item = this.createElement('div', config);
 
         item.className = 'info-box-meta-item';
+        item.classList.add(className);
 
         // Add special class for rating items
         if (label === 'Rating') {
@@ -775,7 +777,7 @@ class UnifiedInfoBox {
      * @returns {string} Title text
      */
     getTitleText(imageData, config) {
-        const charLimit = 60;
+        const charLimit = 600;
 
         if (config.titleSource === 'id') {
             return imageData.id || config.titleFallback;
@@ -831,6 +833,58 @@ class UnifiedInfoBox {
         } catch (error) {
             return 'Invalid date';
         }
+    }
+
+    getTimeUnit(ms) {
+        const units = [
+            [31556952000, 'year'],
+            [2629746000, 'month'],
+            [86400000, 'day'],
+            [3600000, 'hour'],
+            [60000, 'minute']
+        ];
+
+        for (const [threshold, unit] of units) {
+            if (ms >= threshold) {
+                return { n: Math.floor(ms / threshold), u: unit };
+            }
+        }
+
+        return { n: Math.floor(ms / 60000), u: 'minute' };
+    }
+
+    timeAgo(input, now = Date.now()) {
+        let t;
+
+        if (typeof input === 'number') {
+            t = input;
+        } else if (input instanceof Date) {
+            t = +input;
+        } else {
+            t = Date.parse(input);
+        }
+
+        const diff = now - t;
+
+        if (!isFinite(diff)) {
+            return 'invalid date';
+        }
+
+        const past = diff >= 0;
+        const ms = Math.abs(diff);
+        const { n, u } = this.getTimeUnit(ms);
+
+        return past ? `${n} ${u}${n > 1 ? 's' : ''} ago` : `in ${n} ${u}${n > 1 ? 's' : ''}`;
+    }
+
+
+    /**
+     * Format created when information (date)
+     * @param {Object} imageData - Image data
+     * @returns {string} Formatted created when string
+     */
+    formatCreatedWhen(imageData) {
+        return this.timeAgo(imageData.createdAt);
     }
 
     /**

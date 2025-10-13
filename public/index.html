@@ -42,7 +42,7 @@
         </svg>
     </button>
 
-    <main class="flex-col gap-4 h-full max-w-[1080px] mx-auto main-container">
+    <main class="flex-col gap-4 h-full max-w-[1080px] mx-auto main-container magic-container">
         <!-- Main Controls Bar -->
         <div class="w-full mb-4 flex flex-col gap-4 main-controls-container">
             <!-- Featured Controls Row -->
@@ -104,7 +104,7 @@
 
                     <div class="flex items-center gap-2 flex-wrap">
                         <!-- View Switch -->
-                        <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors">
+                        <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors hide-on-mobile">
                             <input type="radio" name="view" value="full"> Full</label>
                             <label class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors">
                                 <input type="radio" name="view" value="list"> List</label>
@@ -114,8 +114,8 @@
                         <!-- Owner Filter Dropdown -->
                         <select name="owner"
                             class="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="public">Public</option>
-                            <option value="private" selected>Private</option>
+                            <option value="public">Public &nbsp;🟢</option>
+                            <option value="private" selected>Private 🔒</option>
                         </select>
                     </div>
                     <!-- Search Container -->
@@ -282,7 +282,18 @@
     <script src="js/modules/search/search-ui-manager.js"></script>
     <script src="js/modules/search/search-filter-helpers.js"></script>
     <script src="js/modules/search/search-ui-components.js"></script>
+    <!-- Search coordinators and handlers (new modular architecture) -->
+    <script src="js/modules/search/SearchCoordinator.js"></script>
+    <script src="js/modules/search/SearchFilterCoordinator.js"></script>
+    <script src="js/modules/search/SearchDisplayManager.js"></script>
+    <script src="js/modules/search/SearchResultProcessor.js"></script>
+    <script src="js/modules/search/SearchFeedIntegration.js"></script>
+    <script src="js/modules/search/SearchResultDisplay.js"></script>
+    <script src="js/modules/search/SearchEventHandler.js"></script>
+    <script src="js/modules/search/SearchPaginationHandler.js"></script>
+    <!-- Main search manager -->
     <script src="js/modules/search.js"></script>
+    <script src="js/utils/search-router.js"></script>
     <script src="js/modules/providers/provider-manager.js"></script>
     <script src="js/utils/tag-router.js"></script>
 
