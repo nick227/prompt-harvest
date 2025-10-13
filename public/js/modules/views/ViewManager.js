@@ -18,7 +18,6 @@
             this.currentView = this.loadPreference();
             this.listeners = new Set();
 
-            console.log('🎨 VIEW MANAGER: Initialized with view:', this.currentView);
         }
 
         /**
@@ -54,7 +53,6 @@
          */
         switchTo(viewType) {
             if (viewType === this.currentView) {
-                console.log('🎨 VIEW MANAGER: Already in view:', viewType);
 
                 return;
             }
@@ -64,8 +62,6 @@
             }
 
             const previousView = this.currentView;
-
-            console.log(`🎨 VIEW MANAGER: Switching from ${previousView} to ${viewType}`);
 
             this.currentView = viewType;
             this.savePreference(viewType);
@@ -81,7 +77,6 @@
                 const saved = localStorage.getItem(this.registry.STORAGE_KEY);
 
                 if (saved && this.registry.isValidView(saved)) {
-                    console.log('🎨 VIEW MANAGER: Loaded preference:', saved);
 
                     return saved;
                 }
@@ -99,7 +94,6 @@
         savePreference(viewType) {
             try {
                 localStorage.setItem(this.registry.STORAGE_KEY, viewType);
-                console.log('🎨 VIEW MANAGER: Saved preference:', viewType);
             } catch (error) {
                 console.warn('⚠️ VIEW MANAGER: Could not save preference:', error);
             }
