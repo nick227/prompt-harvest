@@ -62,13 +62,6 @@ class AdminAuthManager {
 
             const isAdmin = userProfile.data.user?.isAdmin === true;
 
-            console.log('🔍 ADMIN: isAdmin check:', {
-                isAdmin: userProfile.data.user?.isAdmin,
-                isAdminType: typeof userProfile.data.user?.isAdmin,
-                isAdminStrict: isAdmin,
-                userData: userProfile.data.user
-            });
-
             if (!isAdmin) {
                 return false;
             }

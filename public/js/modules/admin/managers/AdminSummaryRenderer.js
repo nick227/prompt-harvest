@@ -91,14 +91,6 @@ class AdminSummaryRenderer {
     generateSummaryTabHTML(data) {
         const { stats, metrics, health, recentImage } = data;
 
-        console.log('🔍 ADMIN-SUMMARY: generateSummaryTabHTML received data:', {
-            stats: !!stats,
-            metrics: !!metrics,
-            health: !!health,
-            recentImage: !!recentImage,
-            recentImageData: recentImage
-        });
-
         return `
             <div class="summary-grid">
                 <div class="summary-section">

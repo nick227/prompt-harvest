@@ -229,214 +229,222 @@ class AdminQueueMonitor {
      */
     _getDashboardTemplate() {
         return `
-            <div id="queue-monitor-dashboard" class="queue-monitor-dashboard">
+            <div id="queue-monitor-dashboard" style="max-width: 1600px; margin: 0 auto; padding: var(--space-8);">
                 <!-- Alert Container -->
                 <div id="queue-alerts" class="queue-alerts-container"></div>
 
                 <!-- Queue Status Overview -->
-                <div class="queue-status-overview">
-                    <h2 class="dashboard-section-title">
-                        <i class="fas fa-tasks"></i>
+                <section style="margin-bottom: var(--space-10);">
+                    <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-6) 0; display: flex; align-items: center; gap: var(--space-3);">
+                        <i class="fas fa-tasks" style="color: var(--color-accent-primary);"></i>
                         Queue Status Overview
                     </h2>
-                    <div class="status-cards-grid">
-                        <div class="status-card" id="queue-health-card">
-                            <div class="status-card-header">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-6);">
+                        <div id="queue-health-card" style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary); min-height: 120px; display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: auto; color: var(--color-text-secondary);">
                                 <i class="fas fa-heartbeat"></i>
-                                <span>Health Status</span>
+                                <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-transform: uppercase; letter-spacing: 0.05em;">Health Status</span>
                             </div>
-                            <div class="status-card-content">
-                                <div class="status-indicator" id="health-indicator">
-                                    <span class="status-dot"></span>
-                                    <span class="status-text">Checking...</span>
-                                </div>
+                            <div id="health-indicator" style="display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-4);">
+                                <span class="status-dot" style="width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0;"></span>
+                                <span class="status-text" style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--color-text-primary);">Checking...</span>
                             </div>
                         </div>
 
-                        <div class="status-card" id="queue-size-card">
-                            <div class="status-card-header">
+                        <div id="queue-size-card" style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary); min-height: 120px; display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: auto; color: var(--color-text-secondary);">
                                 <i class="fas fa-list"></i>
-                                <span>Queue Size</span>
+                                <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-transform: uppercase; letter-spacing: 0.05em;">Queue Size</span>
                             </div>
-                            <div class="status-card-content">
-                                <div class="metric-value" id="queue-size-value">-</div>
-                                <div class="metric-label">Pending Tasks</div>
+                            <div style="margin-top: var(--space-4);">
+                                <div id="queue-size-value" style="font-size: var(--font-size-4xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); line-height: 1; margin-bottom: var(--space-1);">-</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">Pending Tasks</div>
                             </div>
                         </div>
 
-                        <div class="status-card" id="active-jobs-card">
-                            <div class="status-card-header">
+                        <div id="active-jobs-card" style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary); min-height: 120px; display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: auto; color: var(--color-text-secondary);">
                                 <i class="fas fa-cogs"></i>
-                                <span>Active Jobs</span>
+                                <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-transform: uppercase; letter-spacing: 0.05em;">Active Jobs</span>
                             </div>
-                            <div class="status-card-content">
-                                <div class="metric-value" id="active-jobs-value">-</div>
-                                <div class="metric-label">Processing</div>
+                            <div style="margin-top: var(--space-4);">
+                                <div id="active-jobs-value" style="font-size: var(--font-size-4xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); line-height: 1; margin-bottom: var(--space-1);">-</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">Processing</div>
                             </div>
                         </div>
 
-                        <div class="status-card" id="concurrency-card">
-                            <div class="status-card-header">
+                        <div id="concurrency-card" style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary); min-height: 120px; display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: auto; color: var(--color-text-secondary);">
                                 <i class="fas fa-layer-group"></i>
-                                <span>Concurrency</span>
+                                <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-transform: uppercase; letter-spacing: 0.05em;">Concurrency</span>
                             </div>
-                            <div class="status-card-content">
-                                <div class="metric-value" id="concurrency-value">-</div>
-                                <div class="metric-label">Max Parallel</div>
+                            <div style="margin-top: var(--space-4);">
+                                <div id="concurrency-value" style="font-size: var(--font-size-4xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); line-height: 1; margin-bottom: var(--space-1);">-</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">Max Parallel</div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Real-time Metrics Charts -->
-                <div class="queue-metrics-section">
-                    <h2 class="dashboard-section-title">
-                        <i class="fas fa-chart-line"></i>
+                <section style="margin-bottom: var(--space-10);">
+                    <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-6) 0; display: flex; align-items: center; gap: var(--space-3);">
+                        <i class="fas fa-chart-line" style="color: var(--color-accent-primary);"></i>
                         Real-time Metrics
                     </h2>
-                    <div class="metrics-charts-grid">
-                        <div class="chart-container">
-                            <h3>Queue Size Over Time</h3>
-                            <canvas id="queue-size-chart"></canvas>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: var(--space-6);">
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <h3 style="font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin: 0 0 var(--space-4) 0;">Queue Size Over Time</h3>
+                            <div style="height: 220px; position: relative;">
+                                <canvas id="queue-size-chart"></canvas>
+                            </div>
                         </div>
-                        <div class="chart-container">
-                            <h3>Processing Rate</h3>
-                            <canvas id="processing-rate-chart"></canvas>
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <h3 style="font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin: 0 0 var(--space-4) 0;">Processing Rate</h3>
+                            <div style="height: 220px; position: relative;">
+                                <canvas id="processing-rate-chart"></canvas>
+                            </div>
                         </div>
-                        <div class="chart-container">
-                            <h3>Error Rate</h3>
-                            <canvas id="error-rate-chart"></canvas>
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <h3 style="font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin: 0 0 var(--space-4) 0;">Error Rate</h3>
+                            <div style="height: 220px; position: relative;">
+                                <canvas id="error-rate-chart"></canvas>
+                            </div>
                         </div>
-                        <div class="chart-container">
-                            <h3>Average Processing Time</h3>
-                            <canvas id="processing-time-chart"></canvas>
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <h3 style="font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin: 0 0 var(--space-4) 0;">Average Processing Time</h3>
+                            <div style="height: 220px; position: relative;">
+                                <canvas id="processing-time-chart"></canvas>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Queue Health & Diagnostics -->
-                <div class="queue-health-section">
-                    <h2 class="dashboard-section-title">
-                        <i class="fas fa-stethoscope"></i>
+                <section style="margin-bottom: var(--space-10);">
+                    <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-6) 0; display: flex; align-items: center; gap: var(--space-3);">
+                        <i class="fas fa-stethoscope" style="color: var(--color-accent-primary);"></i>
                         Health & Diagnostics
                     </h2>
-                    <div class="health-diagnostics-grid">
-                        <div class="diagnostic-panel">
-                            <h3>Initialization Status</h3>
-                            <div id="init-status-content">
-                                <div class="status-item">
-                                    <span class="status-label">Status:</span>
-                                    <span id="init-status" class="status-value">-</span>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6);">
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <h3 style="font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin: 0 0 var(--space-5) 0; padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border-primary);">Initialization Status</h3>
+                            <div id="init-status-content" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Status</span>
+                                    <span id="init-status" style="color: var(--color-text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);">-</span>
                                 </div>
-                                <div class="status-item">
-                                    <span class="status-label">Last Init:</span>
-                                    <span id="last-init-time" class="status-value">-</span>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Last Init</span>
+                                    <span id="last-init-time" style="color: var(--color-text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);">-</span>
                                 </div>
-                                <div class="status-item">
-                                    <span class="status-label">Last Error:</span>
-                                    <span id="last-error" class="status-value">-</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="diagnostic-panel">
-                            <h3>Backpressure Status</h3>
-                            <div id="backpressure-content">
-                                <div class="status-item">
-                                    <span class="status-label">Max Queue Size:</span>
-                                    <span id="max-queue-size" class="status-value">-</span>
-                                </div>
-                                <div class="status-item">
-                                    <span class="status-label">Waiting Room:</span>
-                                    <span id="waiting-room-cap" class="status-value">-</span>
-                                </div>
-                                <div class="status-item">
-                                    <span class="status-label">Utilization:</span>
-                                    <span id="utilization" class="status-value">-</span>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Last Error</span>
+                                    <span id="last-error" style="color: var(--color-text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-align: right; max-width: 60%; overflow: hidden; text-overflow: ellipsis;">-</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="diagnostic-panel">
-                            <h3>Performance Metrics</h3>
-                            <div id="performance-content">
-                                <div class="status-item">
-                                    <span class="status-label">Avg Processing Time:</span>
-                                    <span id="avg-processing-time" class="status-value">-</span>
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <h3 style="font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin: 0 0 var(--space-5) 0; padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border-primary);">Backpressure Status</h3>
+                            <div id="backpressure-content" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Max Queue Size</span>
+                                    <span id="max-queue-size" style="color: var(--color-text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);">-</span>
                                 </div>
-                                <div class="status-item">
-                                    <span class="status-label">Success Rate:</span>
-                                    <span id="success-rate" class="status-value">-</span>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Waiting Room</span>
+                                    <span id="waiting-room-cap" style="color: var(--color-text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);">-</span>
                                 </div>
-                                <div class="status-item">
-                                    <span class="status-label">Retry Rate:</span>
-                                    <span id="retry-rate" class="status-value">-</span>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Utilization</span>
+                                    <span id="utilization" style="color: var(--color-text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <h3 style="font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin: 0 0 var(--space-5) 0; padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border-primary);">Performance Metrics</h3>
+                            <div id="performance-content" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Avg Time</span>
+                                    <span id="avg-processing-time" style="color: var(--color-text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Success Rate</span>
+                                    <span id="success-rate" style="color: var(--color-text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Retry Rate</span>
+                                    <span id="retry-rate" style="color: var(--color-text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold);">-</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Queue Controls -->
-                <div class="queue-controls-section">
-                    <h2 class="dashboard-section-title">
-                        <i class="fas fa-sliders-h"></i>
+                <section style="margin-bottom: var(--space-10);">
+                    <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-6) 0; display: flex; align-items: center; gap: var(--space-3);">
+                        <i class="fas fa-sliders-h" style="color: var(--color-accent-primary);"></i>
                         Queue Controls
                     </h2>
-                    <div class="controls-grid">
-                        <div class="control-group">
-                            <label for="concurrency-slider">Concurrency Level</label>
-                            <div class="slider-container">
-                                <input type="range" id="concurrency-slider" min="1" max="10" value="2" class="slider">
-                                <span id="concurrency-display" class="slider-value">2</span>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6);">
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <label for="concurrency-slider" style="display: block; color: var(--color-text-primary); font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border-primary);">Concurrency Level</label>
+                            <div style="display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-5);">
+                                <input type="range" id="concurrency-slider" min="1" max="10" value="2" style="flex: 1;">
+                                <span id="concurrency-display" style="background: var(--color-surface-tertiary); color: var(--color-text-primary); font-weight: var(--font-weight-bold); min-width: 3rem; text-align: center; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--color-border-primary);">2</span>
                             </div>
-                            <button id="update-concurrency-btn" class="btn btn-primary">
+                            <button id="update-concurrency-btn" class="btn btn-primary" style="width: 100%; justify-content: center;">
                                 <i class="fas fa-save"></i>
-                                Update Concurrency
+                                Update
                             </button>
                         </div>
 
-                        <div class="control-group">
-                            <label>Queue Actions</label>
-                            <div class="action-buttons">
-                                <button id="pause-queue-btn" class="btn btn-warning">
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <label style="display: block; color: var(--color-text-primary); font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border-primary);">Queue Actions</label>
+                            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                                <button id="pause-queue-btn" class="btn btn-warning" style="width: 100%; justify-content: center;">
                                     <i class="fas fa-pause"></i>
-                                    Pause Queue
+                                    Pause
                                 </button>
-                                <button id="resume-queue-btn" class="btn btn-success">
+                                <button id="resume-queue-btn" class="btn btn-success" style="width: 100%; justify-content: center;">
                                     <i class="fas fa-play"></i>
-                                    Resume Queue
+                                    Resume
                                 </button>
-                                <button id="clear-queue-btn" class="btn btn-danger">
+                                <button id="clear-queue-btn" class="btn btn-danger" style="width: 100%; justify-content: center;">
                                     <i class="fas fa-trash"></i>
-                                    Clear Queue
+                                    Clear
                                 </button>
                             </div>
                         </div>
 
-                        <div class="control-group">
-                            <label>Monitoring Controls</label>
-                            <div class="monitoring-controls">
-                                <button id="toggle-monitoring-btn" class="btn btn-info">
+                        <div style="background: var(--color-surface-secondary); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary);">
+                            <label style="display: block; color: var(--color-text-primary); font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-5); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border-primary);">Monitoring</label>
+                            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                                <button id="toggle-monitoring-btn" class="btn btn-info" style="width: 100%; justify-content: center;">
                                     <i class="fas fa-eye"></i>
-                                    <span id="monitoring-status">Start Monitoring</span>
+                                    <span id="monitoring-status">Start</span>
                                 </button>
-                                <button id="refresh-data-btn" class="btn btn-secondary">
+                                <button id="refresh-data-btn" class="btn btn-secondary" style="width: 100%; justify-content: center;">
                                     <i class="fas fa-sync"></i>
-                                    Refresh Data
+                                    Refresh
                                 </button>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Queue Logs -->
-                <div class="queue-logs-section">
-                    <h2 class="dashboard-section-title">
-                        <i class="fas fa-file-alt"></i>
-                        Queue Logs
-                        <div class="log-controls">
-                            <select id="log-level-filter" class="log-filter">
+                <section style="margin-bottom: var(--space-10);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-6);">
+                        <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0; display: flex; align-items: center; gap: var(--space-3);">
+                            <i class="fas fa-file-alt" style="color: var(--color-accent-primary);"></i>
+                            Queue Logs
+                        </h2>
+                        <div style="display: flex; gap: var(--space-3); align-items: center;">
+                            <select id="log-level-filter" class="filter-select" style="background: var(--color-surface-secondary); border: 1px solid var(--color-border-primary); border-radius: var(--radius-md); color: var(--color-text-primary); padding: var(--space-2) var(--space-4); font-size: var(--font-size-sm);">
                                 <option value="">All Levels</option>
                                 <option value="error">Errors</option>
                                 <option value="warning">Warnings</option>
@@ -445,44 +453,44 @@ class AdminQueueMonitor {
                             </select>
                             <button id="refresh-logs-btn" class="btn btn-secondary">
                                 <i class="fas fa-sync"></i>
-                                Refresh Logs
+                                Refresh
                             </button>
                         </div>
-                    </h2>
-                    <div class="logs-container">
-                        <div class="logs-stats" id="logs-stats">
-                            <div class="log-stat">
-                                <span class="stat-label">Total Logs:</span>
-                                <span class="stat-value" id="total-logs">-</span>
+                    </div>
+                    <div style="background: var(--color-surface-secondary); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary); overflow: hidden;">
+                        <div id="logs-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-6); padding: var(--space-6); border-bottom: 1px solid var(--color-border-primary); background: var(--color-surface-tertiary);">
+                            <div style="text-align: center;">
+                                <div style="color: var(--color-text-secondary); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-2);">Total Logs</div>
+                                <div id="total-logs" style="color: var(--color-text-primary); font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold);">-</div>
                             </div>
-                            <div class="log-stat">
-                                <span class="stat-label">Recent Errors:</span>
-                                <span class="stat-value" id="recent-errors">-</span>
+                            <div style="text-align: center;">
+                                <div style="color: var(--color-text-secondary); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-2);">Recent Errors</div>
+                                <div id="recent-errors" style="color: var(--color-status-error); font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold);">-</div>
                             </div>
-                            <div class="log-stat">
-                                <span class="stat-label">Recent Warnings:</span>
-                                <span class="stat-value" id="recent-warnings">-</span>
+                            <div style="text-align: center;">
+                                <div style="color: var(--color-text-secondary); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-2);">Recent Warnings</div>
+                                <div id="recent-warnings" style="color: var(--color-status-warning); font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold);">-</div>
                             </div>
                         </div>
-                        <div class="logs-list" id="logs-list">
-                            <div class="log-entry placeholder">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                Loading logs...
+                        <div id="logs-list" style="max-height: 450px; overflow-y: auto; padding: var(--space-6);">
+                            <div class="log-entry placeholder" style="text-align: center; color: var(--color-text-secondary); padding: var(--space-10);">
+                                <i class="fas fa-spinner fa-spin" style="font-size: var(--font-size-2xl); margin-bottom: var(--space-3); display: block;"></i>
+                                <div style="font-size: var(--font-size-base);">Loading logs...</div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Alerts & Notifications -->
-                <div class="queue-alerts-section">
-                    <h2 class="dashboard-section-title">
-                        <i class="fas fa-bell"></i>
+                <section>
+                    <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-6) 0; display: flex; align-items: center; gap: var(--space-3);">
+                        <i class="fas fa-bell" style="color: var(--color-accent-primary);"></i>
                         Alerts & Notifications
                     </h2>
-                    <div id="queue-alerts-container" class="alerts-container">
+                    <div id="queue-alerts-container" class="alerts-container" style="background: var(--color-surface-secondary); border-radius: var(--radius-lg); border: 1px solid var(--color-border-primary); padding: var(--space-8); min-height: 120px;">
                         <!-- Alerts will be populated dynamically -->
                     </div>
-                </div>
+                </section>
             </div>
         `;
     }
@@ -1206,7 +1214,7 @@ class AdminQueueMonitor {
             const logLevelFilter = document.getElementById('log-level-filter');
             const level = logLevelFilter ? logLevelFilter.value : '';
 
-            const response = await fetch(`${this.apiBaseUrl}/queue/logs?limit=50&level=${level}`, {
+            const response = await fetch(`${this.apiBaseUrl}/queue/logs?limit=50&level=${encodeURIComponent(level)}`, {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${this.getAuthToken()}`,
@@ -1219,8 +1227,9 @@ class AdminQueueMonitor {
             }
 
             const data = await response.json();
+            const logs = Array.isArray(data?.data?.logs) ? data.data.logs : [];
 
-            this.displayLogs(data.data.logs);
+            this.displayLogs(logs);
             this.loadLogStats();
         } catch (error) {
             console.error('❌ ADMIN-QUEUE: Failed to load logs:', error);
@@ -1256,7 +1265,11 @@ class AdminQueueMonitor {
     /**
      * Display logs in the UI (XSS-safe)
      */
-    displayLogs(logs) {
+    displayLogs(logs = []) {
+        if (!Array.isArray(logs)) {
+            logs = [];
+        }
+
         const logsList = document.getElementById('logs-list');
 
         if (!logsList) { return; }
@@ -1290,8 +1303,9 @@ class AdminQueueMonitor {
      */
     _createLogEntry(log) {
         const logEntry = document.createElement('div');
+        const safeLevel = String(log.level || 'info').replace(/[^a-z0-9_-]/gi, '').toLowerCase();
 
-        logEntry.className = `log-entry log-${log.level}`;
+        logEntry.className = `log-entry log-${safeLevel}`;
 
         logEntry.appendChild(this._createLogHeader(log));
         logEntry.appendChild(this._createLogMessage(log.message));
@@ -1391,7 +1405,14 @@ class AdminQueueMonitor {
      */
     async updateConcurrency() {
         const slider = document.getElementById('concurrency-slider');
-        const newConcurrency = parseInt(slider.value);
+
+        if (!slider) {
+            this.showAlert('Concurrency control not available', 'warning');
+
+            return;
+        }
+
+        const newConcurrency = parseInt(slider.value, 10);
 
         try {
             const response = await fetch(`${this.apiBaseUrl}/queue/concurrency`, {
@@ -1487,7 +1508,12 @@ class AdminQueueMonitor {
      * Clear queue
      */
     async clearQueue() {
-        if (!confirm('Are you sure you want to clear the queue? This will remove all pending tasks.')) {
+        const confirmed = await this._confirmAction(
+            'Clear Queue',
+            'Are you sure you want to clear the queue? This will remove all pending tasks.'
+        );
+
+        if (!confirmed) {
             return;
         }
 
@@ -1532,6 +1558,17 @@ class AdminQueueMonitor {
         const token = this.getAuthToken();
 
         return token && token.length > 0;
+    }
+
+    /**
+     * Confirm action with user (uses browser confirm for now, can be replaced with modal)
+     * @param {string} title - Confirmation title
+     * @param {string} message - Confirmation message
+     * @returns {Promise<boolean>} True if confirmed
+     * @private
+     */
+    async _confirmAction(title, message) {
+        return window.confirm(`${title}\n\n${message}`);
     }
 
     /**
@@ -1594,3 +1631,4 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.AdminQueueMonitor = AdminQueueMonitor;
 }
+

@@ -97,8 +97,10 @@ const {
     getSecret: () => process.env.CSRF_SECRET || process.env.SESSION_SECRET,
     cookieName: '__Host-psifi.x-csrf-token',
     cookieOptions: {
-        sameSite: 'lax',
+        // SECURITY: Use 'strict' in production, 'lax' in dev for ease of testing
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         path: '/',
+        // SECURITY: Secure flag required in production (enforced by __Host- prefix)
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true
     },

@@ -1,9 +1,10 @@
 /**
  * Admin Queue Monitor Styles
- * Enterprise queue monitoring dashboard styles
+ * Minimal styles for queue monitoring dashboard
+ * Most layout now handled via inline design system tokens
  */
 
-/* Alert System */
+/* Alert System - Fixed position alerts */
 .queue-alerts-container {
     position: fixed;
     top: 20px;
@@ -51,162 +52,59 @@
     }
 }
 
-/* Status Cards Grid */
-.status-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.metric-value {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #f3f4f6;
-    line-height: 1;
-    margin-bottom: 0.5rem;
-}
-
-.metric-label {
-    color: #9ca3af;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-/* Health Status Indicator */
-.status-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-}
-
-.status-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.status-text {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #f3f4f6;
-}
-
-/* Metrics Charts Grid */
-.metrics-charts-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 3 equal-width columns */
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-/* Health Diagnostics Grid */
-.health-diagnostics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-/* Queue Controls */
-.controls-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.action-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-/* Button Styles */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+/* Alert Type Colors */
+.queue-alert-critical {
+    background: #dc2626;
     color: white;
 }
 
-.btn-primary:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+.queue-alert-warning {
+    background: #f59e0b;
     color: white;
 }
 
-.btn-success:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
-}
-
-.btn-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+.queue-alert-info {
+    background: #3b82f6;
     color: white;
 }
 
-.btn-warning:hover {
-    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
-}
-
-.btn-info {
-    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+.queue-alert-success {
+    background: #10b981;
     color: white;
 }
 
-.btn-info:hover {
-    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(6, 182, 212, 0.3);
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+.queue-alert-error {
+    background: #ef4444;
     color: white;
 }
 
-.btn-secondary:hover {
-    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+/* Status Dot Colors */
+.status-dot.green {
+    background-color: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
 }
 
-/* Alerts Container */
+.status-dot.yellow {
+    background-color: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+
+.status-dot.red {
+    background-color: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+.status-dot.gray {
+    background-color: #6b7280;
+}
+
+/* Alert Container Styles */
 .alerts-container {
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-    border: 1px solid #374151;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     min-height: 100px;
 }
 
 .no-alerts {
-    color: #9ca3af;
+    color: var(--color-text-secondary);
     text-align: center;
     font-style: italic;
     padding: 2rem;
@@ -231,7 +129,24 @@
     font-size: 1.125rem;
 }
 
-/* Animations */
+.alert-critical {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid #dc2626;
+    color: #fca5a5;
+}
+
+.alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid #f59e0b;
+    color: #fcd34d;
+}
+
+.alert-info {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid #3b82f6;
+    color: #93c5fd;
+}
+
 @keyframes slideIn {
     from {
         opacity: 0;
@@ -243,91 +158,19 @@
     }
 }
 
-/* Summary Queue Status Styles */
-.queue-status-summary {
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-    border: 1px solid #374151;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-}
-
-.queue-status-value {
-    color: #f3f4f6;
-    font-size: 0.875rem;
-    font-weight: 600;
-    font-family: 'Courier New', monospace;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .queue-monitor-dashboard {
-        padding: 1rem;
-    }
-
-    .status-cards-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .metrics-charts-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .health-diagnostics-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .controls-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .action-buttons,
-    .monitoring-controls {
-        flex-direction: column;
-    }
-
-    .btn {
-        justify-content: center;
-    }
-}
-
-@media (max-width: 480px) {
-    .dashboard-section-title {
-        font-size: 1.25rem;
-    }
-
-    .metric-value {
-        font-size: 2rem;
-    }
-
-    .chart-container {
-        padding: 1rem;
-    }
-
-    .chart-container canvas {
-        max-height: 200px;
-    }
-}
-
-/* Queue Logs */
-.queue-logs-section {
-    margin-bottom: 30px;
-}
-
-.stat-value {
-    font-size: 18px;
-    font-weight: bold;
-    color: #495057;
-}
-
+/* Log Entry Styles */
 .log-entry {
     padding: 12px 15px;
-    border-bottom: 1px solid #f1f3f4;
+    border-bottom: 1px solid var(--color-border-primary);
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 13px;
 }
 
 .log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-entry.placeholder {
     border-bottom: none;
 }
 
@@ -346,26 +189,65 @@
     text-transform: uppercase;
 }
 
+.log-level {
+    background: var(--color-surface-tertiary);
+    color: var(--color-text-secondary);
+}
+
+.log-entry.log-error .log-level {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.log-entry.log-warning .log-level {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+}
+
+.log-entry.log-info .log-level {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
 .log-timestamp {
-    color: #718096;
+    color: var(--color-text-secondary);
     font-size: 11px;
 }
 
 .log-id {
-    color: #a0aec0;
+    color: var(--color-text-tertiary);
     font-size: 10px;
     font-family: monospace;
 }
 
 .log-message {
-    color: #2d3748;
+    color: var(--color-text-primary);
     margin-bottom: 8px;
     line-height: 1.4;
 }
 
-.log-entry.placeholder {
-    text-align: center;
-    color: #718096;
-    font-style: italic;
-    padding: 20px;
+.log-context,
+.log-error {
+    background: var(--color-surface-tertiary);
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+}
+
+.log-context pre,
+.log-error pre {
+    margin: 0;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .queue-alerts-container {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
 }

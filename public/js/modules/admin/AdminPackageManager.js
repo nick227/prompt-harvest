@@ -69,7 +69,8 @@ class AdminPackageManager {
 
         // Fallback: Listen for old DOM events
         document.addEventListener('admin-table-action', event => {
-            const { action, data, dataType, id } = event.detail;
+            const detail = event?.detail || {};
+            const { action, data, dataType, id } = detail;
 
             // Only handle package-related actions
             if (dataType !== 'packages') {
@@ -101,7 +102,8 @@ class AdminPackageManager {
 
         // Listen for form submissions
         document.addEventListener('admin-form-submit', event => {
-            const { formType, data } = event.detail;
+            const detail = event?.detail || {};
+            const { formType, data } = detail;
 
             if (formType === 'package-form') {
                 this.handlePackageFormSubmit(data);
@@ -330,6 +332,22 @@ class AdminPackageManager {
     }
 
     /**
+     * Escape HTML attribute values to prevent XSS
+     */
+    escapeAttr(value) {
+        if (value === undefined || value === null) {
+            return '';
+        }
+
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    /**
      * Generate package form HTML
      */
     generatePackageForm(formData) {
@@ -339,7 +357,7 @@ class AdminPackageManager {
                     <label for="package-name" class="block text-sm font-medium text-gray-700 mb-2">
                         Package Name <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" id="package-name" name="name" value="${formData.name}"
+                    <input type="text" id="package-name" name="name" value="${this.escapeAttr(formData.name)}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                            required>
                 </div>
@@ -349,7 +367,7 @@ class AdminPackageManager {
                         <label for="package-credits" class="block text-sm font-medium text-gray-700 mb-2">
                             Credits <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" id="package-credits" name="credits" value="${formData.credits}"
+                        <input type="number" id="package-credits" name="credits" value="${this.escapeAttr(formData.credits)}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                min="1" max="10000" required>
                     </div>
@@ -358,7 +376,7 @@ class AdminPackageManager {
                         <label for="package-price" class="block text-sm font-medium text-gray-700 mb-2">
                             Price (USD) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" id="package-price" name="price" value="${formData.price}"
+                        <input type="number" id="package-price" name="price" value="${this.escapeAttr(formData.price)}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                min="0.00" max="1000" step="0.01" required>
                     </div>
@@ -403,7 +421,7 @@ class AdminPackageManager {
                     </label>
                     <textarea id="package-description" name="description" rows="3"
                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-                              required>${formData.description}</textarea>
+                              required>${this.escapeAttr(formData.description)}</textarea>
                 </div>
 
                 <div class="flex items-center p-4 bg-gray-50 rounded-lg">
@@ -1146,12 +1164,6 @@ class AdminPackageManager {
 
         // Use the shared table component with standardized header
         if (this.sharedTable) {
-            console.log('📦 ADMIN-PACKAGES: Calling sharedTable.render with:', {
-                tableType: 'packages',
-                data: tableData,
-                container: tableContainer
-            });
-
             this.sharedTable.render('packages', tableData, tableContainer, {
                 addButton: {
                     action: 'create-package',

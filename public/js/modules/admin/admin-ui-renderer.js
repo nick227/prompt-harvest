@@ -174,16 +174,26 @@ class AdminUIRenderer {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+        const tabButton = document.querySelector(`[data-tab="${tabName}"]`);
+
+        if (tabButton) {
+            tabButton.classList.add('active');
+        }
 
         // Update tab panels
         document.querySelectorAll('.tab-panel').forEach(panel => {
             panel.classList.remove('active');
         });
-        document.getElementById(`${tabName}-tab`).classList.add('active');
+
+        const tabPanel = document.getElementById(`${tabName}-tab`);
+
+        if (tabPanel) {
+            tabPanel.classList.add('active');
+        }
 
         // Emit tab switch event using AdminEventBus
-        if (window.adminApp && window.adminApp.eventBus) {
+        if (window.adminApp?.eventBus) {
             window.adminApp.eventBus.emit('tab-switch', 'switch', { tab: tabName });
         }
 
@@ -204,13 +214,14 @@ class AdminUIRenderer {
      * Create standard tab section HTML with standardized header
      */
     createTabSectionHTML(title, icon, addButtonId, containerId) {
-        const addButtonText = title.split(' ')[0]; // Get first word (Package, Models, etc.)
+        const [addButtonText] = title.split(' ');
 
         return `
             <div class="admin-section">
                 <div class="admin-section-header">
                     <div class="admin-header-actions">
-                        <button id="${addButtonId}" class="admin-add-button" title="Add new ${addButtonText.toLowerCase()}">
+                        <button id="${addButtonId}" class="admin-add-button"
+                            title="Add new ${addButtonText.toLowerCase()}">
                             <i class="fas fa-plus"></i>
                             <span>Add ${addButtonText}</span>
                         </button>
@@ -273,13 +284,8 @@ class AdminUIRenderer {
      * Initialize packages tab functionality
      */
     async initializePackagesTab() {
-        this.eventHandler.setupPackagesEventListeners();
-        await this.loadPackagesData();
-
-        if (window.adminApp && window.adminApp.packageHandler) {
+        if (window.adminApp?.packageHandler) {
             await window.adminApp.packageHandler.loadPackages();
-        } else {
-            console.warn('⚠️ ADMIN-UI: Package handler not available');
         }
     }
 
@@ -493,36 +499,16 @@ class AdminUIRenderer {
         }, 100);
     }
 
-    async loadPackagesData() {
-        try {
-            // Always let the package handler manage the packages display
-            // The package handler will handle loading and rendering
-
-            return;
-        } catch (error) {
-            console.error('❌ ADMIN-UI: Error in loadPackagesData:', error);
-            document.getElementById('packages-table-container').innerHTML =
-                `<div class="error-message">Failed to load packages: ${error.message}</div>`;
-        }
-    }
-
     async loadModelsData() {
         try {
             const response = await fetch('/api/providers/models/all');
             const data = await response.json();
-
-            console.log('🔧 ADMIN-UI: loadModelsData response:', {
-                success: data.success,
-                modelsCount: data.data?.models?.length,
-                firstModel: data.data?.models?.[0]
-            });
 
             if (data.success) {
                 // Use shared table system for models
                 const tableContainer = document.getElementById('models-table-container');
 
                 if (tableContainer && this.sharedTable) {
-                    console.log('🔧 ADMIN-UI: Rendering models table with', data.data.models.length, 'models');
                     this.sharedTable.render('models', data.data.models, tableContainer, {
                         addButton: {
                             action: 'create-model',
@@ -538,8 +524,11 @@ class AdminUIRenderer {
             }
         } catch (error) {
             console.error('❌ ADMIN-UI: Error loading models:', error);
-            document.getElementById('models-table-container').innerHTML =
-                `<div class="error-message">Failed to load models: ${error.message}</div>`;
+            const container = document.getElementById('models-table-container');
+
+            if (container) {
+                container.innerHTML = `<div class="error-message">Failed to load models: ${error.message}</div>`;
+            }
         }
     }
 
@@ -566,13 +555,7 @@ class AdminUIRenderer {
                 const tableContainer = document.getElementById('promo-cards-table-container');
 
                 if (tableContainer && this.sharedTable) {
-                    this.sharedTable.render('promo-cards', data.data.items || [], tableContainer, {
-                        addButton: {
-                            action: 'create-promo',
-                            text: 'Add Promo Code',
-                            title: 'Create a new promo code'
-                        }
-                    });
+                    this.sharedTable.render('promo-cards', data.data.items || [], tableContainer);
                 } else {
                     console.error('❌ ADMIN-UI: Promo cards table container or shared table not available');
                 }
@@ -581,8 +564,11 @@ class AdminUIRenderer {
             }
         } catch (error) {
             console.error('❌ ADMIN-UI: Error loading promo cards:', error);
-            document.getElementById('promo-cards-table-container').innerHTML =
-                `<div class="error-message">Failed to load promo cards: ${error.message}</div>`;
+            const container = document.getElementById('promo-cards-table-container');
+
+            if (container) {
+                container.innerHTML = `<div class="error-message">Failed to load promo cards: ${error.message}</div>`;
+            }
         }
     }
 
@@ -611,8 +597,11 @@ class AdminUIRenderer {
             }
         } catch (error) {
             console.error('❌ ADMIN-UI: Error loading providers:', error);
-            document.getElementById('models-table-container').innerHTML =
-                `<div class="error-message">Failed to load models: ${error.message}</div>`;
+            const container = document.getElementById('providers-table-container');
+
+            if (container) {
+                container.innerHTML = `<div class="error-message">Failed to load providers: ${error.message}</div>`;
+            }
         }
     }
 
@@ -645,7 +634,11 @@ class AdminUIRenderer {
     }
 
     async deleteModel(modelId) {
-        if (!confirm('Are you sure you want to delete this model? This action cannot be undone.')) {
+        const confirmed = window.confirm(
+            'Are you sure you want to delete this model? This action cannot be undone.'
+        );
+
+        if (!confirmed) {
             return;
         }
 
@@ -730,14 +723,23 @@ class AdminUIRenderer {
     }
 
     destroy() {
-        this.sharedTable.destroy();
-        this.promoCodeModal.destroy();
-        this.imageManager.destroy();
-        this.packageManager.destroy();
-        this.eventHandler.destroy();
-        if (this.termsManager) {
+        if (this.sharedTable?.destroy) {
+            this.sharedTable.destroy();
+        }
+        if (this.promoCodeModal?.destroy) {
+            this.promoCodeModal.destroy();
+        }
+        if (this.imageManager?.destroy) {
+            this.imageManager.destroy();
+        }
+        if (this.packageManager?.destroy) {
+            this.packageManager.destroy();
+        }
+        if (this.eventHandler?.destroy) {
+            this.eventHandler.destroy();
+        }
+        if (this.termsManager?.destroy) {
             this.termsManager.destroy();
-
             window.adminTermsManager = null;
         }
     }

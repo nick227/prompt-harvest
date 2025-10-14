@@ -22,13 +22,13 @@ import dotenv from 'dotenv';
 // Service imports
 import PromptProcessor from './services/generate/PromptProcessor.js';
 import ImageGenerator from './services/generate/refactored/ImageGenerator.js';
-import getQueueManager from './services/generate/QueueManager.js';
+import { QueueManager as QueueManagerClass } from './services/generate/QueueManager.js';
 import DatabaseService from './services/generate/DatabaseService.js';
 import GenerateUtils from './utils/GenerateUtils.js';
 import { GenerationResultProcessor } from './services/GenerationResultProcessor.js';
 
-// Use the lazy getter (instance), not the function
-const QueueManager = getQueueManager();
+// Create singleton instance
+const QueueManager = new QueueManagerClass();
 
 // Configuration
 dotenv.config();

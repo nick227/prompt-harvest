@@ -204,12 +204,6 @@ const showScreen = screenType => {
         error: document.getElementById('error-screen')
     };
 
-    console.log('🖥️ ADMIN: Screen elements found:', {
-        loading: !!screens.loading,
-        dashboard: !!screens.dashboard,
-        error: !!screens.error
-    });
-
     // Hide all screens
     Object.values(screens).forEach(screen => {
         if (screen) {

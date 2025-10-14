@@ -82,17 +82,8 @@ class AdminAPIService {
             config.body = JSON.stringify(data);
         }
 
-        // Debug logging
-        console.log('🔑 ADMIN-API: Making request:', {
-            method,
-            url,
-            data,
-            config,
-            headers: config.headers,
-            authToken: this.getAuthToken(),
-            actualMethod: config.method,
-            hasBody: !!config.body
-        });
+        // Debug logging (disabled for production)
+        // console.log('🔑 ADMIN-API:', method, url);
 
         try {
             const response = await fetch(url, config);

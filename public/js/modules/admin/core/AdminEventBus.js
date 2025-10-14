@@ -12,7 +12,7 @@
 class AdminEventBus {
     constructor() {
         this.listeners = new Map();
-        this.debugMode = true;
+        this.debugMode = false; // Set to true for debugging
 
     }
 

@@ -81,7 +81,8 @@ class AdminPromoCardsManager {
 
         // Fallback: Listen for old DOM events
         document.addEventListener('admin-table-action', event => {
-            const { action, data, dataType, id } = event.detail;
+            const detail = event?.detail || {};
+            const { action, dataType, id } = detail;
 
             // Only handle promo-cards-related actions
             if (dataType !== 'promo-cards') {
@@ -356,7 +357,8 @@ class AdminPromoCardsManager {
         if (window.showNotification) {
             window.showNotification(message, 'success');
         } else {
-            alert(message);
+            console.log('✅ SUCCESS:', message);
+            window.alert(message);
         }
     }
 
@@ -367,7 +369,8 @@ class AdminPromoCardsManager {
         if (window.showNotification) {
             window.showNotification(message, 'error');
         } else {
-            alert(message);
+            console.error('❌ ERROR:', message);
+            window.alert(message);
         }
     }
 

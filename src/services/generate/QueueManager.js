@@ -1058,7 +1058,3 @@ export class QueueManager {
         }
     }
 }
-
-
-// Re-export factory functions (named + default exports from single source)
-export { createQueueManager, getQueueManager, getQueueManager as default } from './QueueManagerFactory.js';

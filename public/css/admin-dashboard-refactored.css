@@ -35,6 +35,11 @@
   border: 1px solid var(--color-gray-700);
 }
 
+.activity-item {
+  width: 100%;
+  display: flex;
+}
+
 /* ===== TABS SYSTEM ===== */
 
 .admin-tabs-container {
@@ -43,6 +48,15 @@
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   border: 1px solid var(--color-gray-700);
+}
+
+.admin-tabs,
+.tab-content {
+    display: flex;
+    justify-content: space-around;
+    width: 1600px;
+    margin: 0 auto;
+    max-width: 100%;
 }
 
 .tab-btn {
@@ -61,6 +75,7 @@
   border-bottom: 3px solid transparent;
   position: relative;
   min-height: 4rem;
+  width: 11%;
 }
 
 .tab-btn:hover {
@@ -97,6 +112,7 @@
 }
 
 .tab-panel {
+  width: 100%;
   display: none;
   padding: var(--space-10);
   animation: fadeIn 0.3s ease-in-out;

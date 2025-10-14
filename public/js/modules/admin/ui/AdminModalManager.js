@@ -12,13 +12,6 @@ class AdminModalManager {
         this.isOpen = false;
         this.currentModal = null;
         this.modalOpenedTime = null; // Track when modal was opened
-
-        console.log('🎭 ADMIN-MODAL: Constructor - Modal elements found:', {
-            modalContainer: !!this.modalContainer,
-            modalTitle: !!this.modalTitle,
-            modalBody: !!this.modalBody,
-            modalClose: !!this.modalClose
-        });
     }
 
     init() {

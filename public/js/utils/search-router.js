@@ -293,7 +293,9 @@ class SearchRouter {
 // Export for global access
 if (typeof window !== 'undefined') {
     window.SearchRouter = SearchRouter;
-    // Initialize search router
-    window.searchRouter = new SearchRouter();
+    // Initialize search router (skip in test environment)
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+        window.searchRouter = new SearchRouter();
+    }
 }
 

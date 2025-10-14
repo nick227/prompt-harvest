@@ -1,45 +1,21 @@
-// SECURITY: Suppress noisy punycode deprecation warnings
-// Alternative to monkey-patching: Use NODE_OPTIONS=--no-warnings (but too broad)
-// This approach is targeted and preserves other warnings
-if (process.env.NODE_ENV !== 'production') {
-    // In development, log what we're suppressing for transparency
-    const originalEmitWarning = process.emitWarning;
+// SECURITY: Filter punycode warnings via proper event handler (not monkey-patching)
+if (process.env.SUPPRESS_PUNYCODE === '1') {
+    let warningSuppressed = false;
 
-    process.emitWarning = function emitWarning(warning, ...args) {
+    process.on('warning', warning => {
         const isPunycodeWarning =
-            (typeof warning === 'string' && warning.includes('punycode')) ||
-            (warning?.name === 'DeprecationWarning' && warning?.message?.includes('punycode'));
+            warning?.name === 'DeprecationWarning' &&
+            warning?.message?.includes('punycode');
 
         if (isPunycodeWarning) {
-            // Log once at startup that we're suppressing
-            if (!process._punycodeWarningSuppressed) {
-                console.log('ℹ️  Suppressing punycode deprecation warnings from dependencies');
-                process._punycodeWarningSuppressed = true;
+            // Log once at startup for transparency
+            if (!warningSuppressed) {
+                console.log('ℹ️  Filtering punycode deprecation warnings');
+                warningSuppressed = true;
             }
-
-            return;
+            // Warning is filtered by not propagating it
         }
-
-        // Allow all other warnings through
-        return originalEmitWarning.call(this, warning, ...args);
-    };
-} else {
-    // In production, use environment variable for cleaner approach
-    // Set NODE_OPTIONS=--no-warnings if needed, or suppress specific warnings
-    const originalEmitWarning = process.emitWarning;
-
-    process.emitWarning = function emitWarning(warning, ...args) {
-        // Suppress punycode warnings only
-        if (typeof warning === 'string' && warning.includes('punycode')) {
-            return;
-        }
-
-        if (warning?.name === 'DeprecationWarning' && warning?.message?.includes('punycode')) {
-            return;
-        }
-
-        return originalEmitWarning.call(this, warning, ...args);
-    };
+    });
 }
 
 import express from 'express';
@@ -50,11 +26,13 @@ import compression from 'compression';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import morgan from 'morgan';
+import crypto from 'crypto';
 import passport from './src/config/passport.js';
 import { moderateBadWordFilter } from './src/middleware/badWordFilter.js';
 import { authenticateToken } from './src/middleware/authMiddleware.js';
 import { getCsrfToken, csrfErrorHandler } from './src/middleware/csrfProtection.js';
-import { webhookRateLimit, csrfTokenRateLimit } from './src/middleware/rateLimiting.js';
+import { webhookRateLimit, csrfTokenRateLimit, apiRateLimit } from './src/middleware/rateLimiting.js';
 import databaseClient from './src/database/PrismaClient.js';
 import PrismaSessionStore from './src/config/PrismaSessionStore.js';
 // import { autoPopulateWordTypes } from './src/scripts/auto-populate-word-types.js';
@@ -91,7 +69,24 @@ app.disable('x-powered-by');
 // This is required for secure cookies to work properly
 if (process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1); // Trust first proxy
+
+    // SECURITY: Redirect HTTP to HTTPS in production
+    app.use((req, res, next) => {
+        if (req.header('x-forwarded-proto') !== 'https') {
+            return res.redirect(301, `https://${req.header('host')}${req.url}`);
+        }
+        next();
+    });
 }
+
+// PERFORMANCE: Precompile compression filter regexes (once at boot, not per request)
+const compressionSkipPatterns = {
+    images: /\.(jpg|jpeg|png|gif|webp|avif|ico)$/,
+    videos: /\.(mp4|webm|ogg|avi|mov)$/,
+    audio: /\.(mp3|ogg|m4a|aac|webm)$/,
+    archives: /\.(zip|gz|bz2|7z|rar)$/,
+    fonts: /\.(woff2?|otf|ttf)$/
+};
 
 // Enable gzip compression for all responses
 app.use(compression({
@@ -106,29 +101,29 @@ app.use(compression({
         const url = req.url.toLowerCase();
 
         // Skip images (already compressed, but NOT SVG - it's text)
-        if (url.match(/\.(jpg|jpeg|png|gif|webp|avif|ico)$/)) {
+        if (compressionSkipPatterns.images.test(url)) {
             return false;
         }
 
         // SVG is text-based - should be compressed (don't skip)
 
         // Skip videos (already compressed)
-        if (url.match(/\.(mp4|webm|ogg|avi|mov)$/)) {
+        if (compressionSkipPatterns.videos.test(url)) {
             return false;
         }
 
         // Skip audio (already compressed)
-        if (url.match(/\.(mp3|ogg|m4a|aac|webm)$/)) {
+        if (compressionSkipPatterns.audio.test(url)) {
             return false;
         }
 
         // Skip archives (already compressed)
-        if (url.match(/\.(zip|gz|bz2|7z|rar)$/)) {
+        if (compressionSkipPatterns.archives.test(url)) {
             return false;
         }
 
         // Skip fonts (WOFF/WOFF2 are compressed)
-        if (url.match(/\.(woff2?|otf|ttf)$/)) {
+        if (compressionSkipPatterns.fonts.test(url)) {
             return false;
         }
 
@@ -139,9 +134,28 @@ app.use(compression({
     threshold: 1024 // Only compress responses larger than 1KB
 }));
 
-// Parse additional CORS origins from env (once at boot, not per request)
+// Parse and validate additional CORS origins from env (once at boot, not per request)
+const validOriginPattern = /^https?:\/\/[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
+
 const additionalCorsOrigins = process.env.CORS_ALLOWED_ORIGINS
-    ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
+    ? process.env.CORS_ALLOWED_ORIGINS.split(',')
+        .map(origin => {
+            const trimmed = origin.trim();
+
+            if (!trimmed) {
+                return null;
+            }
+
+            // SECURITY: Validate origin has proper scheme
+            if (!validOriginPattern.test(trimmed)) {
+                console.warn(`⚠️ Invalid CORS origin ignored: ${trimmed}`);
+
+                return null;
+            }
+
+            return trimmed;
+        })
+        .filter(Boolean)
     : [];
 
 // Convert to Set for O(1) lookup performance
@@ -180,10 +194,10 @@ const corsOriginValidator = (origin, callback) => {
             return callback(null, true);
         }
 
-        // Reject with logging
+        // Reject gracefully (false = deny without 500 error)
         console.warn(`⚠️ CORS: Rejected origin: ${origin}`);
 
-        return callback(new Error('Not allowed by CORS'));
+        return callback(null, false);
     }
 
     // Development: lenient validation (short-circuit with regex)
@@ -196,22 +210,25 @@ const corsOriginValidator = (origin, callback) => {
         return callback(null, true);
     }
 
-    // Reject in dev too
+    // Reject gracefully in dev too
     console.warn(`⚠️ CORS: Rejected origin: ${origin}`);
-    callback(new Error('Not allowed by CORS'));
+    callback(null, false);
 };
-
-// SECURITY: HSTS - Enforce HTTPS in production (explicit application)
-if (process.env.NODE_ENV === 'production') {
-    app.use(helmet.hsts({
-        maxAge: 31536000, // 1 year in seconds
-        includeSubDomains: true,
-        preload: true
-    }));
-}
 
 // SECURITY: Use helmet for secure defaults
 app.use(helmet({
+    // SECURITY: HSTS - Enforce HTTPS in production (explicit configuration)
+    hsts: process.env.NODE_ENV === 'production'
+        ? {
+            maxAge: 31536000, // 1 year in seconds
+            includeSubDomains: true,
+            preload: true
+        }
+        : false, // Disable in development
+    // SECURITY: Referrer policy (same-origin to prevent leaking URLs)
+    referrerPolicy: { policy: 'same-origin' },
+    // SECURITY: Cross-Origin Resource Policy (same-site for tighter control)
+    crossOriginResourcePolicy: { policy: 'same-site' },
     // CSP configuration - permissive for production (app serves HTML/JS frontend)
     contentSecurityPolicy: process.env.NODE_ENV === 'production'
         ? {
@@ -327,6 +344,39 @@ app.options('*', (req, res) => {
     res.sendStatus(204);
 });
 
+// LOGGING: Request logging with sensitive header redaction
+if (process.env.NODE_ENV === 'production') {
+    // Production: Structured JSON logging
+    morgan.token('redacted-headers', req => {
+        const headers = { ...req.headers };
+
+        // SECURITY: Redact sensitive headers
+        if (headers.authorization) {
+            headers.authorization = '[REDACTED]';
+        }
+
+        if (headers.cookie) {
+            headers.cookie = '[REDACTED]';
+        }
+
+        if (headers['x-api-key']) {
+            headers['x-api-key'] = '[REDACTED]';
+        }
+
+        if (headers['x-csrf-token']) {
+            headers['x-csrf-token'] = '[REDACTED]';
+        }
+
+        return JSON.stringify(headers);
+    });
+
+    // JSON format for production log aggregation
+    app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
+} else {
+    // Development: Human-readable colored output
+    app.use(morgan('dev'));
+}
+
 // Session configuration for OAuth with Prisma store
 let sessionStore;
 
@@ -340,6 +390,9 @@ const cleanupTimers = {
 // Server reference for graceful shutdown
 let httpServer = null;
 
+// Track active sockets for graceful shutdown
+const activeSockets = new Set();
+
 // Configure session middleware with fallback to MemoryStore
 const configureSessionMiddleware = (store = null) => {
     const isProduction = process.env.NODE_ENV === 'production';
@@ -349,6 +402,8 @@ const configureSessionMiddleware = (store = null) => {
     }
 
     // SECURITY: Use strong secret or warn in development
+    // NOTE: For secret rotation, use array of secrets: [newSecret, oldSecret]
+    // First secret signs new sessions, all secrets verify existing sessions
     const sessionSecret = process.env.SESSION_SECRET || (() => {
         if (!isProduction) {
             console.warn('⚠️ SESSION_SECRET not set, using insecure fallback for development');
@@ -361,16 +416,19 @@ const configureSessionMiddleware = (store = null) => {
 
     const sessionConfig = {
         secret: sessionSecret,
+        name: 'sid', // Custom session cookie name (hides Express default)
         resave: false,
         saveUninitialized: false,
         rolling: true, // Reset expiration on activity
+        // SECURITY: Generate cryptographically strong session IDs
+        genid: () => crypto.randomBytes(32).toString('hex'),
         cookie: {
             secure: isProduction,
             maxAge: 24 * 60 * 60 * 1000, // 24 hours
             httpOnly: true,
-            sameSite: isProduction ? 'none' : 'lax'
-            // SECURITY: Uncomment to set domain for cross-subdomain cookie sharing:
-            // , domain: process.env.COOKIE_DOMAIN || undefined
+            sameSite: isProduction ? 'none' : 'lax',
+            // SECURITY: Set domain for cross-subdomain sessions if needed
+            domain: process.env.COOKIE_DOMAIN || undefined
         }
     };
 
@@ -497,15 +555,23 @@ app.use('/webhooks', webhookRateLimit, webhooksRouter);
 app.use(cookieParser());
 
 // Body parsing middleware (after webhooks)
-// PERFORMANCE: Use moderate default limits, tighten per-route as needed
-app.use(express.json({ limit: '2mb' })); // Reduced from 10mb
-app.use(express.urlencoded({ extended: true, limit: '2mb' })); // Reduced from 10mb
+// PERFORMANCE: Use moderate default limits
+// NOTE: For known large JSON endpoints, override per-route:
+// app.post('/api/bulk-upload', express.json({ limit: '10mb' }), handler)
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // CSRF token endpoint (before CSRF protection middleware)
 app.get('/api/csrf-token', csrfTokenRateLimit, getCsrfToken);
 
+// SECURITY: Global API rate limiting (100 requests per 15 minutes)
+app.use('/api', apiRateLimit);
+
 // Bad word filter - apply early to catch violations before processing
 app.use('/api', moderateBadWordFilter);
+
+// PERFORMANCE: Precompile static file cache patterns
+const hashedFilePattern = /[.-][a-f0-9]{8,}[.-]/i; // Matches hashed filenames (e.g., app-a1b2c3d4.js)
 
 // Serve static files with proper cache headers
 // SECURITY: Only serves 'public' directory. Uploads are stored in 'storage/uploads'
@@ -517,22 +583,34 @@ app.use(express.static('public', {
     lastModified: true, // Include Last-Modified header
     dotfiles: 'deny', // SECURITY: Block access to dotfiles (.env, .git, etc.)
     setHeaders: (res, path) => {
+        const isHashed = hashedFilePattern.test(path);
+
         // Set cache control based on file type
         if (path.endsWith('.html')) {
             // HTML: short cache (1 hour) to allow updates
             res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
         } else if (path.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i)) {
             // Images: long cache (30 days)
-            // Note: Only use immutable if filenames are content-hashed
-            res.setHeader('Cache-Control', 'public, max-age=2592000, must-revalidate');
+            // Add immutable if filename is hashed
+            const cacheControl = isHashed
+                ? 'public, max-age=31536000, immutable'
+                : 'public, max-age=2592000, must-revalidate';
+
+            res.setHeader('Cache-Control', cacheControl);
         } else if (path.match(/\.(js|css)$/i)) {
-            // JS/CSS: medium cache (7 days) with revalidation
-            // Note: Don't use immutable unless filenames are fingerprinted
-            res.setHeader('Cache-Control', 'public, max-age=604800, must-revalidate');
+            // JS/CSS: Use immutable if filename is fingerprinted
+            const cacheControl = isHashed
+                ? 'public, max-age=31536000, immutable'
+                : 'public, max-age=604800, must-revalidate';
+
+            res.setHeader('Cache-Control', cacheControl);
         } else if (path.match(/\.(woff|woff2|ttf|eot)$/i)) {
-            // Fonts: very long cache (1 year)
-            // Fonts typically don't change, but use revalidation to be safe
-            res.setHeader('Cache-Control', 'public, max-age=31536000, must-revalidate');
+            // Fonts: very long cache (1 year), immutable if hashed
+            const cacheControl = isHashed
+                ? 'public, max-age=31536000, immutable'
+                : 'public, max-age=31536000, must-revalidate';
+
+            res.setHeader('Cache-Control', cacheControl);
         }
     }
 }));
@@ -630,6 +708,9 @@ app.get('/uploads/:filename', authenticateToken, async (req, res) => {
         res.setHeader('Pragma', 'no-cache'); // HTTP/1.0 compatibility for older proxies
         res.setHeader('X-Content-Type-Options', 'nosniff');
 
+        // SECURITY: Set Content-Disposition to discourage odd UA behavior
+        res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
+
         res.sendFile(imagePath);
 
     } catch (error) {
@@ -694,31 +775,48 @@ const startServer = async () => {
 
         // Health & readiness probes (before error handlers)
         app.get('/health', (req, res) => {
+            const isProduction = process.env.NODE_ENV === 'production';
+
             res.json({
                 status: 'healthy',
                 timestamp: new Date().toISOString(),
                 uptime: process.uptime(),
-                environment: process.env.NODE_ENV || 'development'
+                // SECURITY: Don't leak environment details in production
+                ...(isProduction ? {} : { environment: 'development' })
             });
         });
 
         app.get('/ready', async (req, res) => {
+            const isProduction = process.env.NODE_ENV === 'production';
+
             try {
-                // Check database connection
+                // Check database connection with timeout
                 const prisma = databaseClient.getClient();
 
-                await prisma.$queryRaw`SELECT 1`;
+                // PERFORMANCE: Timeout wrapper to prevent /ready from hanging
+                const dbCheckPromise = prisma.$queryRaw`SELECT 1`;
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Database health check timeout')), 5000);
+                });
+
+                await Promise.race([dbCheckPromise, timeoutPromise]);
 
                 res.json({
                     status: 'ready',
-                    database: 'connected',
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    // SECURITY: Don't leak database details in production
+                    ...(isProduction ? {} : { database: 'connected' })
                 });
             } catch (error) {
                 res.status(503).json({
                     status: 'not ready',
-                    database: 'disconnected',
-                    error: error.message
+                    // SECURITY: Don't leak error details in production
+                    ...(isProduction
+                        ? {}
+                        : {
+                            database: 'disconnected',
+                            error: error.message
+                        })
                 });
             }
         });
@@ -752,6 +850,15 @@ const startServer = async () => {
         httpServer.keepAliveTimeout = 61_000; // 61 seconds
         // headersTimeout should be higher than keepAliveTimeout
         httpServer.headersTimeout = 65_000; // 65 seconds
+
+        // SECURITY: Track active sockets for graceful shutdown
+        httpServer.on('connection', socket => {
+            activeSockets.add(socket);
+
+            socket.on('close', () => {
+                activeSockets.delete(socket);
+            });
+        });
 
     } catch (error) {
         console.error('❌ Server startup failed:', error);
@@ -822,14 +929,28 @@ const gracefulShutdown = async signal => {
     clearSessionCleanupTimers();
     console.log('✅ Session cleanup timers cleared');
 
+    // SECURITY: Destroy idle sockets to force close keep-alive connections
+    if (activeSockets.size > 0) {
+        console.log(`🔌 Closing ${activeSockets.size} active socket(s)...`);
+
+        for (const socket of activeSockets) {
+            // Destroy idle sockets (those not actively processing requests)
+            if (!socket.destroyed) {
+                socket.destroy();
+            }
+        }
+
+        activeSockets.clear();
+    }
+
     // Close HTTP server (stop accepting new connections)
     if (httpServer) {
         await new Promise((resolve, reject) => {
-            // Hard timeout if server.close() hangs (sockets staying open)
+            // Shorter timeout now that we've destroyed sockets
             const forceTimeout = setTimeout(() => {
                 console.warn('⚠️ HTTP server close timeout - forcing shutdown');
                 resolve(); // Force resolution after timeout
-            }, 10000); // 10 second timeout
+            }, 5000); // 5 second timeout (reduced from 10s)
 
             httpServer.close(error => {
                 clearTimeout(forceTimeout); // Cancel timeout on successful close

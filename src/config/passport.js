@@ -26,12 +26,15 @@ passport.use(new GoogleStrategy({
     }
 }));
 
-// Serialize user for session
+// SECURITY: Serialize user for session (pure and cheap)
 passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 
-// Deserialize user from session
+// SECURITY: Deserialize user from session
+// NOTE: This performs a DB query on each request with a session
+// OPTIMIZATION: Consider caching with TTL (e.g., Redis, in-memory LRU cache)
+// Trade-off: Cache improves performance but delays propagation of user changes
 passport.deserializeUser(async (id, done) => {
     try {
         const user = await prisma.user.findUnique({
