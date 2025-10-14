@@ -886,17 +886,18 @@ const startServer = async () => {
  */
 const initializeQueueProcessing = async () => {
     try {
-        // Import QueueManager to initialize it
-        const QueueManager = await import('./src/services/generate/QueueManager.js');
+        // Import QueueManager class (named export)
+        const { QueueManager } = await import('./src/services/generate/QueueManager.js');
 
-        // Verify default export is callable (factory pattern)
-        if (typeof QueueManager.default !== 'function') {
-            console.warn('⚠️ QueueManager.default is not a function - skipping queue initialization');
+        // Verify QueueManager class exists
+        if (typeof QueueManager !== 'function') {
+            console.warn('⚠️ QueueManager class not found - skipping queue initialization');
 
             return;
         }
 
-        const queueInstance = QueueManager.default();
+        // Create singleton instance
+        const queueInstance = new QueueManager();
 
         // Verify getConfig method exists
         if (typeof queueInstance.getConfig !== 'function') {
