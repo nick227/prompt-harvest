@@ -91,6 +91,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
+    "db:deploy:safe": "sh migrate.sh",
     "db:studio": "prisma studio",
     "db:seed": "node scripts/seed-database.js",
     "db:migrate-data": "node scripts/migrate-to-mysql.js",
