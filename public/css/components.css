@@ -374,3 +374,40 @@
     flex-direction: column;
   }
 }
+
+/* ===== TEXTAREA AUTHENTICATION DISABLED STATE ===== */
+
+/* Disabled textarea for non-authenticated users */
+textarea.textarea-disabled-auth {
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+  pointer-events: none;
+  border: 2px solid #e5e7eb !important;
+}
+
+textarea.textarea-disabled-auth::placeholder {
+  color: #6b7280 !important;
+  font-style: italic;
+}
+
+/* Container styling when textarea is disabled */
+.textarea-container-disabled {
+  position: relative;
+  opacity: 0.8;
+}
+
+.textarea-container-disabled::after {
+  content: '🔒 Authentication Required';
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  font-weight: 500;
+}

@@ -100,6 +100,9 @@ class TextAreaManager {
         this.eventManager = null;
         this.textAreaUtils = new this.TextAreaUtils();
         this.searchReplaceManager = null;
+        this.isAuthCheckComplete = false;
+        this.isUserAuthenticated = false;
+        this.authChangeListener = null;
     }
 
     _requireDependencies() {
@@ -126,6 +129,122 @@ class TextAreaManager {
         }
 
         return true;
+    }
+
+    _checkAuthenticationAndDisableIfNeeded() {
+        // Check if user is authenticated
+        this.isUserAuthenticated = this._isUserAuthenticated();
+        this.isAuthCheckComplete = true;
+
+        if (!this.textArea) {
+            if (window.DEBUG_MODE) {
+                console.warn('⚠️ TEXTAREA: Cannot check auth - textarea not found');
+            }
+
+            return;
+        }
+
+        if (window.DEBUG_MODE) {
+            console.log('🔐 TEXTAREA: Auth check result:', this.isUserAuthenticated);
+        }
+
+        if (this.isUserAuthenticated) {
+            // Ensure textarea is enabled for authenticated users
+            this.textArea.disabled = false;
+            this.textArea.classList.remove('textarea-disabled-auth');
+
+            // Remove visual feedback if present
+            if (this.textArea.parentElement) {
+                this.textArea.parentElement.classList.remove('textarea-container-disabled');
+            }
+
+            // Restore default placeholder if it was changed
+            if (this.textArea.placeholder === 'Please log in to use the prompt generator') {
+                this.textArea.placeholder = 'Enter your prompt here...';
+            }
+
+            // Bind events if not already bound
+            if (!this.eventsBound && this.eventManager) {
+                this.bindEvents();
+            }
+
+            if (window.DEBUG_MODE) {
+                console.log('✅ TEXTAREA: Enabled for authenticated user');
+            }
+        } else {
+            // Disable textarea for non-authenticated users
+            this.textArea.disabled = true;
+            this.textArea.placeholder = 'Please log in to use the prompt generator';
+            this.textArea.classList.add('textarea-disabled-auth');
+
+            // Add visual feedback
+            if (this.textArea.parentElement) {
+                this.textArea.parentElement.classList.add('textarea-container-disabled');
+            }
+
+            if (window.DEBUG_MODE) {
+                console.log('🔒 TEXTAREA: Disabled for non-authenticated user');
+            }
+        }
+    }
+
+    _isUserAuthenticated() {
+        // Check userSystem first (primary auth system)
+        if (window.userSystem?.isInitialized) {
+            const isAuth = window.userSystem.isAuthenticated();
+            const user = window.userSystem.getUser();
+
+            if (window.DEBUG_MODE) {
+                console.log('🔐 TEXTAREA: Auth check via userSystem:', {
+                    isAuthenticated: isAuth,
+                    hasUser: !!user,
+                    userId: user?.id,
+                    userEmail: user?.email
+                });
+            }
+
+            return isAuth;
+        }
+
+        // Fallback to authStateManager (backward compatibility)
+        if (window.authStateManager?.isAuthenticated) {
+            const isAuth = window.authStateManager.isAuthenticated();
+
+            if (window.DEBUG_MODE) {
+                console.log('🔐 TEXTAREA: Auth check via authStateManager:', isAuth);
+            }
+
+            return isAuth;
+        }
+
+        // Fallback to userApi
+        if (window.userApi?.isAuthenticated) {
+            const isAuth = window.userApi.isAuthenticated();
+
+            if (window.DEBUG_MODE) {
+                console.log('🔐 TEXTAREA: Auth check via userApi:', isAuth);
+            }
+
+            return isAuth;
+        }
+
+        // Check for auth token as last resort
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+
+        if (token) {
+            if (window.DEBUG_MODE) {
+                console.log('🔐 TEXTAREA: Found auth token in storage, assuming authenticated');
+            }
+
+            return true;
+        }
+
+        // Default to not authenticated if no auth system available
+        if (window.DEBUG_MODE) {
+            console.log('🔐 TEXTAREA: No auth system found and no token, defaulting to false');
+        }
+
+        return false;
     }
 
     _cancelScheduledWork(key) {
@@ -264,8 +383,43 @@ class TextAreaManager {
             this.setupSearchReplace();
         }
 
+        // Check authentication AFTER managers are initialized
+        // This ensures auth system has time to initialize
+        this._scheduleAuthCheck();
+
         this.isInitialized = true;
         this.state = 'idle';
+    }
+
+    _scheduleAuthCheck() {
+        // Wait for userSystem to be ready before checking auth
+        const checkAuth = () => {
+            if (window.userSystem?.isInitialized) {
+                if (window.DEBUG_MODE) {
+                    console.log('🔐 TEXTAREA: UserSystem is ready, checking authentication');
+                }
+                this._checkAuthenticationAndDisableIfNeeded();
+            } else {
+                // UserSystem not ready yet, try again soon
+                if (window.DEBUG_MODE) {
+                    console.log('🔐 TEXTAREA: Waiting for userSystem to initialize...');
+                }
+                this._scheduleWork('auth-check', 'timeout', checkAuth, 100);
+            }
+        };
+
+        // Start checking immediately
+        checkAuth();
+
+        // Also listen for authStateChanged event in case user logs in after page load
+        this.authChangeListener = () => {
+            if (window.DEBUG_MODE) {
+                console.log('🔐 TEXTAREA: Auth state changed, re-checking authentication');
+            }
+            this._checkAuthenticationAndDisableIfNeeded();
+        };
+
+        window.addEventListener('authStateChanged', this.authChangeListener);
     }
 
     /**
@@ -292,6 +446,15 @@ class TextAreaManager {
             return false;
         }
 
+        // Skip event binding if user is not authenticated
+        if (this.isAuthCheckComplete && !this.isUserAuthenticated) {
+            if (window.DEBUG_MODE) {
+                console.log('🔐 TEXTAREA: Skipping event binding - user not authenticated');
+            }
+
+            return false;
+        }
+
         // Idempotent binding - only bind if not already bound
         if (this.eventsBound) {
             return true;
@@ -310,6 +473,10 @@ class TextAreaManager {
             this.eventsBound = true;
             this.state = 'bound';
             this._emitLifecycle('bound');
+
+            if (window.DEBUG_MODE) {
+                console.log('✅ TEXTAREA: Events bound successfully for authenticated user');
+            }
         }
 
         return success;
@@ -372,6 +539,12 @@ class TextAreaManager {
 
         if (this.searchReplaceManager?.destroy) {
             this.searchReplaceManager.destroy();
+        }
+
+        // Clean up auth change listener
+        if (this.authChangeListener) {
+            window.removeEventListener('authStateChanged', this.authChangeListener);
+            this.authChangeListener = null;
         }
 
         // 7. Clean up aria-live region
@@ -1340,6 +1513,65 @@ class TextAreaManager {
     getState() {
         return this.state;
     }
+
+    /**
+     * Manually trigger auth check (for debugging)
+     * @returns {boolean} Current authentication status
+     */
+    checkAuth() {
+        console.log('🔐 TEXTAREA: Manual auth check triggered');
+        this._checkAuthenticationAndDisableIfNeeded();
+
+        return this.isUserAuthenticated;
+    }
+
+    /**
+     * Enable textarea after authentication
+     * @returns {boolean} True if textarea was enabled successfully
+     */
+    enableTextAreaAfterAuth() {
+        if (!this.textArea) {
+            console.warn('⚠️ TEXTAREA: Cannot enable - textarea not found');
+
+            return false;
+        }
+
+        // Update auth state
+        this.isUserAuthenticated = this._isUserAuthenticated();
+
+        if (window.DEBUG_MODE) {
+            console.log('🔐 TEXTAREA: enableTextAreaAfterAuth - auth status:', this.isUserAuthenticated);
+        }
+
+        if (this.isUserAuthenticated) {
+            // Enable textarea
+            this.textArea.disabled = false;
+            this.textArea.placeholder = 'Enter your prompt here...';
+            this.textArea.classList.remove('textarea-disabled-auth');
+
+            // Remove visual feedback
+            if (this.textArea.parentElement) {
+                this.textArea.parentElement.classList.remove('textarea-container-disabled');
+            }
+
+            // Bind events if not already bound
+            if (!this.eventsBound) {
+                const success = this.bindEvents();
+
+                if (window.DEBUG_MODE) {
+                    console.log('✅ TEXTAREA: Enabled and events bound:', success);
+                }
+            }
+
+            return true;
+        }
+
+        if (window.DEBUG_MODE) {
+            console.warn('⚠️ TEXTAREA: enableTextAreaAfterAuth called but user is not authenticated');
+        }
+
+        return false;
+    }
 }
 
 // ============================================================================
@@ -1348,3 +1580,46 @@ class TextAreaManager {
 
 // Make class available globally (instantiated by textarea.js)
 window.TextAreaManager = TextAreaManager;
+
+// Debug helper - check current auth and textarea state
+window.checkTextAreaAuth = () => {
+    if (!window.textAreaManager) {
+        console.warn('⚠️ textAreaManager not initialized yet');
+
+        return;
+    }
+
+    const textarea = document.getElementById('prompt-textarea');
+
+    console.group('🔐 Textarea Authentication Status');
+    console.log('TextAreaManager initialized:', window.textAreaManager.isInitialized);
+    console.log('Auth check complete:', window.textAreaManager.isAuthCheckComplete);
+    console.log('User authenticated:', window.textAreaManager.isUserAuthenticated);
+    console.log('Textarea disabled:', textarea?.disabled);
+    console.log('Textarea placeholder:', textarea?.placeholder);
+    console.log('Has disabled class:', textarea?.classList.contains('textarea-disabled-auth'));
+    console.log('Events bound:', window.textAreaManager.eventsBound);
+    console.log('---');
+    console.log('UserSystem initialized:', window.userSystem?.isInitialized);
+    console.log('UserSystem isAuthenticated:', window.userSystem?.isAuthenticated());
+    console.log('Current user:', window.userSystem?.getUser());
+    console.log('Auth token exists:', !!(localStorage.getItem('authToken') || sessionStorage.getItem('authToken')));
+    console.groupEnd();
+
+    return {
+        isAuthenticated: window.textAreaManager.isUserAuthenticated,
+        textareaDisabled: textarea?.disabled,
+        eventsBound: window.textAreaManager.eventsBound
+    };
+};
+
+// Debug helper - force re-check auth
+window.recheckTextAreaAuth = () => {
+    if (!window.textAreaManager?.checkAuth) {
+        console.warn('⚠️ textAreaManager not available');
+
+        return false;
+    }
+
+    return window.textAreaManager.checkAuth();
+};

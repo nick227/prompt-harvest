@@ -7,6 +7,12 @@
     width: 68px;
 }
 
+/* Disabled Input State */
+input.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Matches Items - Rounded Minimal Buttons */
 #matches {
     display: flex;

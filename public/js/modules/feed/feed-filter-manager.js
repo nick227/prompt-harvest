@@ -12,7 +12,6 @@ class FeedFilterManager {
     init() {
         // Ensure DOM is ready before initializing
         if (document.readyState === 'loading') {
-            console.log('⏳ FILTER: Waiting for DOM to be ready...');
             document.addEventListener('DOMContentLoaded', () => this._performInit());
         } else {
             // DOM is already ready
@@ -22,7 +21,6 @@ class FeedFilterManager {
 
     // Internal initialization method
     _performInit() {
-        console.log('🚀 FILTER: Initializing filter manager...');
 
         this.setupFilterButtons();
         this.setupAuthListener();
@@ -91,7 +89,6 @@ class FeedFilterManager {
         const targetFilter = this._determineTargetFilter();
 
         // Set the filter in DOM and internal state
-        console.log(`📌 FILTER: Setting default filter to "${targetFilter}"`);
         this.currentFilter = targetFilter;
         this.setFilterSelection(targetFilter);
         this.saveFilter(targetFilter);
@@ -114,7 +111,6 @@ class FeedFilterManager {
 
         if (savedFilter && this.isValidFilter(savedFilter)) {
             if (savedFilter === FEED_CONSTANTS.FILTERS.PRIVATE && !this.canAccessUserFilter()) {
-                console.log(`🔄 FILTER: Saved "${savedFilter}" requires auth, using public`);
 
                 return FEED_CONSTANTS.FILTERS.PUBLIC;
             }
@@ -126,7 +122,6 @@ class FeedFilterManager {
         const defaultFilter = FEED_CONSTANTS.DEFAULTS.CURRENT_FILTER;
 
         if (defaultFilter === FEED_CONSTANTS.FILTERS.PRIVATE && !this.canAccessUserFilter()) {
-            console.log(`🔄 FILTER: Default "${defaultFilter}" requires auth, using public`);
 
             return FEED_CONSTANTS.FILTERS.PUBLIC;
         }
@@ -149,8 +144,6 @@ class FeedFilterManager {
             const actualValue = ownerDropdown.value;
 
             if (!actualValue || actualValue !== expectedFilter) {
-                console.error(`❌ FILTER VERIFICATION FAILED: Expected "${expectedFilter}", got "${actualValue || '(empty)'}"`);
-                console.log('🔧 FILTER: Attempting to fix...');
 
                 // Try to fix it
                 ownerDropdown.value = expectedFilter;
@@ -164,8 +157,6 @@ class FeedFilterManager {
                     this.currentFilter = fallback;
                     this.saveFilter(fallback);
                 }
-            } else {
-                console.log(`✅ FILTER VERIFICATION: Dropdown correctly set to "${actualValue}"`);
             }
         } else {
             console.error('❌ FILTER VERIFICATION: Dropdown element not found!');
@@ -208,15 +199,12 @@ class FeedFilterManager {
                 if (ownerDropdown.options.length > 0) {
                     const fallbackValue = ownerDropdown.options[0].value;
 
-                    console.log(`🔄 FILTER: Falling back to first available option: "${fallbackValue}"`);
                     ownerDropdown.value = fallbackValue;
 
                     // Update internal state to match reality
                     this.currentFilter = fallbackValue;
                     this.saveFilter(fallbackValue);
                 }
-            } else {
-                console.log(`✅ FILTER: Dropdown successfully set to "${filter}"`);
             }
         } else if (retryCount < 5) {
             // MOBILE FIX: Retry after a delay (element might not be rendered yet)

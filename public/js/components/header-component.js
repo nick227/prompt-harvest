@@ -69,8 +69,8 @@ class HeaderComponent {
                         </a>
                     </div>
 
-                    <!-- Auth Links, Stats, and Additional Links -->
-                    <div class="flex items-center sub-header-container mt-2">
+                    <!-- Right Section: Auth Links, Stats, and Additional Links -->
+                    <div class="flex items-center space-x-6 sub-header-container mt-2">
                     <div class="flex flex-row gap-2">
                         <span id="creditBalance" class="text-sm">
                             <!-- Credit balance widget will be loaded here -->
@@ -82,7 +82,7 @@ class HeaderComponent {
                         <div id="buy-credits-header" class="hidden">
                             <!-- Buy Credits button will be loaded here for authenticated users -->
                         </div>
-                        <div id="auth-links" class="flex items-center gap-4">
+                        <div id="auth-links" class="flex items-center space-x-4">
                             <a href="/login.html"
                                class="text-gray-300 hover:text-blue-400 transition-colors duration-200 bg-gray-700 px-3 py-1 rounded-lg">
                                 Login
