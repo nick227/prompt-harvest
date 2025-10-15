@@ -213,6 +213,8 @@ input#maxNum {
     font-weight: var(--font-weight-bold);
     color: var(--color-text-primary);
     font-family: var(--font-family-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* ===== DESKTOP DRAWER TOGGLE BUTTON ===== */
