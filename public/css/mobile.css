@@ -82,6 +82,10 @@
         background: rgba(0, 0, 0, 0.75);
     }
 
+    .search-container, #search {
+        width: 100%;
+    }
+
     /* Mobile touch scrolling improvements for info box content */
     .info-box-content {
         -webkit-overflow-scrolling: touch;

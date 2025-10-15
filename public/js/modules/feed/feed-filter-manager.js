@@ -8,8 +8,22 @@ class FeedFilterManager {
         this.imageCountManager = new window.ImageCountManager();
     }
 
-    // Initialize filter manager
+    // Initialize filter manager with DOM-ready check
     init() {
+        // Ensure DOM is ready before initializing
+        if (document.readyState === 'loading') {
+            console.log('⏳ FILTER: Waiting for DOM to be ready...');
+            document.addEventListener('DOMContentLoaded', () => this._performInit());
+        } else {
+            // DOM is already ready
+            this._performInit();
+        }
+    }
+
+    // Internal initialization method
+    _performInit() {
+        console.log('🚀 FILTER: Initializing filter manager...');
+
         this.setupFilterButtons();
         this.setupAuthListener();
         this.setupImageAdditionListener();
@@ -42,6 +56,9 @@ class FeedFilterManager {
                 const isSearchActive = window.searchManager?.state?.isSearchActive;
 
                 if (isSearchActive) {
+                    // FIX 5: Save previousFilter before updating
+                    const previousFilter = this.currentFilter;
+
                     // When search is active, just filter the search results (don't load new feed images)
                     if (window.feedManager?.tabService) {
                         window.feedManager.tabService.switchToFilter(newFilter);
@@ -49,6 +66,10 @@ class FeedFilterManager {
                         // Update state for search case (since we're not calling this.switchFilter)
                         this.currentFilter = newFilter;
                         this.syncFilterWithHybridTabService();
+
+                        // FIX 5: Update counts and dispatch events even in search mode
+                        this.updateImageCountDisplay(newFilter);
+                        this.dispatchFilterChangedEvent(newFilter, previousFilter);
                     } else {
                         console.error('❌ TabService not available!');
                     }
@@ -65,38 +86,90 @@ class FeedFilterManager {
     }
 
 
-    // Set default filter selection
+    // Set default filter selection with guaranteed fallback
     setDefaultFilter() {
-        // Try to restore from localStorage first
+        const targetFilter = this._determineTargetFilter();
+
+        // Set the filter in DOM and internal state
+        console.log(`📌 FILTER: Setting default filter to "${targetFilter}"`);
+        this.currentFilter = targetFilter;
+        this.setFilterSelection(targetFilter);
+        this.saveFilter(targetFilter);
+
+        // FIX 2: Update image count for initial filter
+        this.updateImageCountDisplay(targetFilter);
+
+        // Sync and notify
+        this.syncFilterWithHybridTabService();
+        this.dispatchFilterReadyEvent();
+
+        // Verification - ensure dropdown value stuck (especially important on mobile)
+        setTimeout(() => this._verifyDropdownValue(targetFilter), 500);
+    }
+
+    // Determine which filter to use based on localStorage and auth state
+    _determineTargetFilter() {
+        // Try localStorage first
         const savedFilter = this.getSavedFilter();
 
         if (savedFilter && this.isValidFilter(savedFilter)) {
-            // Check if user can access the saved filter
             if (savedFilter === FEED_CONSTANTS.FILTERS.PRIVATE && !this.canAccessUserFilter()) {
-                this.setFilterSelection(FEED_CONSTANTS.FILTERS.PUBLIC);
-                this.currentFilter = FEED_CONSTANTS.FILTERS.PUBLIC;
-            } else {
-                this.setFilterSelection(savedFilter);
-                this.currentFilter = savedFilter;
-            }
-        } else {
-            // Use default filter, but check if user can access it
-            const defaultFilter = FEED_CONSTANTS.DEFAULTS.CURRENT_FILTER;
+                console.log(`🔄 FILTER: Saved "${savedFilter}" requires auth, using public`);
 
-            if (defaultFilter === FEED_CONSTANTS.FILTERS.PRIVATE && !this.canAccessUserFilter()) {
-                this.setFilterSelection(FEED_CONSTANTS.FILTERS.PUBLIC);
-                this.currentFilter = FEED_CONSTANTS.FILTERS.PUBLIC;
-            } else {
-                this.setFilterSelection(defaultFilter);
-                this.currentFilter = defaultFilter;
+                return FEED_CONSTANTS.FILTERS.PUBLIC;
             }
+
+            return savedFilter;
         }
 
-        // Sync with HybridTabService (P0 fix)
-        this.syncFilterWithHybridTabService();
+        // Use default from config
+        const defaultFilter = FEED_CONSTANTS.DEFAULTS.CURRENT_FILTER;
 
-        // Notify that filter is ready
-        this.dispatchFilterReadyEvent();
+        if (defaultFilter === FEED_CONSTANTS.FILTERS.PRIVATE && !this.canAccessUserFilter()) {
+            console.log(`🔄 FILTER: Default "${defaultFilter}" requires auth, using public`);
+
+            return FEED_CONSTANTS.FILTERS.PUBLIC;
+        }
+
+        // Final safety check
+        if (!defaultFilter || !this.isValidFilter(defaultFilter)) {
+            console.warn(`⚠️ FILTER: Invalid default "${defaultFilter}", using public`);
+
+            return FEED_CONSTANTS.FILTERS.PUBLIC;
+        }
+
+        return defaultFilter;
+    }
+
+    // Verify that dropdown value matches expected filter
+    _verifyDropdownValue(expectedFilter) {
+        const ownerDropdown = document.querySelector(FEED_CONSTANTS.SELECTORS.OWNER_DROPDOWN);
+
+        if (ownerDropdown) {
+            const actualValue = ownerDropdown.value;
+
+            if (!actualValue || actualValue !== expectedFilter) {
+                console.error(`❌ FILTER VERIFICATION FAILED: Expected "${expectedFilter}", got "${actualValue || '(empty)'}"`);
+                console.log('🔧 FILTER: Attempting to fix...');
+
+                // Try to fix it
+                ownerDropdown.value = expectedFilter;
+
+                // If it still doesn't work, force set to first available option
+                if (ownerDropdown.value !== expectedFilter && ownerDropdown.options.length > 0) {
+                    const fallback = ownerDropdown.options[0].value;
+
+                    console.warn(`⚠️ FILTER: Forcing fallback to "${fallback}"`);
+                    ownerDropdown.value = fallback;
+                    this.currentFilter = fallback;
+                    this.saveFilter(fallback);
+                }
+            } else {
+                console.log(`✅ FILTER VERIFICATION: Dropdown correctly set to "${actualValue}"`);
+            }
+        } else {
+            console.error('❌ FILTER VERIFICATION: Dropdown element not found!');
+        }
     }
 
     // Sync filter state with HybridTabService
@@ -115,15 +188,45 @@ class FeedFilterManager {
         window.dispatchEvent(event);
     }
 
-    // Set filter selection in DOM
-    setFilterSelection(filter) {
+    // Set filter selection in DOM with retry mechanism
+    setFilterSelection(filter, retryCount = 0) {
         // Handle dropdown selection
         const ownerDropdown = document.querySelector(FEED_CONSTANTS.SELECTORS.OWNER_DROPDOWN);
 
         if (ownerDropdown) {
+            // Set the value
             ownerDropdown.value = filter;
-        }
 
+            // CRITICAL: Verify the value was actually set
+            if (ownerDropdown.value !== filter) {
+                const currentValue = ownerDropdown.value;
+
+                console.warn(`⚠️ FILTER: Failed to set dropdown to "${filter}", ` +
+                    `current value: "${currentValue}"`);
+
+                // If the filter option doesn't exist, fall back to first available option
+                if (ownerDropdown.options.length > 0) {
+                    const fallbackValue = ownerDropdown.options[0].value;
+
+                    console.log(`🔄 FILTER: Falling back to first available option: "${fallbackValue}"`);
+                    ownerDropdown.value = fallbackValue;
+
+                    // Update internal state to match reality
+                    this.currentFilter = fallbackValue;
+                    this.saveFilter(fallbackValue);
+                }
+            } else {
+                console.log(`✅ FILTER: Dropdown successfully set to "${filter}"`);
+            }
+        } else if (retryCount < 5) {
+            // MOBILE FIX: Retry after a delay (element might not be rendered yet)
+            console.warn(`⚠️ FILTER: Dropdown not found (attempt ${retryCount + 1}/5), retrying...`);
+            setTimeout(() => {
+                this.setFilterSelection(filter, retryCount + 1);
+            }, 100 * (retryCount + 1)); // Exponential backoff: 100ms, 200ms, 300ms, 400ms, 500ms
+        } else {
+            console.error(`❌ FILTER: Owner dropdown not found after ${retryCount + 1} attempts!`);
+        }
     }
 
     // Get saved filter from localStorage
@@ -248,6 +351,9 @@ class FeedFilterManager {
             return;
         }
 
+        // FIX 1: Save previousFilter BEFORE updating currentFilter
+        const previousFilter = this.currentFilter;
+
         this.showLoadingOverlay();
         this.cacheManager.saveScrollPosition(this.currentFilter);
 
@@ -263,10 +369,10 @@ class FeedFilterManager {
 
         await this.handleFilterImages(newFilter);
         this.updateImageCountDisplay(newFilter);
-        this.dispatchFilterChangedEvent(newFilter);
+        this.dispatchFilterChangedEvent(newFilter, previousFilter);
     }
 
-    // Show loading overlay for 2 seconds
+    // FIX 3: Show loading overlay (600ms duration)
     showLoadingOverlay() {
         const promptOutput = document.querySelector(FEED_CONSTANTS.SELECTORS.PROMPT_OUTPUT);
 
@@ -289,17 +395,18 @@ class FeedFilterManager {
         }
     }
 
-    // Wait for tab service to be available
+    // FIX 4: Wait for tab service to be available (increased for slower devices)
     async waitForTabService() {
         let attempts = 0;
-        const maxAttempts = 3;
+        const maxAttempts = 10; // Increased from 3 to 10 for slower mobile devices
 
         while (attempts < maxAttempts) {
             const tabServiceAvailable = !!(window.feedManager && window.feedManager.tabService);
 
             if (tabServiceAvailable) { return true; }
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Progressive backoff: 50ms, 100ms, 150ms, etc. (max 1000ms total)
+            await new Promise(resolve => setTimeout(resolve, 50 + (attempts * 50)));
             attempts++;
         }
 
@@ -361,9 +468,9 @@ class FeedFilterManager {
     }
 
     // Dispatch filter changed event
-    dispatchFilterChangedEvent(filter) {
+    dispatchFilterChangedEvent(filter, previousFilter) {
         const event = new CustomEvent(FEED_CONSTANTS.EVENTS.FILTER_CHANGED, {
-            detail: { filter, previousFilter: this.currentFilter }
+            detail: { filter, previousFilter }
         });
 
         window.dispatchEvent(event);
@@ -483,3 +590,4 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FeedFilterManager;
 }
+
