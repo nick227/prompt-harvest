@@ -140,7 +140,7 @@ class FeedDOMOperations {
     // Create login prompt HTML
     createLoginPromptHTML() {
         return `
-            <div class="flex flex-col items-center justify-center p-8 text-center">
+            <div class="flex flex-col items-center justify-center p-8 text-center w-full">
                 <div class="text-gray-400 text-lg mb-4 mx-auto">
                     <i class="fas fa-lock text-2xl mb-2"></i>
                     <p>${FEED_CONSTANTS.MESSAGES.LOGIN_PROMPT}</p>
@@ -168,7 +168,7 @@ class FeedDOMOperations {
         }
 
         promptOutput.innerHTML = `
-            <div class="flex flex-col items-center justify-center p-8 text-center">
+            <div class="flex flex-col items-center justify-center p-8 text-center w-full">
                 <div class="text-gray-400 text-lg">
                     <i class="fas fa-images text-2xl mb-2"></i>
                     <p>${FEED_CONSTANTS.MESSAGES.NO_IMAGES}</p>
@@ -186,7 +186,7 @@ class FeedDOMOperations {
         }
 
         promptOutput.innerHTML = `
-            <div class="flex flex-col items-center justify-center p-8 text-center">
+            <div class="flex flex-col items-center justify-center p-8 text-center w-full">
                 <div class="text-red-400 text-lg">
                     <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
                     <p>${message}</p>
