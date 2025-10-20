@@ -17,6 +17,7 @@ export const getAIAgentService = () => {
     if (!aiAgentServiceInstance) {
         aiAgentServiceInstance = new AIAgentService();
     }
+
     return aiAgentServiceInstance;
 };
 

@@ -87,6 +87,7 @@ export class AdminApiQueueService {
         }
 
         const request = this.queue.shift();
+
         this.active++;
         this.metrics.queuedRequests--;
         this.metrics.activeRequests++;
@@ -96,6 +97,7 @@ export class AdminApiQueueService {
             const result = await this.routeRequest(request);
 
             this.metrics.completedRequests++;
+
             return result;
         } catch (error) {
             this.metrics.failedRequests++;
@@ -194,6 +196,7 @@ export class AdminApiQueueService {
 
         recentRequests.push(now);
         this.userRequests.set(userId, recentRequests);
+
         return true;
     }
 
@@ -202,6 +205,7 @@ export class AdminApiQueueService {
      */
     cleanupRateLimiter() {
         const now = Date.now();
+
         for (const [userId, requests] of this.userRequests.entries()) {
             if (now - requests[requests.length - 1] > 300000) { // 5 minutes
                 this.userRequests.delete(userId);

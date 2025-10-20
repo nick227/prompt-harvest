@@ -31,6 +31,9 @@ export class ImageQueryService {
      * @param {number} page - Page number (1-based)
      * @returns {Promise<Object>} Images array and pagination metadata
      */
+    /**
+     * OPTIMIZED: Single-pass user extraction and normalization
+     */
     async getImages(userId, limit = PAGINATION.DEFAULT_LIMIT, page = 1) {
         const zeroBasedPage = convertPageToOffset(page);
 
@@ -38,9 +41,13 @@ export class ImageQueryService {
             ? await this.imageRepository.findByUserId(userId, limit, zeroBasedPage)
             : await this.imageRepository.findPublicImages(limit, zeroBasedPage);
 
-        const userIds = [...new Set(result.images.map(img => img.userId))];
+        // OPTIMIZATION: Single pass - extract userIds and build map in one operation
+        const userIds = new Set();
+
+        result.images.forEach(img => userIds.add(img.userId));
+
         const users = await this.prisma.user.findMany({
-            where: { id: { in: userIds } },
+            where: { id: { in: [...userIds] } },
             select: { id: true, username: true }
         });
         const userMap = new Map(users.map(user => [user.id, user.username || 'User']));
@@ -129,6 +136,9 @@ export class ImageQueryService {
      * @param {Array} tags - Optional tags filter
      * @returns {Object} Response with images and pagination
      */
+    /**
+     * OPTIMIZED: Single-pass user extraction
+     */
     async getFeed(userId, limit = PAGINATION.DEFAULT_LIMIT, page = 1, tags = []) {
         const zeroBasedPage = convertPageToOffset(page);
         const normalizedTags = normalizeTags(tags);
@@ -137,9 +147,13 @@ export class ImageQueryService {
 
         this.assertPublicImages(result.images, 'feed');
 
-        const userIds = [...new Set(result.images.map(img => img.userId))];
+        // OPTIMIZATION: Single pass user extraction
+        const userIds = new Set();
+
+        result.images.forEach(img => userIds.add(img.userId));
+
         const users = await this.prisma.user.findMany({
-            where: { id: { in: userIds } },
+            where: { id: { in: [...userIds] } },
             select: { id: true, username: true }
         });
         const userMap = new Map(users.map(user => [user.id, user.username || 'User']));
@@ -180,19 +194,30 @@ export class ImageQueryService {
             hasMore: result.hasMore
         });
 
-        const otherUserImages = result.images.filter(img => img.userId !== userId);
+        // OPTIMIZATION: Single pass validation and user extraction
+        const userIds = new Set();
+        let otherUserCount = 0;
+        const otherImageIds = [];
 
-        if (otherUserImages.length > 0) {
+        result.images.forEach(img => {
+            userIds.add(img.userId);
+
+            if (img.userId !== userId) {
+                otherUserCount++;
+                otherImageIds.push(img.id);
+            }
+        });
+
+        if (otherUserCount > 0) {
             console.error('🚨 DATABASE INTEGRITY ERROR: Repository returned images from other users!', {
                 requestedUserId: userId,
-                count: otherUserImages.length,
-                imageIds: otherUserImages.map(img => img.id)
+                count: otherUserCount,
+                imageIds: otherImageIds
             });
         }
 
-        const userIds = [...new Set(result.images.map(img => img.userId))];
         const users = await this.prisma.user.findMany({
-            where: { id: { in: userIds } },
+            where: { id: { in: [...userIds] } },
             select: { id: true, username: true }
         });
         const userMap = new Map(users.map(user => [user.id, user.username || 'User']));

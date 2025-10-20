@@ -73,6 +73,7 @@ export class AdminApiQueueMiddleware {
         // Queue blog creation if queue is busy
         if (req.path === '/api/admin/create-blog-post') {
             const status = this.queueService.getStatus();
+
             return status.queue.size > 5;
         }
 
@@ -90,6 +91,7 @@ export class AdminApiQueueMiddleware {
     estimateWaitTime() {
         const status = this.queueService.getStatus();
         const avgProcessingTime = 5000; // 5 seconds average
+
         return status.queue.size * avgProcessingTime;
     }
 

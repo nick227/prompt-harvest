@@ -142,6 +142,7 @@ export class CreditManagementService {
             // If the refund fails due to duplicate idempotency key, treat as success
             if (error.message?.includes('duplicate') || error.code === 'P2002') {
                 console.warn(`⚠️ Refund already processed for request ${requestId}`);
+
                 return { success: true, alreadyRefunded: true };
             }
             throw error;

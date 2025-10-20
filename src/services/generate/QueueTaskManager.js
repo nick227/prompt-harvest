@@ -128,6 +128,7 @@ export class QueueTaskManager {
             }
 
             const controllerToReturn = options.requestId ? requestController : controller;
+
             return { promise, controller: controllerToReturn };
         }
 
@@ -160,13 +161,14 @@ export class QueueTaskManager {
      * @returns {boolean} True if cancellation error
      */
     isCancellationError(error) {
-        if (!error) return false;
+        if (!error) { return false; }
 
         // Check for standard abort error names (Node.js AbortError, DOM DOMException)
         const abortErrorNames = [
             'AbortError', 'CancelError', 'CancelledError', 'CancellationError',
             'AbortedError', 'UserCancelledError', 'RequestCancelledError'
         ];
+
         if (abortErrorNames.includes(error.name)) {
             return true;
         }
@@ -191,6 +193,7 @@ export class QueueTaskManager {
             'ABORT_ERR', 'ABORTED', 'ABORT_ERROR', 'CANCELLED', 'CANCELED',
             'USER_CANCELLED', 'REQUEST_CANCELLED', 'OPERATION_CANCELLED'
         ];
+
         if (abortCodes.includes(error.code)) {
             return true;
         }
@@ -203,6 +206,7 @@ export class QueueTaskManager {
         // Check for fetch/request cancellation (browser-specific)
         if (error.name === 'TypeError' && error.message?.includes('fetch')) {
             const message = error.message?.toLowerCase() || '';
+
             if (message.includes('aborted') || message.includes('cancelled')) {
                 return true;
             }

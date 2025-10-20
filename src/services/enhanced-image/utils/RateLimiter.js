@@ -1,15 +1,17 @@
 /**
  * Rate limiting utilities
  * In-memory rate limiting with automatic cleanup
+ *
+ * OPTIMIZED: Time-based cleanup instead of counter-based
  */
 
 export class RateLimiter {
     constructor(config = {}) {
         this.windowMs = config.windowMs || 60000; // 1 minute
         this.maxRequests = config.maxRequests || 10;
-        this.cleanupThreshold = config.cleanupThreshold || 100;
+        this.cleanupInterval = config.cleanupInterval || 60000; // Clean every 60 seconds
         this.rateLimitMap = new Map();
-        this.cleanupCounter = 0;
+        this.lastCleanup = Date.now();
     }
 
     /**
@@ -17,35 +19,51 @@ export class RateLimiter {
      * @param {string} userId - User ID or identifier (null for anonymous)
      * @returns {boolean} True if rate limited, false otherwise
      */
+    /**
+     * OPTIMIZED: Reduced array filtering, time-based cleanup
+     */
     isRateLimited(userId) {
         const key = userId || 'anonymous';
         const now = Date.now();
+        const cutoff = now - this.windowMs;
 
-        const userRequests = this.rateLimitMap.get(key) || [];
+        let userRequests = this.rateLimitMap.get(key);
 
-        // Remove old requests outside the window
-        const recentRequests = userRequests.filter(time => now - time < this.windowMs);
+        if (!userRequests) {
+            userRequests = [];
+        }
 
-        if (recentRequests.length >= this.maxRequests) {
+        // OPTIMIZATION: Remove expired requests only if needed (check oldest first)
+        if (userRequests.length > 0 && userRequests[0] < cutoff) {
+            // Binary search to find first valid request (since array is sorted by time)
+            let left = 0;
+            let right = userRequests.length;
+
+            while (left < right) {
+                const mid = Math.floor((left + right) / 2);
+
+                if (userRequests[mid] < cutoff) {
+                    left = mid + 1;
+                } else {
+                    right = mid;
+                }
+            }
+
+            userRequests = userRequests.slice(left);
+        }
+
+        if (userRequests.length >= this.maxRequests) {
             return true;
         }
 
-        // Add current request
-        recentRequests.push(now);
+        // Add current request (maintains sorted order)
+        userRequests.push(now);
+        this.rateLimitMap.set(key, userRequests);
 
-        // Clean up: Remove stale entries to prevent memory leak
-        if (recentRequests.length === 0) {
-            this.rateLimitMap.delete(key);
-        } else {
-            this.rateLimitMap.set(key, recentRequests);
-        }
-
-        // Periodically clean up the entire map
-        this.cleanupCounter++;
-
-        if (this.cleanupCounter >= this.cleanupThreshold) {
+        // Time-based cleanup (runs max once per minute instead of every 100 requests)
+        if (now - this.lastCleanup > this.cleanupInterval) {
             this.cleanup(now);
-            this.cleanupCounter = 0;
+            this.lastCleanup = now;
         }
 
         return false;
@@ -53,19 +71,49 @@ export class RateLimiter {
 
     /**
      * Clean up stale entries from the rate limit map
+     * OPTIMIZED: Only runs periodically (time-based), removes empty entries
      * @param {number} now - Current timestamp
      * @private
      */
     cleanup(now) {
-        for (const [key, requests] of this.rateLimitMap.entries()) {
-            const recentRequests = requests.filter(time => now - time < this.windowMs);
+        const cutoff = now - this.windowMs;
+        const keysToDelete = [];
 
-            if (recentRequests.length === 0) {
-                this.rateLimitMap.delete(key);
-            } else if (recentRequests.length !== requests.length) {
-                this.rateLimitMap.set(key, recentRequests);
+        for (const [key, requests] of this.rateLimitMap.entries()) {
+            // OPTIMIZATION: Use binary search if array is large
+            if (requests.length > 10) {
+                let left = 0;
+                let right = requests.length;
+
+                while (left < right) {
+                    const mid = Math.floor((left + right) / 2);
+
+                    if (requests[mid] < cutoff) {
+                        left = mid + 1;
+                    } else {
+                        right = mid;
+                    }
+                }
+
+                if (left === requests.length) {
+                    keysToDelete.push(key);
+                } else if (left > 0) {
+                    this.rateLimitMap.set(key, requests.slice(left));
+                }
+            } else {
+                // For small arrays, simple filter is fine
+                const recentRequests = requests.filter(time => time >= cutoff);
+
+                if (recentRequests.length === 0) {
+                    keysToDelete.push(key);
+                } else if (recentRequests.length !== requests.length) {
+                    this.rateLimitMap.set(key, recentRequests);
+                }
             }
         }
+
+        // Batch delete empty keys
+        keysToDelete.forEach(key => this.rateLimitMap.delete(key));
     }
 
     /**
@@ -83,7 +131,7 @@ export class RateLimiter {
      */
     resetAll() {
         this.rateLimitMap.clear();
-        this.cleanupCounter = 0;
+        this.lastCleanup = Date.now();
     }
 
     /**

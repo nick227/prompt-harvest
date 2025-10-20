@@ -32,6 +32,7 @@ export class ImageGenerationTimeoutError extends Error {
 export class AllProvidersFailedError extends Error {
     constructor(providers, errors = []) {
         const providerList = providers.join(', ');
+
         super(`All providers failed. Attempted: ${providerList}`);
         this.name = 'AllProvidersFailedError';
         this.providers = providers;

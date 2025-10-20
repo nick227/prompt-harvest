@@ -13,6 +13,7 @@ console.log('======================\n');
 
 // Calculate baseline cost (Flux 1024px 30 steps)
 const baselineCost = calculator.calculateFluxCost('1024x1024', 30);
+
 console.log(`📊 BASELINE: Flux 1024px 30 steps = $${baselineCost.toFixed(4)} = 1 credit\n`);
 
 // Get all model costs
@@ -23,6 +24,7 @@ console.log('=======================');
 
 // Group by category
 const categories = {};
+
 allCosts.forEach(model => {
     if (!categories[model.category]) {
         categories[model.category] = [];
@@ -59,7 +61,7 @@ creditSystem.sort((a, b) => a.creditCost - b.creditCost);
 
 console.log('\n📋 CREDIT SYSTEM (Flux 30-steps = 1 credit baseline):');
 console.log('─'.repeat(80));
-console.log('Provider'.padEnd(20) + 'Dezgo Cost'.padEnd(12) + 'Credits'.padEnd(8) + 'Ratio'.padEnd(8) + 'Category');
+console.log(`${'Provider'.padEnd(20) + 'Dezgo Cost'.padEnd(12) + 'Credits'.padEnd(8) + 'Ratio'.padEnd(8)}Category`);
 console.log('─'.repeat(80));
 
 creditSystem.forEach(model => {

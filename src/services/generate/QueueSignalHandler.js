@@ -25,6 +25,7 @@ export class QueueSignalHandler {
 
         // Always combine external signals, even without requestId
         const externalSignals = [];
+
         if (options.abortSignal) {
             externalSignals.push(options.abortSignal);
         }
@@ -47,6 +48,7 @@ export class QueueSignalHandler {
         // Combine all signals if we have multiple
         if (externalSignals.length > 1) {
             const combined = this.lifecycle.combineAbortSignals(externalSignals);
+
             options.abortSignal = combined.signal;
             options._signalCleanup = combined.cleanup;
         } else if (externalSignals.length === 1) {

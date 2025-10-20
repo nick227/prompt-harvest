@@ -683,16 +683,16 @@ export class EnhancedImageController {
                 total: paginationData.totalCount, // Frontend expects 'total' not 'totalCount'
                 totalCount: paginationData.totalCount, // Keep for backward compatibility
                 count: result.images.length,
-                hasMore: hasMore
+                hasMore
             },
-            hasMore: hasMore // Add hasMore at data level for consistency with formatPaginatedResponse
+            hasMore // Add hasMore at data level for consistency with formatPaginatedResponse
         };
 
         console.log('📤 CONTROLLER formatGetUserOwnImagesResponse:', {
             imageCount: result.images.length,
             paginationData,
             calculatedHasMore: hasMore,
-            responseData: responseData
+            responseData
         });
 
         return formatSuccessResponse(responseData, requestId, Date.now() - startTime);
@@ -735,12 +735,14 @@ export class EnhancedImageController {
 
             // Fetch username for the userId (same logic as in getImages method)
             let username = 'Anonymous';
+
             if (image.userId) {
                 try {
                     const user = await databaseClient.getClient().user.findUnique({
                         where: { id: image.userId },
                         select: { username: true, email: true }
                     });
+
                     username = user?.username || (user?.email ? user.email : 'Unknown User');
 
                 } catch (error) {

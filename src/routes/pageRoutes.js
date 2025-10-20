@@ -56,10 +56,10 @@ export const setupPageRoutes = app => {
         res.sendFile(path.join(__dirname, '../../public/blog/index.html'));
     });
 
-            // Blog post creation page (client-side auth check)
-            app.get('/blog/new', (req, res) => {
-                res.sendFile(path.join(__dirname, '../../public/blog/post.html'));
-            });
+    // Blog post creation page (client-side auth check)
+    app.get('/blog/new', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../public/blog/post.html'));
+    });
 
     // Dynamic blog post routes - must be after static routes
     app.get('/blog/:slug', (req, res) => {

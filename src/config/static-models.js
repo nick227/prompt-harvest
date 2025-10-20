@@ -340,6 +340,19 @@ export const STATIC_MODELS = {
         apiUrl: 'https://us-central1-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/us-central1/publishers/google/models/imagen-3.0-generate-001:predict',
         apiModel: 'imagen-3.0-generate-001',
         apiSize: '1024x1024'
+    },
+
+    // Grok Models - xAI
+    grok: {
+        provider: 'grok',
+        name: 'grok',
+        displayName: 'Grok 2 Image',
+        description: 'xAI Grok 2 image generation model - Fast JPG output, no size control',
+        costPerImage: 1,
+        isActive: true,
+        apiUrl: 'https://api.x.ai/v1/images/generations',
+        apiModel: 'grok-2-image',
+        apiSize: null  // Size not supported by Grok
     }
 };
 

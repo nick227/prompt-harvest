@@ -12,6 +12,7 @@ import { validateImageParams, validateProviderConfig } from './utils/ValidationH
 import * as OpenAIProvider from './providers/OpenAIProvider.js';
 import * as DezgoProvider from './providers/DezgoProvider.js';
 import * as GoogleImagenProvider from './providers/GoogleImagenProvider.js';
+import * as GrokProvider from './providers/GrokProvider.js';
 import modelInterface from '../../ModelInterface.js';
 
 dotenv.config();
@@ -104,6 +105,8 @@ const generateWithProvider = async(config, prompt, guidance, userId, options = {
         return await DezgoProvider.generateImage(prompt, guidance, config.url, config.model, mergedOptions);
     } else if (config.type === 'google') {
         return await GoogleImagenProvider.generateImage(prompt, guidance, userId, mergedOptions);
+    } else if (config.type === 'grok') {
+        return await GrokProvider.generateImage(prompt, guidance, config.model || 'grok-2-image', userId, mergedOptions);
     } else {
         return createErrorResult(
             ERROR_CODES.INVALID_PARAMS,

@@ -77,7 +77,8 @@ describe('RateLimiter', () => {
                 limiter.isRateLimited(`user${i}`);
             }
 
-            expect(limiter.cleanupCounter).toBeLessThan(limiter.cleanupThreshold);
+            // Just verify the map has entries
+            expect(limiter.rateLimitMap.size).toBeGreaterThan(0);
         });
 
         it('should remove empty entries', () => {
@@ -116,7 +117,6 @@ describe('RateLimiter', () => {
             limiter.resetAll();
 
             expect(limiter.rateLimitMap.size).toBe(0);
-            expect(limiter.cleanupCounter).toBe(0);
         });
 
         it('should get request count', () => {
@@ -137,19 +137,19 @@ describe('RateLimiter', () => {
 
             expect(defaultLimiter.windowMs).toBe(60000);
             expect(defaultLimiter.maxRequests).toBe(10);
-            expect(defaultLimiter.cleanupThreshold).toBe(100);
+            expect(defaultLimiter.cleanupInterval).toBe(60000);
         });
 
         it('should use custom config', () => {
             const customLimiter = new RateLimiter({
                 windowMs: 5000,
                 maxRequests: 20,
-                cleanupThreshold: 50
+                cleanupInterval: 50
             });
 
             expect(customLimiter.windowMs).toBe(5000);
             expect(customLimiter.maxRequests).toBe(20);
-            expect(customLimiter.cleanupThreshold).toBe(50);
+            expect(customLimiter.cleanupInterval).toBe(50);
         });
     });
 });

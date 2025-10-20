@@ -7,6 +7,7 @@ import { sanitizeInput } from '../middleware/validation.js';
 import { authenticateToken, authenticateTokenRequired } from '../middleware/authMiddleware.js';
 import { requireImageGenerationCredits } from '../middleware/creditValidation.js';
 import { userImageGenerationRateLimit, noRateLimit } from '../middleware/userRateLimit.js';
+import { strictBadWordFilter } from '../middleware/badWordFilter.js';
 
 // eslint-disable-next-line max-lines-per-function
 export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
@@ -18,6 +19,7 @@ export const setupEnhancedImageRoutes = (app, enhancedImageController) => {
     // Image generation with enhanced validation and rate limiting
     app.post('/api/image/generate',
         authenticateTokenRequired, // Require authentication - no anonymous access
+        strictBadWordFilter, // Block requests with bad words BEFORE processing
         sanitizeInput,
         // userImageGenerationRateLimit, // Per-user rate limiting (120 requests/minute)
         noRateLimit, // No rate limiting - users can request sequentially

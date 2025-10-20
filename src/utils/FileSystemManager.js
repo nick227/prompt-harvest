@@ -5,19 +5,33 @@ import sharp from 'sharp';
 export class FileSystemManager {
     constructor(uploadDir = 'storage/uploads') {
         this.uploadDir = uploadDir;
-        this.ensureUploadDirectory();
+        this.initPromise = this.ensureUploadDirectory();
     }
 
-    ensureUploadDirectory() {
-        if (!fs.existsSync(this.uploadDir)) {
-            fs.mkdirSync(this.uploadDir, { recursive: true });
-            console.log(`✅ Created upload directory: ${this.uploadDir}`);
+    /**
+     * OPTIMIZED: Async directory creation (non-blocking)
+     * Ensures directory exists without blocking event loop
+     */
+    async ensureUploadDirectory() {
+        try {
+            await fs.promises.mkdir(this.uploadDir, { recursive: true });
+            // Note: mkdir with recursive doesn't error if directory exists
+        } catch (error) {
+            // Directory might already exist (EEXIST) - that's OK
+            if (error.code !== 'EEXIST') {
+                console.error(`❌ Failed to create upload directory: ${error.message}`);
+                throw error;
+            }
         }
     }
 
     async saveImageAtomic(buffer, filename, options = {}) {
+        // Ensure directory exists before saving
+        await this.initPromise;
+
         // SECURITY: Prevent path traversal
         const safeFilename = path.basename(filename);
+
         if (safeFilename !== filename) {
             throw new Error('Invalid filename: path traversal detected');
         }
@@ -29,13 +43,13 @@ export class FileSystemManager {
             // Step 1: Write to temporary file
             await this.writeBufferToFile(buffer, tempPath);
 
-            // Step 2: Process with Sharp if needed
-            if (options.processWithSharp !== false) {
+            // Step 2: Process with Sharp if needed (skip if already compressed)
+            if (options.processWithSharp !== false && options.skipCompression !== true) {
                 await this.processWithSharp(tempPath, finalPath, options);
                 // Clean up temp file
                 await this.deleteFile(tempPath);
             } else {
-                // Move temp file to final location
+                // Move temp file to final location (already compressed or no processing)
                 await this.moveFile(tempPath, finalPath);
             }
 
@@ -158,6 +172,7 @@ export class FileSystemManager {
     async deleteImage(filename) {
         // SECURITY: Prevent path traversal
         const safeFilename = path.basename(filename);
+
         if (safeFilename !== filename) {
             throw new Error('Invalid filename: path traversal detected');
         }
@@ -179,6 +194,7 @@ export class FileSystemManager {
     async getImageInfo(filename) {
         // SECURITY: Prevent path traversal
         const safeFilename = path.basename(filename);
+
         if (safeFilename !== filename) {
             throw new Error('Invalid filename: path traversal detected');
         }

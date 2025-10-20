@@ -44,7 +44,7 @@ export const requireAdmin = async (req, res, next) => {
             path: req.path,
             hasJWT: !!token,
             hasSession: !!req.session?.userId,
-            userId: userId,
+            userId,
             sessionData: req.session ? Object.keys(req.session) : 'no session'
         });
 

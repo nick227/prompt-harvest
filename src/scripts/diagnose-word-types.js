@@ -16,8 +16,9 @@ async function diagnoseWordTypes() {
 
     // Show database URL preview
     const dbUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
+
     if (dbUrl) {
-        console.log('Database URL preview:', dbUrl.substring(0, 50) + '...');
+        console.log('Database URL preview:', `${dbUrl.substring(0, 50)}...`);
         console.log('Is Railway internal URL:', dbUrl.includes('railway.internal') ? 'YES' : 'NO');
     } else {
         console.log('❌ No database URL found!');
@@ -31,6 +32,7 @@ async function diagnoseWordTypes() {
         // Get database info
         console.log('\n📊 Database information:');
         const [dbInfo] = await prisma.$queryRaw`SELECT DATABASE() as current_db, USER() as current_user, @@hostname as hostname`;
+
         console.log('Current database:', dbInfo.current_db);
         console.log('Current user:', dbInfo.current_user);
         console.log('Hostname:', dbInfo.hostname);
@@ -38,6 +40,7 @@ async function diagnoseWordTypes() {
         // Check word_types table
         console.log('\n📊 Word_types table analysis:');
         const count = await prisma.word_types.count();
+
         console.log(`Total records: ${count}`);
 
         if (count > 0) {
@@ -52,16 +55,19 @@ async function diagnoseWordTypes() {
 
             samples.forEach((record, index) => {
                 const typesCount = Array.isArray(record.types) ? record.types.length : 'unknown';
+
                 console.log(`${index + 1}. "${record.word}" (${typesCount} types)`);
             });
 
             // Check for specific words that should be in local data
             console.log('\n🔍 Checking for local-specific words:');
             const localWords = ['movie lights', 'detailed examples of cinestill 800tungsten'];
+
             for (const word of localWords) {
                 const record = await prisma.word_types.findUnique({
                     where: { word }
                 });
+
                 console.log(`${record ? '✅' : '❌'} "${word}": ${record ? 'Found' : 'Not found'}`);
             }
 
@@ -72,6 +78,7 @@ async function diagnoseWordTypes() {
                     FROM information_schema.TABLES
                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'word_types'
                 `;
+
                 console.log('\n📊 Table metadata:');
                 console.log('Create time:', tableInfo.CREATE_TIME);
                 console.log('Update time:', tableInfo.UPDATE_TIME);
@@ -100,7 +107,7 @@ diagnoseWordTypes()
         console.log('- If hostname contains "railway.internal" but has 0-5 records: Railway DB is empty');
         process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
         console.error('💥 Diagnosis failed:', error);
         process.exit(1);
     });

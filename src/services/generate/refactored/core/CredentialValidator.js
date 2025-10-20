@@ -6,7 +6,7 @@
 
 /**
  * Centralized credential validation
- * @param {string} providerType - Provider type (openai, dezgo, google)
+ * @param {string} providerType - Provider type (openai, dezgo, google, grok)
  * @throws {Error} If credentials are missing
  */
 export const assertCredentials = providerType => {
@@ -27,6 +27,11 @@ export const assertCredentials = providerType => {
             }
             if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.GOOGLE_CLOUD_API_KEY) {
                 throw new Error('Google Cloud credentials not configured');
+            }
+        },
+        grok: () => {
+            if (!process.env.GROK_API_KEY) {
+                throw new Error('Grok API key not configured');
             }
         }
     };

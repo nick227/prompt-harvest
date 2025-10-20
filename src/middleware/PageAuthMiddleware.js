@@ -28,6 +28,7 @@ export const requireAdminPage = async (req, res, next) => {
                 }
 
                 const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
                 userId = decoded.userId;
                 console.log('🔐 PAGE-AUTH: Using JWT token, userId:', userId);
             } catch (jwtError) {
@@ -45,7 +46,7 @@ export const requireAdminPage = async (req, res, next) => {
             path: req.path,
             hasJWT: !!token,
             hasSession: !!req.session?.userId,
-            userId: userId
+            userId
         });
 
         if (!userId) {
@@ -140,6 +141,7 @@ export const requireAdminPage = async (req, res, next) => {
 
     } catch (error) {
         console.error('🔐 PAGE-AUTH: Authentication error:', error);
+
         return res.status(500).send(`
             <!DOCTYPE html>
             <html>

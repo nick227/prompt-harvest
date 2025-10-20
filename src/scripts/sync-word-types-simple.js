@@ -18,9 +18,9 @@ const prisma = new PrismaClient({
 
 // Sample word types data (first 10 records for testing)
 const sampleData = [
-    { word: "event space", types: ["Music Festival", "Wedding Hall", "Conference Center"] },
-    { word: "movie lights", types: ["Floodlights", "Spotlights", "Strobe lights"] },
-    { word: "detailed examples", types: ["Photos", "Screenshots", "Examples"] }
+    { word: 'event space', types: ['Music Festival', 'Wedding Hall', 'Conference Center'] },
+    { word: 'movie lights', types: ['Floodlights', 'Spotlights', 'Strobe lights'] },
+    { word: 'detailed examples', types: ['Photos', 'Screenshots', 'Examples'] }
 ];
 
 async function syncWordTypes() {
@@ -33,6 +33,7 @@ async function syncWordTypes() {
 
         console.log('📊 Checking word_types table...');
         const count = await prisma.word_types.count();
+
         console.log(`📊 Current word_types count: ${count}`);
 
         if (count === 0) {
@@ -48,6 +49,7 @@ async function syncWordTypes() {
 
         // Verify
         const finalCount = await prisma.word_types.count();
+
         console.log(`✅ Final word_types count: ${finalCount}`);
 
     } catch (error) {
@@ -63,7 +65,7 @@ syncWordTypes()
         console.log('✨ Sync completed successfully!');
         process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
         console.error('💥 Sync failed:', error);
         process.exit(1);
     });

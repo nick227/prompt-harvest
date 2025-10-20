@@ -40,7 +40,7 @@
  */
 
 /**
- * @typedef {'openai'|'dezgo'|'google'} ProviderType
+ * @typedef {'openai'|'dezgo'|'google'|'grok'} ProviderType
  */
 
 /**
@@ -98,8 +98,10 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
  * @returns {ImageResultSuccess} Success result
  */
 export const createSuccessResult = (imageBase64, meta = {}) => ({
-    ok: true,
-    imageBase64,
+    success: true,
+    ok: true,  // Keep for backward compatibility
+    data: imageBase64,
+    imageBase64,  // Keep for backward compatibility
     meta: {
         requestId: meta.requestId || generateId(),
         timestamp: Date.now(),
@@ -115,9 +117,12 @@ export const createSuccessResult = (imageBase64, meta = {}) => ({
  * @returns {ImageResultError} Error result
  */
 export const createErrorResult = (code, message, options = {}) => ({
-    ok: false,
-    code,
-    message,
+    success: false,
+    ok: false,  // Keep for backward compatibility
+    error: message,
+    errorCode: code,
+    code,  // Keep for backward compatibility
+    message,  // Keep for backward compatibility
     details: options.details,
     retryable: options.retryable || false,
     meta: {

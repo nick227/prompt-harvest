@@ -7,10 +7,6 @@
 import modelInterface from './ModelInterface.js';
 
 class ModelConfigurationService {
-    constructor() {
-        // No need for database client or cache - ModelInterface handles everything
-    }
-
     /**
      * Get all active models
      * @returns {Promise<Array>} Array of model configurations

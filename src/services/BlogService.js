@@ -20,6 +20,7 @@ export class BlogService {
         }
 
         const { title, content, excerpt, thumbnail, tags, isPublished, isFeatured } = postData;
+
         console.log('🔍 BLOG-SERVICE: Extracted fields:', { title, content, excerpt, thumbnail, tags, isPublished, isFeatured });
 
         if (!title || !content) {
@@ -277,20 +278,21 @@ export class BlogService {
         const { title, content, excerpt, tags, isPublished, isFeatured } = updateData;
 
         const updateFields = {};
+
         if (title !== undefined) {
             updateFields.title = title;
             updateFields.slug = this.generateSlug(title);
         }
-        if (content !== undefined) updateFields.content = content;
-        if (excerpt !== undefined) updateFields.excerpt = excerpt;
-        if (tags !== undefined) updateFields.tags = tags ? JSON.stringify(tags) : null;
+        if (content !== undefined) { updateFields.content = content; }
+        if (excerpt !== undefined) { updateFields.excerpt = excerpt; }
+        if (tags !== undefined) { updateFields.tags = tags ? JSON.stringify(tags) : null; }
         if (isPublished !== undefined) {
             updateFields.isPublished = isPublished;
             if (isPublished && !existingPost.publishedAt) {
                 updateFields.publishedAt = new Date();
             }
         }
-        if (isFeatured !== undefined) updateFields.isFeatured = isFeatured;
+        if (isFeatured !== undefined) { updateFields.isFeatured = isFeatured; }
 
         const post = await this.prisma.BlogPost.update({
             where: { id: postId },
@@ -336,7 +338,7 @@ export class BlogService {
     }
 
     async isAdmin(userId) {
-        if (!userId) return false;
+        if (!userId) { return false; }
 
         const user = await this.prisma.user.findUnique({
             where: { id: userId },

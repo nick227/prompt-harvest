@@ -44,16 +44,13 @@ export class WebhookEventProcessor {
             }
 
             // Update payment and add credits in transaction
-            const result = await prisma.$transaction(async tx =>
-                // Update payment status
-                await tx.stripePayment.update({
-                    where: { stripeSessionId: sessionId },
-                    data: {
-                        status: 'completed',
-                        stripePaymentIntentId: session.payment_intent || null
-                    }
-                })
-            , { timeout: 15000 });
+            const result = await prisma.$transaction(async tx => await tx.stripePayment.update({
+                where: { stripeSessionId: sessionId },
+                data: {
+                    status: 'completed',
+                    stripePaymentIntentId: session.payment_intent || null
+                }
+            }), { timeout: 15000 });
 
             // Add credits (outside transaction for better error handling)
             await SimplifiedCreditService.addCredits(
@@ -177,16 +174,13 @@ export class WebhookEventProcessor {
             }
 
             // Update payment and add credits in transaction
-            const result = await prisma.$transaction(async tx =>
-                // Update payment status
-                await tx.stripePayment.update({
-                    where: { stripeSessionId: sessionId },
-                    data: {
-                        status: 'completed',
-                        stripePaymentIntentId: session.payment_intent || null
-                    }
-                })
-            , { timeout: 15000 });
+            const result = await prisma.$transaction(async tx => await tx.stripePayment.update({
+                where: { stripeSessionId: sessionId },
+                data: {
+                    status: 'completed',
+                    stripePaymentIntentId: session.payment_intent || null
+                }
+            }), { timeout: 15000 });
 
             // Add credits (outside transaction for better error handling)
             await SimplifiedCreditService.addCredits(

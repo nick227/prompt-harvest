@@ -13,16 +13,16 @@ const prisma = new PrismaClient();
 
 // Sample word types data for testing (first 10 records)
 const sampleWordTypes = [
-    { word: "movie lights", types: ["Floodlights","Spotlights","Strobe lights","Gobo lights","Dimmable lights","LED lights","Par lights","Moving lights","Black lights","UV lights"] },
-    { word: "event space", types: ["Music Festival","Wedding Hall","Conference Center","Art Gallery","Sports Stadium","Hotel Ballroom","Library Meeting Room","Restaurant Private Room","Corporate Office","Outdoor Park"] },
-    { word: "detailed examples", types: ["Photos","Screenshots","Examples","Samples","Demonstrations","Illustrations","Cases","Instances","References","Models"] },
-    { word: "biblical events", types: ["Creation of the World","Adam and Eve in the Garden of Eden","Cain and Abel's offerings","Noah's Ark and the flood","Tower of Babel","God's Covenant with Abraham"] },
-    { word: "description modern desk", types: ["This modern desk features a clean, sleek design","Made of durable materials","Contemporary style furniture","Minimalist design approach"] },
-    { word: "skirts", types: ["A-line skirt","Accordion skirt","Asymmetrical skirt","Ballerina skirt","Bell skirt","Box pleat skirt","Circle skirt","Dirndl skirt"] },
-    { word: "cinestill 800tungsten", types: ["Photos taken under neon lights","Night cityscape shots","Low light forest photography","Sunset photo shoots","Candle-lit dinner photographs"] },
-    { word: "photography styles", types: ["Portrait photography","Landscape photography","Street photography","Macro photography","Architectural photography","Fashion photography"] },
-    { word: "lighting setups", types: ["Natural lighting","Studio lighting","Flash photography","Continuous lighting","LED panels","Softbox lighting"] },
-    { word: "color palettes", types: ["Warm tones","Cool tones","Monochromatic","Complementary colors","Analogous colors","Triadic colors"] }
+    { word: 'movie lights', types: ['Floodlights', 'Spotlights', 'Strobe lights', 'Gobo lights', 'Dimmable lights', 'LED lights', 'Par lights', 'Moving lights', 'Black lights', 'UV lights'] },
+    { word: 'event space', types: ['Music Festival', 'Wedding Hall', 'Conference Center', 'Art Gallery', 'Sports Stadium', 'Hotel Ballroom', 'Library Meeting Room', 'Restaurant Private Room', 'Corporate Office', 'Outdoor Park'] },
+    { word: 'detailed examples', types: ['Photos', 'Screenshots', 'Examples', 'Samples', 'Demonstrations', 'Illustrations', 'Cases', 'Instances', 'References', 'Models'] },
+    { word: 'biblical events', types: ['Creation of the World', 'Adam and Eve in the Garden of Eden', "Cain and Abel's offerings", "Noah's Ark and the flood", 'Tower of Babel', "God's Covenant with Abraham"] },
+    { word: 'description modern desk', types: ['This modern desk features a clean, sleek design', 'Made of durable materials', 'Contemporary style furniture', 'Minimalist design approach'] },
+    { word: 'skirts', types: ['A-line skirt', 'Accordion skirt', 'Asymmetrical skirt', 'Ballerina skirt', 'Bell skirt', 'Box pleat skirt', 'Circle skirt', 'Dirndl skirt'] },
+    { word: 'cinestill 800tungsten', types: ['Photos taken under neon lights', 'Night cityscape shots', 'Low light forest photography', 'Sunset photo shoots', 'Candle-lit dinner photographs'] },
+    { word: 'photography styles', types: ['Portrait photography', 'Landscape photography', 'Street photography', 'Macro photography', 'Architectural photography', 'Fashion photography'] },
+    { word: 'lighting setups', types: ['Natural lighting', 'Studio lighting', 'Flash photography', 'Continuous lighting', 'LED panels', 'Softbox lighting'] },
+    { word: 'color palettes', types: ['Warm tones', 'Cool tones', 'Monochromatic', 'Complementary colors', 'Analogous colors', 'Triadic colors'] }
 ];
 
 async function syncWordTypesToRailway() {
@@ -36,6 +36,7 @@ async function syncWordTypesToRailway() {
 
         // Check current state
         const currentCount = await prisma.word_types.count();
+
         console.log(`📊 Current word_types count: ${currentCount}`);
 
         if (currentCount > 0) {
@@ -53,6 +54,7 @@ async function syncWordTypesToRailway() {
 
         // Verify insertion
         const newCount = await prisma.word_types.count();
+
         console.log(`✅ Inserted ${newCount} word_types records`);
 
         // Show sample records
@@ -67,6 +69,7 @@ async function syncWordTypesToRailway() {
 
         samples.forEach((record, index) => {
             const typesPreview = JSON.stringify(record.types).substring(0, 80);
+
             console.log(`${index + 1}. "${record.word}" -> ${typesPreview}...`);
         });
 
@@ -86,7 +89,7 @@ syncWordTypesToRailway()
         console.log('🎉 All done! Railway database now has word_types data.');
         process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
         console.error('💥 Sync failed:', error);
         process.exit(1);
     });

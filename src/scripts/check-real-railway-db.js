@@ -14,7 +14,7 @@ const prisma = new PrismaClient();
 async function checkRealRailwayDB() {
     console.log('🔍 Checking REAL Railway word_types database...');
     console.log('Using DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
-    console.log('URL preview:', process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 50) + '...' : 'None');
+    console.log('URL preview:', process.env.DATABASE_URL ? `${process.env.DATABASE_URL.substring(0, 50)}...` : 'None');
 
     try {
         console.log('\n📊 Testing database connection...');
@@ -23,6 +23,7 @@ async function checkRealRailwayDB() {
 
         console.log('\n📊 Checking word_types table...');
         const count = await prisma.word_types.count();
+
         console.log(`📊 Total word_types records: ${count}`);
 
         if (count === 0) {
@@ -34,6 +35,7 @@ async function checkRealRailwayDB() {
                 const tables = await prisma.$queryRaw`
                     SHOW TABLES LIKE 'word_types'
                 `;
+
                 console.log('Table exists check:', tables);
             } catch (error) {
                 console.log('Error checking table:', error.message);
@@ -51,16 +53,19 @@ async function checkRealRailwayDB() {
 
             samples.forEach((record, index) => {
                 const typesPreview = JSON.stringify(record.types).substring(0, 100);
+
                 console.log(`${index + 1}. "${record.word}" -> ${typesPreview}...`);
             });
 
             // Check for specific test words
             console.log('\n🔍 Checking specific words:');
             const testWords = ['movie lights', 'event space'];
+
             for (const word of testWords) {
                 const record = await prisma.word_types.findUnique({
                     where: { word }
                 });
+
                 console.log(`${record ? '✅' : '❌'} "${word}": ${record ? 'Found' : 'Not found'}`);
             }
         }
@@ -78,7 +83,7 @@ checkRealRailwayDB()
         console.log('\n✨ Check completed!');
         process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
         console.error('💥 Check failed:', error);
         process.exit(1);
     });

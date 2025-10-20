@@ -85,10 +85,11 @@ export class AdminApiService {
         const { startDate, endDate, limit = 100 } = filters;
 
         const where = { userId: user.id };
+
         if (startDate || endDate) {
             where.createdAt = {};
-            if (startDate) where.createdAt.gte = new Date(startDate);
-            if (endDate) where.createdAt.lte = new Date(endDate);
+            if (startDate) { where.createdAt.gte = new Date(startDate); }
+            if (endDate) { where.createdAt.lte = new Date(endDate); }
         }
 
         const [requests, totalCount] = await Promise.all([

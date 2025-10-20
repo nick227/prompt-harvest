@@ -1,4 +1,4 @@
-import { createStripeClient } from '../config/stripeConfig.js';
+import { createStripeClient, getWebhookSecret } from '../config/stripeConfig.js';
 import PaymentPackageService from './PaymentPackageService.js';
 import SimplifiedWebhookService from './webhook/SimplifiedWebhookService.js';
 import SimplifiedCreditService from './credit/SimplifiedCreditService.js';
@@ -17,6 +17,7 @@ class StripeService {
         // Services are injected as dependencies
         this.packageService = PaymentPackageService;
         this.webhookHandler = SimplifiedWebhookService;
+        this.stripe = stripe;
     }
 
     /**
@@ -283,6 +284,13 @@ class StripeService {
             console.error('💳 STRIPE-SERVICE: Error getting user payments:', error);
             throw error;
         }
+    }
+
+    /**
+     * Get webhook secret for signature verification
+     */
+    getWebhookSecret() {
+        return getWebhookSecret();
     }
 
     /**

@@ -17,6 +17,7 @@ export const getAIPromptService = () => {
     if (!aiPromptServiceInstance) {
         aiPromptServiceInstance = new AIPromptService();
     }
+
     return aiPromptServiceInstance;
 };
 

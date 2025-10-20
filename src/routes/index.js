@@ -20,7 +20,8 @@ import { setupAdminApiRoutes } from './adminApiRoutes.js';
 import creditsRouter from './credits.js';
 import packagesRouter from './packages.js';
 import providersRouter from './providers.js';
-import stripeModule from '../stripe.js';
+import stripeCheckoutRoutes from './stripeCheckoutRoutes.js';
+import stripeWebhookRoutes from './stripeWebhookRoutes.js';
 import adminRouter from './admin.js';
 import messageRouter from './messageRoutes.js';
 import searchRouter from './search.js';
@@ -139,7 +140,8 @@ export const setupRoutes = async app => {
     app.use('/api/search', searchRouter); // Image search routes
 
     // Note: /webhooks routes are mounted in server.js BEFORE express.json() middleware
-    stripeModule.init(app, express); // Stripe payment routes (includes legacy webhook at /webhook)
+    app.use('/', stripeCheckoutRoutes); // Stripe checkout routes
+    app.use('/', stripeWebhookRoutes); // Stripe webhook routes
 
     // Apply JWT authentication middleware to protected routes only
     // Note: Auth routes (/api/auth/*) are handled separately and don't need this middleware

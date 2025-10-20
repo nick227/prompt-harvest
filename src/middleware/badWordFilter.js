@@ -18,9 +18,10 @@ const BAD_WORDS = {
         // Explicit sexual content
         'porn', 'pornography', 'xxx', 'sex', 'sexual', 'nude', 'naked', 'nudity',
         'blowjob', 'cunt', 'nsfw', 'fetish', 'bdsm', 'masturbate', 'nigger',
-        'penis', 'vagina', 'breast', 'sex', 'ass', 'penis', 'cock', 'dick',
+        'penis', 'vagina', 'breast', 'breasts', 'sex', 'ass', 'penis', 'cock', 'dick',
         'pussy', 'tits', 'titties', 'fuck', 'vagina', 'fucked', 'shit',
-        'testicles', 'piss', 'puke', 'anal', 'panties', 'masturbation'
+        'testicles', 'piss', 'puke', 'anal', 'panties', 'masturbation',
+        'topless', 'exposed', 'nipples'
     ],
 
     high: [
@@ -199,7 +200,7 @@ const logViolation = async violationData => {
             }
         });
 
-        console.log(`🚨 Bad word violation logged: ${violationData.severity} severity for user ${violationData.userId || 'anonymous'}`);
+        // Log violation to database
     } catch (error) {
         console.error('❌ Failed to log violation:', error);
         // Don't throw error - we don't want to break the request flow
@@ -250,8 +251,8 @@ const processViolations = (contentToCheck, options) => {
 
         if (result.hasViolations) {
             allViolations.push(...result.violations);
-            // Only block critical violations, silently log others
-            const shouldBlock = result.severity === 'critical' && blockCritical;
+            // Block critical and high severity violations for image generation
+            const shouldBlock = (result.severity === 'critical' || result.severity === 'high') && blockCritical;
 
             if (shouldBlock) { hasBlockingViolations = true; }
             maxSeverity = updateMaxSeverity(result.severity, maxSeverity);
@@ -264,11 +265,22 @@ const processViolations = (contentToCheck, options) => {
 /**
  * Handle violation response
  */
-const handleViolationResponse = async (req, violationData, allViolations, maxSeverity, hasBlockingViolations, sanitize, fields, contentToCheck, next) => {
+const handleViolationResponse = async (
+    req,
+    violationData,
+    allViolations,
+    maxSeverity,
+    hasBlockingViolations,
+    sanitize,
+    fields,
+    contentToCheck,
+    next
+) => {
     await logViolation(violationData);
 
     if (hasBlockingViolations && !sanitize) {
-        const errorMessage = `Content policy violation detected. Severity: ${maxSeverity}. Detected words: ${allViolations.map(v => v.word).join(', ')}`;
+        const errorMessage = `Content policy violation detected. Severity: ${maxSeverity}. ` +
+            `Detected words: ${allViolations.map(v => v.word).join(', ')}`;
 
         console.error(`🚨 BLOCKED: ${errorMessage}`, {
             userId: req.user?.id || 'anonymous',
@@ -276,6 +288,7 @@ const handleViolationResponse = async (req, violationData, allViolations, maxSev
             violations: allViolations
         });
 
+        // Debug: Blocking request due to bad words
         return next(new ValidationError(errorMessage, {
             code: 'CONTENT_POLICY_VIOLATION',
             severity: maxSeverity,
@@ -306,11 +319,15 @@ export const badWordFilter = (options = {}) => {
         try {
             const contentToCheck = extractContent(req, fields);
 
+            // Debug: Check content for bad words
+
             if (contentToCheck.length === 0) { return next(); }
 
             const { hasBlockingViolations, allViolations, maxSeverity } = processViolations(contentToCheck, options);
 
             if (allViolations.length > 0) {
+                // Debug: Log violations found
+
                 // Try to get user info from various sources
                 const getUserInfo = async () => {
                     // First try req.user (if auth middleware has run)
@@ -326,7 +343,7 @@ export const badWordFilter = (options = {}) => {
                     const authHeader = req.headers['authorization'];
 
                     if (authHeader && authHeader.startsWith('Bearer ')) {
-                        const token = authHeader.split(' ')[1];
+                        const [, token] = authHeader.split(' ');
 
                         try {
                             const jwt = await import('jsonwebtoken');
@@ -367,7 +384,17 @@ export const badWordFilter = (options = {}) => {
                     isBlocked: hasBlockingViolations
                 };
 
-                await handleViolationResponse(req, violationData, allViolations, maxSeverity, hasBlockingViolations, sanitize, fields, contentToCheck, next);
+                await handleViolationResponse(
+                    req,
+                    violationData,
+                    allViolations,
+                    maxSeverity,
+                    hasBlockingViolations,
+                    sanitize,
+                    fields,
+                    contentToCheck,
+                    next
+                );
             }
 
             next();

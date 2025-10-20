@@ -41,11 +41,11 @@ export const webhookRateLimit = rateLimit({
     message: { error: 'Webhook rate limit exceeded' },
     standardHeaders: true,
     legacyHeaders: false,
-    skip: req => {
+    skip: req =>
         // Skip rate limiting if signature verified (Stripe)
         // Actual verification happens in route handler
-        return false; // Apply limit to all initially
-    }
+        false // Apply limit to all initially
+
 });
 
 /**

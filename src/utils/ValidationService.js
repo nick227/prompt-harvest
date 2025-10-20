@@ -330,7 +330,7 @@ export const validateBatch = (data, rules) => {
  * @param {Object} data - Blog post data to validate
  * @throws {ValidationError} If validation fails
  */
-export const validateBlogPostData = (data) => {
+export const validateBlogPostData = data => {
     const errors = [];
 
     // Title validation

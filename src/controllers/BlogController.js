@@ -22,6 +22,7 @@ export class BlogController {
 
             if (!userId) {
                 console.log('🔍 BLOG-CONTROLLER: No user ID found');
+
                 return res.status(401).json(createErrorResponse('Authentication required'));
             }
 

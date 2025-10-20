@@ -126,7 +126,7 @@ const {
  * - Session-based form submissions are protected (apply CSRF)
  */
 const shouldProtectRoute = req => {
-    const path = req.path;
+    const { path } = req;
 
     // 1. Exclude webhooks (they have signature verification)
     if (path.startsWith('/webhooks')) {

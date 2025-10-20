@@ -139,6 +139,7 @@ class UsersController {
 
             // Create a map of userId -> image count
             const imageCountMap = {};
+
             imageCounts.forEach(count => {
                 imageCountMap[count.userId] = count._count.id;
             });

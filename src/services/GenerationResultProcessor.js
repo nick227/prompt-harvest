@@ -1,6 +1,7 @@
 import { imageStorageService } from './ImageStorageService.js';
 import DatabaseService from './generate/DatabaseService.js';
 import { taggingService } from './TaggingService.js';
+import ImageBufferManager from '../utils/ImageBufferManager.js';
 
 export class GenerationResultProcessor {
     /**
@@ -25,6 +26,11 @@ export class GenerationResultProcessor {
             contextKeys: Object.keys(context),
             fullContext: context
         });
+
+        // MEMORY OPTIMIZATION: Convert base64 to buffer immediately
+        if (result.imageBase64) {
+            ImageBufferManager.processGenerationResult(result);
+        }
 
         // Step 1: Save image to storage
         const imageUrl = await this.saveImageToStorage(result);
@@ -69,6 +75,7 @@ export class GenerationResultProcessor {
 
         // Step 4: Fetch username for the userId (same logic as in getImages method)
         let username = 'Anonymous';
+
         if (userId) {
             try {
                 const prisma = DatabaseService.getPrismaClient();
@@ -76,6 +83,7 @@ export class GenerationResultProcessor {
                     where: { id: userId },
                     select: { username: true, email: true }
                 });
+
                 username = user?.username || (user?.email ? user.email : 'Unknown User');
 
             } catch (error) {
@@ -149,11 +157,38 @@ export class GenerationResultProcessor {
     /**
      * Save image to storage
      */
+    /**
+     * Save image to storage with compression
+     * PERFORMANCE: Uses buffer directly (no base64), compresses images
+     */
     async saveImageToStorage(result) {
-        const buffer = Buffer.from(result.data, 'base64');
-        const filename = imageStorageService.generateFilename(buffer, result.provider);
+        // Get buffer (already converted from base64)
+        let { imageBuffer } = result;
 
-        return await imageStorageService.saveImage(buffer, filename);
+        // Fallback to base64 if buffer not available
+        if (!imageBuffer && result.data) {
+            imageBuffer = Buffer.from(result.data, 'base64');
+            console.log('⚠️  Using fallback base64 conversion (should use buffer)');
+        }
+
+        if (!imageBuffer) {
+            throw new Error('No image data found in result');
+        }
+
+        // OPTIMIZATION: Compress image before saving
+        const compressed = await ImageBufferManager.compressImage(imageBuffer, {
+            quality: 85,
+            maxWidth: 2048,
+            maxHeight: 2048,
+            format: 'webp' // WebP for better compression
+        });
+
+        const filename = imageStorageService.generateFilename(compressed, result.provider);
+
+        // Skip Sharp processing since we already compressed
+        return await imageStorageService.saveImage(compressed, filename, {
+            skipCompression: true
+        });
     }
 
     /**

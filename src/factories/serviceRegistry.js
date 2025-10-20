@@ -20,20 +20,16 @@ export function registerServices(factory) {
     // ========== Core Infrastructure ==========
 
     // Prisma Client (singleton)
-    factory.register('prismaClient', () => {
-        return databaseClient.getClient();
-    }, { singleton: true });
+    factory.register('prismaClient', () => databaseClient.getClient(), { singleton: true });
 
     // Circuit Breaker Manager (singleton)
-    factory.register('circuitBreakerManager', () => {
-        return circuitBreakerManager;
-    }, { singleton: true });
+    factory.register('circuitBreakerManager', () => circuitBreakerManager, { singleton: true });
 
     // ========== Repositories ==========
 
     // Image Repository (singleton)
     // Note: This should be imported and registered when available
-    factory.register('imageRepository', (f) => {
+    factory.register('imageRepository', f => {
         // For now, return a placeholder that will be replaced with actual repository
         // In production, import and instantiate the actual ImageRepository
         throw new Error('imageRepository must be registered with actual implementation');
@@ -42,39 +38,29 @@ export function registerServices(factory) {
     // ========== Services ==========
 
     // Transaction Service (singleton)
-    factory.register('transactionService', (f) => {
-        return new TransactionService();
-    }, { singleton: true });
+    factory.register('transactionService', f => new TransactionService(), { singleton: true });
 
     // Credit Management Service (singleton)
-    factory.register('creditService', (f) => {
-        return new CreditManagementService();
-    }, { singleton: true });
+    factory.register('creditService', f => new CreditManagementService(), { singleton: true });
 
     // Image Management Service (singleton)
-    factory.register('imageManagementService', (f) => {
-        return new ImageManagementService();
-    }, { singleton: true });
+    factory.register('imageManagementService', f => new ImageManagementService(), { singleton: true });
 
     // AI Enhancement Service (singleton)
-    factory.register('aiService', () => {
-        return new AIEnhancementService();
-    }, { singleton: true });
+    factory.register('aiService', () => new AIEnhancementService(), { singleton: true });
 
     // ========== Main Application Services ==========
 
     // Enhanced Image Service (non-singleton by default, but can be made singleton)
-    factory.register('enhancedImageService', (f) => {
-        return new EnhancedImageService({
-            imageRepository: f.get('imageRepository'),
-            aiService: f.get('aiService'),
-            prismaClient: f.get('prismaClient'),
-            transactionService: f.get('transactionService'),
-            creditService: f.get('creditService'),
-            imageManagementService: f.get('imageManagementService'),
-            circuitBreakerManager: f.get('circuitBreakerManager')
-        });
-    }, { singleton: true });
+    factory.register('enhancedImageService', f => new EnhancedImageService({
+        imageRepository: f.get('imageRepository'),
+        aiService: f.get('aiService'),
+        prismaClient: f.get('prismaClient'),
+        transactionService: f.get('transactionService'),
+        creditService: f.get('creditService'),
+        imageManagementService: f.get('imageManagementService'),
+        circuitBreakerManager: f.get('circuitBreakerManager')
+    }), { singleton: true });
 
     return factory;
 }
@@ -85,6 +71,7 @@ export function registerServices(factory) {
  */
 export function createServiceFactory() {
     const factory = new ServiceFactory();
+
     return registerServices(factory);
 }
 
@@ -102,6 +89,7 @@ export function getServiceFactory() {
     if (!factoryInstance) {
         factoryInstance = createServiceFactory();
     }
+
     return factoryInstance;
 }
 

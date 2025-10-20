@@ -22,6 +22,7 @@ export class QueueShutdown {
     async performGracefulShutdown(timeout) {
         this._prepareShutdown();
         const shutdownMetrics = this._collectShutdownMetrics();
+
         this._abortActiveTasks();
         this._abortQueuedTasks();
 

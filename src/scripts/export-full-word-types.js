@@ -42,6 +42,7 @@ export default fullWordTypesData;
 
         // Ensure directory exists
         const dataDir = path.dirname(exportFile);
+
         if (!fs.existsSync(dataDir)) {
             fs.mkdirSync(dataDir, { recursive: true });
         }
@@ -56,6 +57,7 @@ export default fullWordTypesData;
         allWordTypes.slice(0, 3).forEach((record, index) => {
             const typesCount = Array.isArray(record.types) ? record.types.length : 'unknown';
             const typesPreview = JSON.stringify(record.types).substring(0, 60);
+
             console.log(`${index + 1}. "${record.word}" (${typesCount} types) -> ${typesPreview}...`);
         });
 
@@ -77,7 +79,7 @@ exportFullWordTypes()
         console.log('\n✨ Full word_types export completed!');
         process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
         console.error('💥 Export failed:', error);
         process.exit(1);
     });

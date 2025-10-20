@@ -92,7 +92,6 @@ async function testCloudflareR2() {
         const finalHealth = await cloudflareR2Service.getHealth();
 
 
-
     } catch (error) {
         console.error('\n❌ Test failed:', error.message);
         console.error('Stack trace:', error.stack);

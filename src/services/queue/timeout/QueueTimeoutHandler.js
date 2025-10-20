@@ -266,19 +266,17 @@ export class QueueTimeoutHandler {
         }
 
         return new Promise((resolve, reject) => {
-            let t;
+            const onAbort = () => {
+                cleanup();
+                reject(Object.assign(new Error('Sleep aborted'), { name: 'AbortError' }));
+            };
 
             const cleanup = () => {
                 clearTimeout(t);
                 signal.removeEventListener('abort', onAbort);
             };
 
-            const onAbort = () => {
-                cleanup();
-                reject(Object.assign(new Error('Sleep aborted'), { name: 'AbortError' }));
-            };
-
-            t = setTimeout(() => {
+            const t = setTimeout(() => {
                 cleanup();
                 resolve();
             }, ms);

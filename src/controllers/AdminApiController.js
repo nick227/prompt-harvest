@@ -43,7 +43,9 @@ export class AdminApiController {
             if (result.error || result.success === false) {
                 const duration = Date.now() - startTime;
                 const errorResponse = formatErrorResponse(result, requestId, duration);
+
                 logRequestError(requestId, 'Image Generation', duration, result);
+
                 return res.status(errorResponse.statusCode || 500).json(errorResponse);
             }
 
@@ -60,6 +62,7 @@ export class AdminApiController {
         } catch (error) {
             const duration = Date.now() - startTime;
             const errorResponse = formatErrorResponse(error, requestId, duration);
+
             logRequestError(requestId, 'Image Generation', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
@@ -99,6 +102,7 @@ export class AdminApiController {
         } catch (error) {
             const duration = Date.now() - startTime;
             const errorResponse = formatErrorResponse(error, requestId, duration);
+
             logRequestError(requestId, 'Blog Creation', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
@@ -135,6 +139,7 @@ export class AdminApiController {
         } catch (error) {
             const duration = Date.now() - startTime;
             const errorResponse = formatErrorResponse(error, requestId, duration);
+
             logRequestError(requestId, 'Usage Stats', duration, error);
             res.status(errorResponse.statusCode || 500).json(errorResponse);
         }

@@ -22,6 +22,7 @@ export class ServiceFactory {
         }
 
         this.services.set(name, { creator, singleton });
+
         return this;
     }
 
@@ -33,6 +34,7 @@ export class ServiceFactory {
     get(name) {
         // Check if service is registered
         const service = this.services.get(name);
+
         if (!service) {
             throw new Error(`Service "${name}" is not registered. Available services: ${[...this.services.keys()].join(', ')}`);
         }

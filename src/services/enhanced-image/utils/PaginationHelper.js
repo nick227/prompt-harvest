@@ -36,4 +36,4 @@ export const convertPageToOffset = page => Math.max(0, page - 1);
  * @param {Array|string|null} tags - Tags input
  * @returns {Array} Normalized tags array
  */
-export const normalizeTags = tags => Array.isArray(tags) ? tags : [];
+export const normalizeTags = tags => (Array.isArray(tags) ? tags : []);

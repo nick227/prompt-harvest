@@ -24,6 +24,7 @@ export class QueueRateLimiterCleanup {
 
         // Check if running via analytics probe (fallback)
         const isCleanupRunning = this._analytics?.isRateLimiterCleanupRunning?.() ?? false;
+
         if (isCleanupRunning) {
             return false; // Already running
         }
@@ -74,6 +75,7 @@ export class QueueRateLimiterCleanup {
                 action: 'rate_limiter_cleanup_restart_noop',
                 timestamp: this._epochNow()
             });
+
             return false;
         }
 

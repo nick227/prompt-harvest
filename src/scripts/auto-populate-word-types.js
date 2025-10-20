@@ -16,6 +16,7 @@ export async function autoPopulateWordTypes() {
 
         if (!isRailway) {
             console.log('ℹ️ Not on Railway, skipping word_types auto-population');
+
             return;
         }
 
@@ -23,6 +24,7 @@ export async function autoPopulateWordTypes() {
 
         // Check current count
         const currentCount = await prisma.word_types.count();
+
         console.log(`📊 Current word_types count: ${currentCount}`);
 
         if (currentCount === 0) {
@@ -46,10 +48,12 @@ export async function autoPopulateWordTypes() {
                 });
 
                 const processed = Math.min(i + batchSize, totalRecords);
+
                 console.log(`📦 Processed ${processed}/${totalRecords} records`);
             }
 
             const newCount = await prisma.word_types.count();
+
             console.log(`✅ Populated Railway word_types with ${newCount} records`);
         } else {
             console.log(`✅ Railway word_types already has ${currentCount} records`);

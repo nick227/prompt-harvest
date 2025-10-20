@@ -3,6 +3,12 @@ export default {
     // Test environment - use jsdom for browser APIs
     testEnvironment: 'jsdom',
 
+    // JSDOM environment options
+    testEnvironmentOptions: {
+        resources: 'usable',
+        pretendToBeVisual: true
+    },
+
     // Root directory for Jest
     rootDir: '.',
 
@@ -39,8 +45,7 @@ export default {
         '^@/(.*)$': '<rootDir>/public/js/$1',
         '^@components/(.*)$': '<rootDir>/public/js/components/$1',
         '^@modules/(.*)$': '<rootDir>/public/js/modules/$1',
-        '^@core/(.*)$': '<rootDir>/public/js/core/$1',
-        '^canvas$': '<rootDir>/tests/__mocks__/canvas.js'
+        '^@core/(.*)$': '<rootDir>/public/js/core/$1'
     },
 
     // Coverage configuration

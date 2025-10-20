@@ -150,6 +150,7 @@ export const requireAuth = (req, res, next) => {
 
     if (!req.user) {
         console.log('🔐 REQUIRE-AUTH: No user found, throwing AuthenticationError');
+
         return next(new AuthenticationError('Authentication required'));
     }
 

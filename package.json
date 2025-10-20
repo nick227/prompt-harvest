@@ -181,13 +181,5 @@
     "supertest": "^7.1.4"
   },
   "author": "nrios",
-  "license": "ISC",
-  "overrides": {
-    "jsdom": {
-      "canvas": "^2.11.2"
-    }
-  },
-  "optionalDependencies": {
-    "canvas": "^2.11.2"
-  }
+  "license": "ISC"
 }

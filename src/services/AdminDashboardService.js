@@ -77,27 +77,24 @@ export class AdminDashboardService {
 
     /**
      * Get recent activity with user details
+     * OPTIMIZED: Uses Prisma include for efficient JOIN (1 query instead of 2+)
      */
     async getRecentActivityWithUsers(limit = 5) {
         const recentActivity = await this.prisma.image.findMany({
             take: limit,
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        username: true
+                    }
+                }
+            }
         });
 
-        // Get user data for recent images
-        const userIds = [...new Set(recentActivity.map(img => img.userId))];
-        const users = await this.prisma.user.findMany({
-            where: { id: { in: userIds } },
-            select: { id: true, email: true, username: true }
-        });
-
-        // Map users to images
-        const userMap = new Map(users.map(user => [user.id, user]));
-
-        return recentActivity.map(image => ({
-            ...image,
-            user: userMap.get(image.userId) || { email: 'Unknown', username: 'Unknown' }
-        }));
+        return recentActivity;
     }
 
     /**
@@ -119,7 +116,7 @@ export class AdminDashboardService {
             return null;
         }
 
-        const mostRecentImage = recentActivityWithUsers[0];
+        const [mostRecentImage] = recentActivityWithUsers;
 
         return {
             id: mostRecentImage.id,

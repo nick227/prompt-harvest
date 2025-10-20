@@ -11,7 +11,7 @@ const databaseUrl = process.env.MYSQL_URL || process.env.DATABASE_URL;
 
 console.log('🔍 Checking Railway word_types with correct connection...');
 console.log('Database URL source:', process.env.MYSQL_URL ? 'MYSQL_URL' : 'DATABASE_URL');
-console.log('URL preview:', databaseUrl ? databaseUrl.substring(0, 50) + '...' : 'None');
+console.log('URL preview:', databaseUrl ? `${databaseUrl.substring(0, 50)}...` : 'None');
 
 if (!databaseUrl) {
     console.error('❌ No database URL found in environment variables');
@@ -34,6 +34,7 @@ async function checkWordTypes() {
 
         console.log('\n📊 Checking word_types table...');
         const count = await prisma.word_types.count();
+
         console.log(`📊 Total word_types records: ${count}`);
 
         if (count === 0) {
@@ -45,6 +46,7 @@ async function checkWordTypes() {
                     SELECT COUNT(*) as count FROM information_schema.tables
                     WHERE table_schema = DATABASE() AND table_name = 'word_types'
                 `;
+
                 console.log('Table exists check:', tableExists);
             } catch (error) {
                 console.log('Error checking table:', error.message);
@@ -61,6 +63,7 @@ async function checkWordTypes() {
 
             samples.forEach((record, index) => {
                 const typesPreview = JSON.stringify(record.types).substring(0, 100);
+
                 console.log(`${index + 1}. "${record.word}" -> ${typesPreview}...`);
             });
         }
@@ -78,7 +81,7 @@ checkWordTypes()
         console.log('\n✨ Check completed!');
         process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
         console.error('💥 Check failed:', error);
         process.exit(1);
     });

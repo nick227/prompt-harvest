@@ -12,6 +12,4 @@ export const PRIORITY_MAX = 1000;
  * Get priority bounds for validation (prevents duplication of range values)
  * @returns {{min: number, max: number}} Priority bounds
  */
-export function getPriorityBounds() {
-    return { min: PRIORITY_MIN, max: PRIORITY_MAX };
-}
+export const getPriorityBounds = () => ({ min: PRIORITY_MIN, max: PRIORITY_MAX });

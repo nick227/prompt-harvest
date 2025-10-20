@@ -24,8 +24,9 @@ model User {
   picture         String?  @db.VarChar(500)
 
   // Relations
-  blogPosts       BlogPost[]
-  apiRequests     ApiRequest[]
+  images      Image[]
+  blogPosts   BlogPost[]
+  apiRequests ApiRequest[]
 
   @@map("users")
 }
@@ -52,6 +53,9 @@ model Image {
   deletedAt       DateTime?
   deletedBy       String?   @db.VarChar(25)
 
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
   // Existing indexes
   @@index([userId], map: "userId")
   @@index([isPublic], map: "isPublic")
@@ -63,13 +67,17 @@ model Image {
   @@index([userId, isDeleted], map: "userId_isDeleted")
   @@index([modelId])
   @@index([taggedAt], map: "taggedAt")
-
   // PERFORMANCE: New indexes for admin filtering (nice-to-have improvements)
   @@index([provider], map: "provider")
   @@index([createdAt], map: "createdAt")
   @@index([userId, provider], map: "userId_provider")
   @@index([provider, createdAt], map: "provider_createdAt")
-
+  // CRITICAL PERFORMANCE INDEXES - Feed queries
+  @@index([userId, isHidden, isDeleted, createdAt], map: "user_feed_query")
+  @@index([isPublic, isHidden, isDeleted, createdAt], map: "public_feed_query")
+  @@index([taggedAt, isPublic, isHidden], map: "tagged_public_feed")
+  @@index([provider, model], map: "provider_model_filter")
+  @@index([isPublic, createdAt], map: "public_recent")
   @@map("images")
 }
 
@@ -432,7 +440,7 @@ model BlogPost {
   thumbnail   String?   @db.VarChar(500)
 
   // Relations
-  author      User      @relation(fields: [authorId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
 
   @@index([authorId])
   @@index([isPublished])
@@ -457,7 +465,7 @@ model ApiRequest {
   createdAt    DateTime @default(now())
 
   // Relations
-  user         User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([endpoint])

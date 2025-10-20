@@ -85,7 +85,7 @@ export class QueueAnalytics {
             return 0;
         }
 
-        const first = trends[0];
+        const [first] = trends;
         const last = trends[trends.length - 1];
         const timeDiff = (last.timestamp - first.timestamp) / 60000; // minutes
 
@@ -187,8 +187,7 @@ export class QueueAnalytics {
 
         // Calculate tasks per minute (from last hour of trends)
         const oneMinuteAgo = Date.now() - 60000;
-        const recentTasks = trends.filter(t =>
-            (t.action === 'task_complete' || t.action === 'task_error') &&
+        const recentTasks = trends.filter(t => (t.action === 'task_complete' || t.action === 'task_error') &&
             t.timestamp > oneMinuteAgo
         );
         const tasksPerMinute = recentTasks.length;

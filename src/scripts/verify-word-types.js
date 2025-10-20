@@ -13,6 +13,7 @@ async function verifyWordTypes() {
 
     try {
         const count = await prisma.word_types.count();
+
         console.log(`📊 Total word_types records: ${count}`);
 
         const samples = await prisma.word_types.findMany({
@@ -26,11 +27,13 @@ async function verifyWordTypes() {
         console.log('\n📋 Sample records:');
         samples.forEach((record, index) => {
             const typesPreview = JSON.stringify(record.types).substring(0, 100);
+
             console.log(`${index + 1}. "${record.word}" -> ${typesPreview}...`);
         });
 
         // Check for specific words
         const testWords = ['movie lights', 'event space', 'detailed examples'];
+
         console.log('\n🔍 Checking specific words:');
 
         for (const word of testWords) {
@@ -58,7 +61,7 @@ verifyWordTypes()
         console.log('\n✨ Verification completed!');
         process.exit(0);
     })
-    .catch((error) => {
+    .catch(error => {
         console.error('💥 Verification failed:', error);
         process.exit(1);
     });

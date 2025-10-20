@@ -123,11 +123,30 @@ class EventManager {
 
         if (this.matchManager) {
             if (!this.matchManager.isMatchClick) {
-                await this.matchManager.updateMatches(e.target.value, e.target.selectionStart);
+                // Debounce the updateMatches call to prevent excessive API requests
+                this.debounceUpdateMatches(e.target.value, e.target.selectionStart);
             } else {
                 this.matchManager.resetMatchClickFlag();
             }
         }
+    }
+
+    debounceUpdateMatches(value, cursorPosition) {
+        // Clear existing timeout
+        if (this.updateMatchesTimeout) {
+            clearTimeout(this.updateMatchesTimeout);
+        }
+
+        // Set new timeout with 200ms debounce
+        this.updateMatchesTimeout = setTimeout(async () => {
+            if (this.matchManager && !this.matchManager.destroyed) {
+                try {
+                    await this.matchManager.updateMatches(value, cursorPosition);
+                } catch (error) {
+                    console.error('Debounced updateMatches error:', error);
+                }
+            }
+        }, 200);
     }
 
     handleCompositionStart() {
@@ -137,7 +156,8 @@ class EventManager {
     handleCompositionEnd() {
         this.isComposing = false;
         if (this.textArea && this.matchManager && !this.matchManager.isMatchClick) {
-            this.matchManager.updateMatches(this.textArea.value, this.textArea.selectionStart);
+            // Use debounced version to prevent excessive API calls
+            this.debounceUpdateMatches(this.textArea.value, this.textArea.selectionStart);
         }
     }
 
@@ -191,6 +211,12 @@ class EventManager {
 
     destroy() {
         this.destroyed = true;
+
+        // Clear debounce timeout
+        if (this.updateMatchesTimeout) {
+            clearTimeout(this.updateMatchesTimeout);
+            this.updateMatchesTimeout = null;
+        }
 
         if (this.pasteFrameId !== null) {
             cancelAnimationFrame(this.pasteFrameId);

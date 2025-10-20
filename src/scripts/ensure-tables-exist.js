@@ -103,6 +103,7 @@ export async function ensureTablesExist() {
         // Always regenerate Prisma client to ensure it recognizes the schema
         console.log('🔄 Regenerating Prisma client...');
         const { execSync } = await import('child_process');
+
         try {
             execSync('npx prisma generate', { stdio: 'inherit' });
             console.log('✅ Prisma client regenerated successfully');

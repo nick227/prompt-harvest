@@ -43,8 +43,8 @@ export const formatSuccessResponse = (data, requestId, duration, message = 'Succ
  * @returns {Object} Formatted success response with pagination
  */
 export const formatPaginatedResponse = (items, pagination, requestId, duration) => {
-    const limit = pagination.limit;
-    const page = pagination.page;
+    const { limit } = pagination;
+    const { page } = pagination;
     const total = pagination.total || items.length;
     const count = items.length;
 

@@ -31,9 +31,10 @@ export class QueueValidation {
      * @private
      */
     _validateTimeout(validated) {
-        if (validated.timeout === undefined) return;
+        if (validated.timeout === undefined) { return; }
 
         const originalTimeout = validated.timeout;
+
         validated.timeout = Math.max(1000, Math.min(validated.timeout, 3600000)); // 1s to 1h
 
         if (validated.timeout !== originalTimeout) {
@@ -56,9 +57,10 @@ export class QueueValidation {
      * @private
      */
     _validateMaxRetries(validated) {
-        if (validated.maxRetries === undefined) return;
+        if (validated.maxRetries === undefined) { return; }
 
         const originalRetries = validated.maxRetries;
+
         validated.maxRetries = Math.max(0, Math.min(validated.maxRetries, 9));
 
         if (validated.maxRetries !== originalRetries) {
@@ -87,6 +89,7 @@ export class QueueValidation {
         if (typeof originalPriority === 'number' && !Number.isFinite(originalPriority)) {
             console.warn(`QueueManager: Invalid priority ${originalPriority} (NaN/Infinity) defaulting to 0`);
             validated.priority = 0;
+
             return;
         }
 

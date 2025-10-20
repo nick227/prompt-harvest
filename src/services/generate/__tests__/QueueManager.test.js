@@ -151,9 +151,9 @@ describe('QueueManager Hardening Tests', () => {
             });
 
             // Verify they are treated equivalently (no false negatives)
-            const allDetected = equivalentAbortErrors.every(error =>
-                taskManager.isCancellationError(error)
+            const allDetected = equivalentAbortErrors.every(error => taskManager.isCancellationError(error)
             );
+
             expect(allDetected).toBe(true);
         });
     });

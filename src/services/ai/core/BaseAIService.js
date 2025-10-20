@@ -107,7 +107,7 @@ export class BaseAIService {
                     signal: signal || controller?.signal
                 });
 
-                if (timeoutId) clearTimeout(timeoutId);
+                if (timeoutId) { clearTimeout(timeoutId); }
 
                 return {
                     success: true,
@@ -116,7 +116,7 @@ export class BaseAIService {
                     model: response.model
                 };
             } catch (abortError) {
-                if (timeoutId) clearTimeout(timeoutId);
+                if (timeoutId) { clearTimeout(timeoutId); }
                 if (abortError.name === 'AbortError') {
                     throw new Error('Request timed out or was aborted');
                 }

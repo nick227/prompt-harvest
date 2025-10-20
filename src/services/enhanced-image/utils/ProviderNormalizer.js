@@ -17,17 +17,31 @@
  * normalizeProviders([" Flux-Pro ", "flux-pro", "FLUX-DEV"])
  * // Returns: ["flux-pro", "flux-dev"]
  */
+/**
+ * OPTIMIZED: Single-pass provider normalization
+ * Reduces 4 iterations (filter → map → filter → Set) to 1 iteration
+ */
 export const normalizeProviders = providers => {
     if (!Array.isArray(providers)) {
         return [];
     }
 
-    const normalized = providers
-        .filter(p => typeof p === 'string')
-        .map(p => p.trim().toLowerCase())
-        .filter(p => p.length > 0);
+    // Single-pass: validate, normalize, and deduplicate in one iteration
+    const seen = new Set();
+    const result = [];
 
-    return [...new Set(normalized)];
+    for (const p of providers) {
+        if (typeof p !== 'string') { continue; }
+
+        const normalized = p.trim().toLowerCase();
+
+        if (normalized.length === 0 || seen.has(normalized)) { continue; }
+
+        seen.add(normalized);
+        result.push(normalized);
+    }
+
+    return result;
 };
 
 /**
