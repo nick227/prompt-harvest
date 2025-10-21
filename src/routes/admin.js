@@ -628,11 +628,11 @@ router.get('/system-settings/cache-stats',
  */
 router.get('/queue/status', requireAdmin, async (req, res) => {
     try {
-        // Import QueueManager dynamically
-        const QueueManager = await import('../services/generate/QueueManager.js');
+        // Import QueueManager factory
+        const { getQueueManager } = await import('../services/generate/QueueManagerFactory.js');
 
         // Get all queue data in one optimized call
-        const queueData = QueueManager.default().getOverview();
+        const queueData = getQueueManager().getOverview();
 
         res.json({
             success: true,
@@ -658,10 +658,10 @@ router.get('/queue/status', requireAdmin, async (req, res) => {
  */
 router.post('/queue/clear', requireAdmin, async (req, res) => {
     try {
-        // Import QueueManager dynamically
-        const QueueManager = await import('../services/generate/QueueManager.js');
+        // Import QueueManager factory
+        const { getQueueManager } = await import('../services/generate/QueueManagerFactory.js');
 
-        const clearedCount = QueueManager.default().clearQueue();
+        const clearedCount = getQueueManager().clearQueue();
 
         res.json({
             success: true,
@@ -691,11 +691,11 @@ router.post('/queue/process', requireAdmin, logAdminActionMiddleware('manual_que
 
         console.log('🔄 ADMIN: Manual queue processing triggered');
 
-        // Import QueueManager for processing
-        const QueueManager = await import('../services/generate/QueueManager.js');
+        // Import QueueManager factory
+        const { getQueueManager } = await import('../services/generate/QueueManagerFactory.js');
 
         // Process the queue manually
-        await QueueManager.default().processQueue(async requestData => await generateModule.default._executeGeneration({
+        await getQueueManager().processQueue(async requestData => await generateModule.default._executeGeneration({
             prompt: requestData.prompt,
             original: requestData.original,
             promptId: requestData.promptId,
@@ -727,8 +727,8 @@ router.post('/queue/process', requireAdmin, logAdminActionMiddleware('manual_que
  */
 router.get('/queue/metrics', requireAdmin, async (req, res) => {
     try {
-        const QueueManager = await import('../services/generate/QueueManager.js');
-        const queueManager = QueueManager.default();
+        const { getQueueManager } = await import('../services/generate/QueueManagerFactory.js');
+        const queueManager = getQueueManager();
 
         // Get comprehensive metrics
         const baseMetrics = queueManager.getOverview();
@@ -799,11 +799,11 @@ router.put('/queue/concurrency', requireAdmin, logAdminActionMiddleware('update_
             });
         }
 
-        // Import QueueManager dynamically
-        const QueueManager = await import('../services/generate/QueueManager.js');
+        // Import QueueManager factory
+        const { getQueueManager } = await import('../services/generate/QueueManagerFactory.js');
 
         // Update concurrency
-        const result = await QueueManager.default().updateConcurrency(concurrency);
+        const result = await getQueueManager().updateConcurrency(concurrency);
 
         res.json({
             success: true,
@@ -825,9 +825,9 @@ router.put('/queue/concurrency', requireAdmin, logAdminActionMiddleware('update_
  */
 router.post('/queue/pause', requireAdmin, logAdminActionMiddleware('pause_queue'), async (req, res) => {
     try {
-        const QueueManager = await import('../services/generate/QueueManager.js');
+        const { getQueueManager } = await import('../services/generate/QueueManagerFactory.js');
 
-        QueueManager.default().pause();
+        getQueueManager().pause();
 
         res.json({
             success: true,
@@ -852,9 +852,9 @@ router.post('/queue/pause', requireAdmin, logAdminActionMiddleware('pause_queue'
  */
 router.post('/queue/resume', requireAdmin, logAdminActionMiddleware('resume_queue'), async (req, res) => {
     try {
-        const QueueManager = await import('../services/generate/QueueManager.js');
+        const { getQueueManager } = await import('../services/generate/QueueManagerFactory.js');
 
-        QueueManager.default().resume();
+        getQueueManager().resume();
 
         res.json({
             success: true,
@@ -881,8 +881,8 @@ router.post('/queue/resume', requireAdmin, logAdminActionMiddleware('resume_queu
  */
 router.get('/queue/dashboard', requireAdmin, async (req, res) => {
     try {
-        const QueueManager = await import('../services/generate/QueueManager.js');
-        const queueManager = QueueManager.default();
+        const { getQueueManager } = await import('../services/generate/QueueManagerFactory.js');
+        const queueManager = getQueueManager();
 
         // Get all queue monitoring data
         const queueData = queueManager.getOverview();

@@ -616,20 +616,188 @@ class AdminUIRenderer {
     }
 
     showProviderModal(providerId = null) {
-        if (this.modelsRenderer) {
-            this.modelsRenderer.showProviderModal(providerId);
-        } else {
-            console.warn('⚠️ ADMIN-UI: Models renderer not available');
-            this.showNotification('Provider management not available', 'warning');
+        console.warn('⚠️ ADMIN-UI: Provider modal not implemented yet');
+        this.showNotification('Provider management coming soon', 'info');
+    }
+
+    async showModelModal(modelId = null) {
+        try {
+            // Fetch model data if editing
+            let modelData = null;
+
+            if (modelId) {
+                // Fetch all models and find the one we need (no single model endpoint)
+                const response = await fetch('/api/providers/models/all', {
+                    headers: window.AdminAuthUtils.getAuthHeaders()
+                });
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load model data');
+                }
+                modelData = result.data.models.find(m => m.id === parseInt(modelId));
+                if (!modelData) {
+                    throw new Error('Model not found');
+                }
+            }
+
+            // Fetch providers for dropdown
+            const providersResponse = await fetch('/api/providers/all', {
+                headers: window.AdminAuthUtils.getAuthHeaders()
+            });
+            const providersData = await providersResponse.json();
+            const providers = providersData.success ? providersData.data : [];
+
+            this.showModelForm(modelId ? 'Edit Model' : 'Add Model', modelData, providers);
+        } catch (error) {
+            console.error('❌ ADMIN-UI: Error showing model modal:', error);
+            this.showNotification(`Failed to open model form: ${error.message}`, 'danger');
         }
     }
 
-    showModelModal(modelId = null) {
-        if (this.modelsRenderer) {
-            this.modelsRenderer.showModelModal(modelId);
-        } else {
-            console.warn('⚠️ ADMIN-UI: Models renderer not available');
-            this.showNotification('Model management not available', 'warning');
+    showModelForm(title, modelData, providers) {
+        const modalHtml = `
+            <div class="modal fade" id="model-modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">${title}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="model-form">
+                                <input type="hidden" id="model-id" value="${modelData?.id || ''}">
+
+                                <div class="mb-3">
+                                    <label for="model-display-name" class="form-label">Display Name *</label>
+                                    <input type="text" class="form-control" id="model-display-name"
+                                           value="${modelData?.displayName || ''}" required>
+                                    <small class="form-text text-muted">User-friendly name shown in UI</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="model-provider" class="form-label">Provider *</label>
+                                    <select class="form-control" id="model-provider" required>
+                                        <option value="">Select Provider</option>
+                                        ${providers.map(p => `
+                                            <option value="${p.name}" ${modelData?.provider === p.name ? 'selected' : ''}>
+                                                ${p.name}
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="model-name" class="form-label">API Model Name *</label>
+                                    <input type="text" class="form-control" id="model-name"
+                                           value="${modelData?.name || ''}" required>
+                                    <small class="form-text text-muted">The exact model name used in API calls</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="model-description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="model-description" rows="3">${modelData?.description || ''}</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="model-cost" class="form-label">Cost Per Image</label>
+                                    <input type="number" class="form-control" id="model-cost"
+                                           value="${modelData?.costPerImage || 1}" min="0" step="0.1">
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="model-active"
+                                               ${modelData?.isActive !== false ? 'checked' : ''}>
+                                        <label class="form-check-label" for="model-active">Active</label>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="save-model-btn">Save Model</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remove existing modal if any
+        const existingModal = document.getElementById('model-modal');
+
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Add modal to DOM
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Show modal
+        const modalElement = document.getElementById('model-modal');
+        const modal = new bootstrap.Modal(modalElement);
+
+        modal.show();
+
+        // Setup save button
+        document.getElementById('save-model-btn').addEventListener('click', async () => {
+            await this.saveModel();
+            modal.hide();
+        });
+
+        // Cleanup on hide
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            modalElement.remove();
+        });
+    }
+
+    async saveModel() {
+        try {
+            const modelId = document.getElementById('model-id').value;
+            const formData = {
+                displayName: document.getElementById('model-display-name').value,
+                provider: document.getElementById('model-provider').value,
+                name: document.getElementById('model-name').value,
+                description: document.getElementById('model-description').value,
+                costPerImage: parseFloat(document.getElementById('model-cost').value) || 1,
+                isActive: document.getElementById('model-active').checked
+            };
+
+            // Validate
+            if (!formData.displayName || !formData.provider || !formData.name) {
+                this.showNotification('Please fill in all required fields', 'warning');
+
+                return;
+            }
+
+            const url = modelId ? `/api/providers/models/${modelId}` : '/api/providers/models';
+            const method = modelId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    ...window.AdminAuthUtils.getAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || result.message || 'Failed to save model');
+            }
+
+            this.showNotification(
+                modelId ? 'Model updated successfully' : 'Model created successfully',
+                'success'
+            );
+
+            // Reload models table
+            await this.loadModelsData();
+        } catch (error) {
+            console.error('❌ ADMIN-UI: Error saving model:', error);
+            this.showNotification(`Failed to save model: ${error.message}`, 'danger');
         }
     }
 
