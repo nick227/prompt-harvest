@@ -1,4 +1,4 @@
-// SECURITY: Filter punycode warnings via proper event handler (not monkey-patching)
+// SECURITY: Filter punycode warnings via proper event handler
 if (process.env.SUPPRESS_PUNYCODE === '1') {
     let warningSuppressed = false;
 
@@ -1015,7 +1015,7 @@ process.on('uncaughtException', error => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+    console.error('❌ Unhandled Rejections at:', promise, 'reason:', reason);
     gracefulShutdown('unhandledRejection');
 });
 
