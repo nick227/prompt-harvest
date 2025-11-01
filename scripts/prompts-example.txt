@@ -1,0 +1,15 @@
+# Sample Prompts File for Auto-Generate Script
+# Lines starting with # are comments and will be ignored
+# Each line should contain one prompt
+
+a beautiful landscape with mountains and a lake at sunset
+a futuristic cityscape with flying cars and neon lights
+a cozy coffee shop interior with warm lighting
+a mystical forest with glowing mushrooms
+a vintage car on an open desert highway
+portrait of a friendly robot in a garden
+abstract art with vibrant colors and geometric shapes
+underwater scene with colorful coral and tropical fish
+steampunk airship floating above the clouds
+minimalist modern architecture with clean lines
+
