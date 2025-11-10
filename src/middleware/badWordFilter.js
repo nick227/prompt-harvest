@@ -16,53 +16,53 @@ const getPrismaClient = () => {
 const BAD_WORDS = {
     critical: [
         // Explicit sexual content
-        'porn', 'pornography', 'xxx', 'sex', 'sexual', 'nude', 'naked', 'nudity',
-        'blowjob', 'cunt', 'nsfw', 'fetish', 'bdsm', 'masturbate', 'nigger',
-        'penis', 'vagina', 'breast', 'breasts', 'sex', 'ass', 'penis', 'cock', 'dick',
-        'pussy', 'tits', 'titties', 'fuck', 'vagina', 'fucked', 'shit',
-        'testicles', 'piss', 'puke', 'anal', 'panties', 'masturbation',
-        'topless', 'exposed', 'nipples'
+        // 'porn', 'pornography', 'xxx', 'sex', 'sexual', 'nude', 'naked', 'nudity',
+        // 'blowjob', 'cunt', 'nsfw', 'fetish', 'bdsm', 'masturbate', 'nigger',
+        // 'penis', 'vagina', 'breast', 'breasts', 'sex', 'ass', 'penis', 'cock', 'dick',
+        // // 'pussy', 'tits', 'titties', 'fuck', 'vagina', 'fucked', 'shit',
+        // 'testicles', 'piss', 'puke', 'anal', 'panties', 'masturbation',
+        // 'topless', 'exposed', 'nipples'
     ],
 
     high: [
         // Moderate profanity
-        'damn', 'hell', 'crap', 'piss', 'pissed', 'bastard', 'asshole', 'orgy',
-        'dumbass', 'idiot', 'moron', 'stupid', 'retard', 'retarded',
+        // 'damn', 'hell', 'crap', 'piss', 'pissed', 'bastard', 'asshole', 'orgy',
+        // 'dumbass', 'idiot', 'moron', 'stupid', 'retard', 'retarded',
 
         // Mild sexual references
-        'sexy', 'hot', 'attractive', 'seductive', 'tempting',
+        // 'sexy', 'hot', 'attractive', 'seductive', 'tempting',
 
         // Violence (mild)
-        'fight', 'fighting', 'punch', 'kick', 'hit', 'strike', 'attack',
-        'battle', 'war', 'weapon', 'gun', 'knife', 'sword',
+        // 'fight', 'fighting', 'punch', 'kick', 'hit', 'strike', 'attack',
+        // 'battle', 'war', 'weapon', 'gun', 'knife', 'sword',
 
         // Drugs and illegal substances
-        'cocaine', 'heroin', 'marijuana', 'weed', 'drug', 'drugs', 'overdose',
-        'addiction', 'dealer', 'trafficking',
+        // 'cocaine', 'heroin', 'marijuana', 'weed', 'drug', 'drugs', 'overdose',
+        // 'addiction', 'dealer', 'trafficking',
 
         // Violence and gore
-        'kill', 'murder', 'death', 'suicide', 'bomb', 'terrorist', 'terrorism',
-        'violence', 'blood', 'gore', 'torture', 'rape', 'abuse', 'assault',
+        // 'kill', 'murder', 'death', 'suicide', 'bomb', 'terrorist', 'terrorism',
+        // 'violence', 'blood', 'gore', 'torture', 'rape', 'abuse', 'assault',
 
         // Hate speech and discrimination
-        'nazi', 'hitler', 'fascist', 'racist', 'racism', 'sexist', 'sexism',
-        'homophobic', 'transphobic', 'discrimination', 'hate', 'hateful'
+        // 'nazi', 'hitler', 'fascist', 'racist', 'racism', 'sexist', 'sexism',
+        // 'homophobic', 'transphobic', 'discrimination', 'hate', 'hateful'
     ],
 
     medium: [
         // Mild profanity
-        'stupid', 'dumb', 'silly', 'crazy', 'insane', 'weird', 'strange',
-        'ugly', 'gross', 'disgusting', 'nasty', 'awful', 'terrible',
+        // 'stupid', 'dumb', 'silly', 'crazy', 'insane', 'weird', 'strange',
+        // 'ugly', 'gross', 'disgusting', 'nasty', 'awful', 'terrible',
 
         // Body parts (non-sexual)
-        'body', 'skin', 'flesh', 'muscle', 'bone', 'head', 'face',
-        'hand', 'foot', 'leg', 'arm', 'chest', 'back', 'stomach'
+        // 'body', 'skin', 'flesh', 'muscle', 'bone', 'head', 'face',
+        // 'hand', 'foot', 'leg', 'arm', 'chest', 'back', 'stomach'
     ],
 
     low: [
         // Very mild content
-        'bad', 'wrong', 'evil', 'sin', 'sinful', 'wicked', 'naughty',
-        'mischief', 'trouble', 'problem', 'issue', 'concern'
+        // 'bad', 'wrong', 'evil', 'sin', 'sinful', 'wicked', 'naughty',
+        // 'mischief', 'trouble', 'problem', 'issue', 'concern'
     ]
 };
 
