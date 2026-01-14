@@ -6,7 +6,7 @@ const FEED_CONSTANTS = {
         PROMPT_OUTPUT: '.prompt-output',
         FEED_CONTAINER: 'section.images',
         IMAGE_WRAPPERS: '.image-wrapper',
-        LOADING_SPINNER: '.loading-spinner',
+        LOADING_SPINNER: '.feed-loading-indicator',
         FILTER_STATS: '.filter-stats'
     },
 
