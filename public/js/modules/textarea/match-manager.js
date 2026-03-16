@@ -24,6 +24,7 @@ class MatchManager {
         this.destroyed = false;
         this.droppedMatches = 0;
         this.sampleMatchCache = null;
+        this.isMatchClick = false;
     }
 
     getMetrics() {
@@ -147,6 +148,8 @@ class MatchManager {
         if (this.destroyed || !this.matchProcessor) {
             return;
         }
+
+        this.isMatchClick = true;
 
         const listItem = e.target.closest('li');
 
@@ -338,6 +341,10 @@ class MatchManager {
         this.textArea = null;
         this.matchesEl = null;
         this.sampleMatchCache = null;
+    }
+
+    resetMatchClickFlag() {
+        this.isMatchClick = false;
     }
 }
 
