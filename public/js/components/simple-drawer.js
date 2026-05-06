@@ -134,6 +134,9 @@ class SimpleDrawer {
                     <div class="space-y-2 mt-4">
                         <a href="/blog/">Blog</a>
                     </div>
+                    <div class="space-y-2 mt-4">
+                        <a href="/terms.html">Terms</a>
+                    </div>
                 </div>
             </div>
         `;
