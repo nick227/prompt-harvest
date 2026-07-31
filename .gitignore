@@ -30,7 +30,7 @@ scripts/archive/
 .cursorrules
 public/js/modules/textarea/__tests__/
 src/services/__tests__
-/*.md
+# Allow README.md but ignore all other markdown files
 
 # Temporary files and reports
 *-report.json
@@ -46,4 +46,5 @@ backup-before-*/
 tools
 src/scripts/
 *.md
+!README.md
 scripts
