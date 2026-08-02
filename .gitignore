@@ -47,4 +47,6 @@ tools
 src/scripts/
 *.md
 !README.md
-scripts
+!SEARCH_ROADMAP.md
+scripts/*
+!scripts/seed-database.js
