@@ -9,7 +9,7 @@ class SearchPaginationHandler {
     }
 
     async loadMoreResults(state, loadNextPageCallback, updateStateCallback, handleErrorCallback) {
-        await this.paginationManager.loadMoreResults(
+        return await this.paginationManager.loadMoreResults(
             state,
             loadNextPageCallback,
             updateStateCallback,
@@ -40,4 +40,3 @@ class SearchPaginationHandler {
 }
 
 window.SearchPaginationHandler = SearchPaginationHandler;
-

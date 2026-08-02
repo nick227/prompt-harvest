@@ -9,6 +9,10 @@ const domOperationsSource = readFileSync(
     new URL('../../../public/js/modules/feed/feed-dom-operations.js', import.meta.url),
     'utf8'
 );
+const searchPaginationSource = readFileSync(
+    new URL('../../../public/js/modules/search/search-pagination-manager.js', import.meta.url),
+    'utf8'
+);
 
 const installFeedManagerClass = async page => {
     await page.evaluate(() => {
@@ -146,4 +150,53 @@ test('the pagination target follows the active owner and excludes hidden images'
     });
 
     expect(targets).toEqual({ search: 'search-last', feed: 'feed-last' });
+});
+
+test('throttled search pagination completes every page before continuing', async ({ page }) => {
+    await page.addScriptTag({ content: searchPaginationSource });
+
+    const result = await page.evaluate(async () => {
+        const manager = new window.SearchPaginationManager({
+            throttleMs: 10,
+            autoLoadMaxAttempts: 5,
+            fillToBottomDelayMs: 1
+        });
+        const state = {
+            currentPage: 1,
+            currentSearchTerm: 'cat',
+            isSearchActive: true,
+            isLoading: false,
+            hasMore: true
+        };
+        const loadedPages = [];
+        const updateState = updates => Object.assign(state, updates);
+        const loadNextPage = async () => {
+            const nextPage = state.currentPage + 1;
+
+            loadedPages.push(nextPage);
+            state.currentPage = nextPage;
+            state.hasMore = nextPage < 4;
+        };
+
+        manager._lastLoadMoreTime = Date.now();
+
+        while (state.hasMore) {
+            const loaded = await manager.loadMoreResults(
+                state,
+                loadNextPage,
+                updateState,
+                error => { throw error; }
+            );
+
+            if (!loaded) {
+                break;
+            }
+        }
+
+        return { loadedPages, state };
+    });
+
+    expect(result.loadedPages).toEqual([2, 3, 4]);
+    expect(result.state.hasMore).toBe(false);
+    expect(result.state.isLoading).toBe(false);
 });

@@ -425,7 +425,7 @@ Exit criteria:
 
 This is a separate bug class from Phase 1/2 backend ranking and retrieval. Search and the normal feed shared one DOM container plus global `lastImageVisible` and `filterChanged` events without mutual exclusion. Under network jitter, normal-feed responses could append into or clear a search result set, after which a polling monitor hid the stray elements. The same conflict could leave infinite-scroll observation attached to a hidden or feed-owned element.
 
-Implementation update (2026-08-02): `searchManager.state.isSearchActive` is the canonical gallery ownership signal. Feed filter reloads, infinite-scroll loads, fill-to-bottom loads, and generated-image DOM insertion stop while search owns the gallery. A monotonically increasing feed request generation prevents requests started before search activation from later changing cache, pagination, errors, or DOM. Observer targeting now selects the last visible search wrapper during search and the last visible feed wrapper otherwise, and search re-arms observation after appends. Search insertion replaces a stray feed-owned duplicate and records an ID as seen only when a search-owned wrapper exists. The 500 ms hide monitor has been removed.
+Implementation update (2026-08-02): `searchManager.state.isSearchActive` is the canonical gallery ownership signal. Feed filter reloads, infinite-scroll loads, fill-to-bottom loads, and generated-image DOM insertion stop while search owns the gallery. A monotonically increasing feed request generation prevents requests started before search activation from later changing cache, pagination, errors, or DOM. Observer targeting now selects the last visible search wrapper during search, selects the last visible feed wrapper otherwise, and re-arms after search appends. Throttled search pagination is awaited rather than scheduled as orphaned timer work, so post-append observer/fill continuation runs after every completed page through `hasMore=false`. Search insertion replaces a stray feed-owned duplicate and records an ID as seen only when a search-owned wrapper exists. The 500 ms hide monitor has been removed.
 
 This phase deliberately does not choose containment scoring or multiword AND/OR behavior. The current zero containment weights and minimum-score threshold contradict the documented `contains` default; resolving that contradiction is a separate product/relevance decision and must not be silently bundled into the ownership fix.
 
@@ -435,6 +435,7 @@ Exit criteria:
 - a feed response initiated before search activation cannot clear, append to, or show an error over search results;
 - owner/tag changes replace search membership through the API without a competing feed reload;
 - infinite scroll observes the last visible element owned by the active mode and re-arms after every search append;
+- throttled page loads preserve one in-flight request and continue through the final page without losing the post-load handoff;
 - duplicate IDs cannot leave a legitimate result trapped in a hidden feed-owned wrapper;
 - deterministic DOM race tests and real-Chromium delayed-response/filter/observer tests pass;
 - no polling monitor is required to maintain result visibility.

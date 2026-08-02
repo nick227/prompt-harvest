@@ -19,6 +19,7 @@ class SearchPaginationManager {
         // Throttling state
         this._lastLoadMoreTime = null;
         this._loadMoreTrailingTimer = null;
+        this._resolveLoadMoreDelay = null;
 
         // Deduplication
         this.seenImageIds = new Set();
@@ -49,49 +50,49 @@ class SearchPaginationManager {
      */
     async loadMoreResults(state, loadNextPageFn, updateStateFn, handleErrorFn) {
         if (!this.canLoadMore(state)) {
-            return;
+            return false;
         }
 
         const now = Date.now();
         const timeSinceLastLoad = this._lastLoadMoreTime ? now - this._lastLoadMoreTime : Infinity;
+        const delay = Math.max(0, this.config.throttleMs - timeSinceLastLoad);
 
-        // Leading edge: execute immediately if throttle window passed
-        if (timeSinceLastLoad >= this.config.throttleMs) {
-            this._lastLoadMoreTime = now;
+        // Claim the load before waiting so duplicate observer/fill events cannot
+        // schedule another page during the throttle window.
+        updateStateFn({ isLoading: true });
 
-            try {
-                await loadNextPageFn();
-            } catch (error) {
-                handleErrorFn(error);
-            } finally {
-                updateStateFn({ isLoading: false });
-            }
-
-            return;
+        if (delay > 0) {
+            await new Promise(resolve => {
+                this._resolveLoadMoreDelay = resolve;
+                this._loadMoreTrailingTimer = setTimeout(() => {
+                    this._pendingTimeouts.delete(this._loadMoreTrailingTimer);
+                    this._loadMoreTrailingTimer = null;
+                    this._resolveLoadMoreDelay = null;
+                    resolve();
+                }, delay);
+                this._pendingTimeouts.add(this._loadMoreTrailingTimer);
+            });
         }
 
-        // Trailing edge: schedule execution at end of throttle window
-        if (!this._loadMoreTrailingTimer) {
-            const delay = this.config.throttleMs - timeSinceLastLoad;
+        // Search may have been cleared or exhausted while waiting.
+        if (!state.isSearchActive || !state.hasMore || !state.currentSearchTerm) {
+            updateStateFn({ isLoading: false });
 
-            this._loadMoreTrailingTimer = setTimeout(async() => {
-                this._pendingTimeouts.delete(this._loadMoreTrailingTimer);
-                this._loadMoreTrailingTimer = null;
+            return false;
+        }
 
-                if (this.canLoadMore(state)) {
-                    this._lastLoadMoreTime = Date.now();
+        this._lastLoadMoreTime = Date.now();
 
-                    try {
-                        await loadNextPageFn();
-                    } catch (error) {
-                        handleErrorFn(error);
-                    } finally {
-                        updateStateFn({ isLoading: false });
-                    }
-                }
-            }, delay);
+        try {
+            await loadNextPageFn();
 
-            this._pendingTimeouts.add(this._loadMoreTrailingTimer);
+            return true;
+        } catch (error) {
+            handleErrorFn(error);
+
+            return false;
+        } finally {
+            updateStateFn({ isLoading: false });
         }
     }
 
@@ -210,7 +211,12 @@ class SearchPaginationManager {
         // Clear trailing timer
         if (this._loadMoreTrailingTimer) {
             clearTimeout(this._loadMoreTrailingTimer);
+            this._pendingTimeouts.delete(this._loadMoreTrailingTimer);
             this._loadMoreTrailingTimer = null;
+        }
+        if (this._resolveLoadMoreDelay) {
+            this._resolveLoadMoreDelay();
+            this._resolveLoadMoreDelay = null;
         }
 
         // Cancel all pending timeouts
@@ -229,4 +235,3 @@ class SearchPaginationManager {
 
 // Export for use in SearchManager
 window.SearchPaginationManager = SearchPaginationManager;
-

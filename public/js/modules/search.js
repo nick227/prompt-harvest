@@ -334,14 +334,14 @@ class SearchManager {
     }
 
     async loadMoreResults() {
-        await this.paginationHandler.loadMoreResults(
+        const pageLoaded = await this.paginationHandler.loadMoreResults(
             this.state,
             () => this.loadNextPage(),
             updates => this.updateState(updates),
             error => this.resultProcessor.handleLoadMoreError(error)
         );
 
-        if (this.state.isSearchActive && this.state.hasMore) {
+        if (pageLoaded && this.state.isSearchActive && this.state.hasMore) {
             this.feedIntegration.rearmInfiniteScroll();
             this.feedIntegration.scheduleFillToBottom(
                 () => this.loadMoreResults(), this._alive

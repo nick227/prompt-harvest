@@ -182,6 +182,61 @@ test('starting a search invalidates feed requests before search retrieval', asyn
     assert.equal(invalidated, true);
 });
 
+test('throttled pagination is awaited and traverses every page through exhaustion', async () => {
+    const { BrowserClass: SearchPaginationManager } = loadBrowserClass(
+        '../../../public/js/modules/search/search-pagination-manager.js',
+        'SearchPaginationManager',
+        {
+            setTimeout,
+            globals: { clearTimeout }
+        }
+    );
+    const manager = new SearchPaginationManager({
+        throttleMs: 5,
+        autoLoadMaxAttempts: 5,
+        fillToBottomDelayMs: 1
+    });
+    const state = {
+        currentPage: 1,
+        currentSearchTerm: 'cat',
+        isSearchActive: true,
+        isLoading: false,
+        hasMore: true
+    };
+    const loadedPages = [];
+    const updateState = updates => Object.assign(state, updates);
+    const loadNextPage = async () => {
+        const nextPage = state.currentPage + 1;
+
+        loadedPages.push(nextPage);
+        state.currentPage = nextPage;
+        state.hasMore = nextPage < 4;
+    };
+
+    manager._lastLoadMoreTime = Date.now();
+
+    while (state.hasMore) {
+        const pendingLoad = manager.loadMoreResults(
+            state,
+            loadNextPage,
+            updateState,
+            error => { throw error; }
+        );
+        const duplicateLoad = await manager.loadMoreResults(
+            state,
+            loadNextPage,
+            updateState,
+            error => { throw error; }
+        );
+
+        assert.equal(duplicateLoad, false);
+        assert.equal(await pendingLoad, true);
+        assert.equal(state.isLoading, false);
+    }
+
+    assert.deepEqual(loadedPages, [2, 3, 4]);
+});
+
 test('fill-to-bottom discards a response when search activates mid-request', async () => {
     const { BrowserClass: FillToBottomManager } = loadBrowserClass(
         '../../../public/js/modules/feed/fill-to-bottom-manager.js',
