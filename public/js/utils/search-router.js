@@ -33,7 +33,7 @@ class SearchRouter {
         let retries = 0;
 
         while (retries < maxRetries) {
-            if (window.searchManager?._initialized) {
+            if (window.searchManager?._initialized && window.searchManager.feedManager) {
                 this.searchManager = window.searchManager;
                 this.isInitialized = true;
 
@@ -298,4 +298,3 @@ if (typeof window !== 'undefined') {
         window.searchRouter = new SearchRouter();
     }
 }
-

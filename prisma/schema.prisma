@@ -54,7 +54,8 @@ model Image {
   deletedBy       String?   @db.VarChar(25)
 
   // Relations
-  user User @relation(fields: [userId], references: [id])
+  user           User                 @relation(fields: [userId], references: [id])
+  searchDocument ImageSearchDocument?
 
   // Existing indexes
   @@index([userId], map: "userId")
@@ -79,6 +80,21 @@ model Image {
   @@index([provider, model], map: "provider_model_filter")
   @@index([isPublic, createdAt], map: "public_recent")
   @@map("images")
+}
+
+model ImageSearchDocument {
+  imageId        String   @id @db.VarChar(25)
+  prompt         String   @db.Text
+  originalPrompt String   @db.Text
+  tagsText       String   @db.Text
+  provider       String   @db.VarChar(50)
+  model          String   @db.VarChar(100)
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  image Image @relation(fields: [imageId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+
+  @@fulltext([prompt, originalPrompt, tagsText, provider, model], map: "image_search_fulltext")
+  @@map("image_search_documents")
 }
 
 model UserMedia {

@@ -24,7 +24,10 @@ class SearchResultProcessor {
             throw new Error('Invalid search response');
         }
 
-        this.stateManager.updateState({ hasMore: results.hasMore ?? false });
+        this.stateManager.updateState({
+            hasMore: results.hasMore ?? false,
+            totalResults: results.total ?? results.images.length
+        });
         await displayCallback(results, query);
     }
 
@@ -39,7 +42,12 @@ class SearchResultProcessor {
             requestId: currentRequestId
         }, state);
 
-        const results = await this.executionManager.searchImages(feedManager, state.currentSearchTerm, nextPage);
+        const results = await this.executionManager.searchImages(
+            feedManager,
+            state.currentSearchTerm,
+            nextPage,
+            state.searchFilters
+        );
 
         if (currentRequestId !== this.stateManager.currentRequestId) {
             return null;
@@ -51,6 +59,7 @@ class SearchResultProcessor {
     async processPageResults(results, nextPage, addResultsCallback) {
         if (!results.images?.length) {
             this.stateManager.updateState({ hasMore: false });
+
             return;
         }
 
@@ -99,4 +108,3 @@ class SearchResultProcessor {
 }
 
 window.SearchResultProcessor = SearchResultProcessor;
-

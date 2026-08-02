@@ -249,7 +249,21 @@ class SearchManager {
             }
         };
 
-        this.eventHandler.setupSearchEventListeners(scrollHandler, tagChangeHandler);
+        const ownerChangeHandler = event => {
+            if (this.state.isSearchActive) {
+                this.handleOwnerFilterChange();
+
+                return;
+            }
+
+            this.syncFilterURL({ scope: event.detail?.filter });
+        };
+
+        this.eventHandler.setupSearchEventListeners(
+            scrollHandler,
+            tagChangeHandler,
+            ownerChangeHandler
+        );
     }
 
     setupImageSearch() {
@@ -277,6 +291,8 @@ class SearchManager {
     }
 
     async performSearch(query, forceRefresh = false) {
+        const searchFilters = this.getSearchFilters();
+
         // Update URL via SearchRouter if available
         if (window.searchRouter && window.searchRouter.isInitialized) {
             const currentRouterQuery = window.searchRouter.getQuery();
@@ -286,6 +302,8 @@ class SearchManager {
                 window.searchRouter.updateURL();
             }
         }
+
+        this.syncFilterURL(searchFilters);
 
         const processResults = (results, q) => this.resultProcessor.processSearchResults(
             results, q, (r, q2) => this.displaySearchResults(r, q2)
@@ -304,6 +322,7 @@ class SearchManager {
             query,
             forceRefresh,
             this.feedManager,
+            searchFilters,
             SearchManager.DEFAULTS.DUPLICATE_SEARCH_TTL_MS,
             processResults,
             scheduleFill,
@@ -395,19 +414,66 @@ class SearchManager {
         );
     }
 
-    async handleTagFilterChange(activeTags) {
-        await this.filterCoordinator.handleTagFilterChange(
-            this.feedManager,
-            activeTags,
-            () => {
-                this.filterCoordinator.updateSearchCounts(this.feedManager);
-                this.displayManager.updateSearchIndicatorCounts(
-                    this.state.currentSearchTerm,
-                    this.state.searchCounts,
-                    this.filterCoordinator.getCurrentFilter(this.feedManager)
-                );
+    async handleTagFilterChange(_activeTags) {
+        if (!this.state.currentSearchTerm) {
+            return;
+        }
+
+        await this.performSearch(this.state.currentSearchTerm);
+    }
+
+    async handleOwnerFilterChange() {
+        if (!this.state.currentSearchTerm) {
+            return;
+        }
+
+        await this.performSearch(this.state.currentSearchTerm);
+    }
+
+    getSearchFilters() {
+        const urlScope = !this.state.isSearchActive ? this.getURLScope() : null;
+
+        if (urlScope) {
+            this.feedManager?.filterManager?.setCurrentFilter?.(urlScope);
+            this.feedManager?.tabService?.setFilter?.(urlScope);
+
+            const ownerDropdown = document.querySelector('select[name="owner"]');
+
+            if (ownerDropdown) {
+                ownerDropdown.value = urlScope;
             }
-        );
+        }
+
+        return {
+            scope: urlScope || this.filterManager.getCurrentFilter(this.feedManager),
+            tags: window.tagRouter?.getActiveTags?.() || []
+        };
+    }
+
+    getURLScope() {
+        try {
+            const scope = new URL(window.location).searchParams.get('scope');
+
+            return ['public', 'private'].includes(scope) ? scope : null;
+        } catch {
+            return null;
+        }
+    }
+
+    syncFilterURL(filters) {
+        try {
+            const url = new URL(window.location);
+
+            if (filters.scope) {
+                url.searchParams.set('scope', filters.scope);
+            } else {
+                url.searchParams.delete('scope');
+            }
+
+            window.history.replaceState({}, '', url);
+        } catch (error) {
+            console.warn('⚠️ SEARCH: Unable to synchronize filter URL state:', error);
+        }
     }
 
     async clearSearch() {
@@ -453,8 +519,11 @@ class SearchManager {
     triggerSearch(searchTerm, forceRefresh = false) {
         if (this.domCache.searchInput) {
             this.domCache.searchInput.value = searchTerm;
-            this.performSearch(searchTerm, forceRefresh);
+
+            return this.performSearch(searchTerm, forceRefresh);
         }
+
+        return Promise.resolve();
     }
 
     /**

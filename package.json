@@ -34,6 +34,8 @@
     "test:search:4-indicator": "playwright test tests/e2e/search-tests/test-4-indicator-display.spec.js --reporter=list",
     "test:search:5-matching": "playwright test tests/e2e/search-tests/test-5-search-matching.spec.js --reporter=list",
     "test:search:all": "npm run test:search:1-api && npm run test:search:2-dom && npm run test:search:3-filters && npm run test:search:4-indicator && npm run test:search:5-matching",
+    "test:search:phase1": "node --test src/services/search/SearchPhase1.node-test.js",
+    "test:search:phase2": "node --test src/services/search/SearchPhase2.node-test.js",
     "test:e2e:admin": "playwright test --config=tests/e2e/admin.config.js",
     "test:e2e:admin:ui": "playwright test --config=tests/e2e/admin.config.js --ui",
     "test:e2e:admin:headed": "playwright test --config=tests/e2e/admin.config.js --headed",

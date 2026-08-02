@@ -32,12 +32,12 @@ class SearchExecutionManager {
      * @param {number} page - Page number
      * @returns {Promise<{images: Array, hasMore: boolean, total: number, meta: object}>}
      */
-    async searchImages(feedManager, query, page = 1) {
+    async searchImages(feedManager, query, page = 1, filters = {}) {
         if (!feedManager?.apiManager) {
             throw new Error('API manager not available');
         }
 
-        const cacheKey = this.cacheManager.getCacheKey(query, page);
+        const cacheKey = this.cacheManager.getCacheKey(query, page, filters);
 
         // Check cache first (with TTL)
         const cachedResult = this.cacheManager.getFromCache(cacheKey);
@@ -52,7 +52,13 @@ class SearchExecutionManager {
         this.activeControllers.add(abortController);
 
         try {
-            const result = await this.searchImagesWithRetry(feedManager, query, page, abortController.signal);
+            const result = await this.searchImagesWithRetry(
+                feedManager,
+                query,
+                page,
+                filters,
+                abortController.signal
+            );
 
             // Validate schema with page number for stable synthetic IDs
             this.idGenerator.validateImageSchema(result.images, page);
@@ -75,12 +81,12 @@ class SearchExecutionManager {
      * @param {AbortSignal} signal - Abort signal
      * @returns {Promise<object>}
      */
-    async searchImagesWithRetry(feedManager, query, page, signal) {
+    async searchImagesWithRetry(feedManager, query, page, filters, signal) {
         let lastError;
 
         for (let attempt = 0; attempt < this.config.apiRetryMaxAttempts; attempt++) {
             try {
-                return await this.executeSearchRequest(feedManager, query, page, signal);
+                return await this.executeSearchRequest(feedManager, query, page, filters, signal);
             } catch (error) {
                 lastError = error;
 
@@ -108,8 +114,8 @@ class SearchExecutionManager {
      * @param {AbortSignal} signal - Abort signal from caller
      * @returns {Promise<object>}
      */
-    async executeSearchRequest(feedManager, query, page, signal) {
-        const url = SearchAPIUtils.buildSearchURL(query, page);
+    async executeSearchRequest(feedManager, query, page, filters, signal) {
+        const url = SearchAPIUtils.buildSearchURL(query, page, filters);
         const token = feedManager.apiManager.getAuthToken();
 
         if (this.isDebugEnabled?.()) {
@@ -216,4 +222,3 @@ class SearchExecutionManager {
 
 // Export for use in SearchManager
 window.SearchExecutionManager = SearchExecutionManager;
-

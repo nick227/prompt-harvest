@@ -59,7 +59,7 @@ class SearchFilterHelpers {
         searchImages.forEach(wrapper => {
             const isPublic = wrapper.dataset.isPublic === 'true';
             const isVisible = !wrapper.classList.contains('hidden');
-            const imageId = wrapper.dataset.imageId;
+            const { imageId } = wrapper.dataset;
 
             imageStates.push({
                 id: imageId,
@@ -106,4 +106,3 @@ class SearchFilterHelpers {
 if (typeof window !== 'undefined') {
     window.SearchFilterHelpers = SearchFilterHelpers;
 }
-

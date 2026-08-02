@@ -5,9 +5,8 @@
  */
 
 class SearchRepository {
-    constructor(prismaClient, config = {}) {
+    constructor(prismaClient, _config = {}) {
         this.prisma = prismaClient;
-        this.overfetchMultiplier = config.overfetchMultiplier || 2;
         this.imageFields = this.defineImageFields();
     }
 
@@ -36,24 +35,16 @@ class SearchRepository {
     }
 
     /**
-     * Execute search query and return images with metadata
+     * Fetch the complete authorized candidate set for global v1 ranking.
      * @param {Object} whereClause - Prisma WHERE clause
-     * @param {Object} pagination - { skip, limit }
-     * @returns {Promise<{images: Array, total: number}>}
+     * @returns {Promise<Array>}
      */
-    async findImages(whereClause, { skip, limit }) {
-        const [images, total] = await Promise.all([
-            this.prisma.image.findMany({
-                where: whereClause,
-                skip,
-                take: limit * this.overfetchMultiplier,
-                orderBy: [{ createdAt: 'desc' }],
-                select: this.imageFields
-            }),
-            this.prisma.image.count({ where: whereClause })
-        ]);
-
-        return { images, total };
+    async findImages(whereClause) {
+        return this.prisma.image.findMany({
+            where: whereClause,
+            orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+            select: this.imageFields
+        });
     }
 
     /**
@@ -108,16 +99,14 @@ class SearchRepository {
     /**
      * Complete search operation with enrichment
      * @param {Object} whereClause - Prisma WHERE clause
-     * @param {Object} pagination - { skip, limit }
-     * @returns {Promise<{images: Array, total: number}>}
+     * @returns {Promise<{images: Array}>}
      */
-    async searchImages(whereClause, pagination) {
-        const { images, total } = await this.findImages(whereClause, pagination);
+    async searchImages(whereClause) {
+        const images = await this.findImages(whereClause);
         const enrichedImages = await this.enrichWithUsernames(images);
 
-        return { images: enrichedImages, total };
+        return { images: enrichedImages };
     }
 }
 
 export default SearchRepository;
-

@@ -31,6 +31,8 @@ class SearchFilterCoordinator {
     updateSearchCounts(feedManager) {
         const counts = this.filterManager.updateSearchCounts();
 
+        counts.exactTotal = this.stateManager.state.totalResults;
+
         if (this.isDebugEnabled()) {
             console.log('🔢 SEARCH COUNTS UPDATED:', {
                 total: counts.total,
@@ -65,4 +67,3 @@ class SearchFilterCoordinator {
 }
 
 window.SearchFilterCoordinator = SearchFilterCoordinator;
-

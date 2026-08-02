@@ -80,6 +80,12 @@ export const TAG_FILTERS = {
     SPECIFIC_TAGS: 'specific' // Match specific tag list
 };
 
+export const SEARCH_SCOPES = {
+    ALL_VISIBLE: 'all',
+    PUBLIC: 'public',
+    MINE: 'private'
+};
+
 /**
  * SCORING WEIGHTS
  * ---------------
@@ -186,6 +192,8 @@ export const SCORE_THRESHOLDS = {
  */
 export const DEFAULT_SEARCH_OPTIONS = {
     matchType: MATCH_TYPES.CONTAINS,            // Flexible matching
+    exactOnly: false,
+    scope: SEARCH_SCOPES.ALL_VISIBLE,
     tagFilter: TAG_FILTERS.ANY,                 // No tag filtering
     minScore: SCORE_THRESHOLDS.HIGH_RELEVANCE,  // Only high-quality matches (filters out provider/model-only)
     specificTags: []                            // For SPECIFIC_TAGS filter
@@ -209,7 +217,7 @@ export const VALIDATION_CONFIG = {
  * Database query configuration
  */
 export const REPOSITORY_CONFIG = {
-    overfetchMultiplier: 2  // Fetch 2x more results for scoring flexibility
+    // Reserved for the Phase 2 indexed repository.
 };
 
 /**
@@ -223,6 +231,14 @@ export const validateSearchOptions = (options = {}) => {
     // Validate matchType
     if (options.matchType && Object.values(MATCH_TYPES).includes(options.matchType)) {
         validated.matchType = options.matchType;
+    }
+
+    if (typeof options.exactOnly === 'boolean') {
+        validated.exactOnly = options.exactOnly;
+    }
+
+    if (options.scope && Object.values(SEARCH_SCOPES).includes(options.scope)) {
+        validated.scope = options.scope;
     }
 
     // Validate tagFilter
@@ -264,4 +280,3 @@ export const createSearchConfig = (customConfig = {}) => ({
         ...customConfig.scoring
     }
 });
-

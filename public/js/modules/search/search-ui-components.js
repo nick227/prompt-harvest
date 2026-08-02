@@ -331,6 +331,12 @@ class SearchUIComponents {
      * @returns {string} Formatted count text with context
      */
     getCountText(filter, counts) {
+        if (Number.isFinite(Number(counts.exactTotal))) {
+            const exactTotal = Math.max(0, Number(counts.exactTotal));
+
+            return ` (${exactTotal} result${exactTotal === 1 ? '' : 's'})`;
+        }
+
         // Get actual counts from the object
         const publicCount = Math.max(0, Number(counts.public) || 0);
         const privateCount = Math.max(0, Number(counts.private) || 0);

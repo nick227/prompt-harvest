@@ -23,6 +23,7 @@ class SearchCoordinator {
         query,
         forceRefresh,
         feedManager,
+        searchFilters,
         duplicateSearchTtl,
         processResultsCallback,
         scheduleFillCallback,
@@ -33,30 +34,34 @@ class SearchCoordinator {
     ) {
         if (!feedManager) {
             console.error('❌ SEARCH: Feed manager not available');
+
             return;
         }
 
         // Check for duplicate
-        if (this.stateManager.isDuplicateSearch(query, duplicateSearchTtl) && !forceRefresh) {
+        if (this.stateManager.isDuplicateSearch(query, duplicateSearchTtl, searchFilters) && !forceRefresh) {
             if (this.isDebugEnabled()) {
                 console.log(`🔄 SEARCH: Skipping duplicate search for "${query}" (use Enter to force)`);
             }
+
             return;
         }
 
-        this.stateManager.updateLastSearch(query);
+        this.stateManager.updateLastSearch(query, searchFilters);
 
-        const requestId = this.stateManager.initializeSearch(query);
+        const requestId = this.stateManager.initializeSearch(query, searchFilters);
 
         this.paginationManager.clearSeenIds();
-        this.cacheManager.clearCacheFor(query);
+        if (forceRefresh) {
+            this.cacheManager.clearCacheFor(query);
+        }
         setLoadingCallback(true);
         clearFeedCallback();
 
         this.eventEmitter.emitSearchEvent('search:start', { query, requestId }, this.stateManager.state);
 
         try {
-            const results = await this.executionManager.searchImages(feedManager, query, 1);
+            const results = await this.executionManager.searchImages(feedManager, query, 1, searchFilters);
 
             if (this.stateManager.isStaleResponse(requestId)) {
                 return;
@@ -83,4 +88,3 @@ class SearchCoordinator {
 }
 
 window.SearchCoordinator = SearchCoordinator;
-

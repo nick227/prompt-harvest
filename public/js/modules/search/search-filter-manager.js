@@ -60,13 +60,8 @@ class SearchFilterManager {
                 });
             }
 
-            // SIMPLIFIED: Let HybridTabService handle the filtering
-            // It already knows to filter only search results when search is active
-            if (feedManager?.tabService) {
-                feedManager.tabService.switchToFilter(currentFilter);
-            } else {
-                console.warn('⚠️ SEARCH: TabService not available');
-            }
+            // Search membership is determined by API scope/tag filters. DOM
+            // filtering here would make displayed counts diverge from the API.
 
             // Wait for DOM to settle
             await new Promise(resolve => {
@@ -208,4 +203,3 @@ class SearchFilterManager {
 
 // Export for use in SearchManager
 window.SearchFilterManager = SearchFilterManager;
-

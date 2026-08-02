@@ -59,6 +59,7 @@ class SearchDisplayManager {
             if (!isSearchActiveCallback()) {
                 clearInterval(this._feedMonitorInterval);
                 this._feedMonitorInterval = null;
+
                 return;
             }
 
@@ -102,4 +103,3 @@ class SearchDisplayManager {
 }
 
 window.SearchDisplayManager = SearchDisplayManager;
-

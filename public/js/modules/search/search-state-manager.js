@@ -14,6 +14,8 @@ class SearchStateManager {
             hasMore: true,
             isLoading: false,
             autoLoadAttempts: 0,
+            searchFilters: {},
+            totalResults: 0,
             searchCounts: {
                 total: 0,
                 public: 0,
@@ -27,6 +29,7 @@ class SearchStateManager {
 
         // Duplicate search tracking
         this._lastSearchQuery = null;
+        this._lastSearchFingerprint = null;
         this._lastSearchTime = null;
     }
 
@@ -77,12 +80,13 @@ class SearchStateManager {
      * @param {number} duplicateTTL - Duplicate search TTL in ms
      * @returns {boolean}
      */
-    isDuplicateSearch(query, duplicateTTL) {
+    isDuplicateSearch(query, duplicateTTL, filters = {}) {
         const normalizedQuery = query.trim().toLowerCase();
+        const fingerprint = this.createSearchFingerprint(normalizedQuery, filters);
         const now = Date.now();
         const timeSinceLastSearch = this._lastSearchTime ? now - this._lastSearchTime : Infinity;
 
-        return this._lastSearchQuery === normalizedQuery &&
+        return this._lastSearchFingerprint === fingerprint &&
             this.state.isSearchActive &&
             timeSinceLastSearch < duplicateTTL;
     }
@@ -91,9 +95,20 @@ class SearchStateManager {
      * Update last search tracking
      * @param {string} query - Search query
      */
-    updateLastSearch(query) {
+    updateLastSearch(query, filters = {}) {
         this._lastSearchQuery = query.trim().toLowerCase();
+        this._lastSearchFingerprint = this.createSearchFingerprint(this._lastSearchQuery, filters);
         this._lastSearchTime = Date.now();
+    }
+
+    createSearchFingerprint(query, filters = {}) {
+        return JSON.stringify({
+            query,
+            scope: filters.scope || 'all',
+            tags: [...(filters.tags || [])].map(tag => tag.toLowerCase()).sort(),
+            matchType: filters.matchType || 'contains',
+            exactOnly: !!filters.exactOnly
+        });
     }
 
     /**
@@ -101,7 +116,7 @@ class SearchStateManager {
      * @param {string} query - Search query
      * @returns {string} Request ID
      */
-    initializeSearch(query) {
+    initializeSearch(query, filters = {}) {
         const requestId = this.generateRequestId();
 
         this.currentRequestId = requestId;
@@ -110,6 +125,8 @@ class SearchStateManager {
             isSearchActive: true,
             currentSearchTerm: query,
             currentPage: 1,
+            searchFilters: filters,
+            totalResults: 0,
             isLoading: true
         });
 
@@ -126,11 +143,14 @@ class SearchStateManager {
             currentPage: 1,
             hasMore: true,
             isLoading: false,
-            autoLoadAttempts: 0
+            autoLoadAttempts: 0,
+            searchFilters: {},
+            totalResults: 0
         });
 
         this.currentRequestId = null;
         this._lastSearchQuery = null;
+        this._lastSearchFingerprint = null;
         this._lastSearchTime = null;
     }
 
@@ -160,4 +180,3 @@ class SearchStateManager {
 
 // Export for use in SearchManager
 window.SearchStateManager = SearchStateManager;
-

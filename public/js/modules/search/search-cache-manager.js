@@ -28,9 +28,16 @@ class SearchCacheManager {
      * @param {number} page - Page number
      * @returns {string} Cache key (format: query::page)
      */
-    getCacheKey(query, page) {
+    getCacheKey(query, page, filters = {}) {
         // Normalize key: lowercase and trim, use :: delimiter to avoid conflicts
-        return `${query.trim().toLowerCase()}::${page}`;
+        const normalizedFilters = {
+            scope: filters.scope || 'all',
+            tags: [...(filters.tags || [])].map(tag => tag.toLowerCase()).sort(),
+            matchType: filters.matchType || 'contains',
+            exactOnly: !!filters.exactOnly
+        };
+
+        return `${query.trim().toLowerCase()}::${JSON.stringify(normalizedFilters)}::${page}`;
     }
 
     /**
@@ -173,4 +180,3 @@ class SearchCacheManager {
 
 // Export for use in SearchManager
 window.SearchCacheManager = SearchCacheManager;
-

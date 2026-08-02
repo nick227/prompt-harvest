@@ -60,9 +60,11 @@ class SearchScoringService {
      * @param {string} searchTerm - Normalized search term (lowercase)
      * @returns {number} Total relevance score
      */
-    calculateScore(image, searchTerm) {
+    calculateScore(image, searchTerm, matchType = 'contains') {
         // Split search term into words for multi-word support
-        const words = searchTerm.trim().split(/\s+/).filter(Boolean);
+        const words = matchType === 'contains'
+            ? searchTerm.trim().split(/\s+/).filter(Boolean)
+            : [searchTerm.trim()].filter(Boolean);
 
         if (words.length === 0) {
             return 0;
@@ -73,10 +75,10 @@ class SearchScoringService {
         const totalScore = words.reduce((sum, word) => {
             let wordScore = 0;
 
-            wordScore += this.scorePrompt(image.prompt, word);
-            wordScore += this.scoreOriginalPrompt(image.original, image.prompt, word);
-            wordScore += this.scoreTags(image.tags, word);
-            wordScore += this.scoreProviderModel(image.provider, image.model, word);
+            wordScore += this.scorePrompt(image.prompt, word, matchType);
+            wordScore += this.scoreOriginalPrompt(image.original, image.prompt, word, matchType);
+            wordScore += this.scoreTags(image.tags, word, matchType);
+            wordScore += this.scoreProviderModel(image.provider, image.model, word, matchType);
 
             return sum + wordScore;
         }, 0);
@@ -87,22 +89,24 @@ class SearchScoringService {
     /**
      * Score prompt field match
      */
-    scorePrompt(prompt, searchTerm) {
+    scorePrompt(prompt, searchTerm, matchType = 'contains') {
         return this.scoreTextField(prompt, searchTerm, {
             exact: this.config.EXACT_MATCH,
             starts: this.config.STARTS_WITH,
             contains: this.config.CONTAINS
-        });
+        }, matchType);
     }
 
     /**
      * Score original prompt match (bonus if different from enhanced prompt)
      */
-    scoreOriginalPrompt(original, prompt, searchTerm) {
+    scoreOriginalPrompt(original, prompt, searchTerm, matchType = 'contains') {
         const originalLower = (original || '').toLowerCase();
         const promptLower = (prompt || '').toLowerCase();
 
-        if (originalLower && originalLower !== promptLower && originalLower.includes(searchTerm)) {
+        const matches = this.matchesText(originalLower, searchTerm, matchType);
+
+        if (originalLower && originalLower !== promptLower && matches) {
             return this.config.ORIGINAL_BONUS;
         }
 
@@ -112,7 +116,7 @@ class SearchScoringService {
     /**
      * Score all tags
      */
-    scoreTags(tags, searchTerm) {
+    scoreTags(tags, searchTerm, matchType = 'contains') {
         if (!Array.isArray(tags) || tags.length === 0) {
             return 0;
         }
@@ -122,7 +126,7 @@ class SearchScoringService {
                 exact: this.config.EXACT_TAG,
                 starts: this.config.TAG_STARTS,
                 contains: this.config.TAG_CONTAINS
-            }),
+            }, matchType),
             0
         );
     }
@@ -130,16 +134,16 @@ class SearchScoringService {
     /**
      * Score provider and model matches
      */
-    scoreProviderModel(provider, model, searchTerm) {
+    scoreProviderModel(provider, model, searchTerm, matchType = 'contains') {
         const providerLower = (provider || '').toLowerCase();
         const modelLower = (model || '').toLowerCase();
         let score = 0;
 
-        if (providerLower.includes(searchTerm)) {
+        if (this.matchesText(providerLower, searchTerm, matchType)) {
             score += this.config.PROVIDER_MODEL;
         }
 
-        if (modelLower.includes(searchTerm)) {
+        if (this.matchesText(modelLower, searchTerm, matchType)) {
             score += this.config.PROVIDER_MODEL;
         }
 
@@ -151,7 +155,7 @@ class SearchScoringService {
      * DRY: Eliminates repetitive if-else chains
      * @private
      */
-    scoreTextField(text, searchTerm, weights) {
+    scoreTextField(text, searchTerm, weights, matchType = 'contains') {
         const textLower = (text || '').toLowerCase();
 
         if (!textLower) {
@@ -162,8 +166,16 @@ class SearchScoringService {
             return weights.exact;
         }
 
+        if (matchType === 'exact') {
+            return 0;
+        }
+
         if (textLower.startsWith(searchTerm)) {
             return weights.starts;
+        }
+
+        if (matchType === 'startsWith') {
+            return 0;
         }
 
         if (textLower.includes(searchTerm)) {
@@ -171,6 +183,32 @@ class SearchScoringService {
         }
 
         return 0;
+    }
+
+    matchesText(text, searchTerm, matchType = 'contains') {
+        if (!text) {
+            return false;
+        }
+
+        if (matchType === 'exact') {
+            return text === searchTerm;
+        }
+
+        if (matchType === 'startsWith') {
+            return text.startsWith(searchTerm);
+        }
+
+        return text.includes(searchTerm);
+    }
+
+    isExactPromptOrTagMatch(image, searchTerm) {
+        const normalizedTerm = searchTerm.toLowerCase();
+        const promptMatches = (image.prompt || '').toLowerCase() === normalizedTerm;
+        const tagMatches = Array.isArray(image.tags) && image.tags.some(
+            tag => String(tag).toLowerCase() === normalizedTerm
+        );
+
+        return promptMatches || tagMatches;
     }
 
     /**
@@ -204,24 +242,24 @@ class SearchScoringService {
      * EXAMPLE USAGE:
      * --------------
      * // Only exact matches
-     * scoreAndRankResults(images, 'cat', 50, { exactOnly: true })
+     * scoreAndRankResults(images, 'cat', { exactOnly: true })
      *
      * // High relevance only
-     * scoreAndRankResults(images, 'cat', 50, { minScore: 50 })
+     * scoreAndRankResults(images, 'cat', { minScore: 50 })
      *
      * // Tagged images only
-     * scoreAndRankResults(images, 'cat', 50, { tagFilter: 'with' })
+     * scoreAndRankResults(images, 'cat', { tagFilter: 'with' })
      *
      * @param {Array} images - Images to score
      * @param {string} searchTerm - Search term
-     * @param {number} limit - Max results to return
      * @param {Object} options - Filtering options (optional)
      * @returns {Array} Scored and filtered results
      */
-    scoreAndRankResults(images, searchTerm, limit, options = {}) {
+    scoreAndRankResults(images, searchTerm, options = {}) {
         const {
             minScore = 0,
             exactOnly = false,
+            matchType = 'contains',
             tagFilter = 'any',
             specificTags = []
         } = options;
@@ -229,22 +267,22 @@ class SearchScoringService {
         return images
             .map(image => ({
                 ...image,
-                searchScore: this.calculateScore(image, searchTerm)
+                searchScore: this.calculateScore(image, searchTerm, matchType)
             }))
             .filter(img => {
+                const exactMatch = this.isExactPromptOrTagMatch(img, searchTerm);
+
+                if (exactOnly && !exactMatch) {
+                    return false;
+                }
+
                 // Always filter out zero scores (no match at all)
-                if (img.searchScore <= 0) {
+                if (img.searchScore <= 0 && !exactMatch) {
                     return false;
                 }
 
                 // Score filtering
-                if (exactOnly) {
-                    // Only exact matches (prompt or tag)
-                    // Exact prompt = 100, Exact tag = 70
-                    return img.searchScore >= this.config.EXACT_TAG;
-                }
-
-                if (img.searchScore < minScore) {
+                if (!exactOnly && img.searchScore < minScore) {
                     return false;
                 }
 
@@ -259,7 +297,7 @@ class SearchScoringService {
 
                 // Specific tag matching
                 if (specificTags.length > 0) {
-                    const imageTags = (img.tags || []).map(t => t.toLowerCase());
+                    const imageTags = (img.tags || []).map(t => String(t).toLowerCase());
                     const hasMatchingTag = specificTags.some(
                         tag => imageTags.includes(tag.toLowerCase())
                     );
@@ -271,10 +309,20 @@ class SearchScoringService {
 
                 return true;
             })
-            .sort((a, b) => b.searchScore - a.searchScore)
-            .slice(0, limit);
+            .sort((a, b) => {
+                if (b.searchScore !== a.searchScore) {
+                    return b.searchScore - a.searchScore;
+                }
+
+                const createdAtDifference = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+                if (createdAtDifference !== 0) {
+                    return createdAtDifference;
+                }
+
+                return String(b.id).localeCompare(String(a.id));
+            });
     }
 }
 
 export default SearchScoringService;
-

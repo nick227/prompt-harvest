@@ -12,12 +12,26 @@ class SearchAPIUtils {
      * @param {number} page - Page number
      * @returns {string} Complete search URL
      */
-    static buildSearchURL(query, page) {
-        // Manually encode parameters to ensure + for spaces and proper encoding
-        const encodedQuery = encodeURIComponent(query).replace(/%20/g, '+');
-        const encodedPage = encodeURIComponent(page);
+    static buildSearchURL(query, page, filters = {}) {
+        const params = new URLSearchParams({ q: query, page: String(page) });
 
-        return `/api/search/images?q=${encodedQuery}&page=${encodedPage}`;
+        if (filters.scope) {
+            params.set('scope', filters.scope);
+        }
+
+        if (Array.isArray(filters.tags) && filters.tags.length > 0) {
+            params.set('tags', filters.tags.join(','));
+        }
+
+        if (filters.matchType) {
+            params.set('matchType', filters.matchType);
+        }
+
+        if (filters.exactOnly) {
+            params.set('exactOnly', 'true');
+        }
+
+        return `/api/search/images?${params.toString()}`;
     }
 
     /**
@@ -100,4 +114,3 @@ class SearchAPIUtils {
 
 // Export for use in SearchManager
 window.SearchAPIUtils = SearchAPIUtils;
-

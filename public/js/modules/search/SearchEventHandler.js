@@ -12,6 +12,7 @@ class SearchEventHandler {
     setupImageSearch(handleSearchCallback, handleKeyboardCallback, debounceMs) {
         if (!this.domCache.searchInput) {
             console.warn('⚠️ SEARCH: Search input not found');
+
             return;
         }
 
@@ -38,7 +39,7 @@ class SearchEventHandler {
         });
     }
 
-    setupSearchEventListeners(loadMoreCallback, handleTagCallback) {
+    setupSearchEventListeners(loadMoreCallback, handleTagCallback, handleOwnerCallback) {
         const hasScrollListener = this.eventListeners.some(
             listener => listener.target === window && listener.event === 'lastImageVisible'
         );
@@ -50,6 +51,9 @@ class SearchEventHandler {
 
         window.addEventListener('tagsChanged', handleTagCallback);
         this.eventListeners.push({ target: window, event: 'tagsChanged', handler: handleTagCallback });
+
+        window.addEventListener('filterChanged', handleOwnerCallback);
+        this.eventListeners.push({ target: window, event: 'filterChanged', handler: handleOwnerCallback });
     }
 
     handleKeyboardShortcuts(event, clearCallback, performSearchCallback) {
@@ -79,4 +83,3 @@ class SearchEventHandler {
 }
 
 window.SearchEventHandler = SearchEventHandler;
-

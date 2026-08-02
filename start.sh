@@ -6,15 +6,9 @@ echo "🔍 Checking migration status..."
 # In production, automatically apply migrations
 if [ "$NODE_ENV" = "production" ]; then
     echo "🔄 Production mode: Applying migrations automatically..."
-
-    # Check if there are pending migrations
-    if npx prisma migrate status 2>&1 | grep -q "following migration.*not yet been applied"; then
-        echo "📦 Applying pending migrations..."
-        npx prisma migrate deploy
-        echo "✅ Migrations applied successfully!"
-    else
-        echo "✅ Database schema is up to date"
-    fi
+    # migrate deploy is idempotent and avoids brittle parsing of CLI output.
+    npx prisma migrate deploy
+    echo "✅ Migrations are up to date!"
 else
     # In development, just warn about pending migrations
     if npx prisma migrate status 2>&1 | grep -q "following migration.*not yet been applied"; then
@@ -30,4 +24,3 @@ npx prisma generate
 
 echo "🚀 Starting server..."
 exec node server.js
-

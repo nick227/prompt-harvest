@@ -19,9 +19,11 @@
  *
  * Filtering Options:
  *   exactOnly (boolean) - Only exact matches (default: false)
+ *   matchType (string) - contains, exact, or startsWith
  *   minScore (number) - Minimum relevance score (default: 0)
  *   tagFilter (string) - Tag filter: 'any', 'with', 'without' (default: 'any')
  *   tags (string) - Comma-separated tags for specific tag matching
+ *   scope (string) - all visible, public only, or the authenticated user's images
  *
  * EXAMPLES:
  * ---------
@@ -47,6 +49,7 @@
 import { generateRequestId, logRequestStart, logRequestSuccess, logRequestError } from '../utils/RequestLogger.js';
 import { formatErrorResponse } from '../utils/ResponseFormatter.js';
 import SearchService from '../services/search/SearchService.js';
+import SearchV2Service from '../services/search/SearchV2Service.js';
 import databaseClient from '../database/PrismaClient.js';
 import { createSearchConfig } from '../services/search/SearchOptions.js';
 
@@ -68,6 +71,9 @@ export class SearchController {
             databaseClient.getClient(),
             SEARCH_CONFIG
         );
+        this.searchV2Service = new SearchV2Service(databaseClient.getClient(), {
+            validator: SEARCH_CONFIG.validator
+        });
     }
 
     /**
@@ -78,9 +84,11 @@ export class SearchController {
      *
      * Supports filtering options via query params:
      * - exactOnly: true/false
+     * - matchType: contains/exact/startsWith
      * - minScore: number
      * - tagFilter: 'any', 'with', 'without'
      * - tags: 'tag1,tag2,tag3' (comma-separated)
+     * - scope: 'all', 'public', 'private'
      *
      * @param {Object} req - Express request
      * @param {Object} res - Express response
@@ -95,18 +103,22 @@ export class SearchController {
                 page,
                 limit,
                 exactOnly,
+                matchType,
                 minScore,
                 tagFilter,
-                tags
+                tags,
+                scope
             } = req.query;
             const userId = req.user?.id;
 
             // Parse search options from query params
             const searchOptions = this.parseSearchOptions({
                 exactOnly,
+                matchType,
                 minScore,
                 tagFilter,
-                tags
+                tags,
+                scope
             });
 
             // Log request start
@@ -151,6 +163,14 @@ export class SearchController {
                 page: searchResult.pagination.page
             });
 
+            this.runV2ShadowSearch({
+                query,
+                page,
+                limit,
+                userId,
+                ...searchOptions
+            }, searchResult, requestId);
+
             return res.json(response);
 
         } catch (error) {
@@ -163,6 +183,63 @@ export class SearchController {
 
             return res.status(errorResponse.statusCode || 500).json(errorResponse);
         }
+    }
+
+    async searchImagesV2(req, res) {
+        const requestId = req.id || generateRequestId();
+        const startTime = Date.now();
+
+        try {
+            const { q: query, limit, cursor, tags, scope } = req.query;
+            const options = this.parseSearchOptions({
+                tags,
+                scope
+            });
+            const result = await this.searchV2Service.search({
+                query,
+                limit,
+                cursor,
+                userId: req.user?.id,
+                ...options
+            });
+
+            if (!result.success) {
+                return res.status(result.status).json({ success: false, message: result.error });
+            }
+
+            return res.json({
+                ...result,
+                requestId,
+                durationMs: Date.now() - startTime
+            });
+        } catch (error) {
+            const errorResponse = formatErrorResponse(error, requestId, Date.now() - startTime);
+
+            logRequestError(requestId, 'Search Images V2', Date.now() - startTime, error);
+
+            return res.status(errorResponse.statusCode || 500).json(errorResponse);
+        }
+    }
+
+    runV2ShadowSearch(params, v1Result, requestId) {
+        const shadowPercent = Math.min(100, Math.max(0, Number(process.env.SEARCH_V2_SHADOW_PERCENT) || 0));
+        const page = Math.max(1, parseInt(params.page, 10) || 1);
+
+        if (page !== 1 || params.exactOnly ||
+            (params.matchType && params.matchType !== 'contains') ||
+            shadowPercent === 0 || Math.random() * 100 >= shadowPercent) {
+            return;
+        }
+
+        this.searchV2Service.shadowCompare(v1Result, params)
+            .then(comparison => {
+                if (comparison) {
+                    console.log('SEARCH_V2_SHADOW', { requestId, ...comparison });
+                }
+            })
+            .catch(error => {
+                console.warn('SEARCH_V2_SHADOW_FAILED', { requestId, error: error.message });
+            });
     }
 
     /**
@@ -181,6 +258,22 @@ export class SearchController {
             options.exactOnly = queryParams.exactOnly === 'true' ||
                                queryParams.exactOnly === '1' ||
                                queryParams.exactOnly === true;
+        }
+
+        if (queryParams.matchType) {
+            const validMatchTypes = ['contains', 'exact', 'startsWith'];
+
+            if (validMatchTypes.includes(queryParams.matchType)) {
+                options.matchType = queryParams.matchType;
+            }
+        }
+
+        if (queryParams.scope) {
+            const validScopes = ['all', 'public', 'private'];
+
+            if (validScopes.includes(queryParams.scope)) {
+                options.scope = queryParams.scope;
+            }
         }
 
         // Parse minScore (number)

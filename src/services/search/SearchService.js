@@ -103,20 +103,22 @@ class SearchService {
         const options = validateSearchOptions(searchOptions);
 
         // 4. Build query
-        const whereClause = this.queryBuilder.buildWhereClause(userId, searchTerm);
+        const whereClause = this.queryBuilder.buildWhereClause(userId, searchTerm, options);
 
         // 5. Execute search
-        const { images, total } = await this.repository.searchImages(
-            whereClause,
-            pagination
-        );
+        const { images } = await this.repository.searchImages(whereClause);
 
         // 6. Score and rank results with options
-        const scoredImages = this.scorer.scoreAndRankResults(
+        const rankedImages = this.scorer.scoreAndRankResults(
             images,
             searchTerm,
-            pagination.limit,
             options
+        );
+
+        const total = rankedImages.length;
+        const scoredImages = rankedImages.slice(
+            pagination.skip,
+            pagination.skip + pagination.limit
         );
 
         // 7. Return structured results
@@ -153,4 +155,3 @@ class SearchService {
 }
 
 export default SearchService;
-

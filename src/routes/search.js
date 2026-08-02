@@ -20,6 +20,12 @@ export const setupSearchRoutes = searchController => {
         (req, res) => searchController.searchImages(req, res)
     );
 
+    router.get(
+        '/images/v2',
+        authenticateToken,
+        (req, res) => searchController.searchImagesV2(req, res)
+    );
+
     return router;
 };
 
@@ -36,5 +42,10 @@ legacyRouter.get(
     (req, res) => searchController.searchImages(req, res)
 );
 
-export default legacyRouter;
+legacyRouter.get(
+    '/images/v2',
+    authenticateToken,
+    (req, res) => searchController.searchImagesV2(req, res)
+);
 
+export default legacyRouter;

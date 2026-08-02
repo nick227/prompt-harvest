@@ -15,9 +15,9 @@ class SearchQueryBuilder {
      * @param {string} searchTerm - Search term
      * @returns {Object} Prisma WHERE clause
      */
-    buildWhereClause(userId, searchTerm) {
-        const accessFilter = this.buildAccessFilter(userId);
-        const searchConditions = this.buildSearchConditions(searchTerm);
+    buildWhereClause(userId, searchTerm, options = {}) {
+        const accessFilter = this.buildAccessFilter(userId, options.scope);
+        const searchConditions = this.buildSearchConditions(searchTerm, options.matchType);
 
         return this.combineFilters(accessFilter, searchConditions);
     }
@@ -27,11 +27,25 @@ class SearchQueryBuilder {
      * Open/Closed: Easy to extend with new access rules
      * @private
      */
-    buildAccessFilter(userId) {
+    buildAccessFilter(userId, scope = 'all') {
         const baseFilter = {
             isDeleted: false,
             isHidden: false
         };
+
+        if (scope === 'private') {
+            return {
+                ...baseFilter,
+                userId: userId || '__anonymous_user_cannot_match__'
+            };
+        }
+
+        if (scope === 'public' || !userId) {
+            return {
+                ...baseFilter,
+                isPublic: true
+            };
+        }
 
         if (userId) {
             // Authenticated: User's own images OR public images
@@ -44,11 +58,7 @@ class SearchQueryBuilder {
             };
         }
 
-        // Not authenticated: Public images only
-        return {
-            ...baseFilter,
-            isPublic: true
-        };
+        return { ...baseFilter, isPublic: true };
     }
 
     /**
@@ -57,9 +67,11 @@ class SearchQueryBuilder {
      * Open/Closed: Easy to add new search fields
      * @private
      */
-    buildSearchConditions(searchTerm) {
+    buildSearchConditions(searchTerm, matchType = 'contains') {
         // Split search term into words for multi-word support
-        const words = searchTerm.trim().split(/\s+/).filter(Boolean);
+        const words = matchType === 'contains'
+            ? searchTerm.trim().split(/\s+/).filter(Boolean)
+            : [searchTerm.trim()].filter(Boolean);
 
         if (words.length === 0) {
             return { OR: [] };
@@ -68,9 +80,17 @@ class SearchQueryBuilder {
         // For each word, search across all fields
         // "cat flux" → (prompt contains "cat" OR provider contains "cat" OR ...)
         //           OR (prompt contains "flux" OR provider contains "flux" OR ...)
-        const wordConditions = words.flatMap(word => this.searchFields.map(field => ({
-            [field]: { contains: word }
-        })));
+        const textOperator = matchType === 'exact' ? 'equals' : matchType;
+        const wordConditions = words.flatMap(word => [
+            ...this.searchFields.map(field => ({
+                [field]: { [textOperator]: word }
+            })),
+            // MySQL JSON array containment enables exact tag-only discovery.
+            { tags: { path: '$', array_contains: [word] } },
+            // All tagged rows must reach the v1 scorer so prefix/contains tag
+            // matches are not excluded before application-level ranking.
+            { taggedAt: { not: null } }
+        ]);
 
         return { OR: wordConditions };
     }
@@ -112,4 +132,3 @@ class SearchQueryBuilder {
 }
 
 export default SearchQueryBuilder;
-

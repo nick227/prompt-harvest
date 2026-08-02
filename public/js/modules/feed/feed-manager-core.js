@@ -205,6 +205,12 @@ class FeedManager {
                 this.uiManager.updateTagFilterIndicator(activeTags);
             }
 
+            if (window.searchManager?.state?.isSearchActive) {
+                await window.searchManager.handleTagFilterChange(activeTags);
+
+                return;
+            }
+
             // Get current filter
             const currentFilter = this.filterManager.getCurrentFilter();
 
