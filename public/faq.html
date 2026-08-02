@@ -4,329 +4,767 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FAQ - AutoImage AI Image Generator</title>
+    <meta name="description" content="A practical guide to creating, organizing, and finding images with AutoImage." />
+    <title>How AutoImage Works — Product Guide</title>
+    <link rel="icon" href="/images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="css/optimized.css" />
     <link rel="stylesheet" href="css/mobile.css" />
-    <link rel="icon" href="/images/favicon.png" type="image/png" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tailwind Configuration -->
     <script src="js/config/tailwind-config.js"></script>
-    <!-- Input Helper Functions -->
-    <script src="js/utils/input-helpers.js"></script>
-    <!-- Tag Utilities -->
-    <script src="js/utils/tag-utils.js"></script>
     <style>
-        /* ===== FONT IMPORTS ===== */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&display=swap');
-
-        /* ===== TYPOGRAPHY SYSTEM ===== */
-        .hero-text {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            line-height: 0.9;
+        :root {
+            --faq-paper: #f3f0e9;
+            --faq-surface: #ebe7de;
+            --faq-ink: #1e1e1b;
+            --faq-muted: #66645d;
+            --faq-rule: #c9c4b8;
+            --faq-strong-rule: #89857b;
+            --faq-serif: 'Newsreader', Georgia, serif;
+            --faq-sans: 'Inter', Arial, sans-serif;
         }
 
-        .display-text {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            letter-spacing: -0.01em;
-            line-height: 1.1;
+        html {
+            scroll-behavior: smooth;
         }
 
-        .body-text {
-            font-family: 'Inter', sans-serif;
+        body.faq-page {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--faq-paper);
+            color: var(--faq-ink);
+            font-family: var(--faq-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .faq-page header {
+            margin-bottom: 0 !important;
+            border-color: #3e3e3a !important;
+            background: #1e1e1b !important;
+        }
+
+        .faq-page header .bg-gradient-to-br {
+            background: #55534d !important;
+        }
+
+        .faq-page main.faq-main {
+            width: 100%;
+            max-width: none;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .faq-shell {
+            width: min(1180px, calc(100% - 64px));
+            margin: 0 auto;
+            padding: 76px 0 120px;
+        }
+
+        .faq-masthead {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 52px;
+            padding: 22px 0 72px;
+            border-top: 1px solid var(--faq-ink);
+            border-bottom: 1px solid var(--faq-ink);
+        }
+
+        .faq-kicker,
+        .faq-meta,
+        .section-number,
+        .toc-title,
+        .term-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.13em;
+            line-height: 1.4;
+            text-transform: uppercase;
+        }
+
+        .faq-kicker {
+            margin: 5px 0 0;
+        }
+
+        .faq-meta {
+            margin-top: 28px;
+            color: var(--faq-muted);
+            letter-spacing: 0.08em;
+        }
+
+        .faq-masthead h1 {
+            max-width: 850px;
+            margin: 0;
+            font-family: var(--faq-serif);
+            font-size: clamp(4rem, 9vw, 7.5rem);
+            font-weight: 500;
+            letter-spacing: -0.055em;
+            line-height: 0.86;
+        }
+
+        .faq-deck {
+            max-width: 720px;
+            margin: 42px 0 0;
+            color: #484741;
+            font-family: var(--faq-serif);
+            font-size: clamp(1.35rem, 2.4vw, 2rem);
+            line-height: 1.28;
+        }
+
+        .faq-layout {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 52px;
+            padding-top: 58px;
+        }
+
+        .faq-toc {
+            align-self: start;
+            position: sticky;
+            top: 28px;
+        }
+
+        .toc-title {
+            margin: 0 0 18px;
+            color: var(--faq-muted);
+        }
+
+        .faq-toc ol {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            border-top: 1px solid var(--faq-rule);
+        }
+
+        .faq-toc li {
+            border-bottom: 1px solid var(--faq-rule);
+        }
+
+        .faq-toc a {
+            display: grid;
+            grid-template-columns: 28px 1fr;
+            gap: 8px;
+            padding: 11px 0;
+            color: var(--faq-ink);
+            font-size: 0.82rem;
+            line-height: 1.35;
+            text-decoration: none;
+        }
+
+        .faq-toc a span:first-child {
+            color: var(--faq-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .faq-toc a:hover,
+        .faq-toc a:focus-visible {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .faq-article {
+            min-width: 0;
+        }
+
+        .faq-section {
+            scroll-margin-top: 28px;
+            padding: 0 0 76px;
+        }
+
+        .faq-section + .faq-section {
+            padding-top: 22px;
+            border-top: 1px solid var(--faq-ink);
+        }
+
+        .section-heading {
+            display: grid;
+            grid-template-columns: 70px minmax(0, 1fr);
+            gap: 18px;
+            align-items: baseline;
+            margin-bottom: 28px;
+        }
+
+        .section-number {
+            color: var(--faq-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-family: var(--faq-serif);
+            font-size: clamp(2.7rem, 6vw, 5.2rem);
+            font-weight: 500;
+            letter-spacing: -0.045em;
+            line-height: 0.96;
+        }
+
+        .section-intro {
+            max-width: 720px;
+            margin: 0 0 42px 88px;
+            color: #44433e;
+            font-family: var(--faq-serif);
+            font-size: 1.45rem;
+            line-height: 1.42;
+        }
+
+        .function-list {
+            margin: 0 0 0 88px;
+            border-top: 1px solid var(--faq-rule);
+        }
+
+        .function-row {
+            display: grid;
+            grid-template-columns: minmax(150px, 0.8fr) minmax(0, 2fr);
+            gap: 32px;
+            padding: 24px 0 27px;
+            border-bottom: 1px solid var(--faq-rule);
+        }
+
+        .function-row dt,
+        .function-row h3 {
+            margin: 0;
+            font-family: var(--faq-serif);
+            font-size: 1.35rem;
+            font-weight: 600;
+            line-height: 1.15;
+        }
+
+        .function-row dd,
+        .function-row p {
+            margin: 0;
+            color: #4c4a44;
+            font-size: 0.96rem;
+            line-height: 1.7;
+        }
+
+        .function-row p + p {
+            margin-top: 12px;
+        }
+
+        .editorial-note {
+            max-width: 720px;
+            margin: 36px 0 0 88px;
+            padding: 20px 24px;
+            border-left: 3px solid var(--faq-ink);
+            background: var(--faq-surface);
+            color: #3f3e39;
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+
+        .editorial-note strong {
+            color: var(--faq-ink);
+            font-weight: 600;
+        }
+
+        .prompt-example {
+            margin-top: 18px;
+            padding: 15px 17px;
+            border: 1px solid var(--faq-rule);
+            background: rgba(255, 255, 255, 0.25);
+            color: var(--faq-ink);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .qa-list {
+            margin-left: 88px;
+            border-top: 1px solid var(--faq-ink);
+        }
+
+        .qa-list details {
+            border-bottom: 1px solid var(--faq-rule);
+        }
+
+        .qa-list summary {
+            position: relative;
+            padding: 23px 42px 23px 0;
+            cursor: pointer;
+            font-family: var(--faq-serif);
+            font-size: 1.35rem;
+            font-weight: 600;
+            line-height: 1.25;
+            list-style: none;
+        }
+
+        .qa-list summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .qa-list summary::after {
+            position: absolute;
+            top: 21px;
+            right: 4px;
+            content: '+';
+            font-family: var(--faq-sans);
+            font-size: 1.25rem;
             font-weight: 400;
-            letter-spacing: 0.01em;
+        }
+
+        .qa-list details[open] summary::after {
+            content: '−';
+        }
+
+        .qa-list details p {
+            max-width: 680px;
+            margin: -4px 0 25px;
+            color: #4c4a44;
+            font-size: 0.96rem;
+            line-height: 1.7;
+        }
+
+        .faq-closing {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 32px;
+            align-items: end;
+            margin-left: 88px;
+            padding-top: 32px;
+            border-top: 1px solid var(--faq-ink);
+        }
+
+        .faq-closing p {
+            max-width: 580px;
+            margin: 0;
+            font-family: var(--faq-serif);
+            font-size: 1.65rem;
+            line-height: 1.3;
+        }
+
+        .faq-primary-link {
+            display: inline-block;
+            padding-bottom: 4px;
+            border-bottom: 1px solid currentColor;
+            color: var(--faq-ink);
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .faq-primary-link:hover,
+        .faq-primary-link:focus-visible {
+            border-bottom-width: 2px;
+        }
+
+        .faq-footer-note {
+            margin: 70px 0 0 88px;
+            padding-top: 16px;
+            border-top: 1px solid var(--faq-rule);
+            color: var(--faq-muted);
+            font-size: 0.75rem;
             line-height: 1.6;
         }
 
-        .mono-text {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 500;
-            letter-spacing: 0.05em;
+        @media (max-width: 820px) {
+            .faq-shell {
+                width: min(100% - 36px, 720px);
+                padding: 46px 0 80px;
+            }
+
+            .faq-masthead,
+            .faq-layout {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .faq-masthead {
+                padding-bottom: 48px;
+            }
+
+            .faq-meta {
+                margin: 8px 0 38px;
+            }
+
+            .faq-masthead h1 {
+                font-size: clamp(3.75rem, 18vw, 6rem);
+            }
+
+            .faq-layout {
+                padding-top: 34px;
+            }
+
+            .faq-toc {
+                position: static;
+                margin-bottom: 64px;
+            }
+
+            .faq-toc ol {
+                columns: 2;
+                column-gap: 30px;
+            }
+
+            .faq-toc li {
+                break-inside: avoid;
+            }
+
+            .section-intro,
+            .function-list,
+            .editorial-note,
+            .qa-list,
+            .faq-closing,
+            .faq-footer-note {
+                margin-left: 0;
+            }
         }
 
-        /* ===== TEXT EFFECTS ===== */
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .gradient-text-alt {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .text-shadow {
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .text-outline {
-            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1);
-            text-stroke: 1px rgba(255, 255, 255, 0.1);
-        }
-
-        /* ===== ANIMATIONS ===== */
-        .floating {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .pulse-glow {
-            animation: pulse-glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-
-        @keyframes pulse-glow {
-            from { box-shadow: 0 0 20px rgba(102, 126, 234, 0.4); }
-            to { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8); }
-        }
-
-        /* ===== RESPONSIVE DESIGN ===== */
         @media (max-width: 768px) {
-            /* Typography scaling */
-            .hero-text { font-size: 3rem !important; }
-            .text-8xl { font-size: 4rem !important; }
-            .text-6xl { font-size: 3rem !important; }
-            .text-5xl { font-size: 2.5rem !important; }
-            .text-3xl { font-size: 1.5rem !important; }
-            .text-2xl { font-size: 1.25rem !important; }
-            .text-xl { font-size: 1.125rem !important; }
+            .faq-page main.faq-main {
+                padding-top: 120px !important;
+            }
+        }
 
-            /* Spacing adjustments */
-            .p-10 { padding: 1.5rem !important; }
-            .p-16 { padding: 2rem !important; }
-            .mb-24 { margin-bottom: 3rem !important; }
-            .mb-32 { margin-bottom: 4rem !important; }
-            .mb-16 { margin-bottom: 2rem !important; }
-            .gap-16 { gap: 2rem !important; }
-            .gap-12 { gap: 1.5rem !important; }
-            main { margin-top: 200px !important; }
+        @media (max-width: 560px) {
+            .faq-shell {
+                width: calc(100% - 28px);
+                padding-top: 34px;
+            }
+
+            .faq-kicker,
+            .faq-meta {
+                font-size: 0.63rem;
+            }
+
+            .faq-deck {
+                margin-top: 28px;
+                font-size: 1.25rem;
+            }
+
+            .faq-toc ol {
+                columns: 1;
+            }
+
+            .section-heading {
+                grid-template-columns: 42px minmax(0, 1fr);
+                gap: 10px;
+            }
+
+            .section-heading h2 {
+                font-size: 2.85rem;
+            }
+
+            .section-intro {
+                font-size: 1.22rem;
+            }
+
+            .function-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .qa-list summary {
+                font-size: 1.2rem;
+            }
+
+            .faq-closing {
+                grid-template-columns: 1fr;
+                align-items: start;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
         }
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-200 w-full min-h-screen">
-    <main class="max-w-6xl mx-auto px-4 py-8">
-        <!-- Hero Section -->
-        <div class="text-center mb-24">
-            <div class="floating mb-12">
-                <i class="fas fa-magic text-8xl gradient-text"></i>
-            </div>
-            <h1 class="hero-text text-8xl font-black text-white mb-8 leading-tight text-shadow">
-                <span class="gradient-text">AI IMAGES</span><br>
-                <span class="text-6xl text-outline">MADE SIMPLE</span>
-            </h1>
-            <p class="body-text text-3xl text-gray-300 max-w-4xl mx-auto leading-relaxed mb-4">
-                Generate unlimited unique images <span class="gradient-text-alt font-semibold">instantly</span>
-            </p>
-            <div class="flex flex-wrap justify-center gap-8 text-2xl font-semibold tracking-wide">
-                <span class="text-blue-400 display-text">SMART VARIABLES</span>
-                <span class="text-gray-500 text-3xl">•</span>
-                <span class="text-purple-400 display-text">AUTO ENHANCEMENT</span>
-                <span class="text-gray-500 text-3xl">•</span>
-                <span class="text-green-400 display-text">BULK CREATION</span>
-            </div>
-        </div>
+<body class="faq-page">
+    <main class="faq-main">
+        <div class="faq-shell">
+            <section class="faq-masthead" aria-labelledby="faq-title">
+                <div>
+                    <p class="faq-kicker">AutoImage product guide</p>
+                    <p class="faq-meta">Functionality, workflow<br />and common questions</p>
+                </div>
+                <div>
+                    <h1 id="faq-title">How the site works.</h1>
+                    <p class="faq-deck">
+                        AutoImage combines prompt writing, optional language tools, image models, and a searchable
+                        gallery. This guide explains what each control changes and what happens after you press Start.
+                    </p>
+                </div>
+            </section>
 
-        <!-- Core Features Grid -->
-        <div class="grid lg:grid-cols-2 gap-16 mb-32">
-            <!-- Smart Variables -->
-            <div class="bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-3xl p-10 border border-blue-500/20 pulse-glow">
-                <div class="text-center mb-8">
-                    <i class="fas fa-code text-6xl text-blue-400 mb-6"></i>
-                    <h2 class="display-text text-5xl font-black text-white mb-6 text-shadow">
-                        <span class="gradient-text">SMART</span><br>
-                        <span class="text-outline">VARIABLES</span>
-                    </h2>
-                </div>
-                <p class="body-text text-2xl text-gray-300 text-center mb-8 leading-relaxed">
-                    <span class="text-blue-400 font-bold display-text">${VARIABLES}</span> create infinite unique variations automatically
-                </p>
-                <div class="bg-black/30 rounded-2xl p-8 text-center">
-                    <code class="mono-text text-green-400 text-xl block mb-3">
-                        A ${cat} in ${style} art
-                    </code>
-                    <div class="text-gray-400 text-lg body-text">→ Endless possibilities</div>
-                </div>
-            </div>
+            <div class="faq-layout">
+                <nav class="faq-toc" aria-label="Product guide contents">
+                    <p class="toc-title">Contents</p>
+                    <ol>
+                        <li><a href="#overview"><span>00</span><span>Overview</span></a></li>
+                        <li><a href="#create"><span>01</span><span>Create an image</span></a></li>
+                        <li><a href="#prompts"><span>02</span><span>Prompt tools</span></a></li>
+                        <li><a href="#models"><span>03</span><span>Models & settings</span></a></li>
+                        <li><a href="#library"><span>04</span><span>Your image library</span></a></li>
+                        <li><a href="#account"><span>05</span><span>Accounts & credits</span></a></li>
+                        <li><a href="#questions"><span>06</span><span>Common questions</span></a></li>
+                    </ol>
+                </nav>
 
-            <!-- AI Enhancement -->
-            <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-3xl p-10 border border-purple-500/20 pulse-glow">
-                <div class="text-center mb-8">
-                    <i class="fas fa-brain text-6xl text-purple-400 mb-6"></i>
-                    <h2 class="display-text text-5xl font-black text-white mb-6 text-shadow">
-                        <span class="gradient-text-alt">AI</span><br>
-                        <span class="text-outline">ENHANCEMENT</span>
-                    </h2>
-                </div>
-                <p class="body-text text-2xl text-gray-300 text-center mb-8 leading-relaxed">
-                    AI instantly transforms basic prompts into <span class="text-purple-400 font-bold display-text">PROFESSIONAL</span> descriptions
-                </p>
-                <div class="bg-black/30 rounded-2xl p-8 text-center">
-                    <div class="body-text text-gray-400 text-lg mb-3">"A cat sitting"</div>
-                    <div class="text-yellow-400 text-xl mb-3 display-text">↓</div>
-                    <div class="body-text text-green-400 text-lg">"Professional photography, soft lighting, high resolution"</div>
-                </div>
-            </div>
+                <article class="faq-article">
+                    <section class="faq-section" id="overview">
+                        <div class="section-heading">
+                            <span class="section-number">00</span>
+                            <h2>Overview</h2>
+                        </div>
+                        <p class="section-intro">
+                            The basic loop is deliberately short: describe an image, choose how much assistance and
+                            automation you want, generate, then review the result in the same workspace.
+                        </p>
+                        <dl class="function-list">
+                            <div class="function-row">
+                                <dt>Prompt</dt>
+                                <dd>The written instruction sent to the selected image model. It can be concise or highly specific.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Generation</dt>
+                                <dd>One model request that produces an image. Automated runs repeat this request up to the maximum you set.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Result</dt>
+                                <dd>A saved image with its prompt, model, visibility, tags, rating, and creation information.</dd>
+                            </div>
+                        </dl>
+                    </section>
 
-            <!-- Bulk Generation -->
-            <div class="bg-gradient-to-br from-green-900/30 to-teal-900/30 rounded-3xl p-10 border border-green-500/20 pulse-glow">
-                <div class="text-center mb-8">
-                    <i class="fas fa-rocket text-6xl text-green-400 mb-6"></i>
-                    <h2 class="display-text text-5xl font-black text-white mb-6 text-shadow">
-                        <span class="gradient-text">BULK</span><br>
-                        <span class="text-outline">GENERATION</span>
-                    </h2>
-                </div>
-                <p class="body-text text-2xl text-gray-300 text-center mb-8 leading-relaxed">
-                    Create <span class="text-green-400 font-bold display-text">DOZENS OF UNIQUE</span> images from one prompt
-                </p>
-                <div class="bg-black/30 rounded-2xl p-8 text-center">
-                    <div class="flex justify-center space-x-3 mb-4">
-                        <div class="w-12 h-12 bg-green-500 rounded-lg"></div>
-                        <div class="w-12 h-12 bg-blue-500 rounded-lg"></div>
-                        <div class="w-12 h-12 bg-purple-500 rounded-lg"></div>
-                        <div class="w-12 h-12 bg-pink-500 rounded-lg"></div>
+                    <section class="faq-section" id="create">
+                        <div class="section-heading">
+                            <span class="section-number">01</span>
+                            <h2>Create an image</h2>
+                        </div>
+                        <p class="section-intro">
+                            Start with the controls at the top of the home page. You can keep the process manual or let
+                            AutoImage repeat and vary the work for you.
+                        </p>
+                        <div class="function-list">
+                            <div class="function-row">
+                                <h3>Write the prompt</h3>
+                                <div>
+                                    <p>Enter the subject, setting, style, lighting, composition, or mood you want. Clear nouns and concrete visual details usually give the model more to work with than abstract instructions alone.</p>
+                                </div>
+                            </div>
+                            <div class="function-row">
+                                <h3>Choose assistance</h3>
+                                <div>
+                                    <p>Turn on <strong>Enhance</strong> when you want the site to expand the prompt before generation. Leave it off when exact wording matters.</p>
+                                </div>
+                            </div>
+                            <div class="function-row">
+                                <h3>Set repetition</h3>
+                                <div>
+                                    <p>Turn on <strong>Auto</strong> to continue generating without pressing Start for every image. The adjacent maximum limits the run from 1 to 10 generations.</p>
+                                </div>
+                            </div>
+                            <div class="function-row">
+                                <h3>Press Start</h3>
+                                <div>
+                                    <p>The request is validated, sent to the selected model, and added to the gallery when complete. The generation may stop early if the maximum is reached, credits are unavailable, or a provider returns an error.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="faq-section" id="prompts">
+                        <div class="section-heading">
+                            <span class="section-number">02</span>
+                            <h2>Prompt tools</h2>
+                        </div>
+                        <p class="section-intro">
+                            Prompt tools change the text before it reaches the image model. Use them intentionally: they
+                            are useful for exploration, but they make the final instruction less literal.
+                        </p>
+                        <dl class="function-list">
+                            <div class="function-row">
+                                <dt>Variables</dt>
+                                <dd>
+                                    Variable markers use the form <code>${term}</code>. They allow the prompt system to substitute related terms and create variations across an automated run.
+                                    <div class="prompt-example">A ${cat} in ${style} art, soft window light</div>
+                                </dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Enhance</dt>
+                                <dd>Enhancement expands a short instruction into a more descriptive prompt. AutoImage retains the relationship between the original and enhanced text so the result can still be understood later.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Magic prompt</dt>
+                                <dd>The wand control helps develop the current prompt. Treat the output as an editable draft rather than a required format.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Mixup & mashup</dt>
+                                <dd>These drawer settings introduce additional combinations or style blending. They are exploratory controls; turn them off when repeatability matters.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Multiplier text</dt>
+                                <dd>Reusable enhancement text can add a consistent direction across generations—for example, a preferred photographic treatment or production constraint.</dd>
+                            </div>
+                        </dl>
+                        <aside class="editorial-note">
+                            <strong>For reproducible work:</strong> disable Enhance, Mixup, and Mashup; use a fixed prompt;
+                            select one model; and generate one image at a time.
+                        </aside>
+                    </section>
+
+                    <section class="faq-section" id="models">
+                        <div class="section-heading">
+                            <span class="section-number">03</span>
+                            <h2>Models & settings</h2>
+                        </div>
+                        <p class="section-intro">
+                            The drawer contains model choices and generation defaults. Different models interpret the same
+                            words differently, so model selection is part of the creative decision rather than a quality switch.
+                        </p>
+                        <dl class="function-list">
+                            <div class="function-row">
+                                <dt>Models</dt>
+                                <dd>Select the providers or models available to your account. Availability and generation cost can change; the current interface and billing page are the source of truth.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Auto Public</dt>
+                                <dd>When enabled, newly generated images are made public automatically. Leave it disabled when work should remain in your private library.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Auto Download</dt>
+                                <dd>Downloads each completed image to your device in addition to saving it to the site.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Theme</dt>
+                                <dd>Changes the workspace appearance only. Theme selection does not alter the generated image or prompt.</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section class="faq-section" id="library">
+                        <div class="section-heading">
+                            <span class="section-number">04</span>
+                            <h2>Your image library</h2>
+                        </div>
+                        <p class="section-intro">
+                            Generated images remain in the gallery, where they can be viewed, organized, searched, and
+                            separated by ownership. The gallery loads additional results as you move through it.
+                        </p>
+                        <dl class="function-list">
+                            <div class="function-row">
+                                <dt>Public & private</dt>
+                                <dd><strong>Public</strong> shows images shared with everyone. <strong>Private</strong> shows images belonging to the signed-in account, including work that has not been published.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Views</dt>
+                                <dd>Compact, List, and Full change how much image and prompt information appears at once. They do not change the underlying result set.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Search</dt>
+                                <dd>Search checks prompt text and searchable metadata, ranks the complete visible result set, and loads ranked pages as you continue through the gallery. Owner and tag selections travel with the search request.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Tags & ratings</dt>
+                                <dd>Tags provide reusable organization and can narrow the feed or search. Ratings are stored with an image and help distinguish preferred results.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Profiles</dt>
+                                <dd>Public profile pages expose public images only. Private images remain restricted to their owner.</dd>
+                            </div>
+                        </dl>
+                        <aside class="editorial-note">
+                            <strong>Search is contextual.</strong> If an expected image is absent, first confirm the Public or
+                            Private selection and remove any active tag filters. Those choices define which images the server may return.
+                        </aside>
+                    </section>
+
+                    <section class="faq-section" id="account">
+                        <div class="section-heading">
+                            <span class="section-number">05</span>
+                            <h2>Accounts & credits</h2>
+                        </div>
+                        <p class="section-intro">
+                            An account connects generation history, private images, credits, and billing. Public browsing
+                            is broader, but private creation history is always tied to the authenticated user.
+                        </p>
+                        <dl class="function-list">
+                            <div class="function-row">
+                                <dt>Credit balance</dt>
+                                <dd>The header displays the current balance when available. Each image request uses credits according to its model and settings.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Billing</dt>
+                                <dd>The Account page contains credit purchases, transaction information, and image-generation history associated with billing.</dd>
+                            </div>
+                            <div class="function-row">
+                                <dt>Authentication</dt>
+                                <dd>Sign in to generate against your account, see private images, and retain ownership controls. If a session expires, sign in again before retrying a private operation.</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <section class="faq-section" id="questions">
+                        <div class="section-heading">
+                            <span class="section-number">06</span>
+                            <h2>Common questions</h2>
+                        </div>
+                        <div class="qa-list">
+                            <details>
+                                <summary>Why did the site create more than one image?</summary>
+                                <p>Auto was enabled. Turn it off for a single request, or lower the adjacent maximum to reduce the number of generations in an automated run.</p>
+                            </details>
+                            <details>
+                                <summary>Why is the final prompt different from what I typed?</summary>
+                                <p>Enhance, Magic Prompt, Mixup, Mashup, multiplier text, or variable substitution may have changed the instruction before generation. Disable those tools when exact wording matters.</p>
+                            </details>
+                            <details>
+                                <summary>Why can’t I find an image I generated?</summary>
+                                <p>Check whether the gallery is showing Public or Private images, then remove active tag and search filters. A private image will not appear in the public feed or on a public profile.</p>
+                            </details>
+                            <details>
+                                <summary>Why did an automated run stop?</summary>
+                                <p>The configured maximum may have been reached, the account may need credits, the session may have expired, or the selected provider may have returned an error. Check the page notification and header balance before retrying.</p>
+                            </details>
+                            <details>
+                                <summary>How do I keep new work private?</summary>
+                                <p>Leave Auto Public disabled. After generation, confirm the image appears under the Private owner selection before sharing it.</p>
+                            </details>
+                            <details>
+                                <summary>Does changing the gallery view regenerate an image?</summary>
+                                <p>No. Compact, List, and Full are presentation modes for the same saved image and metadata.</p>
+                            </details>
+                            <details>
+                                <summary>How do I download every generated result?</summary>
+                                <p>Enable Auto Download in the drawer before starting the run. Your browser’s download settings may still ask for permission when several files are created.</p>
+                            </details>
+                        </div>
+                    </section>
+
+                    <div class="faq-closing">
+                        <p>The fastest way to understand the controls is to begin with one prompt, one model, and one generation—then add automation deliberately.</p>
+                        <a class="faq-primary-link" href="/">Open the generator&nbsp; →</a>
                     </div>
-                    <div class="body-text text-gray-400 text-lg">All unique, all automatic</div>
-                </div>
-            </div>
 
-            <!-- Multiple Models -->
-            <div class="bg-gradient-to-br from-orange-900/30 to-red-900/30 rounded-3xl p-10 border border-orange-500/20 pulse-glow">
-                <div class="text-center mb-8">
-                    <i class="fas fa-gem text-6xl text-orange-400 mb-6"></i>
-                    <h2 class="display-text text-5xl font-black text-white mb-6 text-shadow">
-                        <span class="gradient-text-alt">PREMIUM</span><br>
-                        <span class="text-outline">MODELS</span>
-                    </h2>
-                </div>
-                <p class="body-text text-2xl text-gray-300 text-center mb-8 leading-relaxed">
-                    <span class="text-orange-400 font-bold display-text">PREMIUM MODELS</span> for maximum quality
-                </p>
-                <div class="bg-black/30 rounded-2xl p-8 text-center">
-                    <div class="grid grid-cols-3 gap-3 mb-4">
-                        <div class="bg-blue-600 rounded-lg p-3 text-sm font-semibold mono-text">DALL-E 3</div>
-                        <div class="bg-green-600 rounded-lg p-3 text-sm font-semibold mono-text">Flux</div>
-                        <div class="bg-purple-600 rounded-lg p-3 text-sm font-semibold mono-text">Imagen</div>
-                    </div>
-                    <div class="body-text text-gray-400 text-lg">Industry-leading quality</div>
-                </div>
+                    <p class="faq-footer-note">
+                        Product behavior and model availability evolve. When this guide and an in-product control differ,
+                        follow the current control, account notice, or billing information shown in the application.
+                    </p>
+                </article>
             </div>
-        </div>
-
-        <!-- How It Works -->
-        <div class="text-center mb-32">
-            <h2 class="display-text text-6xl font-black text-white mb-16 text-shadow">
-                <span class="gradient-text">HOW IT WORKS</span>
-            </h2>
-            <div class="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-                <div class="text-center">
-                    <div class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold shadow-lg display-text">
-                        1
-                    </div>
-                    <h3 class="display-text text-3xl font-bold text-white mb-4 text-shadow">WRITE PROMPT</h3>
-                    <p class="body-text text-xl text-gray-400 leading-relaxed">Add <span class="mono-text text-blue-400">${variables}</span> for infinite variety</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-24 h-24 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold shadow-lg display-text">
-                        2
-                    </div>
-                    <h3 class="display-text text-3xl font-bold text-white mb-4 text-shadow">AI ENHANCES</h3>
-                    <p class="body-text text-xl text-gray-400 leading-relaxed">Instantly improves your prompt</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold shadow-lg display-text">
-                        3
-                    </div>
-                    <h3 class="display-text text-3xl font-bold text-white mb-4 text-shadow">GENERATE</h3>
-                    <p class="body-text text-xl text-gray-400 leading-relaxed">Get dozens of unique images</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Call to Action -->
-        <div class="text-center bg-gradient-to-r from-blue-900/50 to-purple-900/50 rounded-3xl p-16 border border-blue-500/20 mb-8">
-            <h2 class="display-text text-6xl font-black text-white mb-8 text-shadow">
-                <span class="gradient-text">READY TO CREATE?</span>
-            </h2>
-            <p class="body-text text-3xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-                Generate unlimited AI images with <span class="gradient-text-alt font-semibold">smart automation</span>
-            </p>
-            <a href="/" class="inline-flex items-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-6 px-12 rounded-2xl text-2xl transition-all transform hover:scale-105 pulse-glow shadow-2xl display-text tracking-wide">
-                <i class="fas fa-rocket mr-4"></i>
-                START CREATING
-            </a>
         </div>
     </main>
 
-    <!-- Header Component -->
-    <!-- Shared Credit Purchase Modal -->
+    <!-- Shared header and account services -->
     <script src="js/shared/CreditPurchaseModal.js"></script>
     <script src="js/components/transaction-stats-component.js"></script>
     <script src="js/components/header-component.js"></script>
-
-    <!-- Services (must load before components that use them) -->
     <script src="js/services/stats-service.js"></script>
     <script src="js/services/unified-stats-service.js"></script>
     <script src="js/services/unified-event-service.js"></script>
-
-
-    <!-- Core modules -->
     <script src="js/core/constants.js"></script>
     <script src="js/core/utils.js"></script>
-
-    <!-- Authentication utilities (must load early) -->
     <script src="js/core/auth-utils.js"></script>
-
-    <!-- Unified Authentication Utilities (centralized auth interface) -->
     <script src="js/core/unified-auth-utils.js"></script>
-
-    <!-- Load api-service first -->
     <script src="js/core/api-service.js"></script>
-
-    <!-- Notification Service -->
     <script src="js/core/notification-service.js"></script>
-
-    <!-- Unified User System (replaces all user management) -->
     <script src="js/core/user-system.js"></script>
-
-
-    <!-- FAQ-specific functionality -->
-    <script>
-        // Add interactive hover effects to feature cards
-        function addInteractiveEffects() {
-            const cards = document.querySelectorAll('.pulse-glow');
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-5px) scale(1.02)';
-                    this.style.transition = 'transform 0.3s ease-in-out';
-                });
-
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                });
-            });
-        }
-
-        // Initialize FAQ functionality when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            addInteractiveEffects();
-        });
-    </script>
-
 </body>
 
 </html>
