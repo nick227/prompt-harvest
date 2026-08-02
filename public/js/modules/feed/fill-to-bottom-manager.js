@@ -70,7 +70,8 @@ class FillToBottomManager {
      * @returns {boolean} - True if loading should be blocked
      */
     isLoadingBlocked() {
-        return this.uiManager?.getLoading?.() ||
+        return this.feedManager?.isSearchActive?.() ||
+               this.uiManager?.getLoading?.() ||
                this.feedManager?.isRateLimited ||
                this.feedManager?.isLoadingMore;
     }
@@ -103,6 +104,7 @@ class FillToBottomManager {
             return false;
         }
 
+        const requestGeneration = this.feedManager?.getFeedRequestGeneration?.();
         const activeTags = this.tagRouter ? this.tagRouter.getActiveTags() : [];
         const cache = this.cacheManager.getCache(filter, activeTags);
 
@@ -113,6 +115,11 @@ class FillToBottomManager {
         try {
             const nextPage = cache.currentPage + 1;
             const result = await this.apiManager.loadMoreImages(filter, nextPage, activeTags);
+
+            if (this.feedManager &&
+                !this.feedManager.canApplyFeedResponse(requestGeneration)) {
+                return false;
+            }
 
             if (result.images && result.images.length > 0) {
                 this.addLoadedImages({

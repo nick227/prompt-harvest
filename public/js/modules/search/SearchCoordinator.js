@@ -51,6 +51,10 @@ class SearchCoordinator {
 
         const requestId = this.stateManager.initializeSearch(query, searchFilters);
 
+        // Search now owns the shared gallery. Any feed request that began
+        // earlier must be prevented from mutating it when its response arrives.
+        feedManager.invalidatePendingFeedRequests?.();
+
         this.paginationManager.clearSeenIds();
         if (forceRefresh) {
             this.cacheManager.clearCacheFor(query);

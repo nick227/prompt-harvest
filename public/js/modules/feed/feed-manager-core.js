@@ -7,6 +7,7 @@ class FeedManager {
         this.isInitialized = false;
         this.initialLoadPromise = null;
         this.isLoadingMore = false;
+        this._feedRequestGeneration = 0;
 
         // Rate limiting to prevent abuse (pause 3s every 6 pages)
         this.pagesLoadedInSession = 0;
@@ -36,6 +37,24 @@ class FeedManager {
         this.handleLastImageVisible = this.handleLastImageVisible.bind(this);
         this.loadFilterImages = this.loadFilterImages.bind(this);
         this.handleTagChange = this.handleTagChange.bind(this);
+    }
+
+    isSearchActive() {
+        return window.searchManager?.state?.isSearchActive === true;
+    }
+
+    invalidatePendingFeedRequests() {
+        this._feedRequestGeneration++;
+
+        return this._feedRequestGeneration;
+    }
+
+    getFeedRequestGeneration() {
+        return this._feedRequestGeneration;
+    }
+
+    canApplyFeedResponse(requestGeneration) {
+        return requestGeneration === this._feedRequestGeneration && !this.isSearchActive();
     }
 
     // Initialize feed manager
@@ -161,6 +180,10 @@ class FeedManager {
 
     // Handle filter changed event
     async handleFilterChanged(event) {
+        if (this.isSearchActive()) {
+            return;
+        }
+
         const { filter } = event.detail;
 
         // Reset rate limiting when changing filters (each filter gets fresh limit)
@@ -172,6 +195,10 @@ class FeedManager {
 
     // Handle last image visible (infinite scroll)
     async handleLastImageVisible() {
+        if (this.isSearchActive()) {
+            return;
+        }
+
         const currentFilter = this.filterManager.getCurrentFilter();
         const cache = this.cacheManager.getCache(currentFilter);
 
@@ -294,6 +321,13 @@ class FeedManager {
 
     // Load filter images
     async loadFilterImages(filter) {
+        if (this.isSearchActive()) {
+            return false;
+        }
+
+        const requestGeneration = this.invalidatePendingFeedRequests();
+        let promptOutput = null;
+
         try {
             // Check if user can access user filter
             if (filter === FEED_CONSTANTS.FILTERS.PRIVATE && !this.apiManager.isUserAuthenticated()) {
@@ -303,13 +337,22 @@ class FeedManager {
             }
 
             // Start smooth transition (fade out current content)
-            const promptOutput = await this.uiManager.startSmoothTransition();
+            promptOutput = await this.uiManager.startSmoothTransition();
 
             // Get current active tags from tag router
             const activeTags = this.tagRouter ? this.tagRouter.getActiveTags() : [];
 
             // Load images from API with tag filtering (page 1 for initial load)
             const result = await this.apiManager.loadFeedImages(filter, 1, activeTags);
+
+            if (!this.canApplyFeedResponse(requestGeneration)) {
+                if (this.isSearchActive() &&
+                    promptOutput?.classList.contains(FEED_CONSTANTS.CLASSES.TRANSITIONING)) {
+                    await this.uiManager.completeSmoothTransition(promptOutput);
+                }
+
+                return false;
+            }
 
             // Extract hasMore from multiple possible locations in API response
             // Priority: result.hasMore > result.data.hasMore > result.pagination.hasMore > default true
@@ -360,10 +403,18 @@ class FeedManager {
 
             // Check and fill to bottom after initial load
             setTimeout(() => {
-                this.fillToBottomManager.checkAndFillToBottom(filter);
+                if (this.canApplyFeedResponse(requestGeneration)) {
+                    this.fillToBottomManager.checkAndFillToBottom(filter);
+                }
             }, 100);
 
+            return true;
+
         } catch (error) {
+            if (!this.canApplyFeedResponse(requestGeneration)) {
+                return false;
+            }
+
             console.error(`❌ Failed to load ${filter} images:`, error);
 
             // Ensure transition completes even on error
@@ -374,13 +425,23 @@ class FeedManager {
             }
 
             this.domOperations.showErrorMessage();
+
+            return false;
         } finally {
-            this.uiManager.setLoading(false);
+            if (this.canApplyFeedResponse(requestGeneration)) {
+                this.uiManager.setLoading(false);
+            }
         }
     }
 
     // Load more images (pagination)
     async loadMoreImages(filter) {
+        if (this.isSearchActive()) {
+            return false;
+        }
+
+        const requestGeneration = this.getFeedRequestGeneration();
+
         try {
             this.uiManager.setLoading(true);
 
@@ -389,6 +450,10 @@ class FeedManager {
             const nextPage = cache.currentPage + 1;
 
             const result = await this.apiManager.loadMoreImages(filter, nextPage, activeTags);
+
+            if (!this.canApplyFeedResponse(requestGeneration)) {
+                return false;
+            }
 
             // Extract hasMore from multiple possible locations in API response
             // Priority: result.hasMore > result.data.hasMore > result.pagination.hasMore > default false
@@ -414,6 +479,10 @@ class FeedManager {
                 this.uiManager.setLoading(true);
 
                 setTimeout(() => {
+                    if (!this.canApplyFeedResponse(requestGeneration)) {
+                        return;
+                    }
+
                     this.isRateLimited = false;
                     this.uiManager.setLoading(false);
 
@@ -433,13 +502,25 @@ class FeedManager {
 
             // Check and fill to bottom after loading more images
             setTimeout(() => {
-                this.fillToBottomManager.checkAndFillToBottom(filter);
+                if (this.canApplyFeedResponse(requestGeneration)) {
+                    this.fillToBottomManager.checkAndFillToBottom(filter);
+                }
             }, 100);
 
+            return true;
+
         } catch (error) {
+            if (!this.canApplyFeedResponse(requestGeneration)) {
+                return false;
+            }
+
             console.error(`❌ Failed to load more ${filter} images:`, error);
+
+            return false;
         } finally {
-            this.uiManager.setLoading(false);
+            if (this.canApplyFeedResponse(requestGeneration)) {
+                this.uiManager.setLoading(false);
+            }
         }
     }
 
@@ -463,8 +544,11 @@ class FeedManager {
             // Add to cache
             this.cacheManager.addImagesToCache(currentFilter, [imageData]);
 
-            // Add to DOM
-            this.addImageToFeed(imageData, currentFilter);
+            // Search owns the gallery DOM while active. The refreshed feed will
+            // render cached/new images after search is cleared.
+            if (!this.isSearchActive()) {
+                this.addImageToFeed(imageData, currentFilter);
+            }
 
             // Refresh rating dropdown to include new image's rating
             if (window.ratingManager && window.ratingManager.refreshRatingDropdown) {

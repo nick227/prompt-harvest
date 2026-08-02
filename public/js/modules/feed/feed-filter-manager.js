@@ -57,11 +57,9 @@ class FeedFilterManager {
                     // FIX 5: Save previousFilter before updating
                     const previousFilter = this.currentFilter;
 
-                    // When search is active, just filter the search results (don't load new feed images)
+                    // Search membership comes from the API. Update the selected
+                    // scope and ask SearchManager to replace the result set.
                     if (window.feedManager?.tabService) {
-                        window.feedManager.tabService.switchToFilter(newFilter);
-
-                        // Update state for search case (since we're not calling this.switchFilter)
                         this.currentFilter = newFilter;
                         this.syncFilterWithHybridTabService();
 
@@ -578,4 +576,3 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FeedFilterManager;
 }
-

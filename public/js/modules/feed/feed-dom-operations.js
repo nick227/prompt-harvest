@@ -111,7 +111,11 @@ class FeedDOMOperations {
 
     // Get last image element (returns the actual image, not wrapper)
     getLastImageElement() {
-        const wrappers = this.getImageWrappers();
+        const searchActive = window.searchManager?.state?.isSearchActive === true;
+        const selector = searchActive
+            ? '.image-wrapper[data-source="search"]:not(.hidden)'
+            : '.image-wrapper:not([data-source="search"]):not(.hidden)';
+        const wrappers = document.querySelectorAll(selector);
 
         if (wrappers.length === 0) {
             return null;

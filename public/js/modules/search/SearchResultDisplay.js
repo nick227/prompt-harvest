@@ -14,8 +14,7 @@ class SearchResultDisplay {
         appendImagesCallback,
         applyFilterCallback,
         hideFeedImagesCallback,
-        autoLoadCallback,
-        startMonitoringCallback
+        autoLoadCallback
     ) {
         if (results.images.length === 0) {
             showNoResultsCallback(query);
@@ -44,14 +43,11 @@ class SearchResultDisplay {
 
             await autoLoadCallback();
 
-            // Final check: hide any feed images that loaded during search
+            // One-time defensive cleanup for a feed wrapper that was already
+            // committed before search acquired ownership.
             hideFeedImagesCallback();
-
-            // Start continuous monitoring to hide feed images during search
-            startMonitoringCallback();
         }
     }
 }
 
 window.SearchResultDisplay = SearchResultDisplay;
-

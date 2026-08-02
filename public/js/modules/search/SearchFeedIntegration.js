@@ -19,17 +19,27 @@ class SearchFeedIntegration {
         }
 
         images.forEach(image => {
-            this.paginationManager.addSeenImageId(image.id);
-            this.feedManager.imageHandler.addImageToFeed(image, 'search');
+            const wasAdded = this.feedManager.imageHandler.addImageToFeed(image, 'search');
+            const wrapper = this.feedManager.domOperations?.getElement('promptOutput')
+                ?.querySelector(`[data-image-id="${image.id}"][data-source="search"]`);
+
+            if (wasAdded || wrapper) {
+                this.paginationManager.addSeenImageId(image.id);
+            }
         });
 
         this.reapplyView();
+        this.rearmInfiniteScroll();
     }
 
     reapplyView() {
         if (this.feedManager.viewManager?.forceReapplyView) {
             this.feedManager.viewManager.forceReapplyView();
         }
+    }
+
+    rearmInfiniteScroll() {
+        this.feedManager.uiManager?.updateIntersectionObserver?.();
     }
 
     scheduleFillToBottom(loadMoreCallback, aliveFlag) {
@@ -54,4 +64,3 @@ class SearchFeedIntegration {
 }
 
 window.SearchFeedIntegration = SearchFeedIntegration;
-

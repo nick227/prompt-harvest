@@ -20,6 +20,17 @@ class FeedImageHandler {
         const existingWrapper = promptOutput.querySelector(`[data-image-id="${imageData.id}"]`);
 
         if (existingWrapper) {
+            // Replace a feed-owned duplicate after search takes ownership.
+            if (filter === 'search' && existingWrapper.dataset.source !== 'search') {
+                const searchWrapper = this.createImageWrapper(imageData, filter);
+
+                if (searchWrapper) {
+                    existingWrapper.replaceWith(searchWrapper);
+
+                    return true;
+                }
+            }
+
             return false;
         }
 

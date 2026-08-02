@@ -12,6 +12,12 @@ docs/
 public/test-*.js
 server/docs/
 tests/
+!tests/
+tests/*
+!tests/e2e/
+tests/e2e/*
+!tests/e2e/search-races/
+!tests/e2e/search-races/search-feed-ownership.spec.js
 coverage/
 private
 .cursor

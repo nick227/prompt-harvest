@@ -340,6 +340,13 @@ class SearchManager {
             updates => this.updateState(updates),
             error => this.resultProcessor.handleLoadMoreError(error)
         );
+
+        if (this.state.isSearchActive && this.state.hasMore) {
+            this.feedIntegration.rearmInfiniteScroll();
+            this.feedIntegration.scheduleFillToBottom(
+                () => this.loadMoreResults(), this._alive
+            );
+        }
     }
 
     async loadNextPage() {
@@ -387,8 +394,7 @@ class SearchManager {
             imgs => this.feedIntegration.appendImagesToFeed(imgs),
             q => this.applyFilterToResults(q),
             () => this.displayManager.hideFeedImages(),
-            autoLoad,
-            () => this.displayManager.startFeedImageMonitoring(() => this.state.isSearchActive)
+            autoLoad
         );
     }
 

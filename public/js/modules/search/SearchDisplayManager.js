@@ -7,7 +7,6 @@ class SearchDisplayManager {
         this.feedManager = feedManager;
         this.uiManager = uiManager;
         this.isDebugEnabled = debugCallback;
-        this._feedMonitorInterval = null;
     }
 
     setLoadingState(isLoading) {
@@ -50,30 +49,6 @@ class SearchDisplayManager {
         }
     }
 
-    startFeedImageMonitoring(isSearchActiveCallback) {
-        if (this._feedMonitorInterval) {
-            clearInterval(this._feedMonitorInterval);
-        }
-
-        this._feedMonitorInterval = setInterval(() => {
-            if (!isSearchActiveCallback()) {
-                clearInterval(this._feedMonitorInterval);
-                this._feedMonitorInterval = null;
-
-                return;
-            }
-
-            const feedImages = document.querySelectorAll('.image-wrapper:not([data-source="search"]):not(.hidden)');
-
-            if (feedImages.length > 0) {
-                if (this.isDebugEnabled()) {
-                    console.log(`⚠️ Found ${feedImages.length} unhidden feed images, hiding them...`);
-                }
-                feedImages.forEach(img => img.classList.add('hidden'));
-            }
-        }, 500);
-    }
-
     showNoResults(query, clearCallback) {
         this.uiManager.showNoResults(query, clearCallback);
     }
@@ -94,12 +69,7 @@ class SearchDisplayManager {
         this.uiManager.hideSearchActiveIndicator();
     }
 
-    cleanup() {
-        if (this._feedMonitorInterval) {
-            clearInterval(this._feedMonitorInterval);
-            this._feedMonitorInterval = null;
-        }
-    }
+    cleanup() {}
 }
 
 window.SearchDisplayManager = SearchDisplayManager;

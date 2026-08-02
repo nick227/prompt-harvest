@@ -1,6 +1,6 @@
 # Search Roadmap
 
-Status: Phases 1–2 implemented; local migration applied; production shadow rollout pending  
+Status: Phases 1–2 and frontend ownership hardening implemented; production rollout/shadow validation pending
 Scope: site-wide image search on the main gallery  
 Last reviewed: 2026-08-02
 
@@ -127,7 +127,7 @@ Consequently, the database may retrieve a substring match that is later assigned
 
 The API removes the internal score, aliases `imageUrl` to `url`, and returns items, page metadata, `hasMore`, query metadata, a request ID, and duration. The browser accepts several historical response shapes, validates IDs, caches pages, renders through the feed image handler, and deduplicates repeated IDs.
 
-Public/private and active tag filters are then applied in the DOM. Counts shown in the search indicator describe loaded/rendered results, while the API total describes all broad database candidates. They are therefore not the same measure.
+Public/private and active tag filters now travel with the API request. The browser renders the returned membership and uses DOM counts only to describe what is currently mounted. Search and the normal feed still share the gallery renderer, so explicit ownership of that DOM surface is required.
 
 ## What works well
 
@@ -182,16 +182,16 @@ JSON is convenient for display but weak for indexed tag lookup, tag facets, coun
 
 ### P1: maintainability
 
-The frontend search surface is about 3,700 lines across more than 20 global-script classes. The input, URL router, state manager, coordinators, cache, retry strategy, pagination, feed integration, DOM filtering, UI managers, and display managers have overlapping responsibilities. Examples include:
+The frontend search surface is about 3,700 lines across more than 20 global-script classes. The input, URL router, state manager, coordinators, cache, retry strategy, pagination, feed integration, DOM filtering, UI managers, and display managers have overlapping responsibilities. Before the frontend ownership hardening, examples included:
 
-- a cache that is cleared for the query at the start of every normal search, reducing its value;
+- a cache that was cleared for the query at the start of every normal search, reducing its value;
 - both cancellation and request-ID stale-result handling;
 - DOM polling every 500 ms to hide feed images during active search;
 - result counts derived from DOM state rather than response state;
 - multiple compatibility response formats and initialization polling loops;
 - unconditional DOM-search diagnostic logging in a helper.
 
-The abstractions are individually understandable, but the total coordination cost makes behavioral changes risky.
+The abstractions are individually understandable, but the total coordination cost makes behavioral changes risky. Phase 1.5 establishes mutual exclusion between the feed and search without attempting the larger module consolidation.
 
 ### P2: product and operations
 
@@ -421,11 +421,29 @@ Exit criteria:
 - a repeated non-forced search produces a cache hit, while forced refresh bypasses or invalidates it;
 - the interim global-ranking path meets an explicitly agreed latency/candidate-volume safety threshold until Phase 2 ships.
 
+### Phase 1.5 — Frontend search/feed ownership and race elimination
+
+This is a separate bug class from Phase 1/2 backend ranking and retrieval. Search and the normal feed shared one DOM container plus global `lastImageVisible` and `filterChanged` events without mutual exclusion. Under network jitter, normal-feed responses could append into or clear a search result set, after which a polling monitor hid the stray elements. The same conflict could leave infinite-scroll observation attached to a hidden or feed-owned element.
+
+Implementation update (2026-08-02): `searchManager.state.isSearchActive` is the canonical gallery ownership signal. Feed filter reloads, infinite-scroll loads, fill-to-bottom loads, and generated-image DOM insertion stop while search owns the gallery. A monotonically increasing feed request generation prevents requests started before search activation from later changing cache, pagination, errors, or DOM. Observer targeting now selects the last visible search wrapper during search and the last visible feed wrapper otherwise, and search re-arms observation after appends. Search insertion replaces a stray feed-owned duplicate and records an ID as seen only when a search-owned wrapper exists. The 500 ms hide monitor has been removed.
+
+This phase deliberately does not choose containment scoring or multiword AND/OR behavior. The current zero containment weights and minimum-score threshold contradict the documented `contains` default; resolving that contradiction is a separate product/relevance decision and must not be silently bundled into the ownership fix.
+
+Exit criteria:
+
+- normal feed handlers perform no API or DOM work while search is active;
+- a feed response initiated before search activation cannot clear, append to, or show an error over search results;
+- owner/tag changes replace search membership through the API without a competing feed reload;
+- infinite scroll observes the last visible element owned by the active mode and re-arms after every search append;
+- duplicate IDs cannot leave a legitimate result trapped in a hidden feed-owned wrapper;
+- deterministic DOM race tests and real-Chromium delayed-response/filter/observer tests pass;
+- no polling monitor is required to maintain result visibility.
+
 ### Phase 2 — Indexed lexical search (2–4 weeks)
 
 Phase 2 preserves the Phase 1 result semantics while moving retrieval, ranking, filtering, and continuation into an indexed database path.
 
-Implementation update (2026-08-02): an additive migration creates and backfills `image_search_documents`, adds a five-column MySQL FULLTEXT index, and installs insert/update synchronization triggers. `/api/search/images/v2` provides signed query-bound cursor pagination, exact totals, access/tag filtering, and deterministic ordering. `SEARCH_V2_SHADOW_PERCENT` enables privacy-safe v1/v2 comparison logs and defaults to 0. A database-to-schema diff confirmed that the only missing object was the new search-document table. The five historical migrations were then baselined, the Phase 2 migration was applied successfully to the configured local database, and Prisma now reports the database as up to date. Structural verification confirmed the table, five indexed FULLTEXT columns, two synchronization triggers, matching image/document counts, and a successful real v2 query. Production must repeat the diff-and-baseline procedure independently; local migration history does not establish production state.
+Implementation update (2026-08-02): an additive migration creates and backfills `image_search_documents`, adds a five-column MySQL FULLTEXT index, and installs insert/update synchronization triggers. `/api/search/images/v2` provides signed query-bound cursor pagination, exact totals, access/tag filtering, and deterministic ordering. `SEARCH_V2_SHADOW_PERCENT` enables privacy-safe v1/v2 comparison logs and defaults to 0. A database-to-schema diff confirmed that the only missing object was the new search-document table. The five historical migrations were then baselined, the Phase 2 migration was applied successfully to the configured local database, and Prisma now reports the database as up to date. Structural verification confirmed the table, five indexed FULLTEXT columns, two synchronization triggers, matching image/document counts, and a successful real v2 query. Production was independently audited: its five repository migrations are applied and its deployed schema has zero drift, so the Phase 2 migration will deploy as the ordinary sixth migration.
 
 Deliverables:
 
@@ -545,6 +563,9 @@ Treat queries as potentially sensitive user content. Prefer normalized query has
 ### End-to-end tests
 
 - debounce does not render stale results after fast typing;
+- delayed feed responses cannot mutate the gallery after search activates;
+- mid-search owner/tag changes do not start a competing feed reload;
+- hidden or feed-owned elements cannot become the search pagination target;
 - Enter commits/refreshes and Escape clears;
 - URL reload and browser navigation restore query and filters;
 - owner/tag/provider/model filters update results and URL state;
@@ -623,4 +644,4 @@ Frontend:
 
 ## Recommended next action
 
-Begin with one seeded integration suite that defines the expected complete ordered result set. Use it to refactor v1 so ranking/filtering happen before pagination, then implement the remaining Phase 1 items in the authoritative order above. Once v1 is correct and measured, build the normalized search document, MySQL FULLTEXT retrieval, and cursor contract behind the repository boundary and shadow-test v2 before changing visible production results.
+Commit and deploy the completed Phase 1, Phase 1.5, and additive Phase 2 mechanism with v2 shadow traffic still disabled. Verify the production migration, v1 result rendering, feed/search ownership, and pagination under the real corpus. Then enable a low percentage of v2 shadow comparisons and measure authorization safety, duplicate/skipped traversal, P95 latency, and NDCG@10 before changing visible production retrieval. Resolve containment scoring and multiword AND/OR behavior through an explicit product decision rather than as an incidental rollout change.
